@@ -1,0 +1,189 @@
+<script lang="ts">
+	import { goto } from '$app/navigation';
+	import {
+		createProject,
+		deleteProject,
+		duplicateProject,
+		listProjects,
+		saveProject,
+		type ProjectIndexEntry
+	} from '$lib/font/project';
+	import Button from '$lib/ui/Button.svelte';
+	import Field from '$lib/ui/Field.svelte';
+	import Input from '$lib/ui/Input.svelte';
+	import Panel from '$lib/ui/Panel.svelte';
+	import Plus from '@lucide/svelte/icons/plus';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import PenTool from '@lucide/svelte/icons/pen-tool';
+	import Type from '@lucide/svelte/icons/type';
+
+	let projects = $state<ProjectIndexEntry[]>([]);
+	let loading = $state(true);
+	let creating = $state(false);
+	let newName = $state('');
+	let newFamily = $state('');
+
+	const refresh = async () => {
+		projects = await listProjects();
+		loading = false;
+	};
+	refresh();
+
+	const handleCreate = async (e: Event) => {
+		e.preventDefault();
+		const trimmed = newName.trim();
+		if (!trimmed || creating) return;
+		creating = true;
+		try {
+			const project = createProject({
+				name: trimmed,
+				familyName: newFamily.trim() || trimmed
+			});
+			await saveProject(project);
+			await goto(`/project/${project.id}/edit`);
+		} finally {
+			creating = false;
+		}
+	};
+
+	const handleDuplicate = async (id: string) => {
+		await duplicateProject(id);
+		await refresh();
+	};
+
+	const handleDelete = async (entry: ProjectIndexEntry) => {
+		const ok = confirm(`Delete "${entry.name}"? This cannot be undone.`);
+		if (!ok) return;
+		await deleteProject(entry.id);
+		await refresh();
+	};
+
+	const formatRelative = (iso: string): string => {
+		const then = new Date(iso).getTime();
+		const diff = Date.now() - then;
+		const min = Math.round(diff / 60000);
+		if (min < 1) return 'just now';
+		if (min < 60) return `${min}m ago`;
+		const hr = Math.round(min / 60);
+		if (hr < 24) return `${hr}h ago`;
+		const day = Math.round(hr / 24);
+		if (day < 7) return `${day}d ago`;
+		return new Date(iso).toLocaleDateString();
+	};
+</script>
+
+<div class="mx-auto max-w-5xl px-6 py-12 sm:py-20">
+	<header class="mb-12 flex flex-col gap-3">
+		<div
+			class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
+		>
+			<Type class="size-3.5" />
+			Font Studio
+		</div>
+		<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
+			Design your own typeface,<br />
+			<span class="text-fg-muted">one glyph at a time.</span>
+		</h1>
+		<p class="max-w-xl text-base text-fg-muted">
+			Sketch with a pen or trackpad, vectorize, space, kern, and export a real OTF — all in
+			your browser. Every project is saved locally.
+		</p>
+	</header>
+
+	<div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+		<Panel padding="md">
+			<div class="mb-4 flex items-center justify-between">
+				<h2 class="text-sm font-semibold tracking-wide text-fg-muted uppercase">Your fonts</h2>
+				{#if !loading}
+					<span class="text-[12px] text-fg-subtle" data-numeric>
+						{projects.length} project{projects.length === 1 ? '' : 's'}
+					</span>
+				{/if}
+			</div>
+
+			{#if loading}
+				<div class="grid gap-2">
+					{#each [1, 2, 3] as i (i)}
+						<div class="h-16 animate-pulse rounded-lg bg-surface-2"></div>
+					{/each}
+				</div>
+			{:else if projects.length === 0}
+				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
+					<PenTool class="mx-auto mb-3 size-8 text-fg-subtle" />
+					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin.</p>
+				</div>
+			{:else}
+				<ul class="grid gap-2">
+					{#each projects as p (p.id)}
+						<li
+							class="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-2"
+						>
+							<a
+								href="/project/{p.id}/edit"
+								class="flex min-w-0 flex-1 items-center gap-4"
+							>
+								<div
+									class="flex size-12 shrink-0 items-center justify-center rounded-md bg-fg/5 font-mono text-xl font-semibold text-fg"
+								>
+									{(p.familyName[0] ?? 'A').toUpperCase()}
+								</div>
+								<div class="min-w-0 flex-1">
+									<div class="truncate text-sm font-medium text-fg">{p.name}</div>
+									<div class="truncate text-[12px] text-fg-muted" data-numeric>
+										{p.familyName} · {p.glyphCount} drawn · updated {formatRelative(
+											p.updatedAt
+										)}
+									</div>
+								</div>
+							</a>
+							<div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+								<Button
+									variant="ghost"
+									density="sm"
+									onclick={() => handleDuplicate(p.id)}
+									aria-label="Duplicate"
+								>
+									{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+								</Button>
+								<Button
+									variant="ghost"
+									density="sm"
+									onclick={() => handleDelete(p)}
+									aria-label="Delete"
+								>
+									{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
+								</Button>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</Panel>
+
+		<Panel padding="md">
+			<h2 class="mb-4 text-sm font-semibold tracking-wide text-fg-muted uppercase">New font</h2>
+			<form onsubmit={handleCreate} class="grid gap-4">
+				<Field label="Project name" required>
+					<Input
+						bind:value={newName}
+						placeholder="e.g. Personal Sans"
+						required
+						maxlength={60}
+					/>
+				</Field>
+				<Field label="Font family name" hint="Defaults to project name">
+					<Input
+						bind:value={newFamily}
+						placeholder="e.g. Personal Sans"
+						maxlength={60}
+					/>
+				</Field>
+				<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
+					{#snippet icon()}<Plus class="size-4" />{/snippet}
+					{creating ? 'Creating…' : 'Create font'}
+				</Button>
+			</form>
+		</Panel>
+	</div>
+</div>

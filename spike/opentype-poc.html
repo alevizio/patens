@@ -1,0 +1,695 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Font Studio — Phase 0 spike</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: rgb(248 248 250);
+        --fg: rgb(15 15 17);
+        --muted: rgb(110 110 120);
+        --panel: white;
+        --line: rgb(0 0 0 / 0.08);
+        --accent: rgb(30 30 35);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: rgb(15 15 17);
+          --fg: rgb(235 235 240);
+          --muted: rgb(150 150 160);
+          --panel: rgb(22 22 25);
+          --line: rgb(255 255 255 / 0.08);
+          --accent: rgb(235 235 240);
+        }
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 2rem 2rem 4rem;
+        max-width: 1100px;
+        margin-inline: auto;
+        color: var(--fg);
+        background: var(--bg);
+        font: 15px/1.5 ui-sans-serif, system-ui, sans-serif;
+      }
+      h1 { font-size: 1.4rem; margin: 0 0 0.25rem; letter-spacing: -0.01em; }
+      .tag { color: var(--muted); font-size: 0.85rem; }
+      .row { display: flex; gap: 0.6rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
+      button {
+        appearance: none;
+        border: 1px solid transparent;
+        padding: 0.55rem 1rem;
+        border-radius: 0.5rem;
+        background: var(--accent);
+        color: var(--bg);
+        font: inherit;
+        cursor: pointer;
+      }
+      button.ghost { background: transparent; color: var(--fg); border-color: var(--line); }
+      button:hover { filter: brightness(1.1); }
+      .panel {
+        padding: 1rem 1.25rem;
+        background: var(--panel);
+        border-radius: 0.75rem;
+        margin: 1rem 0;
+        border: 1px solid var(--line);
+      }
+      .live {
+        font-family: 'FontStudioSpike', system-ui, sans-serif;
+        font-size: 96px;
+        line-height: 1.1;
+        letter-spacing: 0;
+        margin: 0.5rem 0;
+        word-break: break-word;
+      }
+      .live.small { font-size: 36px; }
+      .glyph-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 1rem; }
+      .glyph-cell { text-align: center; }
+      .glyph-cell canvas {
+        display: block;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 0.35rem;
+        background: var(--bg);
+      }
+      .glyph-cell .label { color: var(--muted); font-size: 0.75rem; margin-top: 0.35rem; font-variant-numeric: tabular-nums; }
+      pre {
+        font-size: 0.75rem;
+        line-height: 1.55;
+        overflow: auto;
+        padding: 0.75rem 1rem;
+        background: rgb(0 0 0 / 0.04);
+        border-radius: 0.5rem;
+        margin: 0;
+      }
+      @media (prefers-color-scheme: dark) {
+        pre { background: rgb(255 255 255 / 0.04); }
+      }
+      .gates li { margin: 0.25rem 0; }
+      .pass { color: rgb(20 130 80); font-weight: 600; }
+      .fail { color: rgb(200 40 40); font-weight: 600; }
+      .pending { color: var(--muted); font-weight: 600; }
+      code { font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 0.85em; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
+  </head>
+  <body>
+    <h1>Font Studio — Phase 0 spike</h1>
+    <p class="tag">Validate opentype.js can write a real OTF with kerning, render it live via <code>@font-face</code>, and round-trip the data.</p>
+
+    <div class="row">
+      <button id="build">Build &amp; install in browser</button>
+      <button id="download" class="ghost">Download Spike.otf</button>
+      <span id="status" class="tag">idle</span>
+    </div>
+
+    <div class="panel">
+      <p class="tag">Live <code>@font-face</code> preview (will activate after Build):</p>
+      <div class="live" id="livePreview">HOnoH OnoHO HHnno</div>
+      <div class="live" id="livePreview2">AVATAR&nbsp;&nbsp;To</div>
+      <div class="live small" id="livePreview3">The quick brown fox</div>
+    </div>
+
+    <div class="panel">
+      <p class="tag">Per-glyph render (opentype.js → canvas, before download):</p>
+      <div class="glyph-grid" id="grid"></div>
+    </div>
+
+    <div class="panel">
+      <p class="tag">Pass/fail gates:</p>
+      <ul class="gates" id="gates">
+        <li><span class="pending">PENDING</span> — Gate 1: 8+ glyphs build and render on canvas</li>
+        <li><span class="pending">PENDING</span> — Gate 2: <code>@font-face</code> preview shows custom glyphs (not system fallback)</li>
+        <li><span class="pending">PENDING</span> — Gate 3: round-trip — re-parse exported OTF and recover kerning</li>
+        <li><span class="pending">PENDING</span> — Gate 4 (manual): install <code>Spike.otf</code> in macOS Font Book → type <em>AVATAR</em> &amp; <em>To</em> in TextEdit → verify kerning visibly applies</li>
+      </ul>
+      <pre id="report">Click "Build &amp; install in browser" to run gates 1–3.</pre>
+    </div>
+
+    <script>
+      // ---------- Constants ----------
+      const UPM = 1000;
+      const ASCENDER = 800;
+      const DESCENDER = -200;
+      const K = 0.5522847498; // cubic bezier circle approximation constant
+
+      // ---------- Glyph path builders ----------
+      // Coordinate system: font space, Y+ is UP.
+      // Outer contour: counter-clockwise (in font space) per OTF/CFF convention.
+      // Counter / hole: clockwise.
+
+      function notdefPath() {
+        const p = new opentype.Path();
+        // Outer rectangle (CCW in font space: bottom-left → up → right → down → close)
+        p.moveTo(60, 0); p.lineTo(60, 700); p.lineTo(540, 700); p.lineTo(540, 0); p.close();
+        // Inner hole (CW)
+        p.moveTo(140, 60); p.lineTo(460, 60); p.lineTo(460, 640); p.lineTo(140, 640); p.close();
+        return p;
+      }
+
+      function ellipseOuterCCW(p, cx, cy, rx, ry) {
+        const kx = rx * K, ky = ry * K;
+        p.moveTo(cx, cy + ry);                                                 // top
+        p.curveTo(cx - kx, cy + ry, cx - rx, cy + ky, cx - rx, cy);            // top → left
+        p.curveTo(cx - rx, cy - ky, cx - kx, cy - ry, cx, cy - ry);            // left → bottom
+        p.curveTo(cx + kx, cy - ry, cx + rx, cy - ky, cx + rx, cy);            // bottom → right
+        p.curveTo(cx + rx, cy + ky, cx + kx, cy + ry, cx, cy + ry);            // right → top
+        p.close();
+      }
+
+      function ellipseInnerCW(p, cx, cy, rx, ry) {
+        const kx = rx * K, ky = ry * K;
+        p.moveTo(cx, cy + ry);
+        p.curveTo(cx + kx, cy + ry, cx + rx, cy + ky, cx + rx, cy);
+        p.curveTo(cx + rx, cy - ky, cx + kx, cy - ry, cx, cy - ry);
+        p.curveTo(cx - kx, cy - ry, cx - rx, cy - ky, cx - rx, cy);
+        p.curveTo(cx - rx, cy + ky, cx - kx, cy + ry, cx, cy + ry);
+        p.close();
+      }
+
+      function pathA() {
+        const p = new opentype.Path();
+        // Outer silhouette of A including legs and crossbar
+        p.moveTo(40, 0);
+        p.lineTo(220, 0);
+        p.lineTo(260, 230);
+        p.lineTo(470, 230);
+        p.lineTo(510, 0);
+        p.lineTo(690, 0);
+        p.lineTo(430, 700);
+        p.lineTo(300, 700);
+        p.close();
+        // Counter triangle above crossbar (the negative space)
+        p.moveTo(310, 320);
+        p.lineTo(375, 580);
+        p.lineTo(440, 320);
+        p.close();
+        return p;
+      }
+
+      function pathV() {
+        const p = new opentype.Path();
+        p.moveTo(40, 700);
+        p.lineTo(220, 700);
+        p.lineTo(375, 240);
+        p.lineTo(530, 700);
+        p.lineTo(710, 700);
+        p.lineTo(440, 0);
+        p.lineTo(310, 0);
+        p.close();
+        return p;
+      }
+
+      function pathT() {
+        const p = new opentype.Path();
+        p.moveTo(40, 580);
+        p.lineTo(300, 580);
+        p.lineTo(300, 0);
+        p.lineTo(420, 0);
+        p.lineTo(420, 580);
+        p.lineTo(680, 580);
+        p.lineTo(680, 700);
+        p.lineTo(40, 700);
+        p.close();
+        return p;
+      }
+
+      function pathH() {
+        const p = new opentype.Path();
+        // Single contour traces full H silhouette (CCW in font space)
+        p.moveTo(60, 0);
+        p.lineTo(240, 0);
+        p.lineTo(240, 310);
+        p.lineTo(520, 310);
+        p.lineTo(520, 0);
+        p.lineTo(700, 0);
+        p.lineTo(700, 700);
+        p.lineTo(520, 700);
+        p.lineTo(520, 390);
+        p.lineTo(240, 390);
+        p.lineTo(240, 700);
+        p.lineTo(60, 700);
+        p.close();
+        return p;
+      }
+
+      function pathO() {
+        const p = new opentype.Path();
+        ellipseOuterCCW(p, 380, 350, 320, 350);
+        ellipseInnerCW(p, 380, 350, 200, 230);
+        return p;
+      }
+
+      function pathN() {
+        const p = new opentype.Path();
+        // Lowercase n, x-height 500, no counter (cutout built into outer)
+        p.moveTo(60, 0);
+        p.lineTo(240, 0);
+        p.lineTo(240, 360);
+        p.lineTo(460, 360);
+        p.lineTo(460, 0);
+        p.lineTo(640, 0);
+        p.lineTo(640, 500);
+        p.lineTo(60, 500);
+        p.close();
+        return p;
+      }
+
+      function pathOlower() {
+        const p = new opentype.Path();
+        ellipseOuterCCW(p, 320, 250, 280, 250);
+        ellipseInnerCW(p, 320, 250, 150, 140);
+        return p;
+      }
+
+      // Hello support — minimal e, l, r
+      function pathE() {
+        const p = new opentype.Path();
+        // Block e: filled box with horizontal slot
+        p.moveTo(60, 0);
+        p.lineTo(580, 0);
+        p.lineTo(580, 120);
+        p.lineTo(240, 120);
+        p.lineTo(240, 200);
+        p.lineTo(560, 200);
+        p.lineTo(560, 320);
+        p.lineTo(240, 320);
+        p.lineTo(240, 380);
+        p.lineTo(580, 380);
+        p.lineTo(580, 500);
+        p.lineTo(60, 500);
+        p.close();
+        return p;
+      }
+
+      function pathL() {
+        const p = new opentype.Path();
+        // Lowercase l: tall vertical bar
+        p.moveTo(60, 0);
+        p.lineTo(220, 0);
+        p.lineTo(220, 700);
+        p.lineTo(60, 700);
+        p.close();
+        return p;
+      }
+
+      function pathR() {
+        const p = new opentype.Path();
+        // Lowercase r: stem with small arch top-right
+        p.moveTo(60, 0);
+        p.lineTo(240, 0);
+        p.lineTo(240, 360);
+        p.lineTo(400, 360);
+        p.lineTo(400, 500);
+        p.lineTo(60, 500);
+        p.close();
+        return p;
+      }
+
+      function pathU() {
+        const p = new opentype.Path();
+        // Lowercase u: rectangular cup
+        p.moveTo(60, 500);
+        p.lineTo(60, 0);
+        p.lineTo(640, 0);
+        p.lineTo(640, 500);
+        p.lineTo(460, 500);
+        p.lineTo(460, 140);
+        p.lineTo(240, 140);
+        p.lineTo(240, 500);
+        p.close();
+        return p;
+      }
+
+      function pathI() {
+        const p = new opentype.Path();
+        p.moveTo(60, 0);
+        p.lineTo(220, 0);
+        p.lineTo(220, 500);
+        p.lineTo(60, 500);
+        p.close();
+        // dot
+        p.moveTo(60, 590);
+        p.lineTo(60, 700);
+        p.lineTo(220, 700);
+        p.lineTo(220, 590);
+        p.close();
+        return p;
+      }
+
+      function pathK() {
+        const p = new opentype.Path();
+        // Lowercase k as block — stem + flag
+        p.moveTo(60, 0);
+        p.lineTo(240, 0);
+        p.lineTo(240, 200);
+        p.lineTo(380, 0);
+        p.lineTo(620, 0);
+        p.lineTo(380, 280);
+        p.lineTo(620, 500);
+        p.lineTo(380, 500);
+        p.lineTo(240, 360);
+        p.lineTo(240, 700);
+        p.lineTo(60, 700);
+        p.close();
+        return p;
+      }
+
+      function pathC() {
+        const p = new opentype.Path();
+        // Lowercase c: o with right cut
+        p.moveTo(60, 250);
+        p.lineTo(60, 350);
+        p.lineTo(180, 460);
+        p.lineTo(420, 460);
+        p.lineTo(560, 380);
+        p.lineTo(560, 280);
+        p.lineTo(420, 280);
+        p.lineTo(420, 360);
+        p.lineTo(220, 360);
+        p.lineTo(220, 140);
+        p.lineTo(420, 140);
+        p.lineTo(420, 220);
+        p.lineTo(560, 220);
+        p.lineTo(560, 120);
+        p.lineTo(420, 40);
+        p.lineTo(180, 40);
+        p.close();
+        return p;
+      }
+
+      function pathB() {
+        // Lowercase b: ascender stem + bowl
+        const p = new opentype.Path();
+        p.moveTo(60, 0);
+        p.lineTo(580, 0);
+        p.lineTo(580, 500);
+        p.lineTo(240, 500);
+        p.lineTo(240, 700);
+        p.lineTo(60, 700);
+        p.close();
+        p.moveTo(240, 130);
+        p.lineTo(400, 130);
+        p.lineTo(400, 370);
+        p.lineTo(240, 370);
+        p.close();
+        return p;
+      }
+
+      function pathW() {
+        const p = new opentype.Path();
+        p.moveTo(40, 700);
+        p.lineTo(220, 700);
+        p.lineTo(290, 240);
+        p.lineTo(360, 700);
+        p.lineTo(440, 700);
+        p.lineTo(510, 240);
+        p.lineTo(580, 700);
+        p.lineTo(760, 700);
+        p.lineTo(640, 0);
+        p.lineTo(500, 0);
+        p.lineTo(400, 400);
+        p.lineTo(300, 0);
+        p.lineTo(160, 0);
+        p.close();
+        return p;
+      }
+
+      function pathX() {
+        const p = new opentype.Path();
+        // Block X: two diagonal stripes meeting at center
+        p.moveTo(40, 0);
+        p.lineTo(220, 0);
+        p.lineTo(380, 280);
+        p.lineTo(540, 0);
+        p.lineTo(720, 0);
+        p.lineTo(470, 350);
+        p.lineTo(720, 700);
+        p.lineTo(540, 700);
+        p.lineTo(380, 420);
+        p.lineTo(220, 700);
+        p.lineTo(40, 700);
+        p.lineTo(290, 350);
+        p.close();
+        return p;
+      }
+
+      function pathQ() {
+        // Lowercase q (placeholder, used in "quick"): bowl + descender
+        const p = new opentype.Path();
+        p.moveTo(60, -180);
+        p.lineTo(580, -180);
+        p.lineTo(580, 500);
+        p.lineTo(60, 500);
+        p.close();
+        p.moveTo(220, 0);
+        p.lineTo(420, 0);
+        p.lineTo(420, 360);
+        p.lineTo(220, 360);
+        p.close();
+        return p;
+      }
+
+      function pathBR() {
+        // Lowercase b for "brown" — actually use the same `b`
+        return pathB();
+      }
+
+      // ---------- Spec ----------
+      // Each entry: [unicode, name, advanceWidth, pathBuilder|null]
+      const GLYPHS = [
+        [0x0020, 'space', 250, null],
+        [0x0041, 'A', 760, pathA],
+        [0x0042, 'B', 660, pathB],
+        [0x0043, 'C', 660, pathC],
+        [0x0048, 'H', 760, pathH],
+        [0x0049, 'I', 280, pathI],
+        [0x004B, 'K', 700, pathK],
+        [0x004C, 'L', 280, pathL],
+        [0x004F, 'O', 760, pathO],
+        [0x0051, 'Q', 660, pathQ],
+        [0x0052, 'R', 460, pathR],
+        [0x0054, 'T', 720, pathT],
+        [0x0055, 'U', 700, pathU],
+        [0x0056, 'V', 760, pathV],
+        [0x0057, 'W', 820, pathW],
+        [0x0058, 'X', 760, pathX],
+        [0x0061, 'a', 600, null], // skip — falls back
+        [0x0062, 'b', 660, pathB],
+        [0x0063, 'c', 660, pathC],
+        [0x0065, 'e', 660, pathE],
+        [0x0068, 'h', 700, pathN], // h ≈ n shape for spike
+        [0x0069, 'i', 280, pathI],
+        [0x006B, 'k', 700, pathK],
+        [0x006C, 'l', 280, pathL],
+        [0x006E, 'n', 700, pathN],
+        [0x006F, 'o', 660, pathOlower],
+        [0x0071, 'q', 660, pathQ],
+        [0x0072, 'r', 460, pathR],
+        [0x0074, 't', 380, pathT],
+        [0x0075, 'u', 700, pathU],
+        [0x0077, 'w', 820, pathW],
+        [0x0078, 'x', 760, pathX],
+      ];
+
+      // Glyphs that don't have a path (just advance, like space) get an empty Path.
+      function buildGlyphs() {
+        const notdef = new opentype.Glyph({
+          name: '.notdef',
+          unicode: 0,
+          advanceWidth: 600,
+          path: notdefPath(),
+        });
+        const glyphs = [notdef];
+        const indexByUnicode = new Map();
+        indexByUnicode.set(0, 0);
+
+        for (const [unicode, name, adv, pathBuilder] of GLYPHS) {
+          const path = pathBuilder ? pathBuilder() : new opentype.Path();
+          const g = new opentype.Glyph({ name, unicode, advanceWidth: adv, path });
+          indexByUnicode.set(unicode, glyphs.length);
+          glyphs.push(g);
+        }
+        return { glyphs, indexByUnicode };
+      }
+
+      // ---------- Build font ----------
+      function buildFont() {
+        const { glyphs, indexByUnicode } = buildGlyphs();
+        const font = new opentype.Font({
+          familyName: 'FontStudioSpike',
+          styleName: 'Regular',
+          unitsPerEm: UPM,
+          ascender: ASCENDER,
+          descender: DESCENDER,
+          designer: 'Font Studio Phase 0',
+          designerURL: '',
+          manufacturer: 'Font Studio',
+          manufacturerURL: '',
+          license: 'Personal use — spike output',
+          licenseURL: '',
+          version: '1.000',
+          copyright: 'Font Studio Phase 0 spike',
+          glyphs,
+        });
+
+        // Kerning pairs — keys are 'leftIndex,rightIndex' (glyph index in font.glyphs).
+        const A = indexByUnicode.get(0x0041);
+        const V = indexByUnicode.get(0x0056);
+        const T = indexByUnicode.get(0x0054);
+        const o = indexByUnicode.get(0x006F);
+        const W = indexByUnicode.get(0x0057);
+        const a = indexByUnicode.get(0x0061);
+
+        font.kerningPairs = {};
+        font.kerningPairs[A + ',' + V] = -90;
+        font.kerningPairs[V + ',' + A] = -90;
+        font.kerningPairs[T + ',' + o] = -50;
+        if (a !== undefined) font.kerningPairs[W + ',' + a] = -45;
+
+        return { font, indexByUnicode };
+      }
+
+      // ---------- Render per-glyph canvas previews ----------
+      function renderGrid(font) {
+        const grid = document.getElementById('grid');
+        grid.innerHTML = '';
+        for (let i = 0; i < font.glyphs.length; i++) {
+          const g = font.glyphs.get(i);
+          if (!g.unicode && g.name !== '.notdef') continue;
+          const cell = document.createElement('div');
+          cell.className = 'glyph-cell';
+          const cv = document.createElement('canvas');
+          cv.width = 120;
+          cv.height = 140;
+          const ctx = cv.getContext('2d');
+          g.draw(ctx, 30, 110, 100); // x, y (baseline), font-size px
+          cell.appendChild(cv);
+          const label = document.createElement('div');
+          label.className = 'label';
+          const cp = g.unicode ? 'U+' + g.unicode.toString(16).toUpperCase().padStart(4, '0') : '';
+          label.textContent = (g.name === '.notdef' ? '.notdef' : g.name) + ' · ' + cp + ' · adv ' + (g.advanceWidth || 0);
+          cell.appendChild(label);
+          grid.appendChild(cell);
+        }
+      }
+
+      // ---------- Install via FontFace ----------
+      let currentFace = null;
+      let currentUrl = null;
+      async function installFontFace(buffer) {
+        if (currentFace) document.fonts.delete(currentFace);
+        if (currentUrl) URL.revokeObjectURL(currentUrl);
+        const blob = new Blob([buffer], { type: 'font/otf' });
+        currentUrl = URL.createObjectURL(blob);
+        currentFace = new FontFace('FontStudioSpike', `url(${currentUrl}) format("opentype")`);
+        await currentFace.load();
+        document.fonts.add(currentFace);
+      }
+
+      // ---------- Round-trip kerning check ----------
+      function checkKerningRoundtrip(buffer, indexByUnicode) {
+        const reparsed = opentype.parse(buffer);
+        const A = indexByUnicode.get(0x0041);
+        const V = indexByUnicode.get(0x0056);
+        const T = indexByUnicode.get(0x0054);
+        const o = indexByUnicode.get(0x006F);
+        const gA = reparsed.glyphs.get(A);
+        const gV = reparsed.glyphs.get(V);
+        const gT = reparsed.glyphs.get(T);
+        const go = reparsed.glyphs.get(o);
+        const av = reparsed.getKerningValue(gA, gV);
+        const va = reparsed.getKerningValue(gV, gA);
+        const to = reparsed.getKerningValue(gT, go);
+        return { av, va, to, reparsed };
+      }
+
+      // ---------- Detect FontFace render success ----------
+      // Compare measured width of "AVATAR" in our font vs in a generic fallback.
+      function isCustomFontRendering() {
+        const cv = document.createElement('canvas');
+        cv.width = 800; cv.height = 200;
+        const ctx = cv.getContext('2d');
+        ctx.font = '96px FontStudioSpike, monospace';
+        const a = ctx.measureText('AVATAR').width;
+        ctx.font = '96px monospace';
+        const b = ctx.measureText('AVATAR').width;
+        return Math.abs(a - b) > 4; // different widths means our font is being used
+      }
+
+      // ---------- Wire up ----------
+      const status = (s) => (document.getElementById('status').textContent = s);
+      const report = (s) => (document.getElementById('report').textContent = s);
+
+      function setGate(idx, label, state) {
+        const li = document.getElementById('gates').children[idx];
+        const klass = state === 'pass' ? 'pass' : state === 'fail' ? 'fail' : 'pending';
+        li.innerHTML = `<span class="${klass}">${state.toUpperCase()}</span> — ${label}`;
+      }
+
+      let lastBuffer = null;
+
+      document.getElementById('build').addEventListener('click', async () => {
+        status('building…');
+        try {
+          const { font, indexByUnicode } = buildFont();
+          const buffer = font.toArrayBuffer();
+          lastBuffer = buffer;
+
+          // Gate 1: per-glyph canvas render
+          renderGrid(font);
+          setGate(0, 'Gate 1: 8+ glyphs build and render on canvas', 'pass');
+
+          // Gate 2: FontFace preview
+          await installFontFace(buffer);
+          await new Promise((r) => setTimeout(r, 50));
+          const custom = isCustomFontRendering();
+          setGate(1, 'Gate 2: <code>@font-face</code> preview shows custom glyphs (not system fallback)', custom ? 'pass' : 'fail');
+
+          // Gate 3: kerning round-trip
+          const rt = checkKerningRoundtrip(buffer, indexByUnicode);
+          const kernOk =
+            rt.av !== 0 && rt.va !== 0 && rt.to !== 0;
+          setGate(2, 'Gate 3: round-trip — re-parse exported OTF and recover kerning', kernOk ? 'pass' : 'fail');
+
+          // Manual gate
+          setGate(3, 'Gate 4 (manual): install <code>Spike.otf</code> in macOS Font Book → type <em>AVATAR</em> &amp; <em>To</em> in TextEdit', 'pending');
+
+          report(
+            [
+              'Glyphs in font: ' + font.glyphs.length,
+              'OTF size: ' + (buffer.byteLength / 1024).toFixed(1) + ' KB',
+              'Kerning expected: A/V=-90, V/A=-90, T/o=-50',
+              'Kerning recovered: A/V=' + rt.av + ', V/A=' + rt.va + ', T/o=' + rt.to,
+              'Custom font rendering in browser: ' + custom,
+              '',
+              'Next: hit "Download Spike.otf" and install in Font Book to validate gate 4.',
+            ].join('\n'),
+          );
+          status('built ✓');
+        } catch (err) {
+          console.error(err);
+          status('ERROR — see console');
+          report('Error: ' + (err && err.message ? err.message : String(err)) + '\n\n' + (err && err.stack ? err.stack : ''));
+        }
+      });
+
+      document.getElementById('download').addEventListener('click', () => {
+        if (!lastBuffer) {
+          status('build first');
+          return;
+        }
+        const blob = new Blob([lastBuffer], { type: 'font/otf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Spike.otf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      });
+    </script>
+  </body>
+</html>

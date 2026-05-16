@@ -1,0 +1,137 @@
+@import 'tailwindcss';
+
+/* -------------------------------------------------------------
+ * Design tokens — three-tier (global → semantic → component)
+ * HSL format for runtime theme switching.
+ * ------------------------------------------------------------- */
+
+@theme {
+	--font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+	--font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, 'Cascadia Mono', monospace;
+
+	--color-canvas: hsl(var(--canvas));
+	--color-surface: hsl(var(--surface));
+	--color-surface-2: hsl(var(--surface-2));
+	--color-overlay: hsl(var(--overlay));
+	--color-border: hsl(var(--border));
+	--color-border-strong: hsl(var(--border-strong));
+	--color-fg: hsl(var(--fg));
+	--color-fg-muted: hsl(var(--fg-muted));
+	--color-fg-subtle: hsl(var(--fg-subtle));
+	--color-accent: hsl(var(--accent));
+	--color-accent-fg: hsl(var(--accent-fg));
+	--color-accent-soft: hsl(var(--accent-soft));
+	--color-success: hsl(var(--success));
+	--color-warn: hsl(var(--warn));
+	--color-danger: hsl(var(--danger));
+	--color-grid: hsl(var(--grid));
+	--color-baseline: hsl(var(--baseline));
+	--color-x-height: hsl(var(--x-height));
+	--color-cap-height: hsl(var(--cap-height));
+	--color-ascender: hsl(var(--ascender));
+	--color-descender: hsl(var(--descender));
+}
+
+@layer base {
+	:root {
+		color-scheme: light dark;
+
+		/* light theme */
+		--canvas: 240 6% 97%;
+		--surface: 0 0% 100%;
+		--surface-2: 240 6% 96%;
+		--overlay: 240 6% 100%;
+		--border: 240 6% 88%;
+		--border-strong: 240 6% 78%;
+		--fg: 240 10% 10%;
+		--fg-muted: 240 5% 38%;
+		--fg-subtle: 240 5% 60%;
+		--accent: 222 88% 55%;
+		--accent-fg: 0 0% 100%;
+		--accent-soft: 222 88% 95%;
+		--success: 145 60% 38%;
+		--warn: 35 90% 50%;
+		--danger: 358 75% 52%;
+
+		/* metrics (used in editor overlays) */
+		--grid: 240 6% 90%;
+		--baseline: 222 88% 55%;
+		--x-height: 145 60% 45%;
+		--cap-height: 222 70% 60%;
+		--ascender: 280 50% 60%;
+		--descender: 20 70% 55%;
+
+		/* preview font family — set dynamically by stores/preview */
+		--preview-family: 'PreviewFont, ui-sans-serif, system-ui';
+	}
+
+	@media (prefers-color-scheme: dark) {
+		:root {
+			--canvas: 240 8% 6%;
+			--surface: 240 8% 9%;
+			--surface-2: 240 8% 12%;
+			--overlay: 240 8% 11%;
+			--border: 240 6% 18%;
+			--border-strong: 240 6% 28%;
+			--fg: 240 8% 95%;
+			--fg-muted: 240 5% 65%;
+			--fg-subtle: 240 5% 45%;
+			--accent: 222 88% 62%;
+			--accent-fg: 240 8% 6%;
+			--accent-soft: 222 60% 18%;
+			--success: 145 60% 50%;
+			--warn: 35 90% 55%;
+			--danger: 358 75% 60%;
+			--grid: 240 6% 16%;
+			--baseline: 222 88% 62%;
+			--x-height: 145 60% 50%;
+			--cap-height: 222 70% 65%;
+			--ascender: 280 50% 65%;
+			--descender: 20 70% 60%;
+		}
+	}
+
+	html,
+	body {
+		height: 100%;
+	}
+
+	body {
+		background: var(--color-canvas);
+		color: var(--color-fg);
+		font-family: var(--font-sans);
+		font-feature-settings:
+			'cv11',
+			'ss01',
+			'ss03';
+		text-rendering: geometricPrecision;
+	}
+
+	/* nicer scrollbars */
+	* {
+		scrollbar-width: thin;
+		scrollbar-color: hsl(var(--border-strong)) transparent;
+	}
+	*::-webkit-scrollbar {
+		width: 10px;
+		height: 10px;
+	}
+	*::-webkit-scrollbar-thumb {
+		background: hsl(var(--border-strong));
+		border-radius: 999px;
+		border: 2px solid transparent;
+		background-clip: padding-box;
+	}
+
+	/* Numeric tabular alignment for metric values everywhere */
+	[data-numeric] {
+		font-variant-numeric: tabular-nums;
+		font-feature-settings: 'tnum';
+	}
+}
+
+@layer utilities {
+	.preview-font {
+		font-family: var(--preview-family);
+	}
+}
