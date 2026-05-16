@@ -1,6 +1,13 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { buildFont } from '$lib/font/export';
+	import {
+		ensurePython,
+		otfToWoff2,
+		projectToUfoZip,
+		subscribeToPython,
+		getPythonProgress
+	} from '$lib/font/python';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -9,8 +16,16 @@
 	import FileJson from '@lucide/svelte/icons/file-json';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import Globe from '@lucide/svelte/icons/globe';
+	import Loader from '@lucide/svelte/icons/loader-2';
 
 	const project = $derived(projectStore.project);
+
+	let pythonProgress = $state(getPythonProgress());
+	let woff2Busy = $state(false);
+	let ufoBusy = $state(false);
+
+	$effect(() => subscribeToPython((p) => (pythonProgress = p)));
 
 	const validation = $derived.by(() => {
 		if (!project) return { ok: false, issues: ['No project loaded'] };
@@ -54,6 +69,42 @@
 			new Blob([buffer], { type: 'font/otf' }),
 			`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.otf`
 		);
+	};
+
+	const exportWoff2 = async () => {
+		if (!project) return;
+		woff2Busy = true;
+		try {
+			await ensurePython();
+			const { font } = buildFont(project);
+			const otfBuffer = font.toArrayBuffer();
+			const woff2 = await otfToWoff2(otfBuffer);
+			downloadBlob(
+				new Blob([woff2], { type: 'font/woff2' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.woff2`
+			);
+		} catch (err) {
+			alert('WOFF2 export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			woff2Busy = false;
+		}
+	};
+
+	const exportUfo = async () => {
+		if (!project) return;
+		ufoBusy = true;
+		try {
+			await ensurePython();
+			const zip = await projectToUfoZip(JSON.stringify(project), project.metadata.familyName);
+			downloadBlob(
+				new Blob([zip], { type: 'application/zip' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}.ufo.zip`
+			);
+		} catch (err) {
+			alert('UFO export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			ufoBusy = false;
+		}
 	};
 
 	const exportProjectJson = () => {
@@ -205,6 +256,45 @@
 					</Button>
 					<span class="text-[12px] text-fg-subtle">
 						Standard OpenType file for design apps and Font Book.
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
+					<Button
+						variant="secondary"
+						onclick={exportWoff2}
+						disabled={!validation.ok || woff2Busy}
+						loading={woff2Busy}
+					>
+						{#snippet icon()}<Globe class="size-4" />{/snippet}
+						{woff2Busy ? 'Compressing…' : 'Export WOFF2'}
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						{#if pythonProgress.stage === 'ready'}
+							Brotli-compressed web font (~30% of OTF size).
+						{:else if pythonProgress.stage === 'idle'}
+							Brotli-compressed web font. First click downloads Python (~10MB, cached).
+						{:else if pythonProgress.stage === 'error'}
+							<span class="text-danger">Python: {pythonProgress.message}</span>
+						{:else}
+							<span class="inline-flex items-center gap-1">
+								<Loader class="size-3 animate-spin" />
+								{pythonProgress.message}
+							</span>
+						{/if}
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
+					<Button
+						variant="secondary"
+						onclick={exportUfo}
+						disabled={!validation.ok || ufoBusy}
+						loading={ufoBusy}
+					>
+						{#snippet icon()}<FileText class="size-4" />{/snippet}
+						{ufoBusy ? 'Packing UFO…' : 'Export UFO 3 (zip)'}
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						Industry-standard editable source. Open in Glyphs, RoboFont, FontLab.
 					</span>
 				</div>
 				<div class="flex items-center gap-3">

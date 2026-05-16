@@ -13,18 +13,42 @@
 	import Input from '$lib/ui/Input.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
 	import { importFromOtf } from '$lib/font/import';
+	import { ensurePython, ufoZipToProject } from '$lib/font/python';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import PenTool from '@lucide/svelte/icons/pen-tool';
 	import Type from '@lucide/svelte/icons/type';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
+	import FileText from '@lucide/svelte/icons/file-text';
+
+	// Well-known OFL families whose Reserved Font Names must be changed in derivative work.
+	const OFL_RESERVED_FAMILIES = [
+		'Inter',
+		'Roboto',
+		'Open Sans',
+		'Source Sans',
+		'Source Code',
+		'Source Serif',
+		'Noto',
+		'Public Sans',
+		'JetBrains Mono',
+		'Fira Sans',
+		'Fira Code',
+		'IBM Plex',
+		'Work Sans',
+		'Lato',
+		'Montserrat',
+		'Recursive'
+	];
 
 	let projects = $state<ProjectIndexEntry[]>([]);
 	let loading = $state(true);
 	let creating = $state(false);
 	let importing = $state(false);
+	let ufoImporting = $state(false);
 	let importError = $state<string | null>(null);
+	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
 
@@ -63,20 +87,67 @@
 		await refresh();
 	};
 
+	const checkReservedName = (family: string): string | null => {
+		const trimmed = family.trim();
+		const hit = OFL_RESERVED_FAMILIES.find((name) =>
+			trimmed.toLowerCase().includes(name.toLowerCase())
+		);
+		if (!hit) return null;
+		return `"${trimmed}" looks like a derivative of the OFL-licensed "${hit}" family. The OFL requires you to change the family name in derivative work before redistributing. Rename the project in Export → Metadata before sharing.`;
+	};
+
 	const handleImport = async (ev: Event) => {
 		const input = ev.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
 		if (!file) return;
 		importing = true;
 		importError = null;
+		importWarning = null;
 		try {
 			const { project } = await importFromOtf(file);
+			importWarning = checkReservedName(project.metadata.familyName);
 			await saveProject(project);
+			if (importWarning) {
+				// Surface warning before navigating away
+				alert(importWarning);
+			}
 			await goto(`/project/${project.id}/edit`);
 		} catch (err) {
 			importError = err instanceof Error ? err.message : 'Could not read this font file.';
 		} finally {
 			importing = false;
+			input.value = '';
+		}
+	};
+
+	const handleUfoImport = async (ev: Event) => {
+		const input = ev.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		ufoImporting = true;
+		importError = null;
+		importWarning = null;
+		try {
+			await ensurePython();
+			const buffer = await file.arrayBuffer();
+			const projectJson = await ufoZipToProject(buffer);
+			const parsed = JSON.parse(projectJson);
+			const ts = new Date().toISOString();
+			const project: Parameters<typeof saveProject>[0] = {
+				...parsed,
+				id: crypto.randomUUID(),
+				name: `${parsed.metadata?.familyName ?? 'Untitled'} (UFO)`,
+				createdAt: ts,
+				updatedAt: ts
+			};
+			importWarning = checkReservedName(project.metadata.familyName);
+			await saveProject(project);
+			if (importWarning) alert(importWarning);
+			await goto(`/project/${project.id}/edit`);
+		} catch (err) {
+			importError = err instanceof Error ? err.message : 'Could not read UFO archive.';
+		} finally {
+			ufoImporting = false;
 			input.value = '';
 		}
 	};
@@ -216,11 +287,11 @@
 					Start from a font
 				</h2>
 				<p class="mb-3 text-[12px] text-fg-subtle">
-					Import an OTF or TTF — all glyphs, metrics, and naming are loaded so you can
-					remix.
+					Import an OTF/TTF to remix, or a UFO 3 archive to round-trip with Glyphs /
+					RoboFont / FontLab.
 				</p>
 				<label
-					class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
+					class="mb-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
 				>
 					<UploadCloud class="size-4" />
 					{importing ? 'Importing…' : 'Choose .otf / .ttf'}
@@ -230,6 +301,19 @@
 						class="sr-only"
 						onchange={handleImport}
 						disabled={importing}
+					/>
+				</label>
+				<label
+					class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
+				>
+					<FileText class="size-4" />
+					{ufoImporting ? 'Loading Python…' : 'Choose .ufo.zip'}
+					<input
+						type="file"
+						accept=".zip,application/zip"
+						class="sr-only"
+						onchange={handleUfoImport}
+						disabled={ufoImporting}
 					/>
 				</label>
 				{#if importError}
