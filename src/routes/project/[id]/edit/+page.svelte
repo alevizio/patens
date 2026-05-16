@@ -3,13 +3,15 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
 	import { DEFAULT_STROKE, sketchToContours } from '$lib/font/sketch-to-bezier';
-	import type { SketchStroke } from '$lib/font/types';
+	import type { BezierContour, SketchStroke } from '$lib/font/types';
 	import { glyphBounds } from '$lib/font/path';
+	import { chaikinSmooth } from '$lib/font/path-edit';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Eraser from '@lucide/svelte/icons/eraser';
+	import MousePointer from '@lucide/svelte/icons/mouse-pointer-2';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
@@ -17,12 +19,14 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 
-	let tool = $state<'pencil' | 'eraser'>('pencil');
+	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
 	let strokeThinning = $state(DEFAULT_STROKE.thinning);
+	let smoothness = $state(1);
 	let showSketch = $state(true);
 	let showVector = $state(true);
 	let showGrid = $state(false);
+	let showReference = $state(true);
 
 	const strokeStyle = $derived({
 		...DEFAULT_STROKE,
@@ -32,6 +36,24 @@
 
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);
+
+	const referenceGlyph = $derived.by(() => {
+		if (!showReference || !glyph || !projectStore.project) return null;
+		const cp = glyph.codepoint;
+		// Pick a sensible reference based on the category of the current glyph
+		const candidates: number[] = [];
+		if (cp >= 0x0041 && cp <= 0x005a) candidates.push(0x0048, 0x004f, 0x004e); // H, O, N
+		else if (cp >= 0x0061 && cp <= 0x007a) candidates.push(0x006e, 0x006f); // n, o
+		else if (cp >= 0x0030 && cp <= 0x0039) candidates.push(0x0030, 0x0031); // 0, 1
+		else if (cp === 0x0020 || cp === 0x002e) return null;
+		else candidates.push(0x0048, 0x006e, 0x006f); // fall back to uppercase H or lowercase n/o
+		for (const c of candidates) {
+			if (c === cp) continue;
+			const g = projectStore.project.glyphs[c];
+			if (g && g.contours.length > 0) return g;
+		}
+		return null;
+	});
 
 	const charLabel = $derived(
 		glyph
@@ -45,7 +67,8 @@
 
 	const trace = () => {
 		if (!glyph || !glyph.sketch || glyph.sketch.length === 0) return;
-		const contours = sketchToContours(glyph.sketch, strokeStyle);
+		const raw = sketchToContours(glyph.sketch, strokeStyle);
+		const contours = chaikinSmooth(raw, smoothness);
 		const bounds = glyphBounds(contours);
 		const advance =
 			contours.length > 0
@@ -59,6 +82,17 @@
 			contours,
 			status: contours.length > 0 ? 'draft' : g.status,
 			advanceWidth: advance
+		}));
+		if (contours.length > 0) tool = 'edit';
+	};
+
+	const handleContoursChange = (contours: BezierContour[]) => {
+		if (!glyph) return;
+		const cp = glyph.codepoint;
+		projectStore.updateGlyph(cp, (g) => ({
+			...g,
+			contours,
+			status: contours.length > 0 ? 'draft' : g.sketch && g.sketch.length > 0 ? 'sketch' : 'empty'
 		}));
 	};
 
@@ -117,6 +151,8 @@
 			tool = 'pencil';
 		} else if (ev.key === 'e' || ev.key === 'E') {
 			tool = 'eraser';
+		} else if (ev.key === 'a' || ev.key === 'A') {
+			if (glyph && glyph.contours.length > 0) tool = 'edit';
 		} else if (ev.key === 't' || ev.key === 'T') {
 			trace();
 		} else if (ev.key === 's' || ev.key === 'S') {
@@ -125,6 +161,8 @@
 			showVector = !showVector;
 		} else if (ev.key === 'g' || ev.key === 'G') {
 			showGrid = !showGrid;
+		} else if (ev.key === 'r' || ev.key === 'R') {
+			showReference = !showReference;
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			undoLastStroke();
@@ -188,6 +226,19 @@
 					>
 						<Eraser class="size-3.5" />
 					</button>
+					<button
+						type="button"
+						onclick={() => (tool = 'edit')}
+						class="inline-flex h-7 w-7 items-center justify-center rounded transition-colors {tool ===
+						'edit'
+							? 'bg-surface text-fg shadow-sm'
+							: 'text-fg-muted hover:text-fg'}"
+						title="Edit points (A)"
+						aria-label="Edit points"
+						disabled={glyph.contours.length === 0}
+					>
+						<MousePointer class="size-3.5" />
+					</button>
 				</div>
 
 				<label class="flex items-center gap-2 pl-2">
@@ -205,6 +256,17 @@
 				</label>
 
 				<div class="ml-auto flex items-center gap-1">
+					<button
+						type="button"
+						onclick={() => (showReference = !showReference)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showReference
+							? 'bg-fg/10 text-fg'
+							: 'text-fg-subtle hover:bg-surface-2'}"
+						title="Toggle reference glyph (R)"
+					>
+						{#if showReference}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
+						Ref
+					</button>
 					<button
 						type="button"
 						onclick={() => (showSketch = !showSketch)}
@@ -252,7 +314,9 @@
 						{showSketch}
 						{showVector}
 						{showGrid}
+						reference={referenceGlyph}
 						onSketchChange={handleSketchChange}
+						onContoursChange={handleContoursChange}
 					/>
 				</div>
 			</div>
@@ -386,7 +450,7 @@
 
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Brush
+					Brush &amp; trace
 				</h3>
 				<div class="grid gap-3">
 					<label class="grid gap-1.5">
@@ -403,6 +467,20 @@
 							class="h-1 accent-fg"
 						/>
 					</label>
+					<label class="grid gap-1.5">
+						<span class="flex items-center justify-between text-[11px] text-fg-muted">
+							<span>Smoothness (trace)</span>
+							<span data-numeric>{smoothness}</span>
+						</span>
+						<input
+							type="range"
+							min={0}
+							max={3}
+							step={1}
+							bind:value={smoothness}
+							class="h-1 accent-fg"
+						/>
+					</label>
 				</div>
 			</div>
 
@@ -410,9 +488,10 @@
 				<p class="mb-1 font-medium">Shortcuts</p>
 				<ul class="grid gap-0.5" data-numeric>
 					<li>[ ]<span class="ml-2 text-fg-muted">prev/next glyph</span></li>
-					<li>P E<span class="ml-2 text-fg-muted">pencil / eraser</span></li>
-					<li>S V G<span class="ml-2 text-fg-muted">toggle sketch / vector / grid</span></li>
+					<li>P E A<span class="ml-2 text-fg-muted">pencil / eraser / edit points</span></li>
+					<li>S V G R<span class="ml-2 text-fg-muted">toggle sketch / vector / grid / ref</span></li>
 					<li>T<span class="ml-2 text-fg-muted">trace to vector</span></li>
+					<li>Del<span class="ml-2 text-fg-muted">delete selected point</span></li>
 					<li>⌘Z<span class="ml-2 text-fg-muted">undo last stroke</span></li>
 				</ul>
 			</div>

@@ -1,15 +1,15 @@
 <script lang="ts">
-	import type { FontMetrics, Glyph, SketchStroke } from '$lib/font/types';
+	import type { BezierContour, FontMetrics, Glyph, SketchStroke } from '$lib/font/types';
 	import {
 		DEFAULT_STROKE,
 		sketchOutlineSvg,
-		strokeToContour,
 		type StrokeStyle
 	} from '$lib/font/sketch-to-bezier';
 	import { contoursToSvgPath } from '$lib/font/path';
 	import MetricsOverlay from './MetricsOverlay.svelte';
+	import VectorPointLayer from './VectorPointLayer.svelte';
 
-	type Tool = 'pencil' | 'eraser';
+	type Tool = 'pencil' | 'eraser' | 'edit';
 
 	type Props = {
 		glyph: Glyph;
@@ -19,8 +19,12 @@
 		showSketch?: boolean;
 		showVector?: boolean;
 		showGrid?: boolean;
+		/** Optional reference glyph rendered behind the current one for proportion comparison. */
+		reference?: Glyph | null;
 		/** Called with the new sketch strokes array (replaces glyph.sketch). */
 		onSketchChange?: (strokes: SketchStroke[]) => void;
+		/** Called when the user moves/adds/deletes points on the vector layer. */
+		onContoursChange?: (contours: BezierContour[]) => void;
 	};
 
 	let {
@@ -31,13 +35,16 @@
 		showSketch = true,
 		showVector = true,
 		showGrid = false,
-		onSketchChange
+		reference = null,
+		onSketchChange,
+		onContoursChange
 	}: Props = $props();
 
 	let svgEl: SVGSVGElement | null = $state(null);
 	let activePointer = $state<number | null>(null);
 	let activeStroke = $state<SketchStroke | null>(null);
 	let liveOutline = $state('');
+	let renderedWidth = $state(800);
 
 	const advance = $derived(Math.max(glyph.advanceWidth, 400));
 	const padX = 100;
@@ -47,6 +54,18 @@
 	const viewBox = $derived(
 		`${-padX} ${-(metrics.ascender + padY)} ${viewW} ${viewH}`
 	);
+	const pixelsPerUnit = $derived(renderedWidth / Math.max(viewW, 1));
+
+	$effect(() => {
+		if (!svgEl) return;
+		const ro = new ResizeObserver((entries) => {
+			for (const e of entries) {
+				renderedWidth = e.contentRect.width;
+			}
+		});
+		ro.observe(svgEl);
+		return () => ro.disconnect();
+	});
 
 	const eventToFont = (ev: PointerEvent): { x: number; y: number } | null => {
 		if (!svgEl) return null;
@@ -62,6 +81,7 @@
 	};
 
 	const handlePointerDown = (ev: PointerEvent) => {
+		if (tool === 'edit') return; // vector layer handles its own events
 		if (ev.button !== 0 && ev.pointerType === 'mouse') return;
 		if (!svgEl) return;
 		const fp = eventToFont(ev);
@@ -168,6 +188,13 @@
 			{showGrid}
 		/>
 
+		<!-- Reference glyph ghosted behind current glyph for proportion comparison -->
+		{#if reference && reference.contours.length > 0 && reference.codepoint !== glyph.codepoint}
+			<g fill="var(--color-fg)" opacity="0.08" fill-rule="evenodd" pointer-events="none">
+				<path d={contoursToSvgPath(reference.contours)} />
+			</g>
+		{/if}
+
 		<!-- Sketch layer (translucent) -->
 		{#if showSketch && glyph.sketch}
 			<g opacity="0.35" fill="var(--color-fg)">
@@ -189,4 +216,14 @@
 			<path d={liveOutline} fill="var(--color-fg)" opacity="0.85" />
 		{/if}
 	</g>
+
+	<!-- Vector point layer overlays on top — uses screen-space (no Y flip), receives its own pointer events -->
+	{#if tool === 'edit' && glyph.contours.length > 0 && onContoursChange}
+		<VectorPointLayer
+			contours={glyph.contours}
+			{pixelsPerUnit}
+			eventToFont={eventToFont}
+			onChange={onContoursChange}
+		/>
+	{/if}
 </svg>
