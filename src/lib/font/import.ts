@@ -110,7 +110,10 @@ export const importFromOtf = async (file: File): Promise<ImportResult> => {
 	}
 
 	const fileBase = file.name.replace(/\.(otf|ttf)$/i, '');
-	const familyName = safeStr((font.names as { fontFamily?: unknown }).fontFamily, fileBase);
+	// Clean variable-font axis tags out of the family name (e.g. "Inter[opsz,wght]" → "Inter")
+	const cleanFamily = (s: string): string => s.replace(/\s*\[[^\]]+\]\s*$/, '').trim() || s;
+	const rawFamily = safeStr((font.names as { fontFamily?: unknown }).fontFamily, fileBase);
+	const familyName = cleanFamily(rawFamily);
 	const styleName = safeStr(
 		(font.names as { fontSubfamily?: unknown }).fontSubfamily,
 		'Regular'
