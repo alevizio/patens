@@ -5,11 +5,12 @@
 		ensurePython,
 		otfToWoff2,
 		projectToUfoZip,
-		compileFeaIntoFont,
+		finalizeFont,
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
 	import { autoFeaSource } from '$lib/font/fea';
+	import { resolveVerticalMetrics } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -21,7 +22,12 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import Loader from '@lucide/svelte/icons/loader-2';
 
+	import { preflightProject } from '$lib/font/audit';
+	import AlertCircle from '@lucide/svelte/icons/alert-circle';
+	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
+
 	const project = $derived(projectStore.project);
+	const preflightIssues = $derived(project ? preflightProject(project) : []);
 
 	let pythonProgress = $state(getPythonProgress());
 	let woff2Busy = $state(false);
@@ -68,12 +74,17 @@
 		const { font } = buildFont(project);
 		let buffer = font.toArrayBuffer();
 		const fea = project.features.feaSource ?? autoFeaSource(project);
-		if (fea && fea.trim().length > 0) {
+		const vm = resolveVerticalMetrics(project.metrics);
+		const needsFinalize = (fea && fea.trim().length > 0) || true;
+		if (needsFinalize) {
 			try {
 				await ensurePython();
-				buffer = await compileFeaIntoFont(buffer, fea);
+				buffer = await finalizeFont(buffer, {
+					feaSource: fea && fea.trim().length > 0 ? fea : undefined,
+					verticalMetrics: vm
+				});
 			} catch (err) {
-				console.warn('Feature compile failed, exporting without:', err);
+				console.warn('Finalize step failed, exporting without:', err);
 			}
 		}
 		return buffer;
@@ -174,6 +185,37 @@
 		projectStore.load(data);
 		input.value = '';
 	};
+
+	const LICENSE_PRESETS: Record<string, { license: string; copyright?: (designer: string) => string }> = {
+		ofl: {
+			license:
+				'This Font Software is licensed under the SIL Open Font License, Version 1.1. ' +
+				'This license is copied below, and is also available with a FAQ at: ' +
+				'https://openfontlicense.org. Reserved Font Names must be changed in derivative work.',
+			copyright: (d) => `Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}, with Reserved Font Names.`
+		},
+		proprietary: {
+			license:
+				'All rights reserved. This font is proprietary and may not be redistributed, ' +
+				'modified, or used outside of the licensed scope without written permission.',
+			copyright: (d) => `Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}. All rights reserved.`
+		},
+		personal: {
+			license:
+				'For personal use only. Not licensed for redistribution, commercial use, or ' +
+				'embedding in software products without permission.'
+		}
+	};
+
+	const applyLicensePreset = (id: string) => {
+		const preset = LICENSE_PRESETS[id];
+		if (!preset || !project) return;
+		const designer = project.metadata.designer ?? '';
+		projectStore.updateMetadata({
+			license: preset.license,
+			...(preset.copyright ? { copyright: preset.copyright(designer) } : {})
+		});
+	};
 </script>
 
 {#if !project}
@@ -229,7 +271,7 @@
 							projectStore.updateMetadata({ copyright: e.currentTarget.value })}
 					/>
 				</Field>
-				<Field label="License">
+				<Field label="License" hint="Use a preset or write your own">
 					<Input
 						value={project.metadata.license}
 						onchange={(e) =>
@@ -237,25 +279,158 @@
 					/>
 				</Field>
 			</div>
+			<div class="mt-3 flex flex-wrap items-center gap-2">
+				<span class="text-[11px] font-medium text-fg-muted">License preset:</span>
+				<button
+					type="button"
+					onclick={() => applyLicensePreset('ofl')}
+					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				>
+					SIL OFL 1.1
+				</button>
+				<button
+					type="button"
+					onclick={() => applyLicensePreset('proprietary')}
+					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				>
+					Proprietary
+				</button>
+				<button
+					type="button"
+					onclick={() => applyLicensePreset('personal')}
+					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				>
+					Personal use only
+				</button>
+			</div>
+		</Panel>
+
+		<Panel>
+			{@const vm = resolveVerticalMetrics(project.metrics)}
+			<h2 class="mb-4 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Vertical metrics
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Cross-platform line spacing depends on OS/2 typo + win + hhea triple matching.
+				Leave these defaulted unless you know you need to override.
+			</p>
+			<div class="grid grid-cols-4 gap-2">
+				<Field label="OS/2 typo asc">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.typoAscender ?? vm.typoAscender}
+						onchange={(e) => projectStore.updateMetrics({ typoAscender: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="OS/2 typo desc">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.typoDescender ?? vm.typoDescender}
+						onchange={(e) => projectStore.updateMetrics({ typoDescender: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="OS/2 line gap">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.typoLineGap ?? vm.typoLineGap}
+						onchange={(e) => projectStore.updateMetrics({ typoLineGap: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="hhea asc">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.hheaAscender ?? vm.hheaAscender}
+						onchange={(e) => projectStore.updateMetrics({ hheaAscender: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="hhea desc">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.hheaDescender ?? vm.hheaDescender}
+						onchange={(e) => projectStore.updateMetrics({ hheaDescender: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="hhea line gap">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.hheaLineGap ?? vm.hheaLineGap}
+						onchange={(e) => projectStore.updateMetrics({ hheaLineGap: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="win ascent">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.winAscent ?? vm.winAscent}
+						onchange={(e) => projectStore.updateMetrics({ winAscent: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+				<Field label="win descent">
+					<Input
+						type="number"
+						density="sm"
+						value={project.metrics.winDescent ?? vm.winDescent}
+						onchange={(e) => projectStore.updateMetrics({ winDescent: Number(e.currentTarget.value) })}
+					/>
+				</Field>
+			</div>
+			<label class="mt-3 flex items-center gap-2 rounded-md bg-surface-2 px-3 py-2">
+				<input
+					type="checkbox"
+					checked={vm.useTypoMetrics}
+					onchange={(e) =>
+						projectStore.updateMetrics({ useTypoMetrics: e.currentTarget.checked })}
+					class="size-4 accent-fg"
+				/>
+				<span class="text-[12px] font-medium text-fg">USE_TYPO_METRICS (recommended on)</span>
+			</label>
 		</Panel>
 
 		<Panel>
 			<h2 class="mb-4 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-				Validation
+				Pre-flight check
 			</h2>
-			{#if validation.ok}
+			{#if validation.ok && preflightIssues.length === 0}
 				<div
 					class="flex items-center gap-2 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
 				>
 					<Sparkles class="size-4" />
-					Ready to export — {validation.drawnCount} glyph{validation.drawnCount === 1 ? '' : 's'}{validation.compositeCount ? ` + ${validation.compositeCount} composite${validation.compositeCount === 1 ? '' : 's'}` : ''}.
+					All checks pass — {validation.drawnCount} glyph{validation.drawnCount === 1 ? '' : 's'}{validation.compositeCount ? ` + ${validation.compositeCount} composite${validation.compositeCount === 1 ? '' : 's'}` : ''}.
 				</div>
 			{:else}
-				<ul class="grid gap-1.5">
-					{#each validation.issues as issue (issue)}
-						<li class="rounded-md bg-warn/10 px-3 py-2 text-[13px] text-warn">{issue}</li>
+				<div class="grid gap-1.5">
+					{#if !validation.ok}
+						{#each validation.issues as issue (issue)}
+							<li class="flex items-start gap-2 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger">
+								<AlertCircle class="mt-0.5 size-3.5 shrink-0" />
+								<span>{issue}</span>
+							</li>
+						{/each}
+					{/if}
+					{#each preflightIssues as issue (issue.code)}
+						<div
+							class="flex items-start gap-2 rounded-md px-3 py-2 text-[12px] {issue.severity ===
+							'error'
+								? 'bg-danger/10 text-danger'
+								: issue.severity === 'warn'
+									? 'bg-warn/10 text-warn'
+									: 'bg-surface-2 text-fg-muted'}"
+						>
+							{#if issue.severity === 'info'}
+								<CheckCircle2 class="mt-0.5 size-3.5 shrink-0" />
+							{:else}
+								<AlertCircle class="mt-0.5 size-3.5 shrink-0" />
+							{/if}
+							<span>{issue.message}</span>
+						</div>
 					{/each}
-				</ul>
+				</div>
 			{/if}
 		</Panel>
 

@@ -180,6 +180,72 @@ font.save('/tmp/out.otf')
 	return buf;
 };
 
+export type FinalizeOpts = {
+	/** Optional .fea source to compile in */
+	feaSource?: string;
+	/** Vertical metrics to write into OS/2 + hhea */
+	verticalMetrics?: {
+		typoAscender: number;
+		typoDescender: number;
+		typoLineGap: number;
+		hheaAscender: number;
+		hheaDescender: number;
+		hheaLineGap: number;
+		winAscent: number;
+		winDescent: number;
+		useTypoMetrics: boolean;
+	};
+};
+
+/**
+ * One-pass post-processing in Python: compile .fea (if given) and apply
+ * vertical metrics (if given). Avoids two round-trips through Pyodide's FS.
+ */
+export const finalizeFont = async (
+	otfBuffer: ArrayBuffer,
+	opts: FinalizeOpts
+): Promise<ArrayBuffer> => {
+	if (!opts.feaSource && !opts.verticalMetrics) return otfBuffer;
+	const py = await ensurePython();
+	py.FS.writeFile('/tmp/in.otf', new Uint8Array(otfBuffer));
+	if (opts.feaSource) py.FS.writeFile('/tmp/features.fea', opts.feaSource);
+
+	const vm = opts.verticalMetrics;
+	const vmStmts = vm
+		? `
+font["OS/2"].sTypoAscender = ${vm.typoAscender}
+font["OS/2"].sTypoDescender = ${vm.typoDescender}
+font["OS/2"].sTypoLineGap = ${vm.typoLineGap}
+font["OS/2"].usWinAscent = ${vm.winAscent}
+font["OS/2"].usWinDescent = ${vm.winDescent}
+font["hhea"].ascent = ${vm.hheaAscender}
+font["hhea"].descent = ${vm.hheaDescender}
+font["hhea"].lineGap = ${vm.hheaLineGap}
+sel = font["OS/2"].fsSelection
+sel = (sel | 0x80) if ${vm.useTypoMetrics ? 'True' : 'False'} else (sel & ~0x80)
+font["OS/2"].fsSelection = sel
+`
+		: '';
+	const feaStmts = opts.feaSource
+		? `
+from fontTools.feaLib.builder import addOpenTypeFeatures
+addOpenTypeFeatures(font, '/tmp/features.fea')
+`
+		: '';
+
+	await py.runPythonAsync(`
+from fontTools.ttLib import TTFont
+font = TTFont('/tmp/in.otf')
+${feaStmts}
+${vmStmts}
+font.save('/tmp/out.otf')
+	`);
+	const out = py.FS.readFile('/tmp/out.otf');
+	const buf = new ArrayBuffer(out.byteLength);
+	new Uint8Array(buf).set(out);
+	return buf;
+};
+
 /**
  * Export the project as a UFO 3 directory bundled into a ZIP. Generated using
  * a small custom writer because we don't need defcon — straight plist + XML.

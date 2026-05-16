@@ -4,6 +4,7 @@
  */
 
 import type { Glyph, Project } from './types';
+import { resolveVerticalMetrics } from './types';
 import { glyphBounds } from './path';
 
 export type AuditSeverity = 'info' | 'warn' | 'error';
@@ -103,6 +104,88 @@ export const auditProject = (project: Project): AuditIssue[] => {
 		out.push(...auditGlyph(g, project));
 	}
 	return out;
+};
+
+/**
+ * Project-level pre-flight checks aligned with FontBakery's check-universal
+ * and Google Fonts' naming/metrics guidance. Run before export.
+ */
+export const preflightProject = (project: Project): AuditIssue[] => {
+	const issues: AuditIssue[] = [];
+
+	// Naming
+	if (!project.metadata.familyName.trim())
+		issues.push({ codepoint: 0, severity: 'error', code: 'naming-family', message: 'Family name is empty' });
+	if (!project.metadata.styleName.trim())
+		issues.push({ codepoint: 0, severity: 'error', code: 'naming-style', message: 'Style name is empty' });
+	if (!project.metadata.version.trim())
+		issues.push({ codepoint: 0, severity: 'warn', code: 'naming-version', message: 'Version is empty (defaulting to 1.000)' });
+	if (project.metadata.familyName.length > 31)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'naming-family-long', message: 'Family name longer than 31 characters may break legacy app menus' });
+	if (/[^A-Za-z0-9 -]/.test(project.metadata.familyName))
+		issues.push({ codepoint: 0, severity: 'warn', code: 'naming-family-chars', message: 'Family name contains special characters — some apps reject anything beyond letters/digits/space' });
+
+	// Vertical metrics consistency (Google Fonts: hhea should match typo)
+	const vm = resolveVerticalMetrics(project.metrics);
+	if (vm.typoAscender !== vm.hheaAscender)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-asc-mismatch', message: `OS/2 typoAscender (${vm.typoAscender}) does not match hhea ascender (${vm.hheaAscender})` });
+	if (vm.typoDescender !== vm.hheaDescender)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-desc-mismatch', message: `OS/2 typoDescender (${vm.typoDescender}) does not match hhea descender (${vm.hheaDescender})` });
+	if (vm.typoLineGap !== vm.hheaLineGap)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-gap-mismatch', message: `OS/2 typoLineGap (${vm.typoLineGap}) does not match hhea lineGap (${vm.hheaLineGap})` });
+	if (!vm.useTypoMetrics)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-use-typo-off', message: 'USE_TYPO_METRICS flag is off — line spacing will vary across platforms' });
+	if (vm.winAscent < vm.typoAscender)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-win-clip-top', message: `winAscent (${vm.winAscent}) is below typoAscender — glyphs may clip on Windows` });
+	if (vm.winDescent < Math.abs(vm.typoDescender))
+		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-win-clip-bottom', message: `winDescent (${vm.winDescent}) is below |typoDescender| — descenders may clip on Windows` });
+
+	// UPM sanity
+	if (project.metrics.unitsPerEm < 1000 || project.metrics.unitsPerEm > 16384)
+		issues.push({ codepoint: 0, severity: 'warn', code: 'upm-unusual', message: `UPM ${project.metrics.unitsPerEm} is outside the typical 1000–2048 range` });
+
+	// Control-glyph coverage
+	const controlGlyphs = [0x004e, 0x004f, 0x006e, 0x006f, 0x0048, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079];
+	const missingControl = controlGlyphs.filter(
+		(cp) => (project.glyphs[cp]?.contours.length ?? 0) === 0
+	);
+	if (missingControl.length > 0) {
+		const labels = missingControl.map((cp) => String.fromCodePoint(cp)).join(' ');
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'control-glyphs-missing',
+			message: `Control set incomplete (${missingControl.length}/12): ${labels} — these set proportion + texture for the whole family`
+		});
+	}
+
+	// Anchor coverage on composite bases
+	let anchorless = 0;
+	for (const g of Object.values(project.glyphs)) {
+		if (g.contours.length > 0 && (g.codepoint >= 0x0041 && g.codepoint <= 0x007a)) {
+			const anchors = g.anchors ?? [];
+			if (anchors.length === 0) anchorless++;
+		}
+	}
+	if (anchorless > 0)
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'anchors-missing',
+			message: `${anchorless} Latin base glyphs have no anchors — composites with marks will use fixed offsets instead of proper positioning`
+		});
+
+	// Glyph count vs declared character set
+	const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
+	if (drawn < 26)
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'glyph-count-low',
+			message: `Only ${drawn} glyphs drawn — most apps expect at least full A–Z + a–z + 0–9 + punctuation (~95 glyphs) for a usable font`
+		});
+
+	return sortBySeverity(issues);
 };
 
 export const SEVERITY_ORDER: Record<AuditSeverity, number> = {

@@ -51,6 +51,20 @@
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);
 
+	// Control-glyph onboarding (n o H O a e s c p v y f g — the canonical proportion/texture set)
+	const CONTROL_GLYPHS = [0x006e, 0x006f, 0x0048, 0x004f, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079, 0x0066, 0x0067];
+	const totalDrawn = $derived(
+		projectStore.project
+			? Object.values(projectStore.project.glyphs).filter((g) => g.contours.length > 0).length
+			: 0
+	);
+	const controlMissing = $derived(
+		projectStore.project
+			? CONTROL_GLYPHS.filter((cp) => (projectStore.project!.glyphs[cp]?.contours.length ?? 0) === 0)
+			: []
+	);
+	const showControlHint = $derived(totalDrawn < 13 && controlMissing.length > 0);
+
 	const referenceGlyph = $derived.by(() => {
 		if (!showReference || !glyph || !projectStore.project) return null;
 		const cp = glyph.codepoint;
@@ -451,6 +465,28 @@
 					</button>
 				</div>
 			</div>
+
+			<!-- Onboarding control-glyph hint -->
+			{#if showControlHint}
+				<div
+					class="flex items-center gap-3 border-b border-border bg-accent-soft/30 px-4 py-2 text-[12px] text-fg-muted"
+				>
+					<span class="font-medium text-accent">Start here →</span>
+					<span>Draw these {controlMissing.length} first; they set proportion + texture for everything else.</span>
+					<div class="ml-auto flex flex-wrap items-center gap-1">
+						{#each controlMissing as cp (cp)}
+							<button
+								type="button"
+								onclick={() => projectStore.selectGlyph(cp)}
+								class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
+								title="Jump to {String.fromCodePoint(cp)}"
+							>
+								{String.fromCodePoint(cp)}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
 
 			<!-- Canvas area -->
 			<div class="relative min-h-0 flex-1 overflow-hidden bg-canvas p-6">

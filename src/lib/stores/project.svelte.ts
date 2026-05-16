@@ -4,7 +4,8 @@
  */
 
 import type { Glyph, KerningPair, Project } from '$lib/font/types';
-import { saveProject } from '$lib/font/project';
+import { addScriptPack as addScriptPackHelper, saveProject } from '$lib/font/project';
+import type { ScriptPack } from '$lib/font/charsets';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -45,8 +46,14 @@ class ProjectStore {
 		if (!this.project) return;
 		this.saving = true;
 		try {
-			await saveProject(this.project);
+			// $state.snapshot strips Svelte's reactive proxy so idb-keyval can
+			// structured-clone the value reliably across all data shapes
+			// (including the larger nested Records added by script packs).
+			const snapshot = $state.snapshot(this.project) as typeof this.project;
+			if (snapshot) await saveProject(snapshot);
 			this.dirty = false;
+		} catch (err) {
+			console.error('Project save failed:', err);
 		} finally {
 			this.saving = false;
 		}
@@ -128,6 +135,14 @@ class ProjectStore {
 	getKerningValue(left: number, right: number): number {
 		if (!this.project) return 0;
 		return this.project.kerning.find((k) => k.left === left && k.right === right)?.value ?? 0;
+	}
+
+	async addScriptPack(pack: ScriptPack) {
+		if (!this.project) return;
+		this.project = addScriptPackHelper(this.project, pack);
+		this.touch();
+		// Bulk additions are significant — flush immediately rather than waiting for debounce
+		await this.flush();
 	}
 }
 

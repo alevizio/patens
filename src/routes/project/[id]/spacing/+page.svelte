@@ -1,11 +1,13 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Globe from '@lucide/svelte/icons/globe';
 
 	const COMMON_PAIRS: [string, string][] = [
 		['A', 'V'], ['A', 'T'], ['A', 'W'], ['A', 'Y'],
@@ -159,6 +161,34 @@
 				{/each}
 			</ul>
 		{/if}
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-3 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			<Globe class="size-3" /> Script packs
+		</h2>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Extend the default Latin set with Greek, Cyrillic, or Vietnamese. Adding a pack
+			creates empty glyph slots — your existing glyphs are untouched.
+		</p>
+		<div class="grid gap-2 md:grid-cols-3">
+			{#each SCRIPT_PACKS as pack (pack.id)}
+				{@const present = project?.glyphs[pack.glyphs[0]?.codepoint ?? 0] !== undefined}
+				<div class="rounded-md border border-border bg-surface-2/40 px-3 py-3">
+					<div class="text-[13px] font-medium text-fg">{pack.label}</div>
+					<div class="mb-2 text-[11px] text-fg-subtle">{pack.description}</div>
+					<Button
+						density="sm"
+						variant={present ? 'ghost' : 'secondary'}
+						onclick={() => projectStore.addScriptPack(pack)}
+						disabled={present}
+					>
+						{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+						{present ? 'Already added' : `Add ${pack.glyphs.length} glyphs`}
+					</Button>
+				</div>
+			{/each}
+		</div>
 	</Panel>
 </div>
 </div>

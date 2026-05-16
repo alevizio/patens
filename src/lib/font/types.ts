@@ -58,11 +58,47 @@ export type KerningClass = {
 
 export type FontMetrics = {
 	unitsPerEm: number;
+	/** Baseline ascender (used for editor + opentype.js Font ascender). */
 	ascender: number;
+	/** Baseline descender (negative). */
 	descender: number;
 	capHeight: number;
 	xHeight: number;
 	defaultSidebearing: number;
+	/**
+	 * OS/2 typo metrics (recommended by Microsoft for cross-platform line
+	 * spacing). When undefined, they are derived from ascender/descender.
+	 */
+	typoAscender?: number;
+	typoDescender?: number;
+	typoLineGap?: number;
+	/** hhea metrics — should match typo* for predictable behavior. */
+	hheaAscender?: number;
+	hheaDescender?: number;
+	hheaLineGap?: number;
+	/** Windows clipping rectangle (always positive). */
+	winAscent?: number;
+	winDescent?: number;
+	/** OS/2 fsSelection USE_TYPO_METRICS bit (recommended on). */
+	useTypoMetrics?: boolean;
+};
+
+/** Derive the full vertical metric set from the basic ascender/descender pair. */
+export const resolveVerticalMetrics = (m: FontMetrics) => {
+	const typoAscender = m.typoAscender ?? m.ascender;
+	const typoDescender = m.typoDescender ?? m.descender;
+	const typoLineGap = m.typoLineGap ?? 0;
+	return {
+		typoAscender,
+		typoDescender,
+		typoLineGap,
+		hheaAscender: m.hheaAscender ?? typoAscender,
+		hheaDescender: m.hheaDescender ?? typoDescender,
+		hheaLineGap: m.hheaLineGap ?? typoLineGap,
+		winAscent: m.winAscent ?? typoAscender,
+		winDescent: m.winDescent ?? Math.abs(typoDescender),
+		useTypoMetrics: m.useTypoMetrics ?? true
+	};
 };
 
 export type FontMetadata = {

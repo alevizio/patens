@@ -159,3 +159,27 @@ export const duplicateProject = async (id: string, newName?: string): Promise<Pr
 /** First contour ever drawn locks the UPM (warn UI before letting user change). */
 export const hasAnyContours = (project: Project): boolean =>
 	Object.values(project.glyphs).some((g) => g.contours.length > 0);
+
+/**
+ * Add a script pack's glyphs to an existing project. No-ops for codepoints
+ * already present (so re-adding is safe and idempotent).
+ */
+export const addScriptPack = (
+	project: Project,
+	pack: { glyphs: { codepoint: number; name: string; composite?: { base: number; mark: number } }[] }
+): Project => {
+	const next: Record<number, Glyph> = { ...project.glyphs };
+	for (const spec of pack.glyphs) {
+		if (next[spec.codepoint]) continue;
+		next[spec.codepoint] = {
+			...seedGlyph(spec.codepoint, spec.name, project.metrics),
+			components: spec.composite
+				? [
+						{ baseCodepoint: spec.composite.base, offsetX: 0, offsetY: 0 },
+						{ baseCodepoint: spec.composite.mark, offsetX: 0, offsetY: project.metrics.xHeight }
+					]
+				: undefined
+		};
+	}
+	return { ...project, glyphs: next, updatedAt: now() };
+};
