@@ -15,6 +15,7 @@
 
 import { getStroke } from 'perfect-freehand';
 import polygonClipping from 'polygon-clipping';
+import fitCurve from 'fit-curve';
 import type { BezierContour, PathCommand, SketchStroke } from './types';
 
 export type StrokeStyle = {
@@ -31,6 +32,18 @@ export const DEFAULT_STROKE: StrokeStyle = {
 	smoothing: 0.55,
 	streamline: 0.6,
 	simplifyTolerance: 1.5
+};
+
+export type TraceStyle = {
+	/** Use Schneider cubic bezier fitting instead of polyline+Chaikin. */
+	cubic: boolean;
+	/** Squared error tolerance when cubic fitting (5–500). Higher = fewer, smoother curves. */
+	cubicMaxError: number;
+};
+
+export const DEFAULT_TRACE: TraceStyle = {
+	cubic: true,
+	cubicMaxError: 60
 };
 
 const distSq = (a: [number, number], b: [number, number]): number => {
@@ -99,6 +112,41 @@ const polygonToContour = (
 	return { closed: true, winding, commands };
 };
 
+/** Convert a closed polygon to a contour of cubic bezier curves via Schneider's algorithm. */
+const polygonToCubicContour = (
+	poly: [number, number][],
+	winding: 'cw' | 'ccw' = 'ccw',
+	maxError = 60
+): BezierContour => {
+	if (poly.length < 4) return polygonToContour(poly, winding);
+	// Close the polygon so fitCurve produces a closed curve sequence
+	const pts: [number, number][] = [...poly, poly[0]];
+	let curves: number[][][];
+	try {
+		curves = fitCurve(pts, maxError) as number[][][];
+	} catch {
+		return polygonToContour(poly, winding);
+	}
+	if (!curves || curves.length === 0) return polygonToContour(poly, winding);
+
+	const commands: PathCommand[] = [
+		{ type: 'M', x: curves[0][0][0], y: curves[0][0][1] }
+	];
+	for (const curve of curves) {
+		commands.push({
+			type: 'C',
+			x1: curve[1][0],
+			y1: curve[1][1],
+			x2: curve[2][0],
+			y2: curve[2][1],
+			x: curve[3][0],
+			y: curve[3][1]
+		});
+	}
+	commands.push({ type: 'Z' });
+	return { closed: true, winding, commands };
+};
+
 const strokeToOutlinePolygon = (
 	stroke: SketchStroke,
 	style: StrokeStyle
@@ -135,10 +183,14 @@ export const strokeToContour = (
  * with a polygon boolean union. The result is a clean silhouette for multi-stroke
  * letters like H, A, X — each MultiPolygon ring becomes a separate contour with
  * outer rings winding CCW and holes CW (CFF convention).
+ *
+ * When `trace.cubic` is true (default), each ring is fitted with Schneider's
+ * cubic-bezier algorithm producing smooth curves instead of polyline edges.
  */
 export const sketchToContours = (
 	strokes: SketchStroke[],
-	style: StrokeStyle = DEFAULT_STROKE
+	style: StrokeStyle = DEFAULT_STROKE,
+	trace: TraceStyle = DEFAULT_TRACE
 ): BezierContour[] => {
 	const polys: [number, number][][] = [];
 	for (const s of strokes) {
@@ -146,28 +198,32 @@ export const sketchToContours = (
 		if (p) polys.push(p);
 	}
 	if (polys.length === 0) return [];
-	if (polys.length === 1) return [polygonToContour(polys[0])];
+
+	const ringToContour = (ring: [number, number][], winding: 'cw' | 'ccw'): BezierContour =>
+		trace.cubic
+			? polygonToCubicContour(ring, winding, trace.cubicMaxError)
+			: polygonToContour(ring, winding);
+
+	if (polys.length === 1) return [ringToContour(polys[0], 'ccw')];
 
 	let merged;
 	try {
 		const geoms = polys.map((p) => [p] as [number, number][][]);
 		merged = polygonClipping.union(geoms[0], ...geoms.slice(1));
 	} catch {
-		// fall back to un-unioned contours if the boolean op fails
-		return polys.map((p) => polygonToContour(p));
+		return polys.map((p) => ringToContour(p, 'ccw'));
 	}
 
 	const out: BezierContour[] = [];
 	for (const poly of merged) {
 		for (let ringIdx = 0; ringIdx < poly.length; ringIdx++) {
 			const ring = poly[ringIdx];
-			if (ring.length < 4) continue; // ring includes a duplicated closing point
-			// Drop the duplicated closing point if present
+			if (ring.length < 4) continue;
 			const last = ring[ring.length - 1];
 			const first = ring[0];
 			const cleaned: [number, number][] =
 				last[0] === first[0] && last[1] === first[1] ? ring.slice(0, -1) : ring.slice();
-			out.push(polygonToContour(cleaned, ringIdx === 0 ? 'ccw' : 'cw'));
+			out.push(ringToContour(cleaned, ringIdx === 0 ? 'ccw' : 'cw'));
 		}
 	}
 	return out;

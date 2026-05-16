@@ -2,7 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
-	import { DEFAULT_STROKE, sketchToContours } from '$lib/font/sketch-to-bezier';
+	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { BezierContour, SketchStroke } from '$lib/font/types';
 	import { glyphBounds } from '$lib/font/path';
 	import { chaikinSmooth } from '$lib/font/path-edit';
@@ -24,6 +24,8 @@
 	let strokeSize = $state(DEFAULT_STROKE.size);
 	let strokeThinning = $state(DEFAULT_STROKE.thinning);
 	let smoothness = $state(1);
+	let cubicTrace = $state(DEFAULT_TRACE.cubic);
+	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let showSketch = $state(true);
 	let showVector = $state(true);
 	let showGrid = $state(false);
@@ -70,8 +72,13 @@
 
 	const trace = () => {
 		if (!glyph || !glyph.sketch || glyph.sketch.length === 0) return;
-		const raw = sketchToContours(glyph.sketch, strokeStyle);
-		const contours = chaikinSmooth(raw, smoothness);
+		const raw = sketchToContours(glyph.sketch, strokeStyle, {
+			cubic: cubicTrace,
+			cubicMaxError
+		});
+		// Chaikin smoothing only applies to polyline (non-cubic) output;
+		// Schneider-fitted curves are already smooth.
+		const contours = cubicTrace ? raw : chaikinSmooth(raw, smoothness);
 		const bounds = glyphBounds(contours);
 		const advance =
 			contours.length > 0
@@ -481,20 +488,50 @@
 							class="h-1 accent-fg"
 						/>
 					</label>
-					<label class="grid gap-1.5">
-						<span class="flex items-center justify-between text-[11px] text-fg-muted">
-							<span>Smoothness (trace)</span>
-							<span data-numeric>{smoothness}</span>
-						</span>
+					<label class="flex items-center justify-between gap-2 rounded-md bg-surface-2 px-3 py-2">
+						<div class="grid leading-tight">
+							<span class="text-[11px] font-medium text-fg">Cubic curves</span>
+							<span class="text-[10px] text-fg-subtle"
+								>Schneider fit for smooth outlines</span
+							>
+						</div>
 						<input
-							type="range"
-							min={0}
-							max={3}
-							step={1}
-							bind:value={smoothness}
-							class="h-1 accent-fg"
+							type="checkbox"
+							bind:checked={cubicTrace}
+							class="size-4 accent-fg"
 						/>
 					</label>
+					{#if cubicTrace}
+						<label class="grid gap-1.5">
+							<span class="flex items-center justify-between text-[11px] text-fg-muted">
+								<span>Curve precision</span>
+								<span data-numeric>{cubicMaxError}</span>
+							</span>
+							<input
+								type="range"
+								min={10}
+								max={300}
+								step={5}
+								bind:value={cubicMaxError}
+								class="h-1 accent-fg"
+							/>
+						</label>
+					{:else}
+						<label class="grid gap-1.5">
+							<span class="flex items-center justify-between text-[11px] text-fg-muted">
+								<span>Smoothness (Chaikin)</span>
+								<span data-numeric>{smoothness}</span>
+							</span>
+							<input
+								type="range"
+								min={0}
+								max={3}
+								step={1}
+								bind:value={smoothness}
+								class="h-1 accent-fg"
+							/>
+						</label>
+					{/if}
 				</div>
 			</div>
 

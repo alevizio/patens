@@ -11,6 +11,9 @@ importers:
       '@lucide/svelte':
         specifier: ^1.16.0
         version: 1.16.0(svelte@5.55.7)
+      fit-curve:
+        specifier: ^0.2.0
+        version: 0.2.0
       idb-keyval:
         specifier: ^6.2.2
         version: 6.2.2
@@ -409,6 +412,9 @@ packages:
     peerDependenciesMeta:
       picomatch:
         optional: true
+
+  fit-curve@0.2.0:
+    resolution: {integrity: sha512-op7ofeL13getbqL5J5ACeNxTlLWzusn4/jjEjSVA1sS7PfXWumdtNITvLuTjSobis+jZzMil2rsJ3Vhw7OxQyQ==}
 
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
@@ -935,6 +941,8 @@ snapshots:
   fdir@6.5.0(picomatch@4.0.4):
     optionalDependencies:
       picomatch: 4.0.4
+
+  fit-curve@0.2.0: {}
 
   fsevents@2.3.3:
     optional: true

@@ -26,6 +26,7 @@
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.16.0",
+		"fit-curve": "^0.2.0",
 		"idb-keyval": "^6.2.2",
 		"opentype.js": "^2.0.0",
 		"perfect-freehand": "^1.2.3",
