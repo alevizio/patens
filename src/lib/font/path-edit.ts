@@ -7,12 +7,30 @@ import type { BezierContour, PathCommand } from './types';
 
 export type PointRef = { contour: number; index: number };
 
+/** Reference to a bezier control point (off-curve handle). */
+export type HandleRef = {
+	contour: number;
+	/** Command index that owns the handle */
+	cmdIndex: number;
+	/** Which handle on that command */
+	which: 'x1' | 'x2';
+};
+
 export type OnCurvePoint = {
 	contourIndex: number;
 	pointIndex: number;
 	x: number;
 	y: number;
 	cmdType: 'M' | 'L' | 'C' | 'Q';
+};
+
+export type Handle = {
+	ref: HandleRef;
+	x: number;
+	y: number;
+	/** Position of the on-curve point this handle is attached to (its anchor). */
+	anchorX: number;
+	anchorY: number;
 };
 
 export type Segment = {
@@ -26,6 +44,122 @@ export type Segment = {
 	bx: number;
 	by: number;
 };
+
+/**
+ * Find the on-curve point referenced by a PointRef. Returns the (x, y) at that
+ * command, or null if the command is Z or out of range.
+ */
+const pointXY = (
+	contours: BezierContour[],
+	ref: PointRef
+): { x: number; y: number } | null => {
+	const cmd = contours[ref.contour]?.commands[ref.index];
+	if (!cmd) return null;
+	if (cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'C' || cmd.type === 'Q')
+		return { x: cmd.x, y: cmd.y };
+	return null;
+};
+
+/**
+ * Collect the bezier handles immediately adjacent to a selected on-curve point.
+ * For a closed contour, the handles wrap (last point's outgoing handle is the
+ * first C/Q command after M).
+ */
+export const collectHandlesForPoint = (
+	contours: BezierContour[],
+	ref: PointRef
+): Handle[] => {
+	const contour = contours[ref.contour];
+	if (!contour) return [];
+	const anchor = pointXY(contours, ref);
+	if (!anchor) return [];
+
+	const out: Handle[] = [];
+	const cmds = contour.commands;
+	const sel = cmds[ref.index];
+	// Incoming handle: x2/y2 of a C ending at this point, or x1/y1 of a Q.
+	if (sel?.type === 'C') {
+		out.push({
+			ref: { contour: ref.contour, cmdIndex: ref.index, which: 'x2' },
+			x: sel.x2,
+			y: sel.y2,
+			anchorX: anchor.x,
+			anchorY: anchor.y
+		});
+	} else if (sel?.type === 'Q') {
+		out.push({
+			ref: { contour: ref.contour, cmdIndex: ref.index, which: 'x1' },
+			x: sel.x1,
+			y: sel.y1,
+			anchorX: anchor.x,
+			anchorY: anchor.y
+		});
+	}
+
+	// Outgoing handle: the next C/Q command's x1/y1.
+	// Find the next drawing command, wrapping if the contour is closed.
+	const closed = cmds[cmds.length - 1]?.type === 'Z';
+	const findNext = (start: number): number | null => {
+		for (let i = start; i < cmds.length; i++) {
+			const c = cmds[i];
+			if (c.type === 'L' || c.type === 'C' || c.type === 'Q') return i;
+			if (c.type === 'M') return null;
+			if (c.type === 'Z') break;
+		}
+		if (!closed) return null;
+		// wrap from start (the M is at the beginning, find the next L/C/Q after M)
+		for (let i = 0; i < cmds.length; i++) {
+			const c = cmds[i];
+			if (c.type === 'L' || c.type === 'C' || c.type === 'Q') return i;
+		}
+		return null;
+	};
+	const nextIdx = findNext(ref.index + 1);
+	if (nextIdx !== null) {
+		const next = cmds[nextIdx];
+		if (next.type === 'C') {
+			out.push({
+				ref: { contour: ref.contour, cmdIndex: nextIdx, which: 'x1' },
+				x: next.x1,
+				y: next.y1,
+				anchorX: anchor.x,
+				anchorY: anchor.y
+			});
+		} else if (next.type === 'Q') {
+			out.push({
+				ref: { contour: ref.contour, cmdIndex: nextIdx, which: 'x1' },
+				x: next.x1,
+				y: next.y1,
+				anchorX: anchor.x,
+				anchorY: anchor.y
+			});
+		}
+	}
+	return out;
+};
+
+/** Move a bezier handle to a new position. */
+export const moveHandle = (
+	contours: BezierContour[],
+	ref: HandleRef,
+	x: number,
+	y: number
+): BezierContour[] =>
+	contours.map((c, ci) => {
+		if (ci !== ref.contour) return c;
+		return {
+			...c,
+			commands: c.commands.map((cmd, i) => {
+				if (i !== ref.cmdIndex) return cmd;
+				if (cmd.type === 'C') {
+					if (ref.which === 'x1') return { ...cmd, x1: x, y1: y };
+					if (ref.which === 'x2') return { ...cmd, x2: x, y2: y };
+				}
+				if (cmd.type === 'Q' && ref.which === 'x1') return { ...cmd, x1: x, y1: y };
+				return cmd;
+			})
+		};
+	});
 
 /** All on-curve points across all contours, with their command indices. */
 export const collectOnCurvePoints = (contours: BezierContour[]): OnCurvePoint[] => {
@@ -86,26 +220,146 @@ export const collectSegments = (contours: BezierContour[]): Segment[] => {
 	return out;
 };
 
+/**
+ * Move an on-curve point and translate its adjacent bezier handles by the same
+ * delta so the surrounding curves keep their shape (FontLab default behaviour).
+ */
 export const movePoint = (
 	contours: BezierContour[],
 	ref: PointRef,
 	x: number,
 	y: number
 ): BezierContour[] => {
+	const before = pointXY(contours, ref);
+	if (!before) return contours;
+	const dx = x - before.x;
+	const dy = y - before.y;
 	const next = contours.map((c, ci) => {
 		if (ci !== ref.contour) return c;
-		return {
-			...c,
-			commands: c.commands.map((cmd, i) => {
-				if (i !== ref.index) return cmd;
+		const cmds = c.commands;
+		const newCmds = cmds.map((cmd, i) => {
+			if (i === ref.index) {
 				if (cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'C' || cmd.type === 'Q') {
-					return { ...cmd, x, y };
+					if (cmd.type === 'C')
+						return { ...cmd, x: cmd.x + dx, y: cmd.y + dy, x2: cmd.x2 + dx, y2: cmd.y2 + dy };
+					if (cmd.type === 'Q')
+						return { ...cmd, x: cmd.x + dx, y: cmd.y + dy, x1: cmd.x1 + dx, y1: cmd.y1 + dy };
+					return { ...cmd, x: cmd.x + dx, y: cmd.y + dy };
 				}
-				return cmd;
-			})
+			}
+			return cmd;
+		});
+		// Also translate the next curve's x1/y1 (outgoing handle from the moved point).
+		const closed = cmds[cmds.length - 1]?.type === 'Z';
+		const findNext = (start: number): number | null => {
+			for (let i = start; i < cmds.length; i++) {
+				const cc = cmds[i];
+				if (cc.type === 'L' || cc.type === 'C' || cc.type === 'Q') return i;
+				if (cc.type === 'M') return null;
+				if (cc.type === 'Z') break;
+			}
+			if (!closed) return null;
+			for (let i = 0; i < cmds.length; i++) {
+				const cc = cmds[i];
+				if (cc.type === 'L' || cc.type === 'C' || cc.type === 'Q') return i;
+			}
+			return null;
 		};
+		const nextIdx = findNext(ref.index + 1);
+		if (nextIdx !== null) {
+			const nc = newCmds[nextIdx];
+			if (nc.type === 'C') newCmds[nextIdx] = { ...nc, x1: nc.x1 + dx, y1: nc.y1 + dy };
+			else if (nc.type === 'Q') newCmds[nextIdx] = { ...nc, x1: nc.x1 + dx, y1: nc.y1 + dy };
+		}
+		return { ...c, commands: newCmds };
 	});
 	return next;
+};
+
+/** Translate many on-curve points (and their adjacent handles) by the same delta. */
+export const movePoints = (
+	contours: BezierContour[],
+	refs: PointRef[],
+	dx: number,
+	dy: number
+): BezierContour[] => {
+	if (refs.length === 0 || (dx === 0 && dy === 0)) return contours;
+	let next = contours;
+	// Build a set of refs grouped by contour for efficiency
+	const byContour = new Map<number, Set<number>>();
+	for (const r of refs) {
+		if (!byContour.has(r.contour)) byContour.set(r.contour, new Set());
+		byContour.get(r.contour)!.add(r.index);
+	}
+	next = next.map((c, ci) => {
+		const indices = byContour.get(ci);
+		if (!indices) return c;
+		const cmds = c.commands;
+		const closed = cmds[cmds.length - 1]?.type === 'Z';
+		const findNext = (start: number): number | null => {
+			for (let i = start; i < cmds.length; i++) {
+				const cc = cmds[i];
+				if (cc.type === 'L' || cc.type === 'C' || cc.type === 'Q') return i;
+				if (cc.type === 'M') return null;
+				if (cc.type === 'Z') break;
+			}
+			if (!closed) return null;
+			for (let i = 0; i < cmds.length; i++) {
+				const cc = cmds[i];
+				if (cc.type === 'L' || cc.type === 'C' || cc.type === 'Q') return i;
+			}
+			return null;
+		};
+
+		const out: PathCommand[] = cmds.map((cmd, i) => {
+			if (!indices.has(i)) return cmd;
+			if (cmd.type === 'C')
+				return { ...cmd, x: cmd.x + dx, y: cmd.y + dy, x2: cmd.x2 + dx, y2: cmd.y2 + dy };
+			if (cmd.type === 'Q')
+				return { ...cmd, x: cmd.x + dx, y: cmd.y + dy, x1: cmd.x1 + dx, y1: cmd.y1 + dy };
+			if (cmd.type === 'M' || cmd.type === 'L') return { ...cmd, x: cmd.x + dx, y: cmd.y + dy };
+			return cmd;
+		});
+		// Outgoing handles from moved points
+		for (const idx of indices) {
+			const nextIdx = findNext(idx + 1);
+			if (nextIdx === null) continue;
+			// If the next on-curve is ALSO selected, its incoming/outgoing already moved as a whole curve segment.
+			if (indices.has(nextIdx)) continue;
+			const nc = out[nextIdx];
+			if (nc.type === 'C') out[nextIdx] = { ...nc, x1: nc.x1 + dx, y1: nc.y1 + dy };
+			else if (nc.type === 'Q') out[nextIdx] = { ...nc, x1: nc.x1 + dx, y1: nc.y1 + dy };
+		}
+		return { ...c, commands: out };
+	});
+	return next;
+};
+
+/** Find all on-curve points whose position is inside a rect (font coords). */
+export const pointsInRect = (
+	contours: BezierContour[],
+	x0: number,
+	y0: number,
+	x1: number,
+	y1: number
+): PointRef[] => {
+	const minX = Math.min(x0, x1);
+	const maxX = Math.max(x0, x1);
+	const minY = Math.min(y0, y1);
+	const maxY = Math.max(y0, y1);
+	const out: PointRef[] = [];
+	for (let ci = 0; ci < contours.length; ci++) {
+		const cmds = contours[ci].commands;
+		for (let i = 0; i < cmds.length; i++) {
+			const c = cmds[i];
+			if (c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q') {
+				if (c.x >= minX && c.x <= maxX && c.y >= minY && c.y <= maxY) {
+					out.push({ contour: ci, index: i });
+				}
+			}
+		}
+	}
+	return out;
 };
 
 export const deletePoint = (contours: BezierContour[], ref: PointRef): BezierContour[] => {
@@ -116,11 +370,9 @@ export const deletePoint = (contours: BezierContour[], ref: PointRef): BezierCon
 		(c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q'
 	).length;
 	if (onCurveCount <= 3) {
-		// Removing leaves a degenerate contour — drop it.
 		return contours.filter((_, ci) => ci !== ref.contour);
 	}
 	let newCmds = cmds.filter((_, i) => i !== ref.index);
-	// If we removed the M, promote the next on-curve to M.
 	if (cmds[ref.index].type === 'M') {
 		const promoteIdx = newCmds.findIndex(
 			(c) => c.type === 'L' || c.type === 'C' || c.type === 'Q'
@@ -133,6 +385,28 @@ export const deletePoint = (contours: BezierContour[], ref: PointRef): BezierCon
 		}
 	}
 	return contours.map((c, ci) => (ci === ref.contour ? { ...c, commands: newCmds } : c));
+};
+
+/** Delete multiple on-curve points in one pass (descending index, per contour). */
+export const deletePoints = (
+	contours: BezierContour[],
+	refs: PointRef[]
+): BezierContour[] => {
+	if (refs.length === 0) return contours;
+	// Process per-contour, descending index
+	const byContour = new Map<number, number[]>();
+	for (const r of refs) {
+		if (!byContour.has(r.contour)) byContour.set(r.contour, []);
+		byContour.get(r.contour)!.push(r.index);
+	}
+	let result = contours;
+	for (const [ci, indices] of byContour.entries()) {
+		const sorted = [...indices].sort((a, b) => b - a);
+		for (const idx of sorted) {
+			result = deletePoint(result, { contour: ci, index: idx });
+		}
+	}
+	return result;
 };
 
 /**

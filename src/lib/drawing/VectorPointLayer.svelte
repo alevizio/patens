@@ -1,12 +1,17 @@
 <script lang="ts">
-	import type { BezierContour } from '$lib/font/types';
+	import type { BezierContour, FontMetrics } from '$lib/font/types';
 	import {
+		collectHandlesForPoint,
 		collectOnCurvePoints,
 		collectSegments,
-		deletePoint,
+		deletePoints,
 		insertPointOnSegment,
 		movePoint,
+		movePoints,
+		moveHandle,
+		pointsInRect,
 		projectOntoSegment,
+		type HandleRef,
 		type PointRef
 	} from '$lib/font/path-edit';
 
@@ -14,24 +19,58 @@
 		contours: BezierContour[];
 		/** Screen pixels per font unit. Used to size handles consistently. */
 		pixelsPerUnit: number;
+		metrics: FontMetrics;
+		snap: boolean;
 		eventToFont: (ev: PointerEvent) => { x: number; y: number } | null;
 		onChange: (contours: BezierContour[]) => void;
 	};
 
-	let { contours, pixelsPerUnit, eventToFont, onChange }: Props = $props();
+	let { contours, pixelsPerUnit, metrics, snap, eventToFont, onChange }: Props = $props();
 
-	let selected = $state<PointRef | null>(null);
-	let dragging = $state<PointRef | null>(null);
+	let selectedSet = $state(new Set<string>());
+	let primarySelected = $state<PointRef | null>(null);
+	let dragging = $state<{ kind: 'point' | 'handle'; ref: PointRef | HandleRef } | null>(null);
 	let activePointer = $state<number | null>(null);
+	let dragLast = $state<{ x: number; y: number } | null>(null);
+	let marqueeStart = $state<{ x: number; y: number } | null>(null);
+	let marqueeNow = $state<{ x: number; y: number } | null>(null);
 
 	const handleR = $derived(Math.max(4, 5 / Math.max(pixelsPerUnit, 0.1)));
+	const handleSmallR = $derived(Math.max(3, 4 / Math.max(pixelsPerUnit, 0.1)));
 	const segHit = $derived(Math.max(6, 10 / Math.max(pixelsPerUnit, 0.1)));
+	const snapTol = $derived(Math.max(6, 12 / Math.max(pixelsPerUnit, 0.1)));
 
 	const points = $derived(collectOnCurvePoints(contours));
 	const segments = $derived(collectSegments(contours));
+	const handles = $derived.by(() =>
+		primarySelected ? collectHandlesForPoint(contours, primarySelected) : []
+	);
 
-	const isSelected = (ref: PointRef) =>
-		selected !== null && selected.contour === ref.contour && selected.index === ref.index;
+	const refKey = (ref: PointRef) => `${ref.contour}:${ref.index}`;
+	const isSelected = (ref: PointRef) => selectedSet.has(refKey(ref));
+
+	const snapY = (y: number): number => {
+		if (!snap) return y;
+		const candidates = [0, metrics.xHeight, metrics.capHeight, metrics.ascender, metrics.descender];
+		for (const c of candidates) {
+			if (Math.abs(y - c) < snapTol) return c;
+		}
+		return y;
+	};
+
+	const setSelectionOne = (ref: PointRef) => {
+		selectedSet = new Set([refKey(ref)]);
+		primarySelected = ref;
+	};
+
+	const toggleSelection = (ref: PointRef) => {
+		const k = refKey(ref);
+		const next = new Set(selectedSet);
+		if (next.has(k)) next.delete(k);
+		else next.add(k);
+		selectedSet = next;
+		primarySelected = next.size > 0 ? ref : null;
+	};
 
 	const onPointPointerDown = (ev: PointerEvent, ref: PointRef) => {
 		ev.stopPropagation();
@@ -40,23 +79,69 @@
 		try {
 			target.setPointerCapture(ev.pointerId);
 		} catch {
-			// some synthetic / cross-frame contexts disallow capture — drag still works
-			// because subsequent pointermove events fire on the same element while held
+			/* ignore */
 		}
 		activePointer = ev.pointerId;
-		dragging = ref;
-		selected = ref;
+
+		if (ev.shiftKey) {
+			toggleSelection(ref);
+		} else if (!isSelected(ref)) {
+			setSelectionOne(ref);
+		} else {
+			primarySelected = ref;
+		}
+
+		const fp = eventToFont(ev);
+		if (fp) dragLast = fp;
+		dragging = { kind: 'point', ref };
 	};
 
-	const onPointPointerMove = (ev: PointerEvent) => {
-		if (dragging === null || activePointer !== ev.pointerId) return;
+	const onHandlePointerDown = (ev: PointerEvent, ref: HandleRef) => {
+		ev.stopPropagation();
+		ev.preventDefault();
+		const target = ev.currentTarget as Element;
+		try {
+			target.setPointerCapture(ev.pointerId);
+		} catch {
+			/* ignore */
+		}
+		activePointer = ev.pointerId;
+		dragging = { kind: 'handle', ref };
+	};
+
+	const onPointerMove = (ev: PointerEvent) => {
+		if (activePointer !== ev.pointerId) return;
 		const fp = eventToFont(ev);
 		if (!fp) return;
+		if (!dragging) return;
 		ev.stopPropagation();
-		onChange(movePoint(contours, dragging, Math.round(fp.x), Math.round(fp.y)));
+		if (dragging.kind === 'point') {
+			const ref = dragging.ref as PointRef;
+			const sx = Math.round(fp.x);
+			const sy = Math.round(snapY(fp.y));
+			if (selectedSet.size > 1 && dragLast) {
+				// Multi-move: translate every selected by delta from last position
+				const refs: PointRef[] = [...selectedSet].map((k) => {
+					const [c, i] = k.split(':').map(Number);
+					return { contour: c, index: i };
+				});
+				const dx = sx - Math.round(dragLast.x);
+				const dy = sy - Math.round(dragLast.y);
+				if (dx !== 0 || dy !== 0) {
+					onChange(movePoints(contours, refs, dx, dy));
+					dragLast = { x: dragLast.x + dx, y: dragLast.y + dy };
+				}
+			} else {
+				onChange(movePoint(contours, ref, sx, sy));
+				dragLast = { x: sx, y: sy };
+			}
+		} else if (dragging.kind === 'handle') {
+			const ref = dragging.ref as HandleRef;
+			onChange(moveHandle(contours, ref, Math.round(fp.x), Math.round(fp.y)));
+		}
 	};
 
-	const onPointPointerUp = (ev: PointerEvent) => {
+	const onPointerUp = (ev: PointerEvent) => {
 		if (activePointer !== ev.pointerId) return;
 		try {
 			(ev.currentTarget as Element).releasePointerCapture(ev.pointerId);
@@ -65,13 +150,13 @@
 		}
 		activePointer = null;
 		dragging = null;
+		dragLast = null;
 	};
 
 	const onSegmentClick = (ev: PointerEvent) => {
 		if (ev.button !== 0 && ev.pointerType === 'mouse') return;
 		const fp = eventToFont(ev);
 		if (!fp) return;
-		// Find closest segment within hit radius
 		let best: { seg: (typeof segments)[number]; t: number; x: number; y: number; d: number } | null = null;
 		const hitSq = segHit * segHit;
 		for (const seg of segments) {
@@ -85,28 +170,128 @@
 		ev.preventDefault();
 		const result = insertPointOnSegment(contours, best.seg, Math.round(best.x), Math.round(best.y));
 		onChange(result.contours);
-		selected = result.ref;
+		setSelectionOne(result.ref);
+	};
+
+	// Background marquee select — pointerdown on a transparent rect covering the whole canvas
+	const onMarqueeDown = (ev: PointerEvent) => {
+		if (ev.button !== 0 && ev.pointerType === 'mouse') return;
+		const fp = eventToFont(ev);
+		if (!fp) return;
+		ev.stopPropagation();
+		const target = ev.currentTarget as Element;
+		try {
+			target.setPointerCapture(ev.pointerId);
+		} catch {
+			/* ignore */
+		}
+		activePointer = ev.pointerId;
+		marqueeStart = fp;
+		marqueeNow = fp;
+		if (!ev.shiftKey) {
+			selectedSet = new Set();
+			primarySelected = null;
+		}
+	};
+
+	const onMarqueeMove = (ev: PointerEvent) => {
+		if (activePointer !== ev.pointerId || !marqueeStart) return;
+		const fp = eventToFont(ev);
+		if (fp) marqueeNow = fp;
+	};
+
+	const onMarqueeUp = (ev: PointerEvent) => {
+		if (activePointer !== ev.pointerId) return;
+		try {
+			(ev.currentTarget as Element).releasePointerCapture(ev.pointerId);
+		} catch {
+			/* ignore */
+		}
+		if (marqueeStart && marqueeNow) {
+			const sel = pointsInRect(
+				contours,
+				marqueeStart.x,
+				marqueeStart.y,
+				marqueeNow.x,
+				marqueeNow.y
+			);
+			if (sel.length > 0) {
+				const next = ev.shiftKey ? new Set(selectedSet) : new Set<string>();
+				for (const r of sel) next.add(refKey(r));
+				selectedSet = next;
+				primarySelected = sel[sel.length - 1];
+			}
+		}
+		marqueeStart = null;
+		marqueeNow = null;
+		activePointer = null;
 	};
 
 	const onKeyDown = (ev: KeyboardEvent) => {
-		if (!selected) return;
+		if (ev.target instanceof HTMLInputElement) return;
+		if (ev.target instanceof HTMLTextAreaElement) return;
+		if (selectedSet.size === 0) return;
 		if (ev.key === 'Delete' || ev.key === 'Backspace') {
 			ev.preventDefault();
-			const next = deletePoint(contours, selected);
-			selected = null;
-			onChange(next);
-		}
-		if (ev.key === 'Escape') {
-			selected = null;
+			const refs: PointRef[] = [...selectedSet].map((k) => {
+				const [c, i] = k.split(':').map(Number);
+				return { contour: c, index: i };
+			});
+			onChange(deletePoints(contours, refs));
+			selectedSet = new Set();
+			primarySelected = null;
+		} else if (ev.key === 'Escape') {
+			selectedSet = new Set();
+			primarySelected = null;
+		} else if (
+			ev.key === 'ArrowLeft' ||
+			ev.key === 'ArrowRight' ||
+			ev.key === 'ArrowUp' ||
+			ev.key === 'ArrowDown'
+		) {
+			ev.preventDefault();
+			const step = ev.shiftKey ? 10 : 1;
+			const dx = ev.key === 'ArrowLeft' ? -step : ev.key === 'ArrowRight' ? step : 0;
+			const dy = ev.key === 'ArrowDown' ? -step : ev.key === 'ArrowUp' ? step : 0;
+			const refs: PointRef[] = [...selectedSet].map((k) => {
+				const [c, i] = k.split(':').map(Number);
+				return { contour: c, index: i };
+			});
+			onChange(movePoints(contours, refs, dx, dy));
 		}
 	};
+
+	const marqueeRect = $derived.by(() => {
+		if (!marqueeStart || !marqueeNow) return null;
+		const x = Math.min(marqueeStart.x, marqueeNow.x);
+		const y = Math.min(marqueeStart.y, marqueeNow.y);
+		const w = Math.abs(marqueeNow.x - marqueeStart.x);
+		const h = Math.abs(marqueeNow.y - marqueeStart.y);
+		return { x, y, w, h };
+	});
 </script>
 
 <svelte:window onkeydown={onKeyDown} />
 
 <g class="vector-point-layer">
-	<!-- Segment click targets (transparent, slightly thick) -->
-	{#each segments as seg, si (seg.contourIndex + ':' + seg.startCmdIndex + '-' + seg.endCmdIndex)}
+	<!-- Big transparent rect for marquee start. Sized to cover any reasonable viewBox. -->
+	<rect
+		x={-100000}
+		y={-100000}
+		width={200000}
+		height={200000}
+		fill="transparent"
+		pointer-events="all"
+		class="cursor-default"
+		role="presentation"
+		onpointerdown={onMarqueeDown}
+		onpointermove={onMarqueeMove}
+		onpointerup={onMarqueeUp}
+		onpointercancel={onMarqueeUp}
+	/>
+
+	<!-- Segment click targets -->
+	{#each segments as seg (seg.contourIndex + ':' + seg.startCmdIndex + '-' + seg.endCmdIndex)}
 		<line
 			x1={seg.ax}
 			y1={-seg.ay}
@@ -137,7 +322,41 @@
 		/>
 	{/each}
 
-	<!-- Point handles -->
+	<!-- Bezier handles for the primary-selected point -->
+	{#each handles as h, hi (h.ref.contour + ':' + h.ref.cmdIndex + ':' + h.ref.which)}
+		<line
+			x1={h.anchorX}
+			y1={-h.anchorY}
+			x2={h.x}
+			y2={-h.y}
+			stroke="var(--color-fg-muted)"
+			stroke-width="1"
+			stroke-dasharray="3 3"
+			vector-effect="non-scaling-stroke"
+			opacity="0.7"
+			pointer-events="none"
+		/>
+		<rect
+			x={h.x - handleSmallR}
+			y={-h.y - handleSmallR}
+			width={handleSmallR * 2}
+			height={handleSmallR * 2}
+			fill="var(--color-surface)"
+			stroke="var(--color-fg-muted)"
+			stroke-width="1.5"
+			vector-effect="non-scaling-stroke"
+			class="cursor-grab"
+			role="button"
+			tabindex="-1"
+			aria-label="Bezier handle"
+			onpointerdown={(ev) => onHandlePointerDown(ev, h.ref)}
+			onpointermove={onPointerMove}
+			onpointerup={onPointerUp}
+			onpointercancel={onPointerUp}
+		/>
+	{/each}
+
+	<!-- On-curve point handles -->
 	{#each points as p (p.contourIndex + ':' + p.pointIndex)}
 		{@const ref = { contour: p.contourIndex, index: p.pointIndex }}
 		<circle
@@ -150,12 +369,29 @@
 			vector-effect="non-scaling-stroke"
 			class="cursor-grab transition-[fill]"
 			onpointerdown={(ev) => onPointPointerDown(ev, ref)}
-			onpointermove={onPointPointerMove}
-			onpointerup={onPointPointerUp}
-			onpointercancel={onPointPointerUp}
+			onpointermove={onPointerMove}
+			onpointerup={onPointerUp}
+			onpointercancel={onPointerUp}
 			role="button"
 			aria-label="Point {p.pointIndex} of contour {p.contourIndex}"
 			tabindex="0"
 		/>
 	{/each}
+
+	<!-- Marquee selection rectangle (only while dragging) -->
+	{#if marqueeRect}
+		<rect
+			x={marqueeRect.x}
+			y={-(marqueeRect.y + marqueeRect.h)}
+			width={marqueeRect.w}
+			height={marqueeRect.h}
+			fill="var(--color-accent-soft)"
+			fill-opacity="0.2"
+			stroke="var(--color-accent)"
+			stroke-width="1"
+			stroke-dasharray="4 3"
+			vector-effect="non-scaling-stroke"
+			pointer-events="none"
+		/>
+	{/if}
 </g>

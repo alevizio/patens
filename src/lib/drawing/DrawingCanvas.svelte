@@ -21,6 +21,11 @@
 		showGrid?: boolean;
 		/** Optional reference glyph rendered behind the current one for proportion comparison. */
 		reference?: Glyph | null;
+		/** Optional onion-skin previous/next glyphs (rendered translucent flanking the current advance). */
+		onionPrev?: Glyph | null;
+		onionNext?: Glyph | null;
+		/** Snap dragged points to baseline / x-height / cap-height / asc / desc. */
+		snapToMetrics?: boolean;
 		/** Bump this number to reset the view to auto-fit. */
 		resetSignal?: number;
 		/** Called with the new sketch strokes array (replaces glyph.sketch). */
@@ -40,6 +45,9 @@
 		showVector = true,
 		showGrid = false,
 		reference = null,
+		onionPrev = null,
+		onionNext = null,
+		snapToMetrics = true,
 		resetSignal = 0,
 		onSketchChange,
 		onContoursChange,
@@ -332,6 +340,32 @@
 			</g>
 		{/if}
 
+		<!-- Onion-skin previous glyph (left of current advance) -->
+		{#if onionPrev && onionPrev.contours.length > 0}
+			<g
+				fill="var(--color-fg)"
+				opacity="0.16"
+				fill-rule="evenodd"
+				pointer-events="none"
+				transform="translate({-onionPrev.advanceWidth} 0)"
+			>
+				<path d={contoursToSvgPath(onionPrev.contours)} />
+			</g>
+		{/if}
+
+		<!-- Onion-skin next glyph (right of current advance) -->
+		{#if onionNext && onionNext.contours.length > 0}
+			<g
+				fill="var(--color-fg)"
+				opacity="0.16"
+				fill-rule="evenodd"
+				pointer-events="none"
+				transform="translate({advance} 0)"
+			>
+				<path d={contoursToSvgPath(onionNext.contours)} />
+			</g>
+		{/if}
+
 		<!-- Sketch layer (translucent) -->
 		{#if showSketch && glyph.sketch}
 			<g opacity="0.35" fill="var(--color-fg)">
@@ -359,6 +393,8 @@
 		<VectorPointLayer
 			contours={glyph.contours}
 			{pixelsPerUnit}
+			{metrics}
+			snap={snapToMetrics}
 			eventToFont={eventToFont}
 			onChange={onContoursChange}
 		/>

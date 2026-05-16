@@ -6,6 +6,7 @@
 	import type { BezierContour, SketchStroke } from '$lib/font/types';
 	import { glyphBounds } from '$lib/font/path';
 	import { chaikinSmooth } from '$lib/font/path-edit';
+	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -19,6 +20,9 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import Maximize from '@lucide/svelte/icons/maximize';
+	import AlignHorizontalSpaceAround from '@lucide/svelte/icons/align-horizontal-space-around';
+	import AlertCircle from '@lucide/svelte/icons/alert-circle';
+	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
 	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
@@ -30,8 +34,12 @@
 	let showVector = $state(true);
 	let showGrid = $state(false);
 	let showReference = $state(true);
+	let showOnion = $state(true);
+	let snapToMetrics = $state(true);
 	let zoomPercent = $state(100);
 	let resetSignal = $state(0);
+	let metricsText = $state('Hamburgevons');
+	let metricsSize = $state(96);
 
 	const strokeStyle = $derived({
 		...DEFAULT_STROKE,
@@ -45,19 +53,37 @@
 	const referenceGlyph = $derived.by(() => {
 		if (!showReference || !glyph || !projectStore.project) return null;
 		const cp = glyph.codepoint;
-		// Pick a sensible reference based on the category of the current glyph
 		const candidates: number[] = [];
-		if (cp >= 0x0041 && cp <= 0x005a) candidates.push(0x0048, 0x004f, 0x004e); // H, O, N
-		else if (cp >= 0x0061 && cp <= 0x007a) candidates.push(0x006e, 0x006f); // n, o
-		else if (cp >= 0x0030 && cp <= 0x0039) candidates.push(0x0030, 0x0031); // 0, 1
+		if (cp >= 0x0041 && cp <= 0x005a) candidates.push(0x0048, 0x004f, 0x004e);
+		else if (cp >= 0x0061 && cp <= 0x007a) candidates.push(0x006e, 0x006f);
+		else if (cp >= 0x0030 && cp <= 0x0039) candidates.push(0x0030, 0x0031);
 		else if (cp === 0x0020 || cp === 0x002e) return null;
-		else candidates.push(0x0048, 0x006e, 0x006f); // fall back to uppercase H or lowercase n/o
+		else candidates.push(0x0048, 0x006e, 0x006f);
 		for (const c of candidates) {
 			if (c === cp) continue;
 			const g = projectStore.project.glyphs[c];
 			if (g && g.contours.length > 0) return g;
 		}
 		return null;
+	});
+
+	const onionGlyphs = $derived.by(() => {
+		if (!showOnion || !glyph || !projectStore.project) return { prev: null, next: null };
+		const codepoints = Object.keys(projectStore.project.glyphs)
+			.map(Number)
+			.sort((a, b) => a - b);
+		const idx = codepoints.indexOf(glyph.codepoint);
+		if (idx === -1) return { prev: null, next: null };
+		const findDrawn = (start: number, step: number) => {
+			let i = start;
+			while (i >= 0 && i < codepoints.length) {
+				const g = projectStore.project!.glyphs[codepoints[i]];
+				if (g && g.contours.length > 0) return g;
+				i += step;
+			}
+			return null;
+		};
+		return { prev: findDrawn(idx - 1, -1), next: findDrawn(idx + 1, 1) };
 	});
 
 	const charLabel = $derived(
@@ -104,6 +130,38 @@
 			contours,
 			status: contours.length > 0 ? 'draft' : g.sketch && g.sketch.length > 0 ? 'sketch' : 'empty'
 		}));
+	};
+
+	const autoSpace = () => {
+		if (!glyph || !projectStore.project || glyph.contours.length === 0) return;
+		const bounds = glyphBounds(glyph.contours);
+		const sb = projectStore.project.metrics.defaultSidebearing;
+		const dx = Math.round(sb - bounds.minX);
+		projectStore.updateGlyph(glyph.codepoint, (g) => {
+			const shifted =
+				dx === 0
+					? g.contours
+					: g.contours.map((c) => ({
+							...c,
+							commands: c.commands.map((cmd) => {
+								if (cmd.type === 'M' || cmd.type === 'L') return { ...cmd, x: cmd.x + dx };
+								if (cmd.type === 'Q')
+									return { ...cmd, x1: cmd.x1 + dx, x: cmd.x + dx };
+								if (cmd.type === 'C')
+									return { ...cmd, x1: cmd.x1 + dx, x2: cmd.x2 + dx, x: cmd.x + dx };
+								return cmd;
+							})
+						}));
+			const newBounds = glyphBounds(shifted);
+			const width = newBounds.maxX - newBounds.minX;
+			return {
+				...g,
+				contours: shifted,
+				leftSidebearing: sb,
+				rightSidebearing: sb,
+				advanceWidth: Math.max(50, Math.round(sb * 2 + width))
+			};
+		});
 	};
 
 	const clearSketch = () => {
@@ -173,6 +231,8 @@
 			showGrid = !showGrid;
 		} else if (ev.key === 'r' || ev.key === 'R') {
 			showReference = !showReference;
+		} else if (ev.key === 'o' || ev.key === 'O') {
+			showOnion = !showOnion;
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			undoLastStroke();
@@ -288,6 +348,27 @@
 					</button>
 					<button
 						type="button"
+						onclick={() => (showOnion = !showOnion)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showOnion
+							? 'bg-fg/10 text-fg'
+							: 'text-fg-subtle hover:bg-surface-2'}"
+						title="Onion-skin previous/next glyph (O)"
+					>
+						{#if showOnion}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
+						Onion
+					</button>
+					<button
+						type="button"
+						onclick={() => (snapToMetrics = !snapToMetrics)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {snapToMetrics
+							? 'bg-fg/10 text-fg'
+							: 'text-fg-subtle hover:bg-surface-2'}"
+						title="Snap to metrics while editing points"
+					>
+						Snap
+					</button>
+					<button
+						type="button"
 						onclick={() => (showSketch = !showSketch)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showSketch
 							? 'bg-warn/10 text-warn'
@@ -334,11 +415,45 @@
 						{showVector}
 						{showGrid}
 						reference={referenceGlyph}
+						onionPrev={onionGlyphs.prev}
+						onionNext={onionGlyphs.next}
+						{snapToMetrics}
 						{resetSignal}
 						onSketchChange={handleSketchChange}
 						onContoursChange={handleContoursChange}
 						onZoomChange={(p) => (zoomPercent = p)}
 					/>
+				</div>
+			</div>
+
+			<!-- Live text strip (FontLab-style metrics window) -->
+			<div class="flex flex-col gap-1.5 border-t border-border bg-surface px-4 py-2.5">
+				<div class="flex items-center gap-3">
+					<input
+						type="text"
+						bind:value={metricsText}
+						placeholder="Type to preview…"
+						class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+					/>
+					<label class="flex items-center gap-1.5">
+						<span class="text-[11px] text-fg-muted">Size</span>
+						<input
+							type="range"
+							min={24}
+							max={200}
+							step={4}
+							bind:value={metricsSize}
+							class="h-1 w-24 accent-fg"
+							aria-label="Metrics preview size"
+						/>
+						<span class="w-8 text-[11px] text-fg-subtle" data-numeric>{metricsSize}</span>
+					</label>
+				</div>
+				<div
+					class="preview-font max-h-[120px] overflow-x-auto overflow-y-hidden whitespace-nowrap leading-[1]"
+					style="font-size: {metricsSize}px;"
+				>
+					{metricsText || ' '}
 				</div>
 			</div>
 
@@ -357,6 +472,15 @@
 				>
 					{#snippet icon()}<RotateCcw class="size-3.5" />{/snippet}
 					Undo stroke
+				</Button>
+				<Button
+					variant="secondary"
+					density="sm"
+					onclick={autoSpace}
+					disabled={glyph.contours.length === 0}
+				>
+					{#snippet icon()}<AlignHorizontalSpaceAround class="size-3.5" />{/snippet}
+					Auto-space
 				</Button>
 				<div class="ml-auto flex items-center gap-2">
 					<Button
@@ -469,6 +593,37 @@
 				{/if}
 			</div>
 
+			{#if projectStore.project}
+				{@const issues = sortBySeverity(auditGlyph(glyph, projectStore.project))}
+				<div class="border-b border-border p-4">
+					<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Audit
+					</h3>
+					{#if issues.length === 0}
+						<div class="flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-2 text-[12px] text-success">
+							<CheckCircle2 class="size-3.5" />
+							No issues
+						</div>
+					{:else}
+						<ul class="grid gap-1">
+							{#each issues as issue (issue.code)}
+								<li
+									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
+									'error'
+										? 'bg-danger/10 text-danger'
+										: issue.severity === 'warn'
+											? 'bg-warn/10 text-warn'
+											: 'bg-surface-2 text-fg-muted'}"
+								>
+									<AlertCircle class="mt-0.5 size-3 shrink-0" />
+									<span>{issue.message}</span>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+				</div>
+			{/if}
+
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Brush &amp; trace
@@ -540,9 +695,12 @@
 				<ul class="grid gap-0.5" data-numeric>
 					<li>[ ]<span class="ml-2 text-fg-muted">prev/next glyph</span></li>
 					<li>P E A<span class="ml-2 text-fg-muted">pencil / eraser / edit points</span></li>
-					<li>S V G R<span class="ml-2 text-fg-muted">toggle sketch / vector / grid / ref</span></li>
+					<li>S V G R O<span class="ml-2 text-fg-muted">sketch / vector / grid / ref / onion</span></li>
 					<li>T<span class="ml-2 text-fg-muted">trace to vector</span></li>
-					<li>Del<span class="ml-2 text-fg-muted">delete selected point</span></li>
+					<li>Shift-click<span class="ml-2 text-fg-muted">add to selection</span></li>
+					<li>Drag empty<span class="ml-2 text-fg-muted">marquee select</span></li>
+					<li>Arrows<span class="ml-2 text-fg-muted">nudge selected (Shift = ×10)</span></li>
+					<li>Del<span class="ml-2 text-fg-muted">delete selected points</span></li>
 					<li>Space-drag<span class="ml-2 text-fg-muted">pan</span></li>
 					<li>Wheel<span class="ml-2 text-fg-muted">zoom</span></li>
 					<li>⌘0<span class="ml-2 text-fg-muted">fit to glyph</span></li>
