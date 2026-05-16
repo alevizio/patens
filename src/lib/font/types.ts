@@ -76,7 +76,12 @@ export type FontMetadata = {
 
 export type ProjectFeatures = {
 	kern: boolean;
-	liga: boolean; // off in v1
+	liga: boolean;
+	/**
+	 * Optional custom .fea source. When set, this overrides the auto-generated
+	 * features and is compiled into the font at export time via Pyodide+fontTools.
+	 */
+	feaSource?: string;
 };
 
 export type Project = {

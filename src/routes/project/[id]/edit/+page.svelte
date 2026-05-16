@@ -3,7 +3,7 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
-	import type { BezierContour, SketchStroke } from '$lib/font/types';
+	import type { Anchor, BezierContour, SketchStroke } from '$lib/font/types';
 	import { glyphBounds } from '$lib/font/path';
 	import { chaikinSmooth } from '$lib/font/path-edit';
 	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
@@ -35,6 +35,7 @@
 	let showGrid = $state(false);
 	let showReference = $state(true);
 	let showOnion = $state(true);
+	let showAnchors = $state(true);
 	let snapToMetrics = $state(true);
 	let zoomPercent = $state(100);
 	let resetSignal = $state(0);
@@ -129,6 +130,41 @@
 			...g,
 			contours,
 			status: contours.length > 0 ? 'draft' : g.sketch && g.sketch.length > 0 ? 'sketch' : 'empty'
+		}));
+	};
+
+	const handleAnchorsChange = (anchors: Anchor[]) => {
+		if (!glyph) return;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, anchors }));
+	};
+
+	const addAnchor = (name: string) => {
+		if (!glyph || !metrics) return;
+		const trimmed = name.trim();
+		if (!trimmed) return;
+		const existing = glyph.anchors ?? [];
+		if (existing.some((a) => a.name === trimmed)) return;
+		const cx = Math.round(glyph.advanceWidth / 2);
+		const isMark = glyph.codepoint >= 0x0300 && glyph.codepoint <= 0x036f;
+		const isUpper = glyph.codepoint >= 0x0041 && glyph.codepoint <= 0x005a;
+		const defaultY = trimmed.includes('bottom')
+			? 0
+			: isMark
+				? 0
+				: isUpper
+					? metrics.capHeight
+					: metrics.xHeight;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			anchors: [...(g.anchors ?? []), { name: trimmed, x: cx, y: defaultY }]
+		}));
+	};
+
+	const removeAnchor = (anchorName: string) => {
+		if (!glyph) return;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			anchors: (g.anchors ?? []).filter((a) => a.name !== anchorName)
 		}));
 	};
 
@@ -233,6 +269,8 @@
 			showReference = !showReference;
 		} else if (ev.key === 'o' || ev.key === 'O') {
 			showOnion = !showOnion;
+		} else if (ev.key === 'x' || ev.key === 'X') {
+			showAnchors = !showAnchors;
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			undoLastStroke();
@@ -348,6 +386,17 @@
 					</button>
 					<button
 						type="button"
+						onclick={() => (showAnchors = !showAnchors)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnchors
+							? 'bg-warn/10 text-warn'
+							: 'text-fg-subtle hover:bg-surface-2'}"
+						title="Toggle anchors (X)"
+					>
+						{#if showAnchors}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
+						Anchors
+					</button>
+					<button
+						type="button"
 						onclick={() => (showOnion = !showOnion)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showOnion
 							? 'bg-fg/10 text-fg'
@@ -418,9 +467,11 @@
 						onionPrev={onionGlyphs.prev}
 						onionNext={onionGlyphs.next}
 						{snapToMetrics}
+						{showAnchors}
 						{resetSignal}
 						onSketchChange={handleSketchChange}
 						onContoursChange={handleContoursChange}
+						onAnchorsChange={handleAnchorsChange}
 						onZoomChange={(p) => (zoomPercent = p)}
 					/>
 				</div>
@@ -568,6 +619,46 @@
 						>
 							{status}
 						</button>
+					{/each}
+				</div>
+			</div>
+
+			<div class="border-b border-border p-4">
+				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					<span>Anchors</span>
+					<span class="text-fg-subtle/70" data-numeric>{glyph.anchors?.length ?? 0}</span>
+				</h3>
+				{#if glyph.anchors && glyph.anchors.length > 0}
+					<ul class="mb-2 grid gap-1">
+						{#each glyph.anchors as a (a.name)}
+							<li
+								class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[12px]"
+							>
+								<span class="font-mono text-warn">{a.name}</span>
+								<span class="text-fg-subtle" data-numeric>{a.x}, {a.y}</span>
+								<button
+									type="button"
+									onclick={() => removeAnchor(a.name)}
+									class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									aria-label="Remove anchor {a.name}"
+								>
+									<Trash2 class="size-3" />
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<div class="flex flex-wrap gap-1.5">
+					{#each ['top', 'bottom', '_top', '_bottom', 'ogonek'] as suggested (suggested)}
+						{#if !glyph.anchors?.some((a) => a.name === suggested)}
+							<button
+								type="button"
+								onclick={() => addAnchor(suggested)}
+								class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 font-mono text-[11px] text-fg-muted hover:border-warn hover:bg-warn/10 hover:text-warn"
+							>
+								+ {suggested}
+							</button>
+						{/if}
 					{/each}
 				</div>
 			</div>

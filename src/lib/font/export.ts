@@ -46,30 +46,76 @@ const contoursToOpenTypePath = (contours: BezierContour[]): OTPath => {
 
 /**
  * Resolve effective contours for a glyph, including composite components.
- * For composites we copy contours from the referenced base glyphs and translate.
+ *
+ * For composites with two components (typical base + mark pattern), we look
+ * for matching anchors: an anchor named 'top' on the first component aligns
+ * with an anchor named '_top' on the second component (Glyphs / UFO
+ * convention). When a match is found it overrides the stored xy offset.
  */
 const effectiveContours = (
 	glyph: ProjectGlyph,
 	project: Project,
 	depth = 0
 ): BezierContour[] => {
-	if (depth > 4) return glyph.contours; // recursion guard
+	if (depth > 4) return glyph.contours;
 	if (glyph.contours.length > 0) return glyph.contours;
 	if (!glyph.components || glyph.components.length === 0) return [];
 
+	const components = glyph.components;
+	// Compute per-component translation, using anchors when matchable.
+	const translations: { dx: number; dy: number }[] = components.map((c) => ({
+		dx: c.offsetX,
+		dy: c.offsetY
+	}));
+	if (components.length >= 2) {
+		const base = project.glyphs[components[0].baseCodepoint];
+		if (base) {
+			for (let i = 1; i < components.length; i++) {
+				const mark = project.glyphs[components[i].baseCodepoint];
+				if (!mark) continue;
+				const anchorPair = findAnchorPair(base.anchors, mark.anchors);
+				if (anchorPair) {
+					translations[i] = {
+						dx: anchorPair.baseX - anchorPair.markX,
+						dy: anchorPair.baseY - anchorPair.markY
+					};
+				}
+			}
+		}
+	}
+
 	const out: BezierContour[] = [];
-	for (const ref of glyph.components) {
+	for (let i = 0; i < components.length; i++) {
+		const ref = components[i];
+		const t = translations[i];
 		const base = project.glyphs[ref.baseCodepoint];
 		if (!base) continue;
 		const baseContours = effectiveContours(base, project, depth + 1);
 		for (const c of baseContours) {
 			out.push({
 				...c,
-				commands: c.commands.map((cmd) => translate(cmd, ref.offsetX, ref.offsetY))
+				commands: c.commands.map((cmd) => translate(cmd, t.dx, t.dy))
 			});
 		}
 	}
 	return out;
+};
+
+/**
+ * Find a pair of anchors where the base has 'X' and the mark has '_X'
+ * (Glyphs / UFO convention).
+ */
+const findAnchorPair = (
+	baseAnchors: ProjectGlyph['anchors'],
+	markAnchors: ProjectGlyph['anchors']
+): { baseX: number; baseY: number; markX: number; markY: number } | null => {
+	if (!baseAnchors || !markAnchors) return null;
+	for (const m of markAnchors) {
+		if (!m.name.startsWith('_')) continue;
+		const base = baseAnchors.find((b) => b.name === m.name.slice(1));
+		if (base) return { baseX: base.x, baseY: base.y, markX: m.x, markY: m.y };
+	}
+	return null;
 };
 
 const translate = (c: PathCommand, dx: number, dy: number): PathCommand => {

@@ -24,8 +24,6 @@ const newId = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
 
 const seedGlyph = (codepoint: number, name: string, metrics: FontMetrics): Glyph => {
-	// Sensible default advance widths so the editor canvas looks letter-shaped
-	// before any drawing happens.
 	let advance = Math.round(metrics.unitsPerEm * 0.6);
 	if (codepoint === 0x20) advance = Math.round(metrics.unitsPerEm * 0.25);
 	else if (codepoint >= 0x0030 && codepoint <= 0x0039) advance = Math.round(metrics.unitsPerEm * 0.55);
@@ -33,6 +31,24 @@ const seedGlyph = (codepoint: number, name: string, metrics: FontMetrics): Glyph
 		advance = Math.round(metrics.unitsPerEm * 0.3);
 	else if (codepoint === 0x004d || codepoint === 0x0057)
 		advance = Math.round(metrics.unitsPerEm * 0.85);
+	// Combining marks default to zero advance (they overlap the base)
+	if (codepoint >= 0x0300 && codepoint <= 0x036f) advance = 0;
+
+	const cx = Math.round(advance / 2);
+	const isUpper = codepoint >= 0x0041 && codepoint <= 0x005a;
+	const isLower = codepoint >= 0x0061 && codepoint <= 0x007a;
+	const isMark = codepoint >= 0x0300 && codepoint <= 0x036f;
+	const anchors: Glyph['anchors'] = [];
+	if (isUpper) {
+		anchors.push({ name: 'top', x: cx, y: metrics.capHeight });
+		anchors.push({ name: 'bottom', x: cx, y: 0 });
+	} else if (isLower) {
+		anchors.push({ name: 'top', x: cx, y: metrics.xHeight });
+		anchors.push({ name: 'bottom', x: cx, y: 0 });
+	} else if (isMark) {
+		// Mark anchor (entry) sits at the top of where the mark visually attaches.
+		anchors.push({ name: '_top', x: cx, y: metrics.xHeight });
+	}
 	return {
 		codepoint,
 		name,
@@ -41,6 +57,7 @@ const seedGlyph = (codepoint: number, name: string, metrics: FontMetrics): Glyph
 		leftSidebearing: metrics.defaultSidebearing,
 		rightSidebearing: metrics.defaultSidebearing,
 		contours: [],
+		anchors,
 		updatedAt: now()
 	};
 };

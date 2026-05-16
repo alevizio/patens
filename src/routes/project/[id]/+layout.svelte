@@ -9,6 +9,7 @@
 	import Ruler from '@lucide/svelte/icons/ruler';
 	import EyeIcon from '@lucide/svelte/icons/eye';
 	import Download from '@lucide/svelte/icons/download';
+	import Code from '@lucide/svelte/icons/code-2';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
@@ -38,6 +39,7 @@
 	const tabs = $derived([
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
 		{ href: `/project/${id}/spacing`, label: 'Spacing', icon: Ruler },
+		{ href: `/project/${id}/features`, label: 'Features', icon: Code },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);

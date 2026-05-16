@@ -14,6 +14,7 @@
 	import Panel from '$lib/ui/Panel.svelte';
 	import { importFromOtf } from '$lib/font/import';
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
+	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -21,6 +22,8 @@
 	import Type from '@lucide/svelte/icons/type';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
 	import FileText from '@lucide/svelte/icons/file-text';
+	import Link from '@lucide/svelte/icons/link';
+	import Library from '@lucide/svelte/icons/library';
 
 	// Well-known OFL families whose Reserved Font Names must be changed in derivative work.
 	const OFL_RESERVED_FAMILIES = [
@@ -47,10 +50,12 @@
 	let creating = $state(false);
 	let importing = $state(false);
 	let ufoImporting = $state(false);
+	let urlImporting = $state(false);
 	let importError = $state<string | null>(null);
 	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
+	let urlInput = $state('');
 
 	const refresh = async () => {
 		projects = await listProjects();
@@ -117,6 +122,24 @@
 		} finally {
 			importing = false;
 			input.value = '';
+		}
+	};
+
+	const handleUrlImport = async (url: string) => {
+		if (!url.trim() || urlImporting) return;
+		urlImporting = true;
+		importError = null;
+		importWarning = null;
+		try {
+			const { project } = await importFromUrl(url);
+			importWarning = checkReservedName(project.metadata.familyName);
+			await saveProject(project);
+			if (importWarning) alert(importWarning);
+			await goto(`/project/${project.id}/edit`);
+		} catch (err) {
+			importError = err instanceof Error ? err.message : 'Could not fetch font from URL';
+		} finally {
+			urlImporting = false;
 		}
 	};
 
@@ -321,6 +344,62 @@
 						{importError}
 					</div>
 				{/if}
+
+				<div class="mt-4 grid gap-2">
+					<div class="text-[11px] font-medium tracking-wider text-fg-subtle uppercase">
+						Or from a URL
+					</div>
+					<form
+						class="flex items-center gap-2"
+						onsubmit={(e) => {
+							e.preventDefault();
+							handleUrlImport(urlInput);
+						}}
+					>
+						<div class="relative flex-1">
+							<Link
+								class="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle"
+							/>
+							<Input
+								bind:value={urlInput}
+								placeholder="GitHub URL or direct .otf/.ttf/.woff2/.ufo.zip"
+								density="sm"
+								class="pl-8"
+								disabled={urlImporting}
+							/>
+						</div>
+						<Button
+							type="submit"
+							density="sm"
+							loading={urlImporting}
+							disabled={!urlInput.trim() || urlImporting}
+						>
+							{urlImporting ? 'Fetching…' : 'Fetch'}
+						</Button>
+					</form>
+				</div>
+
+				<div class="mt-4 grid gap-2">
+					<div
+						class="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wider text-fg-subtle uppercase"
+					>
+						<Library class="size-3" /> Starter library
+					</div>
+					<div class="grid grid-cols-2 gap-1.5">
+						{#each STARTER_FONTS as starter (starter.id)}
+							<button
+								type="button"
+								class="group rounded-md border border-border bg-surface-2/40 px-2.5 py-2 text-left transition-colors hover:border-accent hover:bg-accent-soft/40 disabled:opacity-60"
+								disabled={urlImporting}
+								onclick={() => handleUrlImport(starter.url)}
+								title={starter.url}
+							>
+								<div class="text-[12px] font-medium text-fg">{starter.label}</div>
+								<div class="truncate text-[10px] text-fg-subtle">{starter.description}</div>
+							</button>
+						{/each}
+					</div>
+				</div>
 			</Panel>
 		</div>
 	</div>

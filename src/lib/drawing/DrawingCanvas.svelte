@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { BezierContour, FontMetrics, Glyph, SketchStroke } from '$lib/font/types';
+	import type { Anchor, BezierContour, FontMetrics, Glyph, SketchStroke } from '$lib/font/types';
 	import {
 		DEFAULT_STROKE,
 		sketchOutlineSvg,
@@ -8,6 +8,7 @@
 	import { contoursToSvgPath } from '$lib/font/path';
 	import MetricsOverlay from './MetricsOverlay.svelte';
 	import VectorPointLayer from './VectorPointLayer.svelte';
+	import AnchorLayer from './AnchorLayer.svelte';
 
 	type Tool = 'pencil' | 'eraser' | 'edit';
 
@@ -26,12 +27,16 @@
 		onionNext?: Glyph | null;
 		/** Snap dragged points to baseline / x-height / cap-height / asc / desc. */
 		snapToMetrics?: boolean;
+		/** Show anchors on top of the glyph. */
+		showAnchors?: boolean;
 		/** Bump this number to reset the view to auto-fit. */
 		resetSignal?: number;
 		/** Called with the new sketch strokes array (replaces glyph.sketch). */
 		onSketchChange?: (strokes: SketchStroke[]) => void;
 		/** Called when the user moves/adds/deletes points on the vector layer. */
 		onContoursChange?: (contours: BezierContour[]) => void;
+		/** Called when the user drags an anchor. */
+		onAnchorsChange?: (anchors: Anchor[]) => void;
 		/** Called with current zoom % whenever the view changes (100 = fit). */
 		onZoomChange?: (percent: number) => void;
 	};
@@ -48,9 +53,11 @@
 		onionPrev = null,
 		onionNext = null,
 		snapToMetrics = true,
+		showAnchors = true,
 		resetSignal = 0,
 		onSketchChange,
 		onContoursChange,
+		onAnchorsChange,
 		onZoomChange
 	}: Props = $props();
 
@@ -397,6 +404,16 @@
 			snap={snapToMetrics}
 			eventToFont={eventToFont}
 			onChange={onContoursChange}
+		/>
+	{/if}
+
+	<!-- Anchor layer (always visible above the glyph; draggable when shown) -->
+	{#if showAnchors && glyph.anchors && glyph.anchors.length > 0 && onAnchorsChange}
+		<AnchorLayer
+			anchors={glyph.anchors}
+			{pixelsPerUnit}
+			eventToFont={eventToFont}
+			onChange={onAnchorsChange}
 		/>
 	{/if}
 </svg>

@@ -5,9 +5,11 @@
 		ensurePython,
 		otfToWoff2,
 		projectToUfoZip,
+		compileFeaIntoFont,
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
+	import { autoFeaSource } from '$lib/font/fea';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -61,10 +63,25 @@
 
 	const safeFilename = (s: string) => s.replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
 
-	const exportOtf = () => {
-		if (!project) return;
+	const buildOtfBuffer = async (): Promise<ArrayBuffer> => {
+		if (!project) throw new Error('No project');
 		const { font } = buildFont(project);
-		const buffer = font.toArrayBuffer();
+		let buffer = font.toArrayBuffer();
+		const fea = project.features.feaSource ?? autoFeaSource(project);
+		if (fea && fea.trim().length > 0) {
+			try {
+				await ensurePython();
+				buffer = await compileFeaIntoFont(buffer, fea);
+			} catch (err) {
+				console.warn('Feature compile failed, exporting without:', err);
+			}
+		}
+		return buffer;
+	};
+
+	const exportOtf = async () => {
+		if (!project) return;
+		const buffer = await buildOtfBuffer();
 		downloadBlob(
 			new Blob([buffer], { type: 'font/otf' }),
 			`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.otf`
@@ -75,9 +92,7 @@
 		if (!project) return;
 		woff2Busy = true;
 		try {
-			await ensurePython();
-			const { font } = buildFont(project);
-			const otfBuffer = font.toArrayBuffer();
+			const otfBuffer = await buildOtfBuffer();
 			const woff2 = await otfToWoff2(otfBuffer);
 			downloadBlob(
 				new Blob([woff2], { type: 'font/woff2' }),
