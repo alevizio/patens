@@ -14,6 +14,7 @@
  */
 
 import { getStroke } from 'perfect-freehand';
+import polygonClipping from 'polygon-clipping';
 import type { BezierContour, PathCommand, SketchStroke } from './types';
 
 export type StrokeStyle = {
@@ -85,21 +86,23 @@ const douglasPeucker = (
 	return out;
 };
 
-const polygonToContour = (poly: [number, number][]): BezierContour => {
-	if (poly.length === 0) return { closed: true, winding: 'ccw', commands: [] };
+const polygonToContour = (
+	poly: [number, number][],
+	winding: 'cw' | 'ccw' = 'ccw'
+): BezierContour => {
+	if (poly.length === 0) return { closed: true, winding, commands: [] };
 	const commands: PathCommand[] = [{ type: 'M', x: poly[0][0], y: poly[0][1] }];
 	for (let i = 1; i < poly.length; i++) {
 		commands.push({ type: 'L', x: poly[i][0], y: poly[i][1] });
 	}
 	commands.push({ type: 'Z' });
-	return { closed: true, winding: 'ccw', commands };
+	return { closed: true, winding, commands };
 };
 
-/** Convert one sketch stroke into a closed contour. */
-export const strokeToContour = (
+const strokeToOutlinePolygon = (
 	stroke: SketchStroke,
-	style: StrokeStyle = DEFAULT_STROKE
-): BezierContour | null => {
+	style: StrokeStyle
+): [number, number][] | null => {
 	if (stroke.points.length < 2) return null;
 	const inputPts = stroke.points.map(
 		(p) => [p.x, p.y, Math.min(Math.max(p.pressure, 0), 1)] as [number, number, number]
@@ -115,18 +118,57 @@ export const strokeToContour = (
 	if (outline.length < 3) return null;
 	const simplified = douglasPeucker(outline, style.simplifyTolerance);
 	if (simplified.length < 3) return null;
-	return polygonToContour(simplified);
+	return simplified;
 };
 
-/** Convert all sketch strokes into vector contours. */
+/** Convert one sketch stroke into a closed contour (without union). */
+export const strokeToContour = (
+	stroke: SketchStroke,
+	style: StrokeStyle = DEFAULT_STROKE
+): BezierContour | null => {
+	const poly = strokeToOutlinePolygon(stroke, style);
+	return poly ? polygonToContour(poly) : null;
+};
+
+/**
+ * Convert all sketch strokes into vector contours, merging overlapping strokes
+ * with a polygon boolean union. The result is a clean silhouette for multi-stroke
+ * letters like H, A, X — each MultiPolygon ring becomes a separate contour with
+ * outer rings winding CCW and holes CW (CFF convention).
+ */
 export const sketchToContours = (
 	strokes: SketchStroke[],
 	style: StrokeStyle = DEFAULT_STROKE
 ): BezierContour[] => {
-	const out: BezierContour[] = [];
+	const polys: [number, number][][] = [];
 	for (const s of strokes) {
-		const c = strokeToContour(s, style);
-		if (c) out.push(c);
+		const p = strokeToOutlinePolygon(s, style);
+		if (p) polys.push(p);
+	}
+	if (polys.length === 0) return [];
+	if (polys.length === 1) return [polygonToContour(polys[0])];
+
+	let merged;
+	try {
+		const geoms = polys.map((p) => [p] as [number, number][][]);
+		merged = polygonClipping.union(geoms[0], ...geoms.slice(1));
+	} catch {
+		// fall back to un-unioned contours if the boolean op fails
+		return polys.map((p) => polygonToContour(p));
+	}
+
+	const out: BezierContour[] = [];
+	for (const poly of merged) {
+		for (let ringIdx = 0; ringIdx < poly.length; ringIdx++) {
+			const ring = poly[ringIdx];
+			if (ring.length < 4) continue; // ring includes a duplicated closing point
+			// Drop the duplicated closing point if present
+			const last = ring[ring.length - 1];
+			const first = ring[0];
+			const cleaned: [number, number][] =
+				last[0] === first[0] && last[1] === first[1] ? ring.slice(0, -1) : ring.slice();
+			out.push(polygonToContour(cleaned, ringIdx === 0 ? 'ccw' : 'cw'));
+		}
 	}
 	return out;
 };
