@@ -21,10 +21,14 @@
 		showGrid?: boolean;
 		/** Optional reference glyph rendered behind the current one for proportion comparison. */
 		reference?: Glyph | null;
+		/** Bump this number to reset the view to auto-fit. */
+		resetSignal?: number;
 		/** Called with the new sketch strokes array (replaces glyph.sketch). */
 		onSketchChange?: (strokes: SketchStroke[]) => void;
 		/** Called when the user moves/adds/deletes points on the vector layer. */
 		onContoursChange?: (contours: BezierContour[]) => void;
+		/** Called with current zoom % whenever the view changes (100 = fit). */
+		onZoomChange?: (percent: number) => void;
 	};
 
 	let {
@@ -36,8 +40,10 @@
 		showVector = true,
 		showGrid = false,
 		reference = null,
+		resetSignal = 0,
 		onSketchChange,
-		onContoursChange
+		onContoursChange,
+		onZoomChange
 	}: Props = $props();
 
 	let svgEl: SVGSVGElement | null = $state(null);
@@ -45,16 +51,48 @@
 	let activeStroke = $state<SketchStroke | null>(null);
 	let liveOutline = $state('');
 	let renderedWidth = $state(800);
+	let spaceHeld = $state(false);
+	let panning = $state(false);
+	let panLast = $state<{ x: number; y: number } | null>(null);
 
 	const advance = $derived(Math.max(glyph.advanceWidth, 400));
 	const padX = 100;
 	const padY = 80;
-	const viewW = $derived(advance + padX * 2);
-	const viewH = $derived(metrics.ascender - metrics.descender + padY * 2);
-	const viewBox = $derived(
-		`${-padX} ${-(metrics.ascender + padY)} ${viewW} ${viewH}`
+	const autoViewW = $derived(advance + padX * 2);
+	const autoViewH = $derived(metrics.ascender - metrics.descender + padY * 2);
+	const autoMinX = -padX;
+	const autoMinY = $derived(-(metrics.ascender + padY));
+
+	type ViewBox = { minX: number; minY: number; width: number; height: number };
+	let viewOverride = $state<ViewBox | null>(null);
+
+	const view = $derived<ViewBox>(
+		viewOverride ?? {
+			minX: autoMinX,
+			minY: autoMinY,
+			width: autoViewW,
+			height: autoViewH
+		}
 	);
-	const pixelsPerUnit = $derived(renderedWidth / Math.max(viewW, 1));
+	const viewBox = $derived(`${view.minX} ${view.minY} ${view.width} ${view.height}`);
+	const pixelsPerUnit = $derived(renderedWidth / Math.max(view.width, 1));
+	const zoomPercent = $derived(((view.width === 0 ? 0 : autoViewW / view.width) * 100).toFixed(0));
+
+	// Reset override whenever the glyph changes — auto-fit a fresh glyph.
+	$effect(() => {
+		void glyph.codepoint;
+		viewOverride = null;
+	});
+
+	// Parent-triggered reset.
+	$effect(() => {
+		void resetSignal;
+		viewOverride = null;
+	});
+
+	$effect(() => {
+		onZoomChange?.(Number(zoomPercent));
+	});
 
 	$effect(() => {
 		if (!svgEl) return;
@@ -66,6 +104,56 @@
 		ro.observe(svgEl);
 		return () => ro.disconnect();
 	});
+
+	const screenToView = (sx: number, sy: number): { x: number; y: number } => {
+		if (!svgEl) return { x: 0, y: 0 };
+		const rect = svgEl.getBoundingClientRect();
+		const rx = (sx - rect.left) / rect.width;
+		const ry = (sy - rect.top) / rect.height;
+		return {
+			x: view.minX + rx * view.width,
+			y: view.minY + ry * view.height
+		};
+	};
+
+	const handleWheel = (ev: WheelEvent) => {
+		ev.preventDefault();
+		const factor = Math.exp(ev.deltaY * 0.0015);
+		const minWidth = 200;
+		const maxWidth = 10000;
+		const newWidth = Math.max(minWidth, Math.min(maxWidth, view.width * factor));
+		const newHeight = view.height * (newWidth / view.width);
+		// Zoom around cursor
+		const pivot = screenToView(ev.clientX, ev.clientY);
+		const newMinX = pivot.x - ((pivot.x - view.minX) * newWidth) / view.width;
+		const newMinY = pivot.y - ((pivot.y - view.minY) * newHeight) / view.height;
+		viewOverride = {
+			minX: newMinX,
+			minY: newMinY,
+			width: newWidth,
+			height: newHeight
+		};
+	};
+
+	const handleKeyDown = (ev: KeyboardEvent) => {
+		if (ev.target instanceof HTMLInputElement) return;
+		if (ev.target instanceof HTMLTextAreaElement) return;
+		if (ev.code === 'Space' && !ev.repeat) {
+			spaceHeld = true;
+		}
+		if (ev.key === '0' && (ev.metaKey || ev.ctrlKey)) {
+			ev.preventDefault();
+			viewOverride = null;
+		}
+	};
+
+	const handleKeyUp = (ev: KeyboardEvent) => {
+		if (ev.code === 'Space') {
+			spaceHeld = false;
+			panning = false;
+			panLast = null;
+		}
+	};
 
 	const eventToFont = (ev: PointerEvent): { x: number; y: number } | null => {
 		if (!svgEl) return null;
@@ -81,9 +169,22 @@
 	};
 
 	const handlePointerDown = (ev: PointerEvent) => {
+		if (!svgEl) return;
+		// Panning takes priority over drawing/editing
+		if (spaceHeld || ev.button === 1) {
+			ev.preventDefault();
+			try {
+				svgEl.setPointerCapture(ev.pointerId);
+			} catch {
+				/* ignore */
+			}
+			activePointer = ev.pointerId;
+			panning = true;
+			panLast = { x: ev.clientX, y: ev.clientY };
+			return;
+		}
 		if (tool === 'edit') return; // vector layer handles its own events
 		if (ev.button !== 0 && ev.pointerType === 'mouse') return;
-		if (!svgEl) return;
 		const fp = eventToFont(ev);
 		if (!fp) return;
 		ev.preventDefault();
@@ -111,6 +212,22 @@
 
 	const handlePointerMove = (ev: PointerEvent) => {
 		if (activePointer !== ev.pointerId) return;
+		if (panning && panLast) {
+			const dx = ev.clientX - panLast.x;
+			const dy = ev.clientY - panLast.y;
+			panLast = { x: ev.clientX, y: ev.clientY };
+			if (!svgEl) return;
+			const rect = svgEl.getBoundingClientRect();
+			const dxView = (-dx / rect.width) * view.width;
+			const dyView = (-dy / rect.height) * view.height;
+			viewOverride = {
+				minX: view.minX + dxView,
+				minY: view.minY + dyView,
+				width: view.width,
+				height: view.height
+			};
+			return;
+		}
 		const fp = eventToFont(ev);
 		if (!fp) return;
 		if (tool === 'eraser') {
@@ -140,7 +257,18 @@
 	const handlePointerUp = (ev: PointerEvent) => {
 		if (activePointer !== ev.pointerId) return;
 		activePointer = null;
-		if (svgEl) svgEl.releasePointerCapture(ev.pointerId);
+		if (svgEl) {
+			try {
+				svgEl.releasePointerCapture(ev.pointerId);
+			} catch {
+				/* ignore */
+			}
+		}
+		if (panning) {
+			panning = false;
+			panLast = null;
+			return;
+		}
 		if (activeStroke && activeStroke.points.length >= 2) {
 			const next = [...(glyph.sketch ?? []), activeStroke];
 			onSketchChange?.(next);
@@ -167,14 +295,23 @@
 	};
 </script>
 
+<svelte:window onkeydown={handleKeyDown} onkeyup={handleKeyUp} />
+
 <svg
 	bind:this={svgEl}
 	{viewBox}
-	class="h-full w-full select-none touch-none cursor-crosshair"
+	class="h-full w-full select-none touch-none {panning
+		? 'cursor-grabbing'
+		: spaceHeld
+			? 'cursor-grab'
+			: tool === 'edit'
+				? 'cursor-default'
+				: 'cursor-crosshair'}"
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
 	onpointerup={handlePointerUp}
 	onpointercancel={handlePointerUp}
+	onwheel={handleWheel}
 	role="img"
 	aria-label="Drawing canvas for glyph {glyph.name}"
 >

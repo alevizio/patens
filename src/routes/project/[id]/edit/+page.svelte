@@ -18,6 +18,7 @@
 	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import Maximize from '@lucide/svelte/icons/maximize';
 
 	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
@@ -27,6 +28,8 @@
 	let showVector = $state(true);
 	let showGrid = $state(false);
 	let showReference = $state(true);
+	let zoomPercent = $state(100);
+	let resetSignal = $state(0);
 
 	const strokeStyle = $derived({
 		...DEFAULT_STROKE,
@@ -258,6 +261,15 @@
 				<div class="ml-auto flex items-center gap-1">
 					<button
 						type="button"
+						onclick={() => (resetSignal++)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+						title="Fit to glyph (⌘0)"
+					>
+						<Maximize class="size-3.5" />
+						<span data-numeric>{zoomPercent}%</span>
+					</button>
+					<button
+						type="button"
 						onclick={() => (showReference = !showReference)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showReference
 							? 'bg-fg/10 text-fg'
@@ -315,8 +327,10 @@
 						{showVector}
 						{showGrid}
 						reference={referenceGlyph}
+						{resetSignal}
 						onSketchChange={handleSketchChange}
 						onContoursChange={handleContoursChange}
+						onZoomChange={(p) => (zoomPercent = p)}
 					/>
 				</div>
 			</div>
@@ -492,6 +506,9 @@
 					<li>S V G R<span class="ml-2 text-fg-muted">toggle sketch / vector / grid / ref</span></li>
 					<li>T<span class="ml-2 text-fg-muted">trace to vector</span></li>
 					<li>Del<span class="ml-2 text-fg-muted">delete selected point</span></li>
+					<li>Space-drag<span class="ml-2 text-fg-muted">pan</span></li>
+					<li>Wheel<span class="ml-2 text-fg-muted">zoom</span></li>
+					<li>⌘0<span class="ml-2 text-fg-muted">fit to glyph</span></li>
 					<li>⌘Z<span class="ml-2 text-fg-muted">undo last stroke</span></li>
 				</ul>
 			</div>
