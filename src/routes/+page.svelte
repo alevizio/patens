@@ -12,15 +12,19 @@
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
+	import { importFromOtf } from '$lib/font/import';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import PenTool from '@lucide/svelte/icons/pen-tool';
 	import Type from '@lucide/svelte/icons/type';
+	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
 
 	let projects = $state<ProjectIndexEntry[]>([]);
 	let loading = $state(true);
 	let creating = $state(false);
+	let importing = $state(false);
+	let importError = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
 
@@ -57,6 +61,24 @@
 		if (!ok) return;
 		await deleteProject(entry.id);
 		await refresh();
+	};
+
+	const handleImport = async (ev: Event) => {
+		const input = ev.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		importing = true;
+		importError = null;
+		try {
+			const { project } = await importFromOtf(file);
+			await saveProject(project);
+			await goto(`/project/${project.id}/edit`);
+		} catch (err) {
+			importError = err instanceof Error ? err.message : 'Could not read this font file.';
+		} finally {
+			importing = false;
+			input.value = '';
+		}
 	};
 
 	const formatRelative = (iso: string): string => {
@@ -161,29 +183,61 @@
 			{/if}
 		</Panel>
 
-		<Panel padding="md">
-			<h2 class="mb-4 text-sm font-semibold tracking-wide text-fg-muted uppercase">New font</h2>
-			<form onsubmit={handleCreate} class="grid gap-4">
-				<Field label="Project name" required>
-					<Input
-						bind:value={newName}
-						placeholder="e.g. Personal Sans"
-						required
-						maxlength={60}
+		<div class="grid gap-4">
+			<Panel padding="md">
+				<h2 class="mb-4 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+					New font
+				</h2>
+				<form onsubmit={handleCreate} class="grid gap-4">
+					<Field label="Project name" required>
+						<Input
+							bind:value={newName}
+							placeholder="e.g. Personal Sans"
+							required
+							maxlength={60}
+						/>
+					</Field>
+					<Field label="Font family name" hint="Defaults to project name">
+						<Input
+							bind:value={newFamily}
+							placeholder="e.g. Personal Sans"
+							maxlength={60}
+						/>
+					</Field>
+					<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
+						{#snippet icon()}<Plus class="size-4" />{/snippet}
+						{creating ? 'Creating…' : 'Create font'}
+					</Button>
+				</form>
+			</Panel>
+
+			<Panel padding="md">
+				<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+					Start from a font
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Import an OTF or TTF — all glyphs, metrics, and naming are loaded so you can
+					remix.
+				</p>
+				<label
+					class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
+				>
+					<UploadCloud class="size-4" />
+					{importing ? 'Importing…' : 'Choose .otf / .ttf'}
+					<input
+						type="file"
+						accept=".otf,.ttf,font/otf,font/ttf,application/font-sfnt"
+						class="sr-only"
+						onchange={handleImport}
+						disabled={importing}
 					/>
-				</Field>
-				<Field label="Font family name" hint="Defaults to project name">
-					<Input
-						bind:value={newFamily}
-						placeholder="e.g. Personal Sans"
-						maxlength={60}
-					/>
-				</Field>
-				<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
-					{#snippet icon()}<Plus class="size-4" />{/snippet}
-					{creating ? 'Creating…' : 'Create font'}
-				</Button>
-			</form>
-		</Panel>
+				</label>
+				{#if importError}
+					<div class="mt-2 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger">
+						{importError}
+					</div>
+				{/if}
+			</Panel>
+		</div>
 	</div>
 </div>
