@@ -42,6 +42,8 @@ export type Glyph = {
 	contours: BezierContour[];
 	components?: GlyphReference[];
 	anchors?: Anchor[];
+	/** Freeform designer notes for this glyph. */
+	notes?: string;
 	updatedAt: string;
 };
 

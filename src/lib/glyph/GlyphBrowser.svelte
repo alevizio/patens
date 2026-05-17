@@ -100,6 +100,18 @@
 		return n;
 	});
 
+	const recents = $derived.by(() => {
+		const glyphs = Object.values(projectStore.activeGlyphs);
+		return glyphs
+			.filter((g) => g.contours.length > 0 || (g.components && g.components.length > 0))
+			.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+			.slice(0, 8);
+	});
+
+	const showRecents = $derived(
+		!query.trim() && statusFilter === 'all' && recents.length > 0
+	);
+
 	const totalDrawn = $derived.by(() => {
 		return Object.values(projectStore.activeGlyphs).filter((g) => g.contours.length > 0).length;
 	});
@@ -186,6 +198,27 @@
 		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
+		{#if showRecents}
+			<section class="mb-3">
+				<h3 class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Recently edited
+					<span class="ml-1 text-fg-subtle/70" data-numeric>{recents.length}</span>
+				</h3>
+				<div class="grid grid-cols-4 gap-0.5">
+					{#each recents as g (g.codepoint)}
+						<GlyphTile
+							glyph={g}
+							size={44}
+							showLabel={false}
+							selected={g.codepoint === projectStore.selectedCodepoint}
+							ascender={projectStore.project?.metrics.ascender ?? 800}
+							descender={projectStore.project?.metrics.descender ?? -200}
+							onclick={() => projectStore.selectGlyph(g.codepoint)}
+						/>
+					{/each}
+				</div>
+			</section>
+		{/if}
 		{#if filteredTotal === 0}
 			<div class="px-2 py-6 text-center text-[11px] text-fg-subtle">
 				{query.trim() ? 'No glyphs match the search.' : 'No glyphs match this filter.'}

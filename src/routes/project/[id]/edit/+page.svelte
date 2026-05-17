@@ -36,6 +36,7 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
+	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 
@@ -993,6 +994,25 @@
 						{/if}
 					{/each}
 				</div>
+			</div>
+
+			<CompositeEditor />
+
+			<div class="border-b border-border p-4">
+				<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Notes
+				</h3>
+				<textarea
+					value={glyph.notes ?? ''}
+					oninput={(e) =>
+						projectStore.updateGlyph(glyph.codepoint, (g) => ({
+							...g,
+							notes: e.currentTarget.value
+						}))}
+					placeholder="Design intent, todos, references…"
+					rows="3"
+					class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent focus:bg-surface"
+				></textarea>
 			</div>
 
 			<div class="border-b border-border p-4">
