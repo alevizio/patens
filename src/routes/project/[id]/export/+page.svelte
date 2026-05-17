@@ -77,6 +77,40 @@
 
 	const safeFilename = (s: string) => s.replace(/[^A-Za-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
 
+	let cssCopied = $state(false);
+	const cssSnippet = $derived.by(() => {
+		if (!project) return '';
+		const family = project.metadata.familyName || project.name;
+		const fileBase = `${safeFilename(family) || 'Untitled'}-${safeFilename(project.metadata.styleName)}`;
+		return `@font-face {
+	font-family: '${family}';
+	src: url('/fonts/${fileBase}.woff2') format('woff2'),
+	     url('/fonts/${fileBase}.otf') format('opentype');
+	font-weight: normal;
+	font-style: normal;
+	font-display: swap;
+}
+
+:root {
+	--font-${safeFilename(family).toLowerCase() || 'custom'}: '${family}', system-ui, sans-serif;
+}
+
+body {
+	font-family: var(--font-${safeFilename(family).toLowerCase() || 'custom'});
+	font-feature-settings: 'kern' 1, 'liga' 1;
+}`;
+	});
+	const copyCss = async () => {
+		if (!cssSnippet) return;
+		try {
+			await navigator.clipboard.writeText(cssSnippet);
+			cssCopied = true;
+			setTimeout(() => (cssCopied = false), 1500);
+		} catch {
+			alert('Copy failed — select and copy manually.');
+		}
+	};
+
 	const buildOtfBuffer = async (): Promise<ArrayBuffer> => {
 		if (!project) throw new Error('No project');
 		const { font } = buildFont(project);
@@ -812,6 +846,24 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					</span>
 				</div>
 			</div>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				CSS snippet
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Copy-paste ready CSS for self-hosting the WOFF2 export. Drop the
+				downloaded font into a <code>fonts/</code> folder and you're done.
+			</p>
+			<pre class="overflow-x-auto rounded-lg border border-border bg-surface-2/40 p-3 text-[12px] leading-relaxed text-fg"><code>{cssSnippet}</code></pre>
+			<button
+				type="button"
+				onclick={copyCss}
+				class="mt-2 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+			>
+				{cssCopied ? 'Copied ✓' : 'Copy to clipboard'}
+			</button>
 		</Panel>
 
 		<Panel>
