@@ -36,6 +36,34 @@
 		`'kern' ${playgroundKern ? 1 : 0}, 'liga' ${playgroundLiga ? 1 : 0}`
 	);
 
+	// ---------- Sidebearing analyzer ----------
+	type AnalyzerCategory = 'uppercase' | 'lowercase' | 'figure' | 'all';
+	let analyzerCategory = $state<AnalyzerCategory>('lowercase');
+
+	const analyzerGlyphs = $derived.by(() => {
+		if (!project) return [];
+		const all = Object.values(project.glyphs)
+			.filter((g) => g.contours.length > 0)
+			.sort((a, b) => a.codepoint - b.codepoint);
+		switch (analyzerCategory) {
+			case 'uppercase':
+				return all.filter((g) => g.codepoint >= 0x0041 && g.codepoint <= 0x005a);
+			case 'lowercase':
+				return all.filter((g) => g.codepoint >= 0x0061 && g.codepoint <= 0x007a);
+			case 'figure':
+				return all.filter((g) => g.codepoint >= 0x0030 && g.codepoint <= 0x0039);
+			case 'all':
+				return all;
+		}
+	});
+
+	const analyzerMax = $derived(
+		analyzerGlyphs.reduce(
+			(m, g) => Math.max(m, g.leftSidebearing, g.rightSidebearing),
+			60
+		)
+	);
+
 	const cpOf = (s: string) => s.codePointAt(0) ?? 0;
 	const project = $derived(projectStore.project);
 
@@ -154,6 +182,75 @@
 		>
 			{playgroundText || 'Type above…'}
 		</div>
+	</Panel>
+
+	<Panel>
+		<div class="mb-3 flex items-center justify-between gap-3">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Sidebearing analyzer
+			</h2>
+			<div class="flex items-center gap-1">
+				{#each [{ id: 'lowercase', label: 'a–z' }, { id: 'uppercase', label: 'A–Z' }, { id: 'figure', label: '0–9' }, { id: 'all', label: 'All drawn' }] as opt (opt.id)}
+					<button
+						type="button"
+						onclick={() => (analyzerCategory = opt.id as AnalyzerCategory)}
+						class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {analyzerCategory ===
+						opt.id
+							? 'bg-accent-soft text-accent'
+							: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
+					>
+						{opt.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Bars show LSB and RSB to scale. Symmetric round glyphs (o, O, e) should
+			look balanced; stems with serifs/finials typically lean asymmetric.
+		</p>
+		{#if analyzerGlyphs.length === 0}
+			<p class="text-sm text-fg-muted">No drawn glyphs in this category yet.</p>
+		{:else}
+			<ul class="grid gap-1">
+				{#each analyzerGlyphs as g (g.codepoint)}
+					{@const lsbPct = (g.leftSidebearing / analyzerMax) * 100}
+					{@const rsbPct = (g.rightSidebearing / analyzerMax) * 100}
+					{@const asymmetric =
+						Math.abs(g.leftSidebearing - g.rightSidebearing) >
+						Math.max(20, Math.min(g.leftSidebearing, g.rightSidebearing) * 0.4)}
+					<li
+						class="grid grid-cols-[40px_1fr_30px_1fr_60px] items-center gap-2 rounded-md px-2 py-1.5 text-[12px] hover:bg-surface-2/40"
+					>
+						<a
+							href="/project/{project?.id}/edit"
+							onclick={() => projectStore.selectGlyph(g.codepoint)}
+							class="preview-font text-center text-xl leading-none hover:text-accent"
+							title="Open {g.name}"
+						>
+							{String.fromCodePoint(g.codepoint)}
+						</a>
+						<div class="flex h-2 justify-end overflow-hidden rounded-full bg-surface-2">
+							<div
+								class="h-full {asymmetric ? 'bg-warn' : 'bg-accent/70'}"
+								style="width: {Math.max(2, lsbPct)}%;"
+							></div>
+						</div>
+						<div class="text-center font-mono text-[10px] text-fg-subtle" data-numeric>
+							{g.leftSidebearing}
+						</div>
+						<div class="flex h-2 overflow-hidden rounded-full bg-surface-2">
+							<div
+								class="h-full {asymmetric ? 'bg-warn' : 'bg-accent/70'}"
+								style="width: {Math.max(2, rsbPct)}%;"
+							></div>
+						</div>
+						<div class="text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+							{g.rightSidebearing}
+						</div>
+					</li>
+				{/each}
+			</ul>
+		{/if}
 	</Panel>
 
 	<Panel>
