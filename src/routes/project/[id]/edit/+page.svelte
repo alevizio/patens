@@ -399,6 +399,37 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
+	const makeSymmetric = () => {
+		if (!glyph) return;
+		const avg = Math.round((glyph.leftSidebearing + glyph.rightSidebearing) / 2);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			leftSidebearing: avg,
+			rightSidebearing: avg
+		}));
+	};
+
+	const centerHorizontally = () => {
+		if (!glyph || glyph.contours.length === 0) return;
+		const bounds = glyphBounds(glyph.contours);
+		const targetCenter = glyph.advanceWidth / 2;
+		const currentCenter = (bounds.minX + bounds.maxX) / 2;
+		const dx = Math.round(targetCenter - currentCenter);
+		if (dx === 0) return;
+		const m: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, tx: dx, ty: 0 };
+		const allRefs = glyph.contours.flatMap((c, ci) =>
+			c.commands
+				.map((cmd, i) =>
+					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+						? { contour: ci, index: i }
+						: null
+				)
+				.filter((r): r is { contour: number; index: number } => r !== null)
+		);
+		const next = transformPoints(glyph.contours, allRefs, m);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
 	const scaleGlyph = (factor: number) => {
 		if (!glyph || glyph.contours.length === 0) return;
 		const bounds = glyphBounds(glyph.contours);
@@ -1291,6 +1322,24 @@
 						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
 					>
 						Scale −5%
+					</button>
+					<button
+						type="button"
+						onclick={makeSymmetric}
+						disabled={glyph.leftSidebearing === glyph.rightSidebearing}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Set LSB = RSB = average — useful for symmetric round glyphs (o, O, e)"
+					>
+						Symmetric LSB/RSB
+					</button>
+					<button
+						type="button"
+						onclick={centerHorizontally}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Shift contours so the bbox centre matches advance/2"
+					>
+						Center in advance
 					</button>
 				</div>
 			</div>
