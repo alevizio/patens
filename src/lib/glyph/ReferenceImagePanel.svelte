@@ -25,7 +25,7 @@
 		if (!files || files.length === 0 || !glyph || !metrics) return;
 		const file = files[0];
 		if (!file.type.startsWith('image/')) {
-			alert('Please choose an image file.');
+			toast.warn('Please choose an image file.');
 			return;
 		}
 		if (file.size > 4 * 1024 * 1024) {

@@ -84,7 +84,7 @@
 		const file = e.dataTransfer?.files?.[0];
 		if (!file || !file.type.startsWith('image/') || !glyph || !metrics) return;
 		if (file.size > 4 * 1024 * 1024) {
-			alert('Image is over 4MB — please use a smaller reference to keep the project light.');
+			toast.warn('Image is over 4MB — please use a smaller reference.');
 			return;
 		}
 		const dataUrl = await new Promise<string>((resolve, reject) => {

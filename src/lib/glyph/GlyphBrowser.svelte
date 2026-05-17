@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { CATEGORY_LABELS, CATEGORY_ORDER, type GlyphCategory } from '$lib/font/glyph-set';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
@@ -48,7 +49,9 @@
 			newCpInput = '';
 			showAddForm = false;
 		} else {
-			alert(`Codepoint U+${cp.toString(16).toUpperCase().padStart(4, '0')} already exists.`);
+			toast.warn(
+				`Codepoint U+${cp.toString(16).toUpperCase().padStart(4, '0')} already exists.`
+			);
 		}
 	};
 

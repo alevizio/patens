@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { GlyphReference } from '$lib/font/types';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -65,7 +66,7 @@
 		const cp = parseCodepoint(newRefInput);
 		if (!cp) return;
 		if (cp === glyph.codepoint) {
-			alert('A glyph cannot reference itself.');
+			toast.warn('A glyph cannot reference itself.');
 			return;
 		}
 		const offsetY = components.length === 0 ? 0 : project?.metrics.xHeight ?? 0;
