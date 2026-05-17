@@ -39,6 +39,7 @@
 	import EditorTour from '$lib/ui/EditorTour.svelte';
 	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
 	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
+	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 
@@ -50,6 +51,7 @@
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let tourOpen = $state(false);
 	let shortcutsOpen = $state(false);
+	let paletteOpen = $state(false);
 
 	const SHORTCUTS: Array<{ group: string; items: Array<{ keys: string; label: string }> }> = [
 		{
@@ -65,7 +67,9 @@
 			group: 'Navigation',
 			items: [
 				{ keys: '[', label: 'Previous glyph' },
-				{ keys: ']', label: 'Next glyph' }
+				{ keys: ']', label: 'Next glyph' },
+				{ keys: '/', label: 'Open glyph palette' },
+				{ keys: '⌘K / Ctrl+K', label: 'Open glyph palette' }
 			]
 		},
 		{
@@ -525,8 +529,15 @@
 		} else if (ev.key === '?' || (ev.key === '/' && ev.shiftKey)) {
 			ev.preventDefault();
 			shortcutsOpen = !shortcutsOpen;
-		} else if (ev.key === 'Escape' && shortcutsOpen) {
-			shortcutsOpen = false;
+		} else if (ev.key === '/' && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey) {
+			ev.preventDefault();
+			paletteOpen = true;
+		} else if ((ev.key === 'k' || ev.key === 'K') && (ev.metaKey || ev.ctrlKey)) {
+			ev.preventDefault();
+			paletteOpen = true;
+		} else if (ev.key === 'Escape') {
+			if (shortcutsOpen) shortcutsOpen = false;
+			if (paletteOpen) paletteOpen = false;
 		}
 	};
 </script>
@@ -882,8 +893,30 @@
 		<!-- Right properties panel -->
 		<aside class="flex min-h-0 flex-col border-l border-border bg-surface">
 			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Glyph
+				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					<span>Glyph</span>
+					{#if projectStore.selectedMasterId}
+						<button
+							type="button"
+							onclick={() => {
+								if (!projectStore.selectedMasterId) return;
+								if (
+									confirm(
+										'Replace this glyph in the active master with a copy of the default master? This is the canonical fix when point counts diverge.'
+									)
+								) {
+									projectStore.syncGlyphFromDefault(
+										glyph.codepoint,
+										projectStore.selectedMasterId
+									);
+								}
+							}}
+							class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+							title="Copy contours/metrics from the default master into this master"
+						>
+							Sync from Default
+						</button>
+					{/if}
 				</h3>
 				<Field label="Name">
 					<Input
@@ -1324,6 +1357,7 @@
 		</aside>
 	</div>
 	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
+	<CommandPalette open={paletteOpen} onclose={() => (paletteOpen = false)} />
 
 	{#if shortcutsOpen}
 		<button

@@ -434,6 +434,25 @@ class ProjectStore {
 		this.project = updateMasterHelper(this.project, masterId, mut);
 		this.touch();
 	}
+
+	/**
+	 * Copy a glyph's full data (contours, metrics, anchors, components) from
+	 * the default master into the named additional master. Used to keep
+	 * interpolation compatible when starting fresh on a master.
+	 */
+	syncGlyphFromDefault(codepoint: number, masterId: string) {
+		if (!this.project) return;
+		const src = this.project.glyphs[codepoint];
+		if (!src) return;
+		this.project = updateMasterHelper(this.project, masterId, (m) => ({
+			...m,
+			glyphs: {
+				...m.glyphs,
+				[codepoint]: JSON.parse(JSON.stringify(src)) as Glyph
+			}
+		}));
+		this.touch();
+	}
 }
 
 export const projectStore = new ProjectStore();
