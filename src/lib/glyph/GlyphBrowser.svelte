@@ -55,6 +55,10 @@
 		}
 	};
 
+	const focusFirstInput = (node: HTMLElement) => {
+		queueMicrotask(() => node.querySelector<HTMLInputElement>('input')?.focus());
+	};
+
 	const handleDelete = (codepoint: number, name: string) => {
 		if (!confirm(`Remove glyph "${name}" from the font? Any kerning pairs and class members referencing it will also be removed.`)) return;
 		projectStore.removeGlyph(codepoint);
@@ -212,7 +216,11 @@
 			</button>
 		</div>
 		{#if showAddForm}
-			<form onsubmit={handleAddGlyph} class="mt-2 flex items-center gap-1.5">
+			<form
+				onsubmit={handleAddGlyph}
+				use:focusFirstInput
+				class="mt-2 flex items-center gap-1.5"
+			>
 				<Input
 					density="sm"
 					bind:value={newCpInput}
