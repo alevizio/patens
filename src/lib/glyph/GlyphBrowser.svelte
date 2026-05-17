@@ -12,6 +12,48 @@
 	let showAddForm = $state(false);
 	let newCpInput = $state('');
 
+	let bulkMode = $state(false);
+	let selectedCodepoints = $state<Set<number>>(new Set());
+
+	const toggleSelect = (cp: number) => {
+		const next = new Set(selectedCodepoints);
+		if (next.has(cp)) next.delete(cp);
+		else next.add(cp);
+		selectedCodepoints = next;
+	};
+
+	const clearSelection = () => {
+		selectedCodepoints = new Set();
+	};
+
+	const bulkSetStatus = (status: 'empty' | 'sketch' | 'draft' | 'final') => {
+		for (const cp of selectedCodepoints) {
+			projectStore.setGlyphStatus(cp, status);
+		}
+		toast.success(
+			`Set ${selectedCodepoints.size} glyph${selectedCodepoints.size === 1 ? '' : 's'} → ${status}`
+		);
+		clearSelection();
+	};
+
+	const bulkPin = () => {
+		for (const cp of selectedCodepoints) {
+			const g = projectStore.activeGlyphs[cp];
+			if (g && !g.pinned) projectStore.toggleGlyphPin(cp);
+		}
+		toast.success(`Pinned ${selectedCodepoints.size}`);
+		clearSelection();
+	};
+
+	const bulkUnpin = () => {
+		for (const cp of selectedCodepoints) {
+			const g = projectStore.activeGlyphs[cp];
+			if (g && g.pinned) projectStore.toggleGlyphPin(cp);
+		}
+		toast.success(`Unpinned ${selectedCodepoints.size}`);
+		clearSelection();
+	};
+
 	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final';
 	let statusFilter = $state<StatusFilter>('all');
 	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
@@ -207,6 +249,20 @@
 			</div>
 			<button
 				type="button"
+				onclick={() => {
+					bulkMode = !bulkMode;
+					if (!bulkMode) clearSelection();
+				}}
+				class="inline-flex h-6 items-center gap-1 rounded-md border px-1.5 text-[11px] font-medium transition-colors {bulkMode
+					? 'border-accent bg-accent-soft text-accent'
+					: 'border-border bg-surface text-fg-muted hover:border-accent hover:text-accent'}"
+				aria-label="Toggle bulk-select mode"
+				title="Toggle bulk-select mode"
+			>
+				Bulk
+			</button>
+			<button
+				type="button"
 				onclick={() => (showAddForm = !showAddForm)}
 				class="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-surface px-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
 				aria-label="Add custom glyph"
@@ -300,10 +356,15 @@
 								glyph={g}
 								size={44}
 								showLabel={false}
-								selected={g.codepoint === projectStore.selectedCodepoint}
+								selected={bulkMode
+									? selectedCodepoints.has(g.codepoint)
+									: g.codepoint === projectStore.selectedCodepoint}
 								ascender={projectStore.project?.metrics.ascender ?? 800}
 								descender={projectStore.project?.metrics.descender ?? -200}
-								onclick={() => projectStore.selectGlyph(g.codepoint)}
+								onclick={() =>
+									bulkMode
+										? toggleSelect(g.codepoint)
+										: projectStore.selectGlyph(g.codepoint)}
 							/>
 						{/each}
 					</div>
@@ -311,4 +372,56 @@
 			{/if}
 		{/each}
 	</div>
+
+	{#if bulkMode}
+		<div class="border-t border-border bg-surface-2/50 px-2 py-2">
+			<div class="mb-1.5 flex items-center justify-between text-[11px]">
+				<span class="font-medium text-fg-muted" data-numeric>
+					{selectedCodepoints.size} selected
+				</span>
+				<button
+					type="button"
+					onclick={clearSelection}
+					disabled={selectedCodepoints.size === 0}
+					class="text-[10px] text-fg-subtle hover:text-fg disabled:opacity-40"
+				>
+					Clear
+				</button>
+			</div>
+			<div class="grid grid-cols-2 gap-1">
+				<button
+					type="button"
+					onclick={() => bulkSetStatus('final')}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-success hover:text-success disabled:opacity-40"
+				>
+					→ final
+				</button>
+				<button
+					type="button"
+					onclick={() => bulkSetStatus('draft')}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+				>
+					→ draft
+				</button>
+				<button
+					type="button"
+					onclick={bulkPin}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
+				>
+					Pin
+				</button>
+				<button
+					type="button"
+					onclick={bulkUnpin}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
+				>
+					Unpin
+				</button>
+			</div>
+		</div>
+	{/if}
 </aside>
