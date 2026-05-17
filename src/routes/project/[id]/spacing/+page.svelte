@@ -102,6 +102,67 @@
 
 	let bulkText = $state('');
 	let bulkResult = $state<string | null>(null);
+
+	const makeFiguresTabular = () => {
+		if (!project) return;
+		const digits = Array.from({ length: 10 }, (_, i) => 0x0030 + i)
+			.map((cp) => project.glyphs[cp])
+			.filter((g) => g && g.contours.length > 0);
+		if (digits.length === 0) {
+			alert('No figures (0–9) drawn yet.');
+			return;
+		}
+		const targetAdvance = Math.max(...digits.map((g) => g.advanceWidth));
+		for (const g of digits) {
+			const extra = targetAdvance - g.advanceWidth;
+			const lsb = g.leftSidebearing + Math.round(extra / 2);
+			const rsb = g.rightSidebearing + (extra - Math.round(extra / 2));
+			projectStore.updateGlyph(g.codepoint, (gg) => ({
+				...gg,
+				advanceWidth: targetAdvance,
+				leftSidebearing: lsb,
+				rightSidebearing: rsb
+			}));
+		}
+		alert(`Set ${digits.length} figures to advance ${targetAdvance} units (centred).`);
+	};
+
+	const setAllSidebearings = (which: 'left' | 'right' | 'both', value: number, category: 'all' | 'upper' | 'lower' | 'figure') => {
+		if (!project) return;
+		const inRange = (cp: number): boolean => {
+			switch (category) {
+				case 'upper':
+					return cp >= 0x0041 && cp <= 0x005a;
+				case 'lower':
+					return cp >= 0x0061 && cp <= 0x007a;
+				case 'figure':
+					return cp >= 0x0030 && cp <= 0x0039;
+				case 'all':
+					return true;
+			}
+		};
+		const targets = Object.values(project.glyphs).filter(
+			(g) => g.contours.length > 0 && inRange(g.codepoint)
+		);
+		if (targets.length === 0) {
+			alert('No drawn glyphs in this category.');
+			return;
+		}
+		for (const g of targets) {
+			projectStore.updateGlyph(g.codepoint, (gg) => {
+				const next = { ...gg };
+				if (which === 'left' || which === 'both') next.leftSidebearing = value;
+				if (which === 'right' || which === 'both') next.rightSidebearing = value;
+				next.advanceWidth = next.leftSidebearing + (gg.advanceWidth - gg.leftSidebearing - gg.rightSidebearing) + next.rightSidebearing;
+				return next;
+			});
+		}
+		alert(`Updated ${targets.length} glyph${targets.length === 1 ? '' : 's'}.`);
+	};
+
+	let bulkSbCategory = $state<'all' | 'upper' | 'lower' | 'figure'>('lower');
+	let bulkSbWhich = $state<'left' | 'right' | 'both'>('both');
+	let bulkSbValue = $state(40);
 	const importBulkKerning = () => {
 		if (!bulkText.trim()) return;
 		const lines = bulkText
@@ -370,6 +431,60 @@
 					{l}{r}
 				</button>
 			{/each}
+		</div>
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			Bulk spacing
+		</h2>
+		<div class="mb-4 grid gap-3 md:grid-cols-2">
+			<div>
+				<div class="mb-1.5 text-[11px] font-medium text-fg-muted">Tabular figures</div>
+				<p class="mb-2 text-[11px] text-fg-subtle">
+					Set every digit to the widest digit's advance, centred — required for
+					data tables and most UI.
+				</p>
+				<Button density="sm" variant="secondary" onclick={makeFiguresTabular}>
+					Tabularise 0–9
+				</Button>
+			</div>
+			<div>
+				<div class="mb-1.5 text-[11px] font-medium text-fg-muted">Apply sidebearing</div>
+				<div class="grid grid-cols-[auto_auto_auto_1fr] items-center gap-1.5">
+					<select
+						bind:value={bulkSbWhich}
+						class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none"
+					>
+						<option value="both">LSB + RSB</option>
+						<option value="left">LSB</option>
+						<option value="right">RSB</option>
+					</select>
+					<span class="text-[11px] text-fg-subtle">=</span>
+					<input
+						type="number"
+						bind:value={bulkSbValue}
+						class="w-16 rounded border border-border bg-surface px-1.5 py-1 text-right font-mono text-[11px] outline-none"
+					/>
+					<select
+						bind:value={bulkSbCategory}
+						class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none"
+					>
+						<option value="upper">to A–Z</option>
+						<option value="lower">to a–z</option>
+						<option value="figure">to 0–9</option>
+						<option value="all">to all drawn</option>
+					</select>
+				</div>
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={() => setAllSidebearings(bulkSbWhich, bulkSbValue, bulkSbCategory)}
+					class="mt-2"
+				>
+					Apply
+				</Button>
+			</div>
 		</div>
 	</Panel>
 
