@@ -13,6 +13,7 @@ type SettingsShape = {
 	anthropicApiKey?: string;
 	preferredModel?: string;
 	welcomeDismissed?: boolean;
+	editorTourDismissed?: boolean;
 };
 
 const read = (): SettingsShape => {
@@ -39,19 +40,22 @@ class SettingsStore {
 	anthropicApiKey = $state<string>('');
 	preferredModel = $state<string>('claude-sonnet-4-6');
 	welcomeDismissed = $state<boolean>(false);
+	editorTourDismissed = $state<boolean>(false);
 
 	constructor() {
 		const initial = read();
 		if (initial.anthropicApiKey) this.anthropicApiKey = initial.anthropicApiKey;
 		if (initial.preferredModel) this.preferredModel = initial.preferredModel;
 		this.welcomeDismissed = !!initial.welcomeDismissed;
+		this.editorTourDismissed = !!initial.editorTourDismissed;
 	}
 
 	private persist() {
 		write({
 			anthropicApiKey: this.anthropicApiKey,
 			preferredModel: this.preferredModel,
-			welcomeDismissed: this.welcomeDismissed
+			welcomeDismissed: this.welcomeDismissed,
+			editorTourDismissed: this.editorTourDismissed
 		});
 	}
 
@@ -72,6 +76,16 @@ class SettingsStore {
 
 	resetWelcome() {
 		this.welcomeDismissed = false;
+		this.persist();
+	}
+
+	dismissEditorTour() {
+		this.editorTourDismissed = true;
+		this.persist();
+	}
+
+	resetEditorTour() {
+		this.editorTourDismissed = false;
 		this.persist();
 	}
 

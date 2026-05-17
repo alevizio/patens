@@ -23,6 +23,9 @@
 	import AlignHorizontalSpaceAround from '@lucide/svelte/icons/align-horizontal-space-around';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
+	import HelpCircle from '@lucide/svelte/icons/help-circle';
+	import EditorTour from '$lib/ui/EditorTour.svelte';
+	import { settings } from '$lib/stores/settings.svelte';
 
 	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
@@ -30,6 +33,14 @@
 	let smoothness = $state(1);
 	let cubicTrace = $state(DEFAULT_TRACE.cubic);
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
+	let tourOpen = $state(false);
+
+	$effect(() => {
+		// Auto-open the tour the first time someone visits the editor.
+		if (!settings.editorTourDismissed) {
+			setTimeout(() => (tourOpen = true), 600);
+		}
+	});
 	let showSketch = $state(true);
 	let showVector = $state(true);
 	let showGrid = $state(false);
@@ -287,7 +298,14 @@
 			showAnchors = !showAnchors;
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
-			undoLastStroke();
+			if (ev.shiftKey) {
+				projectStore.redo();
+			} else {
+				projectStore.undo();
+			}
+		} else if ((ev.key === 'y' || ev.key === 'Y') && (ev.metaKey || ev.ctrlKey)) {
+			ev.preventDefault();
+			projectStore.redo();
 		}
 	};
 </script>
@@ -378,6 +396,15 @@
 				</label>
 
 				<div class="ml-auto flex items-center gap-1">
+					<button
+						type="button"
+						onclick={() => (tourOpen = true)}
+						class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+						title="Show editor tour"
+						aria-label="Show editor tour"
+					>
+						<HelpCircle class="size-3.5" />
+					</button>
 					<button
 						type="button"
 						onclick={() => (resetSignal++)}
@@ -831,9 +858,10 @@
 					<li>Space-drag<span class="ml-2 text-fg-muted">pan</span></li>
 					<li>Wheel<span class="ml-2 text-fg-muted">zoom</span></li>
 					<li>⌘0<span class="ml-2 text-fg-muted">fit to glyph</span></li>
-					<li>⌘Z<span class="ml-2 text-fg-muted">undo last stroke</span></li>
+					<li>⌘Z / ⌘⇧Z<span class="ml-2 text-fg-muted">undo / redo</span></li>
 				</ul>
 			</div>
 		</aside>
 	</div>
+	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
 {/if}

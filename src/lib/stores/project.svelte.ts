@@ -32,8 +32,14 @@ class ProjectStore {
 	selectedMasterId = $state<string | undefined>(undefined);
 	dirty = $state(false);
 	saving = $state(false);
+	canUndo = $state(false);
+	canRedo = $state(false);
 
 	private saveTimer: ReturnType<typeof setTimeout> | null = null;
+	private snapshotTimer: ReturnType<typeof setTimeout> | null = null;
+	private undoStack: Project[] = [];
+	private redoStack: Project[] = [];
+	private readonly maxHistory = 50;
 
 	load(project: Project) {
 		this.project = project;
@@ -41,6 +47,59 @@ class ProjectStore {
 		const codepoints = Object.keys(project.glyphs).map(Number);
 		const upper = codepoints.find((cp) => cp >= 0x0041 && cp <= 0x005a);
 		this.selectedCodepoint = upper ?? codepoints[0] ?? 0x0041;
+		// Seed history with the loaded state
+		this.undoStack = [JSON.parse(JSON.stringify(project)) as Project];
+		this.redoStack = [];
+		this.updateUndoFlags();
+	}
+
+	private snapshotForHistory() {
+		if (!this.project) return;
+		const snap = JSON.parse(JSON.stringify(this.project)) as Project;
+		this.undoStack.push(snap);
+		if (this.undoStack.length > this.maxHistory) this.undoStack.shift();
+		this.redoStack = [];
+		this.updateUndoFlags();
+	}
+
+	private scheduleSnapshot() {
+		if (this.snapshotTimer) clearTimeout(this.snapshotTimer);
+		this.snapshotTimer = setTimeout(() => this.snapshotForHistory(), 400);
+	}
+
+	private updateUndoFlags() {
+		this.canUndo = this.undoStack.length > 1;
+		this.canRedo = this.redoStack.length > 0;
+	}
+
+	undo() {
+		if (this.undoStack.length < 2) return;
+		// Cancel any pending snapshot so it doesn't overwrite our restored state
+		if (this.snapshotTimer) {
+			clearTimeout(this.snapshotTimer);
+			this.snapshotTimer = null;
+		}
+		const current = this.undoStack.pop()!;
+		this.redoStack.push(current);
+		const prev = this.undoStack[this.undoStack.length - 1];
+		this.project = JSON.parse(JSON.stringify(prev)) as Project;
+		this.updateUndoFlags();
+		this.dirty = true;
+		this.scheduleSave();
+	}
+
+	redo() {
+		if (this.redoStack.length === 0) return;
+		if (this.snapshotTimer) {
+			clearTimeout(this.snapshotTimer);
+			this.snapshotTimer = null;
+		}
+		const next = this.redoStack.pop()!;
+		this.undoStack.push(next);
+		this.project = JSON.parse(JSON.stringify(next)) as Project;
+		this.updateUndoFlags();
+		this.dirty = true;
+		this.scheduleSave();
 	}
 
 	clear() {
@@ -55,6 +114,7 @@ class ProjectStore {
 		this.project = { ...this.project, updatedAt: new Date().toISOString() };
 		this.dirty = true;
 		this.scheduleSave();
+		this.scheduleSnapshot();
 	}
 
 	private scheduleSave() {

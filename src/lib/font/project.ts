@@ -6,6 +6,38 @@
 import { get, set, del, createStore } from 'idb-keyval';
 import type { Axis, Glyph, Master, Project, FontMetrics, FontMetadata } from './types';
 import { DEFAULT_METRICS, DEFAULT_FEATURES, STANDARD_AXES } from './types';
+
+/**
+ * Project kind presets — each tweaks metric defaults to suit the family's
+ * intended use case. Pure UX layer; the underlying data model is identical.
+ */
+export type ProjectKind = 'display' | 'text' | 'ui' | 'mono';
+
+export const KIND_PRESETS: Record<
+	ProjectKind,
+	{ label: string; description: string; metrics: Partial<FontMetrics> }
+> = {
+	display: {
+		label: 'Display',
+		description: 'Posters, headlines, branding — tall caps, looser spacing.',
+		metrics: { unitsPerEm: 1000, ascender: 850, descender: -200, capHeight: 740, xHeight: 510, defaultSidebearing: 60 }
+	},
+	text: {
+		label: 'Text',
+		description: 'Books, articles — modest contrast, taller x-height for reading.',
+		metrics: { unitsPerEm: 1000, ascender: 800, descender: -200, capHeight: 700, xHeight: 530, defaultSidebearing: 50 }
+	},
+	ui: {
+		label: 'UI',
+		description: 'Apps, dashboards — large x-height, tight metrics, snap rendering.',
+		metrics: { unitsPerEm: 1000, ascender: 800, descender: -200, capHeight: 720, xHeight: 560, defaultSidebearing: 45 }
+	},
+	mono: {
+		label: 'Mono',
+		description: 'Code, terminals — fixed advance width, generous metrics.',
+		metrics: { unitsPerEm: 1000, ascender: 820, descender: -220, capHeight: 700, xHeight: 530, defaultSidebearing: 80 }
+	}
+};
 import { DEFAULT_GLYPH_SET } from './glyph-set';
 
 const store = createStore('font-studio', 'projects');
@@ -66,9 +98,11 @@ export const createProject = (input: {
 	name: string;
 	familyName?: string;
 	designer?: string;
+	kind?: ProjectKind;
 }): Project => {
 	const ts = now();
-	const metrics = { ...DEFAULT_METRICS };
+	const baseMetrics = input.kind ? { ...DEFAULT_METRICS, ...KIND_PRESETS[input.kind].metrics } : { ...DEFAULT_METRICS };
+	const metrics = baseMetrics;
 	const metadata: FontMetadata = {
 		familyName: input.familyName?.trim() || input.name.trim() || 'My Font',
 		styleName: 'Regular',

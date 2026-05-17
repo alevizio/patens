@@ -14,6 +14,8 @@
 	import Layers from '@lucide/svelte/icons/layers';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Settings from '@lucide/svelte/icons/settings';
+	import Undo2 from '@lucide/svelte/icons/undo-2';
+	import Redo2 from '@lucide/svelte/icons/redo-2';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
@@ -118,6 +120,29 @@
 				</button>
 			{/each}
 		</nav>
+
+		<div class="flex items-center gap-0.5">
+			<button
+				type="button"
+				onclick={() => projectStore.undo()}
+				disabled={!projectStore.canUndo}
+				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
+				aria-label="Undo"
+				title="Undo (⌘Z)"
+			>
+				<Undo2 class="size-4" />
+			</button>
+			<button
+				type="button"
+				onclick={() => projectStore.redo()}
+				disabled={!projectStore.canRedo}
+				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
+				aria-label="Redo"
+				title="Redo (⌘⇧Z)"
+			>
+				<Redo2 class="size-4" />
+			</button>
+		</div>
 
 		<div class="flex items-center gap-2 text-[12px] text-fg-subtle" data-numeric>
 			{#if projectStore.saving}

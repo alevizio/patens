@@ -6,6 +6,8 @@
 		duplicateProject,
 		listProjects,
 		saveProject,
+		KIND_PRESETS,
+		type ProjectKind,
 		type ProjectIndexEntry
 	} from '$lib/font/project';
 	import Button from '$lib/ui/Button.svelte';
@@ -57,6 +59,7 @@
 	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
+	let newKind = $state<ProjectKind | undefined>(undefined);
 	let urlInput = $state('');
 
 	const refresh = async () => {
@@ -73,7 +76,8 @@
 		try {
 			const project = createProject({
 				name: trimmed,
-				familyName: newFamily.trim() || trimmed
+				familyName: newFamily.trim() || trimmed,
+				kind: newKind
 			});
 			await saveProject(project);
 			await goto(`/project/${project.id}/edit`);
@@ -373,6 +377,29 @@
 							maxlength={60}
 						/>
 					</Field>
+					<div>
+						<div class="mb-1.5 text-[13px] font-medium text-fg-muted">Kind</div>
+						<div class="grid grid-cols-4 gap-1.5">
+							{#each Object.entries(KIND_PRESETS) as [id, preset] (id)}
+								<button
+									type="button"
+									onclick={() => (newKind = newKind === id ? undefined : (id as ProjectKind))}
+									class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {newKind ===
+									id
+										? 'border-accent bg-accent-soft text-accent'
+										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
+									title={preset.description}
+								>
+									{preset.label}
+								</button>
+							{/each}
+						</div>
+						{#if newKind}
+							<div class="mt-1.5 text-[11px] text-fg-subtle">
+								{KIND_PRESETS[newKind].description}
+							</div>
+						{/if}
+					</div>
 					<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
 						{#snippet icon()}<Plus class="size-4" />{/snippet}
 						{creating ? 'Creating…' : 'Create font'}
