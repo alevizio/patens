@@ -655,6 +655,33 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
+	const snapAllPointsToGrid = (step = 10) => {
+		if (!glyph || glyph.contours.length === 0) return;
+		const snap = (n: number) => Math.round(n / step) * step;
+		const next = glyph.contours.map((c) => ({
+			...c,
+			commands: c.commands.map((cmd) => {
+				if (cmd.type === 'Z') return cmd;
+				if (cmd.type === 'M' || cmd.type === 'L') {
+					return { ...cmd, x: snap(cmd.x), y: snap(cmd.y) };
+				}
+				if (cmd.type === 'Q') {
+					return { ...cmd, x: snap(cmd.x), y: snap(cmd.y), x1: snap(cmd.x1), y1: snap(cmd.y1) };
+				}
+				return {
+					...cmd,
+					x: snap(cmd.x),
+					y: snap(cmd.y),
+					x1: snap(cmd.x1),
+					y1: snap(cmd.y1),
+					x2: snap(cmd.x2),
+					y2: snap(cmd.y2)
+				};
+			})
+		}));
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
 	let simplifying = $state(false);
 	const applySimplify = async () => {
 		if (!glyph || glyph.contours.length === 0 || simplifying) return;
@@ -1845,6 +1872,15 @@
 					title="Reduce noise: re-sample, Douglas-Peucker, then refit bezier curves"
 				>
 					{simplifying ? 'Simplifying…' : 'Simplify outline'}
+				</button>
+				<button
+					type="button"
+					onclick={() => snapAllPointsToGrid(10)}
+					disabled={glyph.contours.length === 0}
+					class="mt-1.5 w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					title="Round every point to the nearest 10 font units (cleanup)"
+				>
+					Snap to 10u grid
 				</button>
 				<h3 class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Transform
