@@ -180,6 +180,20 @@
 
 	const drawnPct = $derived(totalGlyphs > 0 ? Math.round((totalDrawn / totalGlyphs) * 100) : 0);
 
+	const categoryStats = $derived.by(() => {
+		const out = new Map<GlyphCategory, { drawn: number; total: number }>();
+		for (const cat of CATEGORY_ORDER) out.set(cat, { drawn: 0, total: 0 });
+		if (!projectStore.project) return out;
+		for (const g of Object.values(projectStore.activeGlyphs)) {
+			const c = categoryOf(g);
+			const cell = out.get(c);
+			if (!cell) continue;
+			cell.total++;
+			if (g.contours.length > 0 || (g.components?.length ?? 0) > 0) cell.drawn++;
+		}
+		return out;
+	});
+
 	function categoryOf(g: Glyph): GlyphCategory {
 		if (g.codepoint >= 0x0041 && g.codepoint <= 0x005a) return 'uppercase';
 		if (g.codepoint >= 0x0061 && g.codepoint <= 0x007a) return 'lowercase';
@@ -342,13 +356,19 @@
 		{/if}
 		{#each CATEGORY_ORDER as cat (cat)}
 			{@const list = grouped.get(cat) ?? []}
+			{@const stats = categoryStats.get(cat) ?? { drawn: 0, total: 0 }}
 			{#if list.length > 0}
 				<section class="mb-3">
 					<h3
-						class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+						class="mb-1.5 flex items-baseline justify-between gap-2 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 					>
-						{CATEGORY_LABELS[cat]}
-						<span class="ml-1 text-fg-subtle/70" data-numeric>{list.length}</span>
+						<span>
+							{CATEGORY_LABELS[cat]}
+							<span class="ml-1 text-fg-subtle/70" data-numeric>{list.length}</span>
+						</span>
+						<span class="font-mono normal-case text-fg-subtle/60" data-numeric>
+							{stats.drawn}/{stats.total}
+						</span>
 					</h3>
 					<div class="grid grid-cols-4 gap-0.5">
 						{#each list as g (g.codepoint)}
