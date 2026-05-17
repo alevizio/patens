@@ -7,6 +7,7 @@
 		projectToUfoZip,
 		finalizeFont,
 		buildVariableFont,
+		instancesAsStaticZip,
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
@@ -34,6 +35,7 @@
 	let woff2Busy = $state(false);
 	let ufoBusy = $state(false);
 	let vfBusy = $state(false);
+	let staticFamilyBusy = $state(false);
 
 	$effect(() => subscribeToPython((p) => (pythonProgress = p)));
 
@@ -171,6 +173,60 @@
 			alert('Variable font build failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			vfBusy = false;
+		}
+	};
+
+	const exportStaticFamily = async () => {
+		if (!project || !isVariable) return;
+		if ((project.instances ?? []).length === 0) {
+			alert('Add named instances on the Designspace tab first.');
+			return;
+		}
+		staticFamilyBusy = true;
+		try {
+			await ensurePython();
+			const defaultLocation: Record<string, number> = {};
+			for (const a of project.axes ?? []) defaultLocation[a.tag] = a.default;
+			const allMasters = [
+				{
+					name: 'Default',
+					buffer: buildFont(project).font.toArrayBuffer(),
+					location: defaultLocation
+				},
+				...(project.masters ?? []).map((m) => ({
+					name: m.name,
+					buffer: buildFont(project, { masterId: m.id }).font.toArrayBuffer(),
+					location: m.location
+				}))
+			];
+			const zip = await instancesAsStaticZip({
+				axes: (project.axes ?? []).map((a) => ({
+					tag: a.tag,
+					name: a.name,
+					minimum: a.minimum,
+					default: a.default,
+					maximum: a.maximum
+				})),
+				masters: allMasters,
+				defaultMasterName: 'Default',
+				familyName: project.metadata.familyName,
+				instances: (project.instances ?? []).map((i) => ({
+					familyName: i.familyName ?? project.metadata.familyName,
+					styleName: i.styleName,
+					location: i.location,
+					postScriptName: i.postScriptName
+				}))
+			});
+			downloadBlob(
+				new Blob([zip], { type: 'application/zip' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-static-family.zip`
+			);
+		} catch (err) {
+			alert(
+				'Static family export failed: ' + (err instanceof Error ? err.message : String(err))
+			);
+		} finally {
+			staticFamilyBusy = false;
 		}
 	};
 
@@ -519,6 +575,25 @@
 						</Button>
 						<span class="text-[12px] text-fg-subtle">
 							{(project.masters?.length ?? 0) + 1} masters · {project.axes?.map((a) => a.tag).join(' + ')}
+						</span>
+					</div>
+					<div class="flex items-center gap-3">
+						<Button
+							variant="secondary"
+							onclick={exportStaticFamily}
+							disabled={!validation.ok || staticFamilyBusy || (project.instances?.length ?? 0) === 0}
+							loading={staticFamilyBusy}
+						>
+							{#snippet icon()}<Download class="size-4" />{/snippet}
+							{staticFamilyBusy ? 'Instantiating…' : 'Export static family (.zip)'}
+						</Button>
+						<span class="text-[12px] text-fg-subtle">
+							{#if (project.instances?.length ?? 0) > 0}
+								{project.instances?.length} instance{(project.instances?.length ?? 0) === 1 ? '' : 's'} → one
+								static TTF each, bundled
+							{:else}
+								Add named instances on the Designspace tab first
+							{/if}
 						</span>
 					</div>
 				{/if}

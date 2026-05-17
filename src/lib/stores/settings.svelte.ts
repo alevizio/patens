@@ -12,6 +12,7 @@ const KEY = 'font-studio:settings:v1';
 type SettingsShape = {
 	anthropicApiKey?: string;
 	preferredModel?: string;
+	welcomeDismissed?: boolean;
 };
 
 const read = (): SettingsShape => {
@@ -37,26 +38,46 @@ const write = (s: SettingsShape) => {
 class SettingsStore {
 	anthropicApiKey = $state<string>('');
 	preferredModel = $state<string>('claude-sonnet-4-6');
+	welcomeDismissed = $state<boolean>(false);
 
 	constructor() {
 		const initial = read();
 		if (initial.anthropicApiKey) this.anthropicApiKey = initial.anthropicApiKey;
 		if (initial.preferredModel) this.preferredModel = initial.preferredModel;
+		this.welcomeDismissed = !!initial.welcomeDismissed;
+	}
+
+	private persist() {
+		write({
+			anthropicApiKey: this.anthropicApiKey,
+			preferredModel: this.preferredModel,
+			welcomeDismissed: this.welcomeDismissed
+		});
 	}
 
 	setApiKey(value: string) {
 		this.anthropicApiKey = value.trim();
-		write({ anthropicApiKey: this.anthropicApiKey, preferredModel: this.preferredModel });
+		this.persist();
 	}
 
 	setPreferredModel(model: string) {
 		this.preferredModel = model;
-		write({ anthropicApiKey: this.anthropicApiKey, preferredModel: this.preferredModel });
+		this.persist();
+	}
+
+	dismissWelcome() {
+		this.welcomeDismissed = true;
+		this.persist();
+	}
+
+	resetWelcome() {
+		this.welcomeDismissed = false;
+		this.persist();
 	}
 
 	clear() {
 		this.anthropicApiKey = '';
-		write({ preferredModel: this.preferredModel });
+		this.persist();
 	}
 
 	get hasKey(): boolean {

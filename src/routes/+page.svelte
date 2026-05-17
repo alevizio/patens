@@ -15,6 +15,8 @@
 	import { importFromOtf } from '$lib/font/import';
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
 	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
+	import { settings } from '$lib/stores/settings.svelte';
+	import WelcomeDialog from '$lib/ui/WelcomeDialog.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -490,4 +492,9 @@
 			</div>
 		</div>
 	{/if}
+
+	<WelcomeDialog
+		open={!settings.welcomeDismissed}
+		onclose={() => settings.dismissWelcome()}
+	/>
 </div>

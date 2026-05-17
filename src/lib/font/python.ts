@@ -247,6 +247,109 @@ font.save('/tmp/out.otf')
 };
 
 /**
+ * Build a variable font, then instantiate each named instance as a static
+ * TTF, zip them together, and return the zip buffer. Used by Export →
+ * "Export instances as a static family".
+ */
+export const instancesAsStaticZip = async (input: {
+	axes: Array<{ tag: string; name: string; minimum: number; default: number; maximum: number }>;
+	masters: Array<{ name: string; buffer: ArrayBuffer; location: Record<string, number> }>;
+	defaultMasterName: string;
+	familyName: string;
+	instances: Array<{
+		familyName?: string;
+		styleName: string;
+		location: Record<string, number>;
+		postScriptName?: string;
+	}>;
+}): Promise<ArrayBuffer> => {
+	const py = await ensurePython();
+	const fileNames: string[] = [];
+	for (let i = 0; i < input.masters.length; i++) {
+		const fname = `/tmp/master_${i}.otf`;
+		py.FS.writeFile(fname, new Uint8Array(input.masters[i].buffer));
+		fileNames.push(fname);
+	}
+	const payload = {
+		axes: input.axes,
+		masters: input.masters.map((m, i) => ({
+			name: m.name,
+			file: fileNames[i],
+			location: m.location
+		})),
+		defaultName: input.defaultMasterName,
+		instances: input.instances,
+		familyName: input.familyName
+	};
+	py.FS.writeFile('/tmp/designspace.json', JSON.stringify(payload));
+	await py.runPythonAsync(`
+import json, re, zipfile, os
+from fontTools.designspaceLib import (
+    DesignSpaceDocument, AxisDescriptor, SourceDescriptor, InstanceDescriptor
+)
+from fontTools.ttLib import TTFont
+from fontTools.varLib import build
+from fontTools.varLib.instancer import instantiateVariableFont
+
+with open('/tmp/designspace.json') as f:
+    spec = json.load(f)
+
+doc = DesignSpaceDocument()
+for ax in spec['axes']:
+    a = AxisDescriptor()
+    a.tag = ax['tag']
+    a.name = ax['name']
+    a.minimum = ax['minimum']
+    a.default = ax['default']
+    a.maximum = ax['maximum']
+    doc.addAxis(a)
+
+axis_name_for_tag = { ax['tag']: ax['name'] for ax in spec['axes'] }
+
+for m in spec['masters']:
+    s = SourceDescriptor()
+    s.name = m['name']
+    s.font = TTFont(m['file'])
+    s.location = { axis_name_for_tag[k]: v for k, v in m['location'].items() if k in axis_name_for_tag }
+    doc.addSource(s)
+
+vf, _, _ = build(doc)
+
+def safe(name):
+    return re.sub(r'[^A-Za-z0-9-]+', '', name) or 'Style'
+
+family_safe = safe(spec['familyName'])
+out_zip = '/tmp/family.zip'
+if os.path.exists(out_zip):
+    os.remove(out_zip)
+
+with zipfile.ZipFile(out_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
+    for inst in spec.get('instances') or []:
+        # Translate tag-keyed location into the fvar tag space
+        location = { k: v for k, v in inst['location'].items() if k in axis_name_for_tag }
+        static = instantiateVariableFont(vf, location, inplace=False)
+        # Update the name table with the style-specific name
+        style = inst['styleName']
+        try:
+            name = static['name']
+            name.setName(spec['familyName'], 1, 3, 1, 0x409)  # familyName
+            name.setName(style, 2, 3, 1, 0x409)  # subfamilyName
+            name.setName(f"{spec['familyName']} {style}", 4, 3, 1, 0x409)  # fullName
+            name.setName(inst.get('postScriptName') or f"{family_safe}-{safe(style)}", 6, 3, 1, 0x409)
+        except Exception as e:
+            print('name table update skipped:', e)
+        fname = f"{family_safe}-{safe(style)}.ttf"
+        tmp_path = f'/tmp/inst_{safe(style)}.ttf'
+        static.save(tmp_path)
+        zf.write(tmp_path, fname)
+	`);
+	const out = py.FS.readFile('/tmp/family.zip');
+	const buf = new ArrayBuffer(out.byteLength);
+	new Uint8Array(buf).set(out);
+	return buf;
+};
+
+/**
  * Build a variable font from a designspace of master OTFs.
  * Each master is supplied as `{ buffer, location }`; `axes` defines the fvar
  * range. Optional named `instances` are baked into fvar so OS font menus
