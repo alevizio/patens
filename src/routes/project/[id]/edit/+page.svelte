@@ -33,6 +33,7 @@
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
+	import Pin from '@lucide/svelte/icons/pin';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
@@ -130,6 +131,32 @@
 	const countPathPoints = (commands: BezierContour['commands']) =>
 		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')
 			.length;
+
+	const usedByGlyphs = $derived.by(() => {
+		if (!projectStore.project || !glyph) return [];
+		return Object.values(projectStore.project.glyphs).filter((g) =>
+			(g.components ?? []).some((c) => c.baseCodepoint === glyph.codepoint)
+		);
+	});
+
+	const copyableMetricSources = $derived.by(() => {
+		if (!projectStore.project || !glyph) return [];
+		return Object.values(projectStore.project.glyphs)
+			.filter((g) => g.codepoint !== glyph.codepoint && g.contours.length > 0)
+			.sort((a, b) => a.codepoint - b.codepoint);
+	});
+
+	const copyMetricsFrom = (codepoint: number) => {
+		if (!projectStore.project || !glyph || !codepoint) return;
+		const src = projectStore.project.glyphs[codepoint];
+		if (!src) return;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			advanceWidth: src.advanceWidth,
+			leftSidebearing: src.leftSidebearing,
+			rightSidebearing: src.rightSidebearing
+		}));
+	};
 
 	const glyphStats = $derived.by(() => {
 		if (!glyph || glyph.contours.length === 0) {
@@ -530,6 +557,17 @@
 								.padStart(4, '0')} · {glyph.status}
 						</span>
 					</div>
+					<button
+						type="button"
+						onclick={() => projectStore.toggleGlyphPin(glyph.codepoint)}
+						class="ml-1 inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.pinned
+							? 'text-warn hover:text-warn'
+							: 'hover:text-fg'}"
+						aria-label={glyph.pinned ? 'Unpin glyph' : 'Pin glyph'}
+						title={glyph.pinned ? 'Unpin' : 'Pin for quick access'}
+					>
+						<Pin class="size-3.5 {glyph.pinned ? 'fill-current' : ''}" />
+					</button>
 				</div>
 
 				<div class="h-6 w-px bg-border"></div>
@@ -876,8 +914,21 @@
 			</div>
 
 			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Metrics
+				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					<span>Metrics</span>
+					<select
+						value=""
+						onchange={(e) => copyMetricsFrom(Number(e.currentTarget.value))}
+						class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+						title="Copy LSB / RSB / advance from another glyph"
+					>
+						<option value="" disabled selected>Copy from…</option>
+						{#each copyableMetricSources as g (g.codepoint)}
+							<option value={g.codepoint}
+								>{g.name} · {g.advanceWidth}/{g.leftSidebearing}/{g.rightSidebearing}</option
+							>
+						{/each}
+					</select>
 				</h3>
 				<div class="grid grid-cols-3 gap-2">
 					<Field label="Adv">
@@ -1000,6 +1051,32 @@
 			<ReferenceImagePanel />
 
 			<CompositeEditor />
+
+			{#if usedByGlyphs.length > 0}
+				<div class="border-b border-border p-4">
+					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Used by
+						<span class="ml-1 text-fg-subtle/70" data-numeric>{usedByGlyphs.length}</span>
+					</h3>
+					<p class="mb-2 text-[11px] text-fg-subtle">
+						These composite glyphs reference this glyph. Edits here propagate.
+					</p>
+					<div class="flex flex-wrap gap-1">
+						{#each usedByGlyphs as g (g.codepoint)}
+							<button
+								type="button"
+								onclick={() => projectStore.selectGlyph(g.codepoint)}
+								class="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+								title={g.name}
+							>
+								{g.codepoint > 0x20 && g.codepoint < 0x10000
+									? String.fromCodePoint(g.codepoint)
+									: g.name}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/if}
 
 			<div class="border-b border-border p-4">
 				<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">

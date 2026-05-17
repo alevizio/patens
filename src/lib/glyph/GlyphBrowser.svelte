@@ -112,9 +112,24 @@
 		!query.trim() && statusFilter === 'all' && recents.length > 0
 	);
 
+	const pinnedGlyphs = $derived.by(() => {
+		const glyphs = Object.values(projectStore.activeGlyphs);
+		return glyphs
+			.filter((g) => g.pinned)
+			.sort((a, b) => a.codepoint - b.codepoint);
+	});
+
+	const showPinned = $derived(!query.trim() && statusFilter === 'all' && pinnedGlyphs.length > 0);
+
+	const totalGlyphs = $derived(
+		projectStore.project ? Object.keys(projectStore.project.glyphs).length : 0
+	);
+
 	const totalDrawn = $derived.by(() => {
 		return Object.values(projectStore.activeGlyphs).filter((g) => g.contours.length > 0).length;
 	});
+
+	const drawnPct = $derived(totalGlyphs > 0 ? Math.round((totalDrawn / totalGlyphs) * 100) : 0);
 
 	function categoryOf(g: Glyph): GlyphCategory {
 		if (g.codepoint >= 0x0041 && g.codepoint <= 0x005a) return 'uppercase';
@@ -161,13 +176,26 @@
 			{/each}
 		</div>
 		<div class="mt-2 flex items-center justify-between gap-2">
-			<div class="text-[11px] text-fg-subtle" data-numeric>
-				{#if statusFilter === 'all'}
-					{totalDrawn} of {projectStore.project
-						? Object.keys(projectStore.project.glyphs).length
-						: 0} drawn
-				{:else}
-					{filteredTotal} shown
+			<div class="flex-1 min-w-0">
+				<div class="flex items-baseline justify-between text-[11px] text-fg-subtle" data-numeric>
+					<span>
+						{#if statusFilter === 'all'}
+							{totalDrawn} / {totalGlyphs} drawn
+						{:else}
+							{filteredTotal} shown
+						{/if}
+					</span>
+					{#if statusFilter === 'all' && totalGlyphs > 0}
+						<span class="text-fg-subtle/70">{drawnPct}%</span>
+					{/if}
+				</div>
+				{#if statusFilter === 'all' && totalGlyphs > 0}
+					<div class="mt-1 h-0.5 w-full overflow-hidden rounded-full bg-surface-2">
+						<div
+							class="h-full bg-accent transition-all duration-500"
+							style="width: {drawnPct}%;"
+						></div>
+					</div>
 				{/if}
 			</div>
 			<button
@@ -198,6 +226,27 @@
 		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
+		{#if showPinned}
+			<section class="mb-3">
+				<h3 class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Pinned
+					<span class="ml-1 text-fg-subtle/70" data-numeric>{pinnedGlyphs.length}</span>
+				</h3>
+				<div class="grid grid-cols-4 gap-0.5">
+					{#each pinnedGlyphs as g (g.codepoint)}
+						<GlyphTile
+							glyph={g}
+							size={44}
+							showLabel={false}
+							selected={g.codepoint === projectStore.selectedCodepoint}
+							ascender={projectStore.project?.metrics.ascender ?? 800}
+							descender={projectStore.project?.metrics.descender ?? -200}
+							onclick={() => projectStore.selectGlyph(g.codepoint)}
+						/>
+					{/each}
+				</div>
+			</section>
+		{/if}
 		{#if showRecents}
 			<section class="mb-3">
 				<h3 class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">

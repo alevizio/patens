@@ -327,6 +327,20 @@ class ProjectStore {
 		return true;
 	}
 
+	toggleGlyphPin(codepoint: number) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: { ...current, pinned: !current.pinned, updatedAt: new Date().toISOString() }
+			}
+		};
+		this.touch();
+	}
+
 	setGlyphStatus(codepoint: number, status: Glyph['status']) {
 		if (!this.project) return;
 		if (!this.project.glyphs[codepoint]) return;

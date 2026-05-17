@@ -46,6 +46,8 @@ export type Glyph = {
 	notes?: string;
 	/** Optional bitmap reference (data URL) shown behind the canvas as a tracing template. */
 	referenceImage?: ReferenceImage;
+	/** Pinned glyphs surface at the top of the browser for fast access. */
+	pinned?: boolean;
 	updatedAt: string;
 };
 
