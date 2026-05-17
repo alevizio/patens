@@ -55,8 +55,10 @@
 	let tourOpen = $state(false);
 	let shortcutsOpen = $state(false);
 	let paletteOpen = $state(false);
-	let skipEmptyNav = $state(false);
-	let showAnatomy = $state(false);
+	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
+	let showAnatomy = $state(settings.editor.showAnatomy);
+	$effect(() => settings.updateEditorPrefs({ skipEmptyNav }));
+	$effect(() => settings.updateEditorPrefs({ showAnatomy }));
 
 	let canvasDragActive = $state(false);
 	let canvasDragCounter = 0;
@@ -181,10 +183,14 @@
 	});
 	let showSketch = $state(true);
 	let showVector = $state(true);
-	let showGrid = $state(false);
-	let showReference = $state(true);
-	let showOnion = $state(true);
-	let showAnchors = $state(true);
+	let showGrid = $state(settings.editor.showGrid);
+	let showReference = $state(settings.editor.showReference);
+	let showOnion = $state(settings.editor.showOnion);
+	let showAnchors = $state(settings.editor.showAnchors);
+	$effect(() => settings.updateEditorPrefs({ showGrid }));
+	$effect(() => settings.updateEditorPrefs({ showReference }));
+	$effect(() => settings.updateEditorPrefs({ showOnion }));
+	$effect(() => settings.updateEditorPrefs({ showAnchors }));
 	let snapToMetrics = $state(true);
 	let zoomPercent = $state(100);
 	let resetSignal = $state(0);

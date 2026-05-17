@@ -11,12 +11,22 @@ const KEY = 'font-studio:settings:v1';
 
 export type ThemePref = 'system' | 'light' | 'dark';
 
+export type EditorPrefs = {
+	showGrid: boolean;
+	showAnatomy: boolean;
+	skipEmptyNav: boolean;
+	showOnion: boolean;
+	showAnchors: boolean;
+	showReference: boolean;
+};
+
 type SettingsShape = {
 	anthropicApiKey?: string;
 	preferredModel?: string;
 	welcomeDismissed?: boolean;
 	editorTourDismissed?: boolean;
 	theme?: ThemePref;
+	editor?: Partial<EditorPrefs>;
 };
 
 const read = (): SettingsShape => {
@@ -45,6 +55,14 @@ class SettingsStore {
 	welcomeDismissed = $state<boolean>(false);
 	editorTourDismissed = $state<boolean>(false);
 	theme = $state<ThemePref>('system');
+	editor = $state<EditorPrefs>({
+		showGrid: false,
+		showAnatomy: false,
+		skipEmptyNav: false,
+		showOnion: false,
+		showAnchors: true,
+		showReference: true
+	});
 
 	constructor() {
 		const initial = read();
@@ -55,6 +73,9 @@ class SettingsStore {
 		if (initial.theme === 'light' || initial.theme === 'dark' || initial.theme === 'system') {
 			this.theme = initial.theme;
 		}
+		if (initial.editor) {
+			this.editor = { ...this.editor, ...initial.editor };
+		}
 		this.applyTheme();
 	}
 
@@ -64,8 +85,14 @@ class SettingsStore {
 			preferredModel: this.preferredModel,
 			welcomeDismissed: this.welcomeDismissed,
 			editorTourDismissed: this.editorTourDismissed,
-			theme: this.theme
+			theme: this.theme,
+			editor: this.editor
 		});
+	}
+
+	updateEditorPrefs(mut: Partial<EditorPrefs>) {
+		this.editor = { ...this.editor, ...mut };
+		this.persist();
 	}
 
 	setTheme(theme: ThemePref) {
