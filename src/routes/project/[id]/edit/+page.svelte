@@ -5,6 +5,7 @@
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { Anchor, BezierContour, Glyph, SketchStroke } from '$lib/font/types';
 	import { glyphBounds, contoursToSvgPath } from '$lib/font/path';
+	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
 	import {
 		chaikinSmooth,
 		booleanContours,
@@ -35,6 +36,7 @@
 	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Pin from '@lucide/svelte/icons/pin';
 	import FileText from '@lucide/svelte/icons/file-text';
+	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
@@ -201,6 +203,50 @@
 	const countPathPoints = (commands: BezierContour['commands']) =>
 		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')
 			.length;
+
+	let vfPreviewOpen = $state(false);
+	let vfAxisValues = $state<Record<string, number>>({});
+
+	$effect(() => {
+		if (!projectStore.project?.axes) return;
+		const next: Record<string, number> = {};
+		for (const a of projectStore.project.axes) {
+			next[a.tag] = vfAxisValues[a.tag] ?? a.default;
+		}
+		vfAxisValues = next;
+	});
+
+	const hasMastersForGlyph = $derived(
+		(projectStore.project?.masters?.length ?? 0) > 0 &&
+			(projectStore.project?.axes?.length ?? 0) > 0
+	);
+
+	const interpolatedContours = $derived.by(() => {
+		if (!vfPreviewOpen || !glyph || !projectStore.project || !hasMastersForGlyph) return null;
+		const defaultGlyph = projectStore.project.glyphs[glyph.codepoint];
+		if (!defaultGlyph || defaultGlyph.contours.length === 0) return null;
+		const masters = projectStore.project.masters ?? [];
+		const masterVariants = masters
+			.map((m) => ({
+				id: m.id,
+				location: m.location,
+				glyph: m.glyphs[glyph.codepoint]
+			}))
+			.filter((m) => m.glyph && m.glyph.contours.length > 0);
+		if (masterVariants.length === 0) return null;
+		const defaultLocation: Record<string, number> = {};
+		for (const a of projectStore.project.axes ?? []) defaultLocation[a.tag] = a.default;
+		const weights = computeMasterWeights(
+			vfAxisValues,
+			defaultLocation,
+			masterVariants.map((m) => ({ id: m.id, location: m.location }))
+		);
+		const samples = weights.map((w) => ({
+			glyph: w.id ? masterVariants.find((m) => m.id === w.id)!.glyph! : defaultGlyph,
+			weight: w.weight
+		}));
+		return interpolateGlyph(samples);
+	});
 
 	const mastersStripGlyphs = $derived.by(() => {
 		if (!projectStore.project || !glyph) return [];
@@ -1049,6 +1095,19 @@
 						<Eye class="size-3.5" />
 						Overshoot
 					</button>
+					{#if hasMastersForGlyph}
+						<button
+							type="button"
+							onclick={() => (vfPreviewOpen = !vfPreviewOpen)}
+							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {vfPreviewOpen
+								? 'bg-fg/10 text-fg'
+								: 'text-fg-subtle hover:bg-surface-2'}"
+							title="Live interpolation preview"
+						>
+							<Sliders class="size-3.5" />
+							VF
+						</button>
+					{/if}
 				</div>
 			</div>
 
@@ -1115,6 +1174,65 @@
 					/>
 				</div>
 			</div>
+
+			{#if hasMastersForGlyph && vfPreviewOpen && interpolatedContours}
+				<div class="border-t border-border bg-surface-2/40 px-4 py-2">
+					<div class="mb-1.5 flex items-center justify-between">
+						<span class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							Live interpolation
+						</span>
+						<button
+							type="button"
+							onclick={() => (vfPreviewOpen = false)}
+							class="text-[10px] text-fg-subtle hover:text-fg"
+						>
+							Hide
+						</button>
+					</div>
+					<div class="flex items-center gap-3">
+						<div class="shrink-0 rounded border border-border bg-canvas p-2">
+							<svg
+								viewBox="0 0 {Math.max(glyph.advanceWidth, 200)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
+								width="80"
+								height="80"
+								preserveAspectRatio="xMidYMid meet"
+								style="transform: scaleY(-1);"
+							>
+								<g transform="translate(0 {-(metrics?.ascender ?? 800)})">
+									<path
+										d={contoursToSvgPath(interpolatedContours)}
+										fill="currentColor"
+										fill-rule="evenodd"
+									/>
+								</g>
+							</svg>
+						</div>
+						<div class="flex-1 grid gap-1.5">
+							{#each projectStore.project?.axes ?? [] as axis (axis.tag)}
+								<label class="grid grid-cols-[60px_1fr_50px] items-center gap-2 text-[11px]">
+									<span class="font-mono text-fg-muted">{axis.tag}</span>
+									<input
+										type="range"
+										min={axis.minimum}
+										max={axis.maximum}
+										step={(axis.maximum - axis.minimum) / 200 || 1}
+										value={vfAxisValues[axis.tag] ?? axis.default}
+										oninput={(e) =>
+											(vfAxisValues = {
+												...vfAxisValues,
+												[axis.tag]: Number(e.currentTarget.value)
+											})}
+										class="h-1 accent-accent"
+									/>
+									<span class="text-right font-mono text-fg-subtle" data-numeric>
+										{Math.round(vfAxisValues[axis.tag] ?? axis.default)}
+									</span>
+								</label>
+							{/each}
+						</div>
+					</div>
+				</div>
+			{/if}
 
 			{#if mastersStripGlyphs.length > 1}
 				<div class="flex items-center gap-2 border-t border-border bg-surface-2/40 px-4 py-2 overflow-x-auto">
