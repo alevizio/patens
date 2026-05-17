@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
+	import { listProjects, type ProjectIndexEntry } from '$lib/font/project';
 	import GlyphBrowser from '$lib/glyph/GlyphBrowser.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Pen from '@lucide/svelte/icons/pen-tool';
@@ -21,6 +22,7 @@
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 
 	let { data, children } = $props();
 
@@ -45,6 +47,12 @@
 	const currentPath = $derived(page.url.pathname);
 
 	let settingsOpen = $state(false);
+	let projectSwitcherOpen = $state(false);
+	let allProjects = $state<ProjectIndexEntry[]>([]);
+
+	$effect(() => {
+		if (projectSwitcherOpen) listProjects().then((list) => (allProjects = list));
+	});
 
 	const tabs = $derived([
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
@@ -75,7 +83,7 @@
 			<ArrowLeft class="size-4" />
 		</a>
 
-		<div class="flex min-w-0 flex-1 items-center gap-3">
+		<div class="relative flex min-w-0 flex-1 items-center gap-1">
 			<input
 				type="text"
 				value={nameInput}
@@ -83,6 +91,56 @@
 				class="min-w-0 max-w-xs flex-shrink truncate border-0 bg-transparent px-1 text-sm font-medium text-fg outline-none focus:ring-1 focus:ring-accent"
 				aria-label="Project name"
 			/>
+			<button
+				type="button"
+				onclick={() => (projectSwitcherOpen = !projectSwitcherOpen)}
+				class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
+				aria-label="Switch project"
+				title="Switch project"
+			>
+				<ChevronDown class="size-3.5" />
+			</button>
+			{#if projectSwitcherOpen}
+				<button
+					type="button"
+					class="fixed inset-0 z-30 cursor-default"
+					onclick={() => (projectSwitcherOpen = false)}
+					aria-label="Close project switcher"
+					tabindex="-1"
+				></button>
+				<div
+					class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl"
+				>
+					{#each allProjects as p (p.id)}
+						<a
+							href="/project/{p.id}/edit"
+							onclick={() => (projectSwitcherOpen = false)}
+							class="block rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
+							projectStore.project?.id
+								? 'bg-accent-soft/40'
+								: ''}"
+						>
+							<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
+							<div class="truncate text-[11px] text-fg-subtle" data-numeric>
+								{p.familyName} · {p.glyphCount} drawn
+							</div>
+						</a>
+					{/each}
+					{#if allProjects.length === 0}
+						<div class="px-3 py-2 text-[12px] text-fg-subtle">No other projects.</div>
+					{/if}
+					<div class="mt-1 border-t border-border pt-1">
+						<a
+							href="/"
+							class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent hover:bg-accent-soft/40"
+						>
+							All projects · New font →
+						</a>
+					</div>
+				</div>
+			{/if}
+		</div>
+		<div class="hidden flex-1 items-center gap-3 lg:flex">
 			<div class="text-[12px] text-fg-subtle" data-numeric>
 				{projectStore.project?.metadata.familyName} · v{projectStore.project?.metadata.version}
 			</div>

@@ -638,6 +638,112 @@ export const selectionCentroid = (
 	return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 };
 
+/**
+ * Re-sample existing contours into points, simplify with a Douglas-Peucker
+ * pass, then refit cubic beziers. Useful for cleaning up traced outlines
+ * that ended up with too many control points.
+ */
+export const simplifyContours = async (
+	contours: BezierContour[],
+	tolerance = 8,
+	cubicMaxError = 60
+): Promise<BezierContour[]> => {
+	const { default: fitCurve } = await import('fit-curve');
+	const out: BezierContour[] = [];
+	for (const contour of contours) {
+		const ring = contourToRing(contour.commands, 16);
+		if (ring.length < 4) {
+			out.push(contour);
+			continue;
+		}
+		const simplified = dpSimplify(ring, tolerance);
+		if (simplified.length < 4) {
+			out.push(ringToContour(ring, contour.winding));
+			continue;
+		}
+		// Close polygon for fit
+		const closed = [...simplified, simplified[0]];
+		let curves: number[][][];
+		try {
+			curves = fitCurve(closed, cubicMaxError) as number[][][];
+		} catch {
+			out.push(ringToContour(simplified, contour.winding));
+			continue;
+		}
+		if (!curves || curves.length === 0) {
+			out.push(ringToContour(simplified, contour.winding));
+			continue;
+		}
+		const commands: PathCommand[] = [
+			{
+				type: 'M',
+				x: Math.round(curves[0][0][0]),
+				y: Math.round(curves[0][0][1])
+			}
+		];
+		for (const curve of curves) {
+			commands.push({
+				type: 'C',
+				x1: Math.round(curve[1][0]),
+				y1: Math.round(curve[1][1]),
+				x2: Math.round(curve[2][0]),
+				y2: Math.round(curve[2][1]),
+				x: Math.round(curve[3][0]),
+				y: Math.round(curve[3][1])
+			});
+		}
+		commands.push({ type: 'Z' });
+		out.push({ closed: true, winding: contour.winding, commands });
+	}
+	return out;
+};
+
+/** Standalone Douglas-Peucker — exported so simplify can reuse it. */
+const dpSimplify = (points: [number, number][], tolerance: number): [number, number][] => {
+	if (points.length < 3) return points.slice();
+	const tolSq = tolerance * tolerance;
+	const keep = new Uint8Array(points.length);
+	keep[0] = 1;
+	keep[points.length - 1] = 1;
+	const stack: [number, number][] = [[0, points.length - 1]];
+	while (stack.length > 0) {
+		const [first, last] = stack.pop()!;
+		let maxDist = 0;
+		let idx = -1;
+		for (let i = first + 1; i < last; i++) {
+			const dx = points[last][0] - points[first][0];
+			const dy = points[last][1] - points[first][1];
+			const lenSq = dx * dx + dy * dy;
+			let d: number;
+			if (lenSq === 0) {
+				const ex = points[i][0] - points[first][0];
+				const ey = points[i][1] - points[first][1];
+				d = ex * ex + ey * ey;
+			} else {
+				let t =
+					((points[i][0] - points[first][0]) * dx + (points[i][1] - points[first][1]) * dy) / lenSq;
+				t = Math.max(0, Math.min(1, t));
+				const px = points[first][0] + t * dx;
+				const py = points[first][1] + t * dy;
+				const ex = points[i][0] - px;
+				const ey = points[i][1] - py;
+				d = ex * ex + ey * ey;
+			}
+			if (d > maxDist) {
+				maxDist = d;
+				idx = i;
+			}
+		}
+		if (idx !== -1 && maxDist > tolSq) {
+			keep[idx] = 1;
+			stack.push([first, idx], [idx, last]);
+		}
+	}
+	const out: [number, number][] = [];
+	for (let i = 0; i < points.length; i++) if (keep[i]) out.push(points[i]);
+	return out;
+};
+
 /** Chaikin smoothing: each polygon edge becomes 2 edges, corners get rounded. */
 export const chaikinSmooth = (
 	contours: BezierContour[],

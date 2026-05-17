@@ -10,6 +10,7 @@
 		booleanContours,
 		transformPoints,
 		selectionCentroid,
+		simplifyContours,
 		type AffineMatrix,
 		type PathOp
 	} from '$lib/font/path-edit';
@@ -232,6 +233,20 @@
 		const next = booleanContours(glyph.contours, op);
 		if (next.length === 0) return;
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
+	let simplifying = $state(false);
+	const applySimplify = async () => {
+		if (!glyph || glyph.contours.length === 0 || simplifying) return;
+		simplifying = true;
+		try {
+			const next = await simplifyContours(glyph.contours);
+			if (next.length > 0) {
+				projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+			}
+		} finally {
+			simplifying = false;
+		}
 	};
 
 	const flipSelection = (axis: 'horizontal' | 'vertical') => {
@@ -783,8 +798,25 @@
 			</div>
 
 			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Status
+				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					<span>Status</span>
+					<button
+						type="button"
+						onclick={() => {
+							if (!glyph) return;
+							if (
+								confirm(
+									`Remove glyph "${glyph.name}" from the font? Any kerning references will also be dropped.`
+								)
+							)
+								projectStore.removeGlyph(glyph.codepoint);
+						}}
+						class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+						aria-label="Delete glyph"
+						title="Remove this glyph from the font"
+					>
+						<Trash2 class="size-3" />
+					</button>
 				</h3>
 				<div class="grid grid-cols-2 gap-1">
 					{#each ['empty', 'sketch', 'draft', 'final'] as const as status (status)}
@@ -885,6 +917,15 @@
 						Xor
 					</button>
 				</div>
+				<button
+					type="button"
+					onclick={applySimplify}
+					disabled={glyph.contours.length === 0 || simplifying}
+					class="w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					title="Reduce noise: re-sample, Douglas-Peucker, then refit bezier curves"
+				>
+					{simplifying ? 'Simplifying…' : 'Simplify outline'}
+				</button>
 				<h3 class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Transform
 				</h3>

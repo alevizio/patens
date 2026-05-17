@@ -40,6 +40,55 @@ function rgb(hex) {
 
 	const sample = $derived(projectStore.project?.metadata.familyName ?? 'Sample');
 
+	// ---------- Multi-language samples ----------
+	const LANGUAGE_SAMPLES: Array<{ id: string; label: string; text: string }> = [
+		{ id: 'latin', label: 'Latin', text: 'The quick brown fox jumps over the lazy dog.' },
+		{
+			id: 'latin-ext',
+			label: 'Latin extended',
+			text: 'Příliš žluťoučký kůň úpěl ďábelské ódy. Æthelred — Œuvre — naïve façade.'
+		},
+		{
+			id: 'vietnamese',
+			label: 'Vietnamese',
+			text: 'Tiếng Việt rất đẹp. Học mãi mới giỏi được những điều khó.'
+		},
+		{
+			id: 'greek',
+			label: 'Greek',
+			text: 'Ξεσκεπάζω την ψυχοφθόρα βδελυγμία. Αθήνα, Θεσσαλονίκη.'
+		},
+		{
+			id: 'cyrillic',
+			label: 'Cyrillic',
+			text: 'Съешь же ещё этих мягких французских булок, да выпей чаю.'
+		}
+	];
+
+	// ---------- OpenType feature toggles (CSS font-feature-settings) ----------
+	const FEATURES: Array<{ tag: string; label: string; desc: string; default: boolean }> = [
+		{ tag: 'kern', label: 'kern', desc: 'Kerning', default: true },
+		{ tag: 'liga', label: 'liga', desc: 'Standard ligatures (fi, fl)', default: true },
+		{ tag: 'dlig', label: 'dlig', desc: 'Discretionary ligatures', default: false },
+		{ tag: 'calt', label: 'calt', desc: 'Contextual alternates', default: true },
+		{ tag: 'onum', label: 'onum', desc: 'Old-style figures (oldstyle nums)', default: false },
+		{ tag: 'tnum', label: 'tnum', desc: 'Tabular figures', default: false },
+		{ tag: 'lnum', label: 'lnum', desc: 'Lining figures', default: false },
+		{ tag: 'smcp', label: 'smcp', desc: 'Small caps', default: false },
+		{ tag: 'zero', label: 'zero', desc: 'Slashed zero', default: false },
+		{ tag: 'ss01', label: 'ss01', desc: 'Stylistic set 1', default: false }
+	];
+
+	let featureState = $state<Record<string, boolean>>(
+		Object.fromEntries(FEATURES.map((f) => [f.tag, f.default]))
+	);
+
+	const featureSettings = $derived(
+		FEATURES.map((f) => `'${f.tag}' ${featureState[f.tag] ? 1 : 0}`).join(', ')
+	);
+
+	const FEATURE_SAMPLE = 'fi fl 0123 12/34 — Office 1029 — affluent';
+
 	// ---------- Variable-font sandbox ----------
 	const project = $derived(projectStore.project);
 	const isVariable = $derived(
@@ -292,6 +341,60 @@ function rgb(hex) {
 				{#each SAMPLES as text (text)}
 					<div class="preview-font text-2xl leading-snug">{text}</div>
 				{/each}
+			</div>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Language coverage
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Missing glyphs fall back to the system font so you can see what's covered at a glance.
+			</p>
+			<div class="grid gap-3">
+				{#each LANGUAGE_SAMPLES as lang (lang.id)}
+					<div>
+						<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							{lang.label}
+						</div>
+						<div class="preview-font mt-1 text-xl leading-snug">{lang.text}</div>
+					</div>
+				{/each}
+			</div>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				OpenType features
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Toggle features at render time via <code class="font-mono">font-feature-settings</code>.
+				Compile the font to see them really work.
+			</p>
+			<div class="mb-4 flex flex-wrap gap-1.5">
+				{#each FEATURES as f (f.tag)}
+					<button
+						type="button"
+						onclick={() => (featureState = { ...featureState, [f.tag]: !featureState[f.tag] })}
+						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors {featureState[
+							f.tag
+						]
+							? 'border-accent bg-accent-soft text-accent'
+							: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
+						title={f.desc}
+					>
+						<span class="font-mono">{f.label}</span>
+					</button>
+				{/each}
+			</div>
+			<div
+				class="preview-font rounded-lg border border-border bg-canvas p-6 text-3xl leading-snug"
+				style="font-feature-settings: {featureSettings};"
+			>
+				{FEATURE_SAMPLE}
+			</div>
+			<div class="mt-2 font-mono text-[11px] text-fg-subtle" data-numeric>
+				font-feature-settings: {featureSettings}
 			</div>
 		</Panel>
 

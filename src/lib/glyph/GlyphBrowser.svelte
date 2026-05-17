@@ -5,8 +5,46 @@
 	import GlyphTile from './GlyphTile.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Search from '@lucide/svelte/icons/search';
+	import Plus from '@lucide/svelte/icons/plus';
 
 	let query = $state('');
+	let showAddForm = $state(false);
+	let newCpInput = $state('');
+
+	const parseCodepoint = (s: string): number | null => {
+		const trimmed = s.trim();
+		if (!trimmed) return null;
+		// Accept "U+1234", "1234", "0x1234", or a single character
+		const upper = trimmed.replace(/^U\+/i, '').replace(/^0x/i, '');
+		if (/^[0-9a-f]+$/i.test(upper)) {
+			const n = parseInt(upper, 16);
+			if (n > 0 && n < 0x10ffff) return n;
+		}
+		if ([...trimmed].length === 1) {
+			const cp = trimmed.codePointAt(0);
+			if (cp && cp > 0) return cp;
+		}
+		return null;
+	};
+
+	const handleAddGlyph = (e: Event) => {
+		e.preventDefault();
+		const cp = parseCodepoint(newCpInput);
+		if (!cp) return;
+		const added = projectStore.addCustomGlyph(cp);
+		if (added) {
+			projectStore.selectGlyph(cp);
+			newCpInput = '';
+			showAddForm = false;
+		} else {
+			alert(`Codepoint U+${cp.toString(16).toUpperCase().padStart(4, '0')} already exists.`);
+		}
+	};
+
+	const handleDelete = (codepoint: number, name: string) => {
+		if (!confirm(`Remove glyph "${name}" from the font? Any kerning pairs and class members referencing it will also be removed.`)) return;
+		projectStore.removeGlyph(codepoint);
+	};
 
 	const grouped = $derived.by(() => {
 		const project = projectStore.project;
@@ -64,9 +102,36 @@
 				class="pl-8"
 			/>
 		</div>
-		<div class="mt-2 text-[11px] text-fg-subtle" data-numeric>
-			{totalDrawn} of {projectStore.project ? Object.keys(projectStore.project.glyphs).length : 0} drawn
+		<div class="mt-2 flex items-center justify-between gap-2">
+			<div class="text-[11px] text-fg-subtle" data-numeric>
+				{totalDrawn} of {projectStore.project ? Object.keys(projectStore.project.glyphs).length : 0} drawn
+			</div>
+			<button
+				type="button"
+				onclick={() => (showAddForm = !showAddForm)}
+				class="inline-flex h-6 items-center gap-1 rounded-md border border-border bg-surface px-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+				aria-label="Add custom glyph"
+				title="Add custom codepoint"
+			>
+				<Plus class="size-3" /> Add
+			</button>
 		</div>
+		{#if showAddForm}
+			<form onsubmit={handleAddGlyph} class="mt-2 flex items-center gap-1.5">
+				<Input
+					density="sm"
+					bind:value={newCpInput}
+					placeholder="U+1F60A or 😊"
+					class="font-mono text-[11px]"
+				/>
+				<button
+					type="submit"
+					class="rounded-md bg-fg px-2 py-1 text-[11px] font-medium text-canvas hover:bg-fg/90"
+				>
+					Add
+				</button>
+			</form>
+		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
 		{#each CATEGORY_ORDER as cat (cat)}

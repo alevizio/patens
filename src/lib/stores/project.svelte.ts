@@ -300,6 +300,56 @@ class ProjectStore {
 		await this.flush();
 	}
 
+	addCustomGlyph(codepoint: number, name?: string) {
+		if (!this.project) return false;
+		if (this.project.glyphs[codepoint]) return false;
+		const auto =
+			name?.trim() || `uni${codepoint.toString(16).toUpperCase().padStart(4, '0')}`;
+		const sb = this.project.metrics.defaultSidebearing;
+		const advance = Math.round(this.project.metrics.unitsPerEm * 0.6);
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: {
+					codepoint,
+					name: auto,
+					status: 'empty',
+					advanceWidth: advance,
+					leftSidebearing: sb,
+					rightSidebearing: sb,
+					contours: [],
+					updatedAt: new Date().toISOString()
+				}
+			}
+		};
+		this.touch();
+		return true;
+	}
+
+	removeGlyph(codepoint: number) {
+		if (!this.project) return;
+		if (!this.project.glyphs[codepoint]) return;
+		const { [codepoint]: _, ...rest } = this.project.glyphs;
+		this.project = {
+			...this.project,
+			glyphs: rest,
+			// Drop kerning pairs referencing this glyph
+			kerning: this.project.kerning.filter((p) => p.left !== codepoint && p.right !== codepoint),
+			// Drop class members referencing this glyph
+			classes: (this.project.classes ?? []).map((c) => ({
+				...c,
+				members: c.members.filter((m) => m !== codepoint)
+			}))
+		};
+		// If this was the selected glyph, pick another
+		if (this.selectedCodepoint === codepoint) {
+			const codepoints = Object.keys(this.project.glyphs).map(Number);
+			this.selectedCodepoint = codepoints[0] ?? 0x0041;
+		}
+		this.touch();
+	}
+
 	addAxis(tag: string) {
 		if (!this.project) return;
 		this.project = addAxisHelper(this.project, tag);
