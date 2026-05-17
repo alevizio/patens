@@ -340,9 +340,26 @@
 								class="flex min-w-0 flex-1 items-center gap-4"
 							>
 								<div
-									class="flex size-12 shrink-0 items-center justify-center rounded-md bg-fg/5 font-mono text-xl font-semibold text-fg"
+									class="flex size-12 shrink-0 items-center justify-center overflow-hidden rounded-md bg-fg/5 font-mono text-xl font-semibold text-fg"
 								>
-									{(p.familyName[0] ?? 'A').toUpperCase()}
+									{#if p.thumbnail}
+										<svg
+											viewBox={p.thumbnail.viewBox}
+											width="44"
+											height="44"
+											preserveAspectRatio="xMidYMid meet"
+											style="transform: scaleY(-1);"
+											aria-hidden="true"
+										>
+											<path
+												d={p.thumbnail.path}
+												fill="currentColor"
+												fill-rule="evenodd"
+											/>
+										</svg>
+									{:else}
+										{(p.familyName[0] ?? 'A').toUpperCase()}
+									{/if}
 								</div>
 								<div class="min-w-0 flex-1">
 									<div class="truncate text-sm font-medium text-fg">{p.name}</div>

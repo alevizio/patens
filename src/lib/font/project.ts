@@ -50,6 +50,8 @@ export type ProjectIndexEntry = {
 	createdAt: string;
 	updatedAt: string;
 	glyphCount: number;
+	/** SVG path of the first drawn glyph + its viewBox — for thumbnail preview on the home page. */
+	thumbnail?: { path: string; viewBox: string; advance: number };
 };
 
 const newId = () => crypto.randomUUID();
@@ -136,16 +138,48 @@ export const createProject = (input: {
 	};
 };
 
-const indexEntry = (p: Project): ProjectIndexEntry => ({
-	id: p.id,
-	name: p.name,
-	familyName: p.metadata.familyName,
-	createdAt: p.createdAt,
-	updatedAt: p.updatedAt,
-	glyphCount: Object.values(p.glyphs).filter(
-		(g) => g.contours.length > 0 || (g.components && g.components.length > 0)
-	).length
-});
+const indexEntry = (p: Project): ProjectIndexEntry => {
+	// Pick a representative drawn glyph for the thumbnail: prefer the first
+	// letter of the family name, else first uppercase, else any drawn glyph.
+	const drawn = Object.values(p.glyphs).filter((g) => g.contours.length > 0);
+	const firstChar = p.metadata.familyName.trim()[0]?.toUpperCase();
+	const target = firstChar
+		? drawn.find((g) => String.fromCodePoint(g.codepoint) === firstChar)
+		: undefined;
+	const upper = drawn.find((g) => g.codepoint >= 0x0041 && g.codepoint <= 0x005a);
+	const pick = target ?? upper ?? drawn[0];
+	let thumbnail: ProjectIndexEntry['thumbnail'];
+	if (pick) {
+		const cmds: string[] = [];
+		for (const c of pick.contours) {
+			for (const cmd of c.commands) {
+				if (cmd.type === 'M') cmds.push(`M${cmd.x} ${cmd.y}`);
+				else if (cmd.type === 'L') cmds.push(`L${cmd.x} ${cmd.y}`);
+				else if (cmd.type === 'Q') cmds.push(`Q${cmd.x1} ${cmd.y1} ${cmd.x} ${cmd.y}`);
+				else if (cmd.type === 'C')
+					cmds.push(`C${cmd.x1} ${cmd.y1} ${cmd.x2} ${cmd.y2} ${cmd.x} ${cmd.y}`);
+				else if (cmd.type === 'Z') cmds.push('Z');
+			}
+		}
+		const totalHeight = p.metrics.ascender - p.metrics.descender;
+		thumbnail = {
+			path: cmds.join(' '),
+			viewBox: `0 ${-p.metrics.ascender} ${Math.max(pick.advanceWidth, 200)} ${totalHeight}`,
+			advance: pick.advanceWidth
+		};
+	}
+	return {
+		id: p.id,
+		name: p.name,
+		familyName: p.metadata.familyName,
+		createdAt: p.createdAt,
+		updatedAt: p.updatedAt,
+		glyphCount: Object.values(p.glyphs).filter(
+			(g) => g.contours.length > 0 || (g.components && g.components.length > 0)
+		).length,
+		thumbnail
+	};
+};
 
 export const listProjects = async (): Promise<ProjectIndexEntry[]> => {
 	const idx = (await get<ProjectIndexEntry[]>(INDEX_KEY, store)) ?? [];
