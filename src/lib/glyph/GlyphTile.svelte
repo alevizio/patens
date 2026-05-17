@@ -11,6 +11,7 @@
 		showLabel?: boolean;
 		ascender?: number;
 		descender?: number;
+		incompatible?: boolean;
 		onclick?: () => void;
 	};
 
@@ -21,6 +22,7 @@
 		showLabel = true,
 		ascender = 800,
 		descender = -200,
+		incompatible = false,
 		onclick
 	}: Props = $props();
 
@@ -117,5 +119,12 @@
 			class="absolute bottom-1 right-1 size-2.5 text-accent"
 			aria-label="Has notes"
 		/>
+	{/if}
+	{#if incompatible}
+		<span
+			class="absolute bottom-1 left-1 size-1.5 rounded-full bg-danger ring-1 ring-canvas"
+			aria-label="Incompatible with default master"
+			title="Contour or point counts differ from the default master"
+		></span>
 	{/if}
 </button>

@@ -180,6 +180,28 @@
 
 	const drawnPct = $derived(totalGlyphs > 0 ? Math.round((totalDrawn / totalGlyphs) * 100) : 0);
 
+	const incompatibleCodepoints = $derived.by(() => {
+		const out = new Set<number>();
+		if (!projectStore.project) return out;
+		const masters = projectStore.project.masters ?? [];
+		if (masters.length === 0) return out;
+		for (const [cpStr, def] of Object.entries(projectStore.project.glyphs)) {
+			if (def.contours.length === 0) continue;
+			const baseSig = def.contours.map((c) => c.commands.length).join('/');
+			const cp = Number(cpStr);
+			for (const m of masters) {
+				const g = m.glyphs[cp];
+				if (!g || g.contours.length === 0) continue;
+				const sig = g.contours.map((c) => c.commands.length).join('/');
+				if (sig !== baseSig) {
+					out.add(cp);
+					break;
+				}
+			}
+		}
+		return out;
+	});
+
 	const categoryStats = $derived.by(() => {
 		const out = new Map<GlyphCategory, { drawn: number; total: number }>();
 		for (const cat of CATEGORY_ORDER) out.set(cat, { drawn: 0, total: 0 });
@@ -322,6 +344,7 @@
 							selected={g.codepoint === projectStore.selectedCodepoint}
 							ascender={projectStore.project?.metrics.ascender ?? 800}
 							descender={projectStore.project?.metrics.descender ?? -200}
+							incompatible={incompatibleCodepoints.has(g.codepoint)}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
 						/>
 					{/each}
@@ -343,6 +366,7 @@
 							selected={g.codepoint === projectStore.selectedCodepoint}
 							ascender={projectStore.project?.metrics.ascender ?? 800}
 							descender={projectStore.project?.metrics.descender ?? -200}
+							incompatible={incompatibleCodepoints.has(g.codepoint)}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
 						/>
 					{/each}
@@ -381,6 +405,7 @@
 									: g.codepoint === projectStore.selectedCodepoint}
 								ascender={projectStore.project?.metrics.ascender ?? 800}
 								descender={projectStore.project?.metrics.descender ?? -200}
+								incompatible={incompatibleCodepoints.has(g.codepoint)}
 								onclick={() =>
 									bulkMode
 										? toggleSelect(g.codepoint)
