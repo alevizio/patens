@@ -281,6 +281,22 @@
 				kern({leftChar}, {rightChar}) = {currentValue}
 			</div>
 		</div>
+		{#if !isClassRef(parseSide(leftChar)) && !isClassRef(parseSide(rightChar)) && leftChar.length === 1 && rightChar.length === 1}
+			<div class="mt-3 rounded-lg border border-border bg-canvas px-6 py-4">
+				<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					In context
+				</div>
+				<div class="preview-font mt-2 text-3xl leading-snug">
+					{`H${leftChar}H${leftChar}${rightChar}H${rightChar}H`}
+				</div>
+				<div class="preview-font mt-1 text-3xl leading-snug">
+					{`n${leftChar}n${leftChar}${rightChar}n${rightChar}n`}
+				</div>
+				<div class="preview-font mt-1 text-2xl leading-snug text-fg-muted">
+					{`The ${leftChar}${rightChar}erage ${leftChar}${rightChar}ailable ${leftChar}${rightChar}ailable`}
+				</div>
+			</div>
+		{/if}
 
 		<div class="mt-3 flex flex-wrap items-center gap-2">
 			<span class="text-[11px] font-medium text-fg-muted">Nudge:</span>
