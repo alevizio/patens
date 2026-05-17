@@ -44,6 +44,7 @@
 	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
 	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
 	import RevisionsPanel from '$lib/glyph/RevisionsPanel.svelte';
+	import StemsPanel from '$lib/glyph/StemsPanel.svelte';
 	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
@@ -1794,6 +1795,8 @@
 			<CompositeEditor />
 
 			<RevisionsPanel />
+
+			<StemsPanel />
 
 			{#if usedByGlyphs.length > 0}
 				<div class="border-b border-border p-4">

@@ -212,15 +212,17 @@ const mooreTrace = (
 	const points: Point[] = [{ x: sx, y: sy }];
 	let cx = sx;
 	let cy = sy;
-	let prevDir = 6; // came from below
+	// We arrived at (sx,sy) from the west (background pixel to the left).
+	// prevDir = direction from current pixel back to where we came from.
+	let prevDir = 0; // W
 	let steps = 0;
 	const maxSteps = w * h * 4;
 	while (steps < maxSteps) {
 		steps++;
-		// Start looking one step counter-clockwise of the incoming direction
+		// Look clockwise starting at the position immediately clockwise of prevDir
 		let found = false;
 		for (let i = 0; i < 8; i++) {
-			const dir = (prevDir + 6 + i) & 7;
+			const dir = (prevDir + 1 + i) & 7;
 			const [dx, dy] = neighbours[dir];
 			const nx = cx + dx;
 			const ny = cy + dy;
