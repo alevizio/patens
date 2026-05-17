@@ -18,6 +18,7 @@
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import Redo2 from '@lucide/svelte/icons/redo-2';
 	import FileText from '@lucide/svelte/icons/file-text';
+	import Compass from '@lucide/svelte/icons/compass';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
@@ -58,6 +59,7 @@
 	});
 
 	const tabs = $derived([
+		{ href: `/project/${id}/brief`, label: 'Brief', icon: Compass },
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
 		{ href: `/project/${id}/spacing`, label: 'Spacing', icon: Ruler },
 		{ href: `/project/${id}/designspace`, label: 'Designspace', icon: Sliders },

@@ -227,6 +227,41 @@ class ProjectStore {
 		this.touch();
 	}
 
+	updateBrief(mut: Partial<import('$lib/font/types').ProjectBrief>) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			brief: { ...(this.project.brief ?? {}), ...mut }
+		};
+		this.touch();
+	}
+
+	addBriefReference(ref: Omit<import('$lib/font/types').BriefReference, 'id'>) {
+		if (!this.project) return;
+		const brief = this.project.brief ?? {};
+		this.project = {
+			...this.project,
+			brief: {
+				...brief,
+				references: [...(brief.references ?? []), { ...ref, id: crypto.randomUUID() }]
+			}
+		};
+		this.touch();
+	}
+
+	removeBriefReference(id: string) {
+		if (!this.project) return;
+		const brief = this.project.brief ?? {};
+		this.project = {
+			...this.project,
+			brief: {
+				...brief,
+				references: (brief.references ?? []).filter((r) => r.id !== id)
+			}
+		};
+		this.touch();
+	}
+
 	updateFeatures(mut: Partial<Project['features']>) {
 		if (!this.project) return;
 		this.project = {

@@ -214,6 +214,8 @@ export type Project = {
 	name: string;
 	/** Freeform brief / goals / sketch ideas — shown on the home page tooltip + stats popover. */
 	description?: string;
+	/** Structured design brief — the "type design is system design" artifact. */
+	brief?: ProjectBrief;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */
@@ -229,6 +231,49 @@ export type Project = {
 	instances?: VariableInstance[];
 	createdAt: string;
 	updatedAt: string;
+};
+
+/** Structured design brief — populated on the /brief route. */
+export type ProjectBrief = {
+	intent?: string;
+	audience?: string;
+	useCases?: UseCase[];
+	readingConditions?: string;
+	differentiation?: string;
+	references?: BriefReference[];
+};
+
+export type UseCase =
+	| 'print'
+	| 'web-ui'
+	| 'body-text'
+	| 'display'
+	| 'signage'
+	| 'code'
+	| 'data-tables'
+	| 'editorial'
+	| 'branding'
+	| 'multiscript';
+
+export const USE_CASE_LABELS: Record<UseCase, string> = {
+	print: 'Print / publishing',
+	'web-ui': 'Web UI',
+	'body-text': 'Body / paragraph',
+	display: 'Display / headlines',
+	signage: 'Signage / wayfinding',
+	code: 'Code / monospace',
+	'data-tables': 'Data tables',
+	editorial: 'Editorial',
+	branding: 'Branding identity',
+	multiscript: 'Multiscript / multilingual'
+};
+
+export type BriefReference = {
+	id: string;
+	name: string;
+	url?: string;
+	kind?: 'functional' | 'historical' | 'competitive';
+	notes?: string;
 };
 
 /** Standard registered OpenType variation axes. */
