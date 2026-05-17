@@ -382,6 +382,26 @@
 		};
 	});
 
+	const peerComparison = $derived.by(() => {
+		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
+		const cp = glyph.codepoint;
+		const sameCat = (other: number): boolean => {
+			if (cp >= 0x0041 && cp <= 0x005a) return other >= 0x0041 && other <= 0x005a;
+			if (cp >= 0x0061 && cp <= 0x007a) return other >= 0x0061 && other <= 0x007a;
+			if (cp >= 0x0030 && cp <= 0x0039) return other >= 0x0030 && other <= 0x0039;
+			return false;
+		};
+		const peers = Object.values(projectStore.project.glyphs).filter(
+			(g) => g.codepoint !== cp && sameCat(g.codepoint) && g.contours.length > 0
+		);
+		if (peers.length < 2) return null;
+		const adv = peers.map((g) => g.advanceWidth).sort((a, b) => a - b);
+		const medianAdv = adv[Math.floor(adv.length / 2)];
+		const diff = glyph.advanceWidth - medianAdv;
+		const pct = Math.round((Math.abs(diff) / medianAdv) * 100);
+		return { medianAdv, diff, pct, peerCount: peers.length };
+	});
+
 	// Control-glyph onboarding (n o H O a e s c p v y f g — the canonical proportion/texture set)
 	const CONTROL_GLYPHS = [0x006e, 0x006f, 0x0048, 0x004f, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079, 0x0066, 0x0067];
 	const totalDrawn = $derived(
@@ -1590,6 +1610,21 @@
 						{glyphStats.minY} → {glyphStats.maxY}
 					</dd>
 				</dl>
+				{#if peerComparison}
+					<div
+						class="mt-2 rounded border border-border bg-surface-2/40 px-2 py-1.5 text-[11px] text-fg-muted"
+					>
+						vs peers (n={peerComparison.peerCount}): median adv
+						<span class="font-mono text-fg" data-numeric>{peerComparison.medianAdv}</span>
+						·
+						<span
+							class="font-mono {peerComparison.pct > 25 ? 'text-warn' : 'text-fg'}"
+							data-numeric
+						>
+							{peerComparison.diff > 0 ? '+' : ''}{peerComparison.diff} ({peerComparison.pct}%)
+						</span>
+					</div>
+				{/if}
 			</div>
 
 			<div class="border-b border-border p-4">
