@@ -55,6 +55,59 @@
 	let paletteOpen = $state(false);
 	let skipEmptyNav = $state(false);
 
+	let canvasDragActive = $state(false);
+	let canvasDragCounter = 0;
+	const onCanvasDragEnter = (e: DragEvent) => {
+		if (!e.dataTransfer?.types.includes('Files')) return;
+		e.preventDefault();
+		canvasDragCounter++;
+		canvasDragActive = true;
+	};
+	const onCanvasDragLeave = (e: DragEvent) => {
+		e.preventDefault();
+		canvasDragCounter--;
+		if (canvasDragCounter <= 0) canvasDragActive = false;
+	};
+	const onCanvasDragOver = (e: DragEvent) => {
+		if (e.dataTransfer?.types.includes('Files')) e.preventDefault();
+	};
+	const onCanvasDrop = async (e: DragEvent) => {
+		e.preventDefault();
+		canvasDragActive = false;
+		canvasDragCounter = 0;
+		const file = e.dataTransfer?.files?.[0];
+		if (!file || !file.type.startsWith('image/') || !glyph || !metrics) return;
+		if (file.size > 4 * 1024 * 1024) {
+			alert('Image is over 4MB — please use a smaller reference to keep the project light.');
+			return;
+		}
+		const dataUrl = await new Promise<string>((resolve, reject) => {
+			const reader = new FileReader();
+			reader.onload = () => resolve(String(reader.result));
+			reader.onerror = reject;
+			reader.readAsDataURL(file);
+		});
+		const dim = await new Promise<{ width: number; height: number }>((resolve, reject) => {
+			const img = new window.Image();
+			img.onload = () => resolve({ width: img.naturalWidth, height: img.naturalHeight });
+			img.onerror = reject;
+			img.src = dataUrl;
+		});
+		const fontHeight = metrics.ascender - metrics.descender;
+		const scale = fontHeight / dim.height;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			referenceImage: {
+				src: dataUrl,
+				x: 0,
+				y: metrics.descender,
+				width: Math.round(dim.width * scale),
+				height: Math.round(dim.height * scale),
+				opacity: 0.4
+			}
+		}));
+	};
+
 	const SHORTCUTS: Array<{ group: string; items: Array<{ keys: string; label: string }> }> = [
 		{
 			group: 'Tools',
@@ -923,7 +976,23 @@
 			{/if}
 
 			<!-- Canvas area -->
-			<div class="relative min-h-0 flex-1 overflow-hidden bg-canvas p-6">
+			<div
+				class="relative min-h-0 flex-1 overflow-hidden bg-canvas p-6 {canvasDragActive
+					? 'ring-2 ring-accent ring-inset'
+					: ''}"
+				ondragenter={onCanvasDragEnter}
+				ondragleave={onCanvasDragLeave}
+				ondragover={onCanvasDragOver}
+				ondrop={onCanvasDrop}
+				role="application"
+			>
+				{#if canvasDragActive}
+					<div
+						class="pointer-events-none absolute inset-6 z-10 flex items-center justify-center rounded-lg bg-accent/10 text-[14px] font-medium text-accent"
+					>
+						Drop image to use as tracing reference
+					</div>
+				{/if}
 				<div class="absolute inset-6 grid place-items-stretch">
 					<DrawingCanvas
 						{glyph}
