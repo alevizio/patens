@@ -154,6 +154,16 @@
 			]
 		},
 		{
+			group: 'Status',
+			items: [
+				{ keys: '1', label: 'Mark empty' },
+				{ keys: '2', label: 'Mark sketch' },
+				{ keys: '3', label: 'Mark draft' },
+				{ keys: '4', label: 'Mark final' },
+				{ keys: '`', label: 'Toggle pin' }
+			]
+		},
+		{
 			group: 'Help',
 			items: [
 				{ keys: '?', label: 'Show this cheat sheet' }
@@ -709,6 +719,16 @@
 			showOnion = !showOnion;
 		} else if (ev.key === 'x' || ev.key === 'X') {
 			showAnchors = !showAnchors;
+		} else if (ev.key >= '1' && ev.key <= '4' && glyph && !ev.metaKey && !ev.ctrlKey) {
+			const map: Record<string, 'empty' | 'sketch' | 'draft' | 'final'> = {
+				'1': 'empty',
+				'2': 'sketch',
+				'3': 'draft',
+				'4': 'final'
+			};
+			projectStore.setGlyphStatus(glyph.codepoint, map[ev.key]);
+		} else if (ev.key === '`' && glyph) {
+			projectStore.toggleGlyphPin(glyph.codepoint);
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			if (ev.shiftKey) {
