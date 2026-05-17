@@ -34,6 +34,7 @@
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Pin from '@lucide/svelte/icons/pin';
+	import FileText from '@lucide/svelte/icons/file-text';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
@@ -546,6 +547,35 @@
 		});
 	};
 
+	const exportGlyphSvg = () => {
+		if (!glyph || !metrics || glyph.contours.length === 0) return;
+		const bounds = glyphBounds(glyph.contours);
+		const padX = 40;
+		const padY = 40;
+		const left = Math.min(0, bounds.minX) - padX;
+		const right = Math.max(glyph.advanceWidth, bounds.maxX) + padX;
+		const top = metrics.ascender + padY;
+		const bottom = metrics.descender - padY;
+		const width = right - left;
+		const height = top - bottom;
+		const pathD = contoursToSvgPath(glyph.contours);
+		const safeName = (glyph.name || 'glyph').replace(/[^a-zA-Z0-9_-]/g, '_');
+		const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="${left} ${-top} ${width} ${height}" width="${width}" height="${height}">
+	<g transform="scale(1, -1)">
+		<path d="${pathD}" fill="black" fill-rule="evenodd" />
+	</g>
+</svg>
+`;
+		const blob = new Blob([svg], { type: 'image/svg+xml' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${safeName}.svg`;
+		a.click();
+		URL.revokeObjectURL(url);
+	};
+
 	const clearSketch = () => {
 		if (!glyph) return;
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({
@@ -1034,6 +1064,16 @@
 					Paste
 				</Button>
 				<div class="ml-auto flex items-center gap-2">
+					<Button
+						variant="ghost"
+						density="sm"
+						onclick={exportGlyphSvg}
+						disabled={glyph.contours.length === 0}
+						aria-label="Export this glyph as SVG"
+					>
+						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
+						Export SVG
+					</Button>
 					<Button
 						variant="ghost"
 						density="sm"
