@@ -210,6 +210,8 @@ export type VariableInstance = {
 export type Project = {
 	id: string;
 	name: string;
+	/** Freeform brief / goals / sketch ideas — shown on the home page tooltip + stats popover. */
+	description?: string;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */

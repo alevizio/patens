@@ -221,6 +221,12 @@ class ProjectStore {
 		this.touch();
 	}
 
+	updateDescription(description: string) {
+		if (!this.project) return;
+		this.project = { ...this.project, description };
+		this.touch();
+	}
+
 	updateFeatures(mut: Partial<Project['features']>) {
 		if (!this.project) return;
 		this.project = {
