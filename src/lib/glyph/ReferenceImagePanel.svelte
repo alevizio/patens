@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import type { ReferenceImage } from '$lib/font/types';
 	import { traceBitmapToContours } from '$lib/font/bitmap-trace';
 	import { glyphBounds } from '$lib/font/path';
@@ -28,7 +29,7 @@
 			return;
 		}
 		if (file.size > 4 * 1024 * 1024) {
-			alert('Image is over 4MB — please use a smaller reference to keep the project light.');
+			toast.warn('Image is over 4MB — please use a smaller reference.');
 			return;
 		}
 		const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -74,7 +75,7 @@
 				{ threshold: traceThreshold, darkIsInk: traceDarkIsInk }
 			);
 			if (contours.length === 0) {
-				alert('No contours detected — try adjusting the threshold or inverting dark/light.');
+				toast.warn('No contours detected — try adjusting the threshold or inverting dark/light.');
 				return;
 			}
 			projectStore.updateGlyph(glyph.codepoint, (g) => {
@@ -110,8 +111,9 @@
 				}
 				return next;
 			});
+			toast.success(`Traced ${contours.length} contour${contours.length === 1 ? '' : 's'}`);
 		} catch (err) {
-			alert('Trace failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('Trace failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			tracing = false;
 		}

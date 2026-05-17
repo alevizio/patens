@@ -1,5 +1,6 @@
 <script lang="ts">
 	import '../app.css';
+	import ToastContainer from '$lib/ui/ToastContainer.svelte';
 
 	let { children } = $props();
 </script>
@@ -15,3 +16,4 @@
 <div class="min-h-screen">
 	{@render children()}
 </div>
+<ToastContainer />

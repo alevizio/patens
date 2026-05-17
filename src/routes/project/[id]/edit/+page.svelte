@@ -46,6 +46,7 @@
 	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 
 	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
@@ -627,13 +628,14 @@
 	const copyGlyph = async () => {
 		if (!glyph) return;
 		await copyGlyphToClipboard(glyph);
+		toast.success(`Copied "${glyph.name}" to clipboard`);
 	};
 
 	const pasteGlyph = async () => {
 		if (!glyph) return;
 		const payload = await readGlyphFromClipboard();
 		if (!payload) {
-			alert('Clipboard does not contain a Font Studio glyph.');
+			toast.warn('Clipboard does not contain a Font Studio glyph.');
 			return;
 		}
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({
@@ -646,6 +648,7 @@
 			components: payload.components ?? g.components,
 			status: payload.contours.length > 0 ? 'draft' : g.status
 		}));
+		toast.success(`Pasted ${payload.contours.length} contour${payload.contours.length === 1 ? '' : 's'}`);
 	};
 
 	const applyPathOp = (op: PathOp) => {
