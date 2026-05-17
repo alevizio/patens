@@ -118,14 +118,34 @@
 						<a
 							href="/project/{p.id}/edit"
 							onclick={() => (projectSwitcherOpen = false)}
-							class="block rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
+							class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
 							projectStore.project?.id
 								? 'bg-accent-soft/40'
 								: ''}"
 						>
-							<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
-							<div class="truncate text-[11px] text-fg-subtle" data-numeric>
-								{p.familyName} · {p.glyphCount} drawn
+							<div
+								class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded bg-fg/5 text-[14px] font-semibold text-fg"
+							>
+								{#if p.thumbnail}
+									<svg
+										viewBox={p.thumbnail.viewBox}
+										width="32"
+										height="32"
+										preserveAspectRatio="xMidYMid meet"
+										style="transform: scaleY(-1);"
+										aria-hidden="true"
+									>
+										<path d={p.thumbnail.path} fill="currentColor" fill-rule="evenodd" />
+									</svg>
+								{:else}
+									{(p.familyName[0] ?? 'A').toUpperCase()}
+								{/if}
+							</div>
+							<div class="min-w-0 flex-1">
+								<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
+								<div class="truncate text-[11px] text-fg-subtle" data-numeric>
+									{p.familyName} · {p.glyphCount} drawn
+								</div>
 							</div>
 						</a>
 					{/each}
