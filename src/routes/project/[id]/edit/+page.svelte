@@ -375,6 +375,73 @@
 			.sort((a, b) => a.codepoint - b.codepoint);
 	});
 
+	type Template = 'rect' | 'circle' | 'stem' | 'crossbar';
+	const insertTemplate = (kind: Template) => {
+		if (!glyph || !metrics) return;
+		const top = metrics.capHeight;
+		const advance = glyph.advanceWidth;
+		const sb = glyph.leftSidebearing;
+		const right = advance - glyph.rightSidebearing;
+		const width = right - sb;
+		const cx = (sb + right) / 2;
+		const cy = top / 2;
+		const r = Math.min(width, top) / 2;
+
+		let commands: BezierContour['commands'] = [];
+		let winding: BezierContour['winding'] = 'cw';
+		if (kind === 'rect') {
+			commands = [
+				{ type: 'M', x: sb, y: 0 },
+				{ type: 'L', x: right, y: 0 },
+				{ type: 'L', x: right, y: top },
+				{ type: 'L', x: sb, y: top },
+				{ type: 'Z' }
+			];
+		} else if (kind === 'stem') {
+			const sw = Math.max(60, Math.round(metrics.unitsPerEm * 0.08));
+			const x0 = cx - sw / 2;
+			const x1 = cx + sw / 2;
+			commands = [
+				{ type: 'M', x: x0, y: 0 },
+				{ type: 'L', x: x1, y: 0 },
+				{ type: 'L', x: x1, y: top },
+				{ type: 'L', x: x0, y: top },
+				{ type: 'Z' }
+			];
+		} else if (kind === 'crossbar') {
+			const sw = Math.max(60, Math.round(metrics.unitsPerEm * 0.08));
+			const y0 = metrics.xHeight / 2 - sw / 2;
+			const y1 = metrics.xHeight / 2 + sw / 2;
+			commands = [
+				{ type: 'M', x: sb, y: y0 },
+				{ type: 'L', x: right, y: y0 },
+				{ type: 'L', x: right, y: y1 },
+				{ type: 'L', x: sb, y: y1 },
+				{ type: 'Z' }
+			];
+		} else if (kind === 'circle') {
+			// Cubic bezier approximation of a circle (4 arcs)
+			const k = 0.5522847498;
+			const ox = r * k;
+			const oy = r * k;
+			commands = [
+				{ type: 'M', x: cx, y: cy + r },
+				{ type: 'C', x1: cx - ox, y1: cy + r, x2: cx - r, y2: cy + oy, x: cx - r, y: cy },
+				{ type: 'C', x1: cx - r, y1: cy - oy, x2: cx - ox, y2: cy - r, x: cx, y: cy - r },
+				{ type: 'C', x1: cx + ox, y1: cy - r, x2: cx + r, y2: cy - oy, x: cx + r, y: cy },
+				{ type: 'C', x1: cx + r, y1: cy + oy, x2: cx + ox, y2: cy + r, x: cx, y: cy + r },
+				{ type: 'Z' }
+			];
+			winding = 'ccw';
+		}
+		const next: BezierContour = { commands, closed: true, winding };
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			contours: [...g.contours, next],
+			status: 'draft'
+		}));
+	};
+
 	const applyDerive = () => {
 		if (!glyph || !projectStore.project || deriveSourceCp == null) return;
 		const src = projectStore.project.glyphs[deriveSourceCp];
@@ -1409,6 +1476,47 @@
 			</div>
 
 			<ReferenceImagePanel />
+
+			{#if glyph.contours.length === 0}
+				<div class="border-b border-border p-4">
+					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Templates
+					</h3>
+					<p class="mb-2 text-[11px] text-fg-subtle">
+						Start from a basic shape and refine in edit mode (A).
+					</p>
+					<div class="grid grid-cols-2 gap-1.5">
+						<button
+							type="button"
+							onclick={() => insertTemplate('rect')}
+							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
+						>
+							Rectangle
+						</button>
+						<button
+							type="button"
+							onclick={() => insertTemplate('circle')}
+							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
+						>
+							Circle
+						</button>
+						<button
+							type="button"
+							onclick={() => insertTemplate('stem')}
+							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
+						>
+							Vertical stem
+						</button>
+						<button
+							type="button"
+							onclick={() => insertTemplate('crossbar')}
+							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
+						>
+							Horizontal bar
+						</button>
+					</div>
+				</div>
+			{/if}
 
 			{#if glyph.contours.length === 0 && drawnSources.length > 0}
 				<div class="border-b border-border p-4">
