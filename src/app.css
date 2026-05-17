@@ -66,7 +66,7 @@
 	}
 
 	@media (prefers-color-scheme: dark) {
-		:root {
+		:root:not(.theme-light) {
 			--canvas: 240 8% 6%;
 			--surface: 240 8% 9%;
 			--surface-2: 240 8% 12%;
@@ -89,6 +89,31 @@
 			--ascender: 280 50% 65%;
 			--descender: 20 70% 60%;
 		}
+	}
+
+	/* Manual theme overrides (settings store toggles these classes on <html>) */
+	:root.theme-dark {
+		--canvas: 240 8% 6%;
+		--surface: 240 8% 9%;
+		--surface-2: 240 8% 12%;
+		--overlay: 240 8% 11%;
+		--border: 240 6% 18%;
+		--border-strong: 240 6% 28%;
+		--fg: 240 8% 95%;
+		--fg-muted: 240 5% 65%;
+		--fg-subtle: 240 5% 45%;
+		--accent: 222 88% 62%;
+		--accent-fg: 240 8% 6%;
+		--accent-soft: 222 60% 18%;
+		--success: 145 60% 50%;
+		--warn: 35 90% 55%;
+		--danger: 358 75% 60%;
+		--grid: 240 6% 16%;
+		--baseline: 222 88% 62%;
+		--x-height: 145 60% 50%;
+		--cap-height: 222 70% 65%;
+		--ascender: 280 50% 65%;
+		--descender: 20 70% 60%;
 	}
 
 	html,

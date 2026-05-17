@@ -9,6 +9,9 @@
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
+	import Monitor from '@lucide/svelte/icons/monitor';
 
 	type Props = { open: boolean; onclose: () => void };
 	let { open, onclose }: Props = $props();
@@ -66,6 +69,28 @@
 
 			<div class="grid gap-4">
 				<div>
+					<h3 class="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						<Sun class="size-3" /> Appearance
+					</h3>
+					<div class="grid grid-cols-3 gap-1.5">
+						{#each [{ id: 'system', label: 'System', icon: Monitor }, { id: 'light', label: 'Light', icon: Sun }, { id: 'dark', label: 'Dark', icon: Moon }] as opt (opt.id)}
+							{@const Icon = opt.icon}
+							<button
+								type="button"
+								onclick={() => settings.setTheme(opt.id as 'system' | 'light' | 'dark')}
+								class="inline-flex items-center justify-center gap-1.5 rounded-md border px-2 py-2 text-[12px] font-medium transition-colors {settings.theme ===
+								opt.id
+									? 'border-accent bg-accent-soft text-accent'
+									: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
+							>
+								<Icon class="size-3.5" />
+								{opt.label}
+							</button>
+						{/each}
+					</div>
+				</div>
+
+				<div class="border-t border-border pt-4">
 					<h3 class="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 						<KeyRound class="size-3" /> Anthropic API key
 					</h3>

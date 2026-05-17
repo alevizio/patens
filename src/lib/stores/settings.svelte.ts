@@ -9,11 +9,14 @@ import { browser } from '$app/environment';
 
 const KEY = 'font-studio:settings:v1';
 
+export type ThemePref = 'system' | 'light' | 'dark';
+
 type SettingsShape = {
 	anthropicApiKey?: string;
 	preferredModel?: string;
 	welcomeDismissed?: boolean;
 	editorTourDismissed?: boolean;
+	theme?: ThemePref;
 };
 
 const read = (): SettingsShape => {
@@ -41,6 +44,7 @@ class SettingsStore {
 	preferredModel = $state<string>('claude-sonnet-4-6');
 	welcomeDismissed = $state<boolean>(false);
 	editorTourDismissed = $state<boolean>(false);
+	theme = $state<ThemePref>('system');
 
 	constructor() {
 		const initial = read();
@@ -48,6 +52,10 @@ class SettingsStore {
 		if (initial.preferredModel) this.preferredModel = initial.preferredModel;
 		this.welcomeDismissed = !!initial.welcomeDismissed;
 		this.editorTourDismissed = !!initial.editorTourDismissed;
+		if (initial.theme === 'light' || initial.theme === 'dark' || initial.theme === 'system') {
+			this.theme = initial.theme;
+		}
+		this.applyTheme();
 	}
 
 	private persist() {
@@ -55,8 +63,23 @@ class SettingsStore {
 			anthropicApiKey: this.anthropicApiKey,
 			preferredModel: this.preferredModel,
 			welcomeDismissed: this.welcomeDismissed,
-			editorTourDismissed: this.editorTourDismissed
+			editorTourDismissed: this.editorTourDismissed,
+			theme: this.theme
 		});
+	}
+
+	setTheme(theme: ThemePref) {
+		this.theme = theme;
+		this.applyTheme();
+		this.persist();
+	}
+
+	private applyTheme() {
+		if (!browser) return;
+		const root = document.documentElement;
+		root.classList.remove('theme-light', 'theme-dark');
+		if (this.theme === 'light') root.classList.add('theme-light');
+		else if (this.theme === 'dark') root.classList.add('theme-dark');
 	}
 
 	setApiKey(value: string) {
