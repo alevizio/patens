@@ -48,6 +48,14 @@
 		return contoursToSvgPath(glyph.contours);
 	});
 
+	const dimsLabel = $derived.by(() => {
+		if (glyph.contours.length === 0) return '';
+		const b = glyphBounds(glyph.contours);
+		const w = Math.round(b.maxX - b.minX);
+		const h = Math.round(b.maxY - b.minY);
+		return ` · ${w}×${h}`;
+	});
+
 	const viewBox = $derived.by(() => {
 		const totalHeight = fontSpan;
 		const width = Math.max(glyph.advanceWidth, 100);
@@ -62,7 +70,7 @@
 	class="group relative flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 		? 'border-accent bg-accent-soft'
 		: 'border-transparent bg-transparent hover:border-border hover:bg-surface-2/60'}"
-	title="{glyph.name} · U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}"
+	title="{glyph.name} · U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}{dimsLabel} · adv {glyph.advanceWidth}"
 	style="width: {size + 12}px;"
 >
 	<div
