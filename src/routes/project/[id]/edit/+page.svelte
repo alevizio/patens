@@ -1314,23 +1314,42 @@
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					<span>Status</span>
-					<button
-						type="button"
-						onclick={() => {
-							if (!glyph) return;
-							if (
-								confirm(
-									`Remove glyph "${glyph.name}" from the font? Any kerning references will also be dropped.`
+					<div class="flex items-center gap-0.5">
+						<button
+							type="button"
+							onclick={() => {
+								if (!glyph) return;
+								if (
+									confirm(
+										`Reset glyph "${glyph.name}" to empty? Clears outlines, sketches, components, anchors, notes, and the reference image.`
+									)
 								)
-							)
-								projectStore.removeGlyph(glyph.codepoint);
-						}}
-						class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
-						aria-label="Delete glyph"
-						title="Remove this glyph from the font"
-					>
-						<Trash2 class="size-3" />
-					</button>
+									projectStore.resetGlyph(glyph.codepoint);
+							}}
+							class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn"
+							aria-label="Reset glyph to empty"
+							title="Reset glyph (keep its slot but wipe data)"
+						>
+							<RotateCcw class="size-3" />
+						</button>
+						<button
+							type="button"
+							onclick={() => {
+								if (!glyph) return;
+								if (
+									confirm(
+										`Remove glyph "${glyph.name}" from the font? Any kerning references will also be dropped.`
+									)
+								)
+									projectStore.removeGlyph(glyph.codepoint);
+							}}
+							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+							aria-label="Delete glyph"
+							title="Remove this glyph from the font"
+						>
+							<Trash2 class="size-3" />
+						</button>
+					</div>
 				</h3>
 				<div class="grid grid-cols-2 gap-1">
 					{#each ['empty', 'sketch', 'draft', 'final'] as const as status (status)}

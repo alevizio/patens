@@ -327,6 +327,35 @@ class ProjectStore {
 		return true;
 	}
 
+	resetGlyph(codepoint: number) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		const sb = this.project.metrics.defaultSidebearing;
+		const advance = Math.round(this.project.metrics.unitsPerEm * 0.6);
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: {
+					...current,
+					status: 'empty',
+					contours: [],
+					sketch: [],
+					components: [],
+					anchors: [],
+					notes: undefined,
+					referenceImage: undefined,
+					advanceWidth: advance,
+					leftSidebearing: sb,
+					rightSidebearing: sb,
+					updatedAt: new Date().toISOString()
+				}
+			}
+		};
+		this.touch();
+	}
+
 	toggleGlyphPin(codepoint: number) {
 		if (!this.project) return;
 		const current = this.project.glyphs[codepoint];
