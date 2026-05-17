@@ -3,8 +3,8 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
-	import type { Anchor, BezierContour, SketchStroke } from '$lib/font/types';
-	import { glyphBounds } from '$lib/font/path';
+	import type { Anchor, BezierContour, Glyph, SketchStroke } from '$lib/font/types';
+	import { glyphBounds, contoursToSvgPath } from '$lib/font/path';
 	import {
 		chaikinSmooth,
 		booleanContours,
@@ -136,6 +136,23 @@
 	const countPathPoints = (commands: BezierContour['commands']) =>
 		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')
 			.length;
+
+	const mastersStripGlyphs = $derived.by(() => {
+		if (!projectStore.project || !glyph) return [];
+		const masters = projectStore.project.masters ?? [];
+		if (masters.length === 0) return [];
+		const out: Array<{ id: string | undefined; name: string; glyph: Glyph | undefined }> = [
+			{
+				id: undefined,
+				name: 'Default',
+				glyph: projectStore.project.glyphs[glyph.codepoint]
+			}
+		];
+		for (const m of masters) {
+			out.push({ id: m.id, name: m.name, glyph: m.glyphs[glyph.codepoint] });
+		}
+		return out;
+	});
 
 	const usedByGlyphs = $derived.by(() => {
 		if (!projectStore.project || !glyph) return [];
@@ -810,6 +827,47 @@
 					/>
 				</div>
 			</div>
+
+			{#if mastersStripGlyphs.length > 1}
+				<div class="flex items-center gap-2 border-t border-border bg-surface-2/40 px-4 py-2 overflow-x-auto">
+					<span class="shrink-0 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Masters
+					</span>
+					{#each mastersStripGlyphs as item (item.id ?? 'default')}
+						{@const isActive = (projectStore.selectedMasterId ?? '') === (item.id ?? '')}
+						<button
+							type="button"
+							onclick={() => projectStore.selectMaster(item.id)}
+							class="flex shrink-0 flex-col items-center gap-0.5 rounded border px-2 py-1 transition-colors {isActive
+								? 'border-accent bg-accent-soft'
+								: 'border-border bg-surface hover:border-accent/50'}"
+							title="Switch to {item.name}"
+						>
+							<svg
+								viewBox="0 0 {Math.max(item.glyph?.advanceWidth ?? 100, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
+								width="40"
+								height="40"
+								preserveAspectRatio="xMidYMid meet"
+								style="transform: scaleY(-1);"
+								aria-hidden="true"
+							>
+								{#if item.glyph && item.glyph.contours.length > 0}
+									<g transform="translate(0 {-(metrics?.ascender ?? 800)})">
+										<path
+											d={contoursToSvgPath(item.glyph.contours)}
+											fill="currentColor"
+											fill-rule="evenodd"
+										/>
+									</g>
+								{/if}
+							</svg>
+							<span class="text-[10px] font-medium {isActive ? 'text-accent' : 'text-fg-muted'}">
+								{item.name}
+							</span>
+						</button>
+					{/each}
+				</div>
+			{/if}
 
 			<!-- Live text strip (FontLab-style metrics window) -->
 			<div class="flex flex-col gap-1.5 border-t border-border bg-surface px-4 py-2.5">
