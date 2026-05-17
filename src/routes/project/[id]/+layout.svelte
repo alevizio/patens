@@ -19,6 +19,8 @@
 	import Redo2 from '@lucide/svelte/icons/redo-2';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
+	import StatsPopover from '$lib/ui/StatsPopover.svelte';
+	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
@@ -47,6 +49,7 @@
 	const currentPath = $derived(page.url.pathname);
 
 	let settingsOpen = $state(false);
+	let statsOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
 	let allProjects = $state<ProjectIndexEntry[]>([]);
 
@@ -215,6 +218,19 @@
 				<Check class="size-3.5 text-success" />
 				<span>Saved</span>
 			{/if}
+		</div>
+
+		<div class="relative">
+			<button
+				type="button"
+				onclick={() => (statsOpen = !statsOpen)}
+				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+				aria-label="Project stats"
+				title="Project stats"
+			>
+				<BarChart3 class="size-4" />
+			</button>
+			<StatsPopover open={statsOpen} onclose={() => (statsOpen = false)} />
 		</div>
 
 		<button
