@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import type { ReferenceImage } from '$lib/font/types';
 	import { traceBitmapToContours } from '$lib/font/bitmap-trace';
+	import { glyphBounds } from '$lib/font/path';
 	import Image from '@lucide/svelte/icons/image';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
@@ -60,6 +61,8 @@
 	let tracing = $state(false);
 	let traceThreshold = $state(128);
 	let traceDarkIsInk = $state(true);
+	let traceFitMetrics = $state(true);
+	let traceReplace = $state(true);
 	const runTrace = async () => {
 		if (!glyph?.referenceImage || tracing) return;
 		tracing = true;
@@ -74,11 +77,39 @@
 				alert('No contours detected — try adjusting the threshold or inverting dark/light.');
 				return;
 			}
-			projectStore.updateGlyph(glyph.codepoint, (g) => ({
-				...g,
-				contours: [...g.contours, ...contours],
-				status: 'draft'
-			}));
+			projectStore.updateGlyph(glyph.codepoint, (g) => {
+				const next = { ...g };
+				next.contours = traceReplace ? contours : [...g.contours, ...contours];
+				next.status = 'draft';
+				if (traceFitMetrics && projectStore.project) {
+					const sb = projectStore.project.metrics.defaultSidebearing;
+					const b = glyphBounds(next.contours);
+					next.leftSidebearing = sb;
+					next.rightSidebearing = sb;
+					next.advanceWidth = Math.max(1, Math.round(b.maxX - b.minX + sb * 2));
+					// Shift contours so left edge sits at LSB
+					const dx = sb - b.minX;
+					if (dx !== 0) {
+						next.contours = next.contours.map((c) => ({
+							...c,
+							commands: c.commands.map((cmd) => {
+								if (cmd.type === 'Z') return cmd;
+								if (cmd.type === 'M' || cmd.type === 'L')
+									return { ...cmd, x: Math.round(cmd.x + dx) };
+								if (cmd.type === 'Q')
+									return { ...cmd, x: Math.round(cmd.x + dx), x1: Math.round(cmd.x1 + dx) };
+								return {
+									...cmd,
+									x: Math.round(cmd.x + dx),
+									x1: Math.round(cmd.x1 + dx),
+									x2: Math.round(cmd.x2 + dx)
+								};
+							})
+						}));
+					}
+				}
+				return next;
+			});
 		} catch (err) {
 			alert('Trace failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
@@ -222,9 +253,17 @@
 					/>
 					<span class="font-mono text-fg" data-numeric>{traceThreshold}</span>
 				</label>
-				<label class="mt-1 inline-flex items-center gap-1.5 text-[10px] text-fg-muted">
+				<label class="mt-1 flex items-center gap-1.5 text-[10px] text-fg-muted">
 					<input type="checkbox" bind:checked={traceDarkIsInk} class="accent-accent" />
 					Dark pixels are ink
+				</label>
+				<label class="mt-1 flex items-center gap-1.5 text-[10px] text-fg-muted">
+					<input type="checkbox" bind:checked={traceReplace} class="accent-accent" />
+					Replace existing contours
+				</label>
+				<label class="mt-1 flex items-center gap-1.5 text-[10px] text-fg-muted">
+					<input type="checkbox" bind:checked={traceFitMetrics} class="accent-accent" />
+					Auto-fit advance + sidebearings
 				</label>
 				<button
 					type="button"
