@@ -263,15 +263,24 @@
 		if (!projectStore.project || !glyph) return [];
 		const masters = projectStore.project.masters ?? [];
 		if (masters.length === 0) return [];
-		const out: Array<{ id: string | undefined; name: string; glyph: Glyph | undefined }> = [
-			{
-				id: undefined,
-				name: 'Default',
-				glyph: projectStore.project.glyphs[glyph.codepoint]
-			}
-		];
+		const defaultGlyph = projectStore.project.glyphs[glyph.codepoint];
+		const baseSignature = defaultGlyph?.contours.length
+			? defaultGlyph.contours.map((c) => c.commands.length).join('/')
+			: null;
+		const out: Array<{
+			id: string | undefined;
+			name: string;
+			glyph: Glyph | undefined;
+			compatible: boolean;
+		}> = [{ id: undefined, name: 'Default', glyph: defaultGlyph, compatible: true }];
 		for (const m of masters) {
-			out.push({ id: m.id, name: m.name, glyph: m.glyphs[glyph.codepoint] });
+			const g = m.glyphs[glyph.codepoint];
+			let compatible = true;
+			if (baseSignature && g && g.contours.length > 0) {
+				const sig = g.contours.map((c) => c.commands.length).join('/');
+				compatible = sig === baseSignature;
+			}
+			out.push({ id: m.id, name: m.name, glyph: g, compatible });
 		}
 		return out;
 	});
@@ -1375,11 +1384,21 @@
 						<button
 							type="button"
 							onclick={() => projectStore.selectMaster(item.id)}
-							class="flex shrink-0 flex-col items-center gap-0.5 rounded border px-2 py-1 transition-colors {isActive
+							class="relative flex shrink-0 flex-col items-center gap-0.5 rounded border px-2 py-1 transition-colors {isActive
 								? 'border-accent bg-accent-soft'
-								: 'border-border bg-surface hover:border-accent/50'}"
-							title="Switch to {item.name}"
+								: item.compatible
+									? 'border-border bg-surface hover:border-accent/50'
+									: 'border-danger/60 bg-surface hover:border-danger'}"
+							title={item.compatible
+								? `Switch to ${item.name}`
+								: `${item.name} — contour/point counts don't match Default. Sync from Default to fix.`}
 						>
+							{#if !item.compatible}
+								<span
+									class="absolute right-0.5 top-0.5 size-1.5 rounded-full bg-danger"
+									aria-label="Incompatible"
+								></span>
+							{/if}
 							<svg
 								viewBox="0 0 {Math.max(item.glyph?.advanceWidth ?? 100, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
 								width="40"
