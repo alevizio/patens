@@ -123,6 +123,49 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 			}
 		},
 		{
+			id: 'critique',
+			label: 'Critique selected glyph',
+			icon: ScanSearch,
+			run: async () => {
+				if (!project) return null;
+				const glyph = project.glyphs[projectStore.selectedCodepoint];
+				if (!glyph || glyph.contours.length === 0)
+					throw new AnthropicError('Select a glyph with at least one contour, then retry.');
+				const pngData = glyphsToPng(
+					[{ codepoint: glyph.codepoint, name: glyph.name, contours: glyph.contours }],
+					project.metrics,
+					200
+				);
+				const drawnPeers = Object.values(project.glyphs)
+					.filter(
+						(g) =>
+							g.codepoint !== glyph.codepoint &&
+							g.contours.length > 0
+					)
+					.slice(0, 10)
+					.map((g) => g.name)
+					.join(', ');
+				const system = `You are a senior type designer giving a craft-focused critique on a single glyph. Be specific and actionable. Cover: proportion (stem widths, bowl size, counter shape), overshoot, optical alignment, curve quality (handles, transitions), terminal shape, joins. Suggest two concrete changes the designer should consider next. Return concise markdown with sections.`;
+				const messages: AnthropicMessage[] = [
+					{
+						role: 'user',
+						content: [
+							{
+								type: 'image',
+								source: { type: 'base64', media_type: 'image/png', data: pngData }
+							},
+							{
+								type: 'text',
+								text: `Glyph: "${glyph.name}" (U+${glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}) in "${project.metadata.familyName}". Sibling glyphs in this family: ${drawnPeers || 'none yet'}. Cap height ${project.metrics.capHeight}, x-height ${project.metrics.xHeight}.`
+							}
+						]
+					}
+				];
+				const out = await askClaude({ system, messages, maxTokens: 1200 });
+				return { text: out.text };
+			}
+		},
+		{
 			id: 'teststring',
 			label: 'Generate test string',
 			icon: Type,
