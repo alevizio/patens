@@ -216,6 +216,8 @@ export type Project = {
 	description?: string;
 	/** Structured design brief — the "type design is system design" artifact. */
 	brief?: ProjectBrief;
+	/** Release readiness checklist — manual sign-offs for cross-platform tests. */
+	releaseChecks?: Record<string, boolean>;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */

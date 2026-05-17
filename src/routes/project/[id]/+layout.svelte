@@ -19,6 +19,7 @@
 	import Redo2 from '@lucide/svelte/icons/redo-2';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Compass from '@lucide/svelte/icons/compass';
+	import Rocket from '@lucide/svelte/icons/rocket';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
@@ -67,6 +68,7 @@
 		{ href: `/project/${id}/ai`, label: 'AI', icon: Sparkles },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/specimen`, label: 'Specimen', icon: FileText },
+		{ href: `/project/${id}/release`, label: 'Release', icon: Rocket },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);
 

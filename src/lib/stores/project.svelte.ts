@@ -227,6 +227,14 @@ class ProjectStore {
 		this.touch();
 	}
 
+	toggleReleaseCheck(id: string) {
+		if (!this.project) return;
+		const next = { ...(this.project.releaseChecks ?? {}) };
+		next[id] = !next[id];
+		this.project = { ...this.project, releaseChecks: next };
+		this.touch();
+	}
+
 	updateBrief(mut: Partial<import('$lib/font/types').ProjectBrief>) {
 		if (!this.project) return;
 		this.project = {
