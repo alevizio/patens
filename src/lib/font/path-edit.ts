@@ -699,7 +699,7 @@ export const simplifyContours = async (
 };
 
 /** Standalone Douglas-Peucker — exported so simplify can reuse it. */
-const dpSimplify = (points: [number, number][], tolerance: number): [number, number][] => {
+export const dpSimplify = (points: [number, number][], tolerance: number): [number, number][] => {
 	if (points.length < 3) return points.slice();
 	const tolSq = tolerance * tolerance;
 	const keep = new Uint8Array(points.length);

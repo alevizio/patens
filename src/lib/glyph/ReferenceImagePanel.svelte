@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import type { ReferenceImage } from '$lib/font/types';
+	import { traceBitmapToContours } from '$lib/font/bitmap-trace';
 	import Image from '@lucide/svelte/icons/image';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
 
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);
@@ -53,6 +55,35 @@
 		if (!glyph?.referenceImage) return;
 		const next = { ...glyph.referenceImage, ...mut };
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, referenceImage: next }));
+	};
+
+	let tracing = $state(false);
+	let traceThreshold = $state(128);
+	let traceDarkIsInk = $state(true);
+	const runTrace = async () => {
+		if (!glyph?.referenceImage || tracing) return;
+		tracing = true;
+		try {
+			const ri = glyph.referenceImage;
+			const contours = await traceBitmapToContours(
+				ri.src,
+				{ x: ri.x, y: ri.y, width: ri.width, height: ri.height },
+				{ threshold: traceThreshold, darkIsInk: traceDarkIsInk }
+			);
+			if (contours.length === 0) {
+				alert('No contours detected — try adjusting the threshold or inverting dark/light.');
+				return;
+			}
+			projectStore.updateGlyph(glyph.codepoint, (g) => ({
+				...g,
+				contours: [...g.contours, ...contours],
+				status: 'draft'
+			}));
+		} catch (err) {
+			alert('Trace failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			tracing = false;
+		}
 	};
 
 	const remove = () => {
@@ -175,6 +206,39 @@
 			>
 				Replace image
 			</button>
+			<div class="mt-3 rounded-md border border-dashed border-accent/40 bg-accent-soft/20 p-2">
+				<div class="mb-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Auto trace
+				</div>
+				<label class="block text-[10px] text-fg-subtle">
+					Threshold
+					<input
+						type="range"
+						min={20}
+						max={235}
+						step={5}
+						bind:value={traceThreshold}
+						class="mt-1 h-1 w-full accent-accent"
+					/>
+					<span class="font-mono text-fg" data-numeric>{traceThreshold}</span>
+				</label>
+				<label class="mt-1 inline-flex items-center gap-1.5 text-[10px] text-fg-muted">
+					<input type="checkbox" bind:checked={traceDarkIsInk} class="accent-accent" />
+					Dark pixels are ink
+				</label>
+				<button
+					type="button"
+					onclick={runTrace}
+					disabled={tracing}
+					class="mt-2 flex w-full items-center justify-center gap-1.5 rounded-md bg-accent px-2 py-1.5 text-[11px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-60"
+				>
+					<Wand class="size-3" />
+					{tracing ? 'Tracing…' : 'Trace to vector'}
+				</button>
+				<p class="mt-1 text-[10px] text-fg-subtle">
+					Adds new contours on top of any existing ones. Refine in Edit (A).
+				</p>
+			</div>
 		{/if}
 	</div>
 {/if}

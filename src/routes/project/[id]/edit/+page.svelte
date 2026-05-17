@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { untrack } from 'svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
@@ -57,8 +58,6 @@
 	let paletteOpen = $state(false);
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
-	$effect(() => settings.updateEditorPrefs({ skipEmptyNav }));
-	$effect(() => settings.updateEditorPrefs({ showAnatomy }));
 
 	let canvasDragActive = $state(false);
 	let canvasDragCounter = 0;
@@ -187,10 +186,13 @@
 	let showReference = $state(settings.editor.showReference);
 	let showOnion = $state(settings.editor.showOnion);
 	let showAnchors = $state(settings.editor.showAnchors);
-	$effect(() => settings.updateEditorPrefs({ showGrid }));
-	$effect(() => settings.updateEditorPrefs({ showReference }));
-	$effect(() => settings.updateEditorPrefs({ showOnion }));
-	$effect(() => settings.updateEditorPrefs({ showAnchors }));
+
+	// Persist editor toggles. Single $effect with explicit untrack on the
+	// write side so the loop never bounces back through the store's $state.
+	$effect(() => {
+		const snap = { skipEmptyNav, showAnatomy, showGrid, showReference, showOnion, showAnchors };
+		untrack(() => settings.updateEditorPrefs(snap));
+	});
 	let snapToMetrics = $state(true);
 	let zoomPercent = $state(100);
 	let resetSignal = $state(0);

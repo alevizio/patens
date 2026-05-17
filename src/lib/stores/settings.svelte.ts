@@ -91,7 +91,20 @@ class SettingsStore {
 	}
 
 	updateEditorPrefs(mut: Partial<EditorPrefs>) {
-		this.editor = { ...this.editor, ...mut };
+		// Only assign keys that actually changed to avoid an infinite reactive
+		// loop with $effect callers (writing to $state re-triggers any effect
+		// whose dependency expression includes that state).
+		let changed = false;
+		const next = { ...this.editor };
+		for (const k of Object.keys(mut) as Array<keyof EditorPrefs>) {
+			const v = mut[k];
+			if (v !== undefined && next[k] !== v) {
+				(next as Record<string, unknown>)[k] = v;
+				changed = true;
+			}
+		}
+		if (!changed) return;
+		this.editor = next;
 		this.persist();
 	}
 
