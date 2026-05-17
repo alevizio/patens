@@ -82,6 +82,8 @@
 		if (!project) return '';
 		const family = project.metadata.familyName || project.name;
 		const fileBase = `${safeFilename(family) || 'Untitled'}-${safeFilename(project.metadata.styleName)}`;
+		const id = safeFilename(family).toLowerCase() || 'custom';
+		const m = project.metrics;
 		return `@font-face {
 	font-family: '${family}';
 	src: url('/fonts/${fileBase}.woff2') format('woff2'),
@@ -92,11 +94,17 @@
 }
 
 :root {
-	--font-${safeFilename(family).toLowerCase() || 'custom'}: '${family}', system-ui, sans-serif;
+	--font-${id}: '${family}', system-ui, sans-serif;
+	/* Design tokens — ratios of the em (so they scale with font-size) */
+	--${id}-upm: ${m.unitsPerEm};
+	--${id}-cap-em: ${(m.capHeight / m.unitsPerEm).toFixed(3)};
+	--${id}-x-em: ${(m.xHeight / m.unitsPerEm).toFixed(3)};
+	--${id}-ascender-em: ${(m.ascender / m.unitsPerEm).toFixed(3)};
+	--${id}-descender-em: ${(m.descender / m.unitsPerEm).toFixed(3)};
 }
 
 body {
-	font-family: var(--font-${safeFilename(family).toLowerCase() || 'custom'});
+	font-family: var(--font-${id});
 	font-feature-settings: 'kern' 1, 'liga' 1;
 }`;
 	});
