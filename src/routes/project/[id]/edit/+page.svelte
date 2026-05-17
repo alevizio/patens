@@ -660,6 +660,21 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
+	const reverseAllContours = () => {
+		if (!glyph || glyph.contours.length === 0) return;
+		// Reuse the existing reverseContour helper from path.ts
+		import('$lib/font/path').then(({ reverseContour }) => {
+			projectStore.updateGlyph(glyph.codepoint, (g) => ({
+				...g,
+				contours: g.contours.map((c) => ({
+					...c,
+					commands: reverseContour(c.commands),
+					winding: c.winding === 'cw' ? 'ccw' : 'cw'
+				}))
+			}));
+		});
+	};
+
 	const snapAllPointsToGrid = (step = 10) => {
 		if (!glyph || glyph.contours.length === 0) return;
 		const snap = (n: number) => Math.round(n / step) * step;
@@ -1892,15 +1907,26 @@
 				>
 					{simplifying ? 'Simplifying…' : 'Simplify outline'}
 				</button>
-				<button
-					type="button"
-					onclick={() => snapAllPointsToGrid(10)}
-					disabled={glyph.contours.length === 0}
-					class="mt-1.5 w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					title="Round every point to the nearest 10 font units (cleanup)"
-				>
-					Snap to 10u grid
-				</button>
+				<div class="mt-1.5 grid grid-cols-2 gap-1.5">
+					<button
+						type="button"
+						onclick={() => snapAllPointsToGrid(10)}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Round every point to the nearest 10 font units (cleanup)"
+					>
+						Snap 10u
+					</button>
+					<button
+						type="button"
+						onclick={reverseAllContours}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Flip every contour's winding direction"
+					>
+						Reverse winding
+					</button>
+				</div>
 				<h3 class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Transform
 				</h3>
