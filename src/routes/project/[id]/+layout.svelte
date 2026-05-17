@@ -12,6 +12,9 @@
 	import Code from '@lucide/svelte/icons/code-2';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Layers from '@lucide/svelte/icons/layers';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import Settings from '@lucide/svelte/icons/settings';
+	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
@@ -38,11 +41,14 @@
 	const id = $derived(page.params.id);
 	const currentPath = $derived(page.url.pathname);
 
+	let settingsOpen = $state(false);
+
 	const tabs = $derived([
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
 		{ href: `/project/${id}/spacing`, label: 'Spacing', icon: Ruler },
 		{ href: `/project/${id}/designspace`, label: 'Designspace', icon: Sliders },
 		{ href: `/project/${id}/features`, label: 'Features', icon: Code },
+		{ href: `/project/${id}/ai`, label: 'AI', icon: Sparkles },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);
@@ -125,7 +131,19 @@
 				<span>Saved</span>
 			{/if}
 		</div>
+
+		<button
+			type="button"
+			onclick={() => (settingsOpen = true)}
+			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+			aria-label="Settings"
+			title="Settings (API key, etc.)"
+		>
+			<Settings class="size-4" />
+		</button>
 	</header>
+
+	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
 
 	<div class="flex min-h-0 flex-1">
 		<div class="w-[260px] shrink-0">
