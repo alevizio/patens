@@ -290,6 +290,154 @@
 		);
 	};
 
+	let testPageBusy = $state(false);
+	const escapeHtml = (s: string): string =>
+		s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	const bufferToBase64 = (buf: ArrayBuffer): string => {
+		const bytes = new Uint8Array(buf);
+		let bin = '';
+		const chunk = 0x8000;
+		for (let i = 0; i < bytes.length; i += chunk) {
+			bin += String.fromCharCode(...bytes.subarray(i, i + chunk));
+		}
+		return btoa(bin);
+	};
+	const exportTestPage = async () => {
+		if (!project) return;
+		testPageBusy = true;
+		try {
+			const otfBuffer = await buildOtfBuffer();
+			const base64 = bufferToBase64(otfBuffer);
+			const family = project.metadata.familyName || project.name;
+			const familyId = safeFilename(family) || 'TestFont';
+			const designer = escapeHtml(project.metadata.designer || '—');
+			const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0);
+			const charset = drawn
+				.map((g) => String.fromCodePoint(g.codepoint))
+				.filter((s) => s.length === 1 && s.codePointAt(0)! > 0x20)
+				.join('');
+			const html = `<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>${escapeHtml(family)} — Test page</title>
+<style>
+@font-face {
+	font-family: '${familyId}';
+	src: url(data:font/otf;base64,${base64}) format('opentype');
+	font-display: block;
+}
+:root {
+	color-scheme: light dark;
+	--bg: #fafafa;
+	--fg: #111;
+	--muted: #666;
+	--border: #ddd;
+	--accent: #0066ff;
+}
+@media (prefers-color-scheme: dark) {
+	:root { --bg: #111; --fg: #fafafa; --muted: #888; --border: #2a2a2a; --accent: #6ea8ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.5 -apple-system, system-ui, sans-serif; }
+header { padding: 48px 32px 24px; border-bottom: 1px solid var(--border); }
+header h1 { margin: 0 0 6px; font-size: 28px; font-weight: 600; }
+header p { margin: 0; color: var(--muted); font-size: 13px; }
+main { padding: 32px; max-width: 1200px; margin: 0 auto; }
+section { margin: 0 0 48px; }
+section h2 { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+.t { font-family: '${familyId}', sans-serif; font-feature-settings: 'kern' 1, 'liga' 1; }
+.huge { font-size: 96px; line-height: 1; margin: 0; }
+.large { font-size: 48px; line-height: 1.05; margin: 0; }
+.medium { font-size: 24px; line-height: 1.3; margin: 0; }
+.body { font-size: 16px; line-height: 1.55; max-width: 65ch; margin: 0; }
+.row { display: flex; align-items: baseline; gap: 16px; padding: 8px 0; border-bottom: 1px dashed var(--border); }
+.row span:first-child { width: 48px; text-align: right; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+textarea, input { width: 100%; padding: 12px 14px; background: transparent; color: var(--fg); border: 1px solid var(--border); border-radius: 8px; font-family: '${familyId}', sans-serif; font-size: 28px; line-height: 1.3; }
+textarea:focus, input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.charset { font-size: 32px; line-height: 1.4; word-break: break-all; max-width: 64ch; }
+.controls { display: flex; gap: 6px; flex-wrap: wrap; margin: 0 0 12px; }
+.controls button { cursor: pointer; padding: 4px 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); border-radius: 4px; font: 11px monospace; }
+.controls button[aria-pressed="true"] { background: var(--accent); color: #fff; border-color: var(--accent); }
+footer { padding: 24px 32px; border-top: 1px solid var(--border); color: var(--muted); font-size: 11px; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+	<h1 class="t">${escapeHtml(family)}</h1>
+	<p>${escapeHtml(project.metadata.styleName)} · v${escapeHtml(project.metadata.version)} · ${drawn.length} glyphs · Designed by ${designer}</p>
+</header>
+<main>
+	<section>
+		<h2>Display</h2>
+		<p class="t huge">${escapeHtml(family)}</p>
+		<p class="t large" style="color: var(--muted); margin-top: 12px;">Type design is system design.</p>
+	</section>
+	<section>
+		<h2>Type your own</h2>
+		<textarea class="t" rows="2" oninput="this.style.height='auto'; this.style.height=this.scrollHeight+'px';">${escapeHtml(family)}</textarea>
+	</section>
+	<section>
+		<h2>OpenType features</h2>
+		<div class="controls">
+			<button data-feat="kern" aria-pressed="true">kern</button>
+			<button data-feat="liga" aria-pressed="true">liga</button>
+			<button data-feat="dlig" aria-pressed="false">dlig</button>
+			<button data-feat="calt" aria-pressed="true">calt</button>
+			<button data-feat="onum" aria-pressed="false">onum</button>
+			<button data-feat="tnum" aria-pressed="false">tnum</button>
+			<button data-feat="smcp" aria-pressed="false">smcp</button>
+		</div>
+		<p class="t large" id="feat-sample">fi fl 0123 Office 1029 — affluent</p>
+	</section>
+	<section>
+		<h2>Waterfall</h2>
+		<div>
+			<div class="row"><span>12</span><span class="t" style="font-size:12px;">The quick brown fox jumps over the lazy dog</span></div>
+			<div class="row"><span>16</span><span class="t" style="font-size:16px;">The quick brown fox jumps over the lazy dog</span></div>
+			<div class="row"><span>24</span><span class="t" style="font-size:24px;">The quick brown fox jumps over the lazy dog</span></div>
+			<div class="row"><span>32</span><span class="t" style="font-size:32px;">The quick brown fox jumps over the lazy dog</span></div>
+			<div class="row"><span>48</span><span class="t" style="font-size:48px;">The quick brown fox</span></div>
+			<div class="row"><span>72</span><span class="t" style="font-size:72px;">Hamburge</span></div>
+		</div>
+	</section>
+	<section>
+		<h2>Paragraph</h2>
+		<p class="t body">In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size, weight, slope, width — letting designers express texture, hierarchy, and voice across a coherent system.</p>
+	</section>
+	<section>
+		<h2>Character set</h2>
+		<div class="t charset">${escapeHtml(charset)}</div>
+	</section>
+</main>
+<footer>Generated by Font Studio · @font-face data URL · drop this file anywhere to share.</footer>
+<script>
+const sample = document.getElementById('feat-sample');
+document.querySelectorAll('.controls button').forEach((b) => {
+	b.addEventListener('click', () => {
+		const pressed = b.getAttribute('aria-pressed') === 'true';
+		b.setAttribute('aria-pressed', String(!pressed));
+		const parts = [];
+		document.querySelectorAll('.controls button').forEach((bb) => {
+			parts.push("'" + bb.dataset.feat + "' " + (bb.getAttribute('aria-pressed') === 'true' ? 1 : 0));
+		});
+		sample.style.fontFeatureSettings = parts.join(', ');
+	});
+});
+<\/script>
+</body>
+</html>`;
+			downloadBlob(
+				new Blob([html], { type: 'text/html;charset=utf-8' }),
+				`${safeFilename(family)}-test.html`
+			);
+		} catch (err) {
+			alert('Test page export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			testPageBusy = false;
+		}
+	};
+
 	const importProjectJson = async (ev: Event) => {
 		const input = ev.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
@@ -652,6 +800,15 @@
 					</Button>
 					<span class="text-[12px] text-fg-subtle">
 						One SVG with each glyph as a labeled <code>&lt;path&gt;</code>.
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
+					<Button variant="secondary" onclick={exportTestPage} loading={testPageBusy}>
+						{#snippet icon()}<FileText class="size-4" />{/snippet}
+						{testPageBusy ? 'Building…' : 'Export HTML test page'}
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						Single self-contained <code>.html</code> with the font embedded as a data URL — share or drop on a server.
 					</span>
 				</div>
 			</div>
