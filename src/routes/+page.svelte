@@ -143,6 +143,72 @@
 		}
 	};
 
+	/**
+	 * Route a dropped or picked File to the right importer based on extension.
+	 * Same code path the home-page upload buttons use.
+	 */
+	const importFile = async (file: File) => {
+		const name = file.name.toLowerCase();
+		importError = null;
+		importWarning = null;
+		try {
+			if (name.endsWith('.zip') || name.endsWith('.ufo.zip')) {
+				ufoImporting = true;
+				await ensurePython();
+				const buffer = await file.arrayBuffer();
+				const projectJson = await ufoZipToProject(buffer);
+				const parsed = JSON.parse(projectJson);
+				const ts = new Date().toISOString();
+				const project: Parameters<typeof saveProject>[0] = {
+					...parsed,
+					id: crypto.randomUUID(),
+					name: `${parsed.metadata?.familyName ?? 'Untitled'} (UFO)`,
+					createdAt: ts,
+					updatedAt: ts
+				};
+				importWarning = checkReservedName(project.metadata.familyName);
+				await saveProject(project);
+				if (importWarning) alert(importWarning);
+				await goto(`/project/${project.id}/edit`);
+			} else {
+				importing = true;
+				const { project } = await importFromOtf(file);
+				importWarning = checkReservedName(project.metadata.familyName);
+				await saveProject(project);
+				if (importWarning) alert(importWarning);
+				await goto(`/project/${project.id}/edit`);
+			}
+		} catch (err) {
+			importError = err instanceof Error ? err.message : 'Could not read this file.';
+		} finally {
+			importing = false;
+			ufoImporting = false;
+		}
+	};
+
+	let dragActive = $state(false);
+	let dragCounter = 0;
+	const onDragEnter = (ev: DragEvent) => {
+		ev.preventDefault();
+		dragCounter++;
+		dragActive = true;
+	};
+	const onDragLeave = (ev: DragEvent) => {
+		ev.preventDefault();
+		dragCounter--;
+		if (dragCounter <= 0) dragActive = false;
+	};
+	const onDragOver = (ev: DragEvent) => {
+		ev.preventDefault();
+	};
+	const onDrop = async (ev: DragEvent) => {
+		ev.preventDefault();
+		dragActive = false;
+		dragCounter = 0;
+		const file = ev.dataTransfer?.files?.[0];
+		if (file) await importFile(file);
+	};
+
 	const handleUfoImport = async (ev: Event) => {
 		const input = ev.currentTarget as HTMLInputElement;
 		const file = input.files?.[0];
@@ -189,7 +255,14 @@
 	};
 </script>
 
-<div class="mx-auto max-w-5xl px-6 py-12 sm:py-20">
+<div
+	class="relative mx-auto max-w-5xl px-6 py-12 sm:py-20"
+	ondragenter={onDragEnter}
+	ondragleave={onDragLeave}
+	ondragover={onDragOver}
+	ondrop={onDrop}
+	role="application"
+>
 	<header class="mb-12 flex flex-col gap-3">
 		<div
 			class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
@@ -403,4 +476,18 @@
 			</Panel>
 		</div>
 	</div>
+
+	{#if dragActive}
+		<div
+			class="pointer-events-none fixed inset-0 z-50 flex items-center justify-center bg-accent-soft/95 backdrop-blur-sm"
+		>
+			<div class="text-center">
+				<UploadCloud class="mx-auto mb-3 size-16 text-accent" />
+				<div class="text-2xl font-semibold text-accent">Drop to import</div>
+				<div class="mt-1 text-sm text-fg-muted">
+					Accepts .otf · .ttf · .woff2 · .ufo.zip
+				</div>
+			</div>
+		</div>
+	{/if}
 </div>
