@@ -37,6 +37,8 @@
 	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Pin from '@lucide/svelte/icons/pin';
 	import FileText from '@lucide/svelte/icons/file-text';
+	import Lock from '@lucide/svelte/icons/lock';
+	import Unlock from '@lucide/svelte/icons/unlock';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
@@ -1592,11 +1594,35 @@
 
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					<span>Metrics</span>
+					<span class="inline-flex items-center gap-1.5">
+						Metrics
+						<button
+							type="button"
+							onclick={() =>
+								projectStore.updateGlyph(glyph.codepoint, (g) => ({
+									...g,
+									metricsLocked: !g.metricsLocked
+								}))}
+							class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 {glyph.metricsLocked
+								? 'text-warn'
+								: 'hover:text-fg'}"
+							aria-label={glyph.metricsLocked ? 'Unlock metrics' : 'Lock metrics'}
+							title={glyph.metricsLocked
+								? 'Unlock — allow LSB/RSB/Adv edits'
+								: 'Lock — prevent accidental LSB/RSB/Adv edits'}
+						>
+							{#if glyph.metricsLocked}
+								<Lock class="size-3" />
+							{:else}
+								<Unlock class="size-3" />
+							{/if}
+						</button>
+					</span>
 					<select
 						value=""
+						disabled={glyph.metricsLocked}
 						onchange={(e) => copyMetricsFrom(Number(e.currentTarget.value))}
-						class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+						class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40"
 						title="Copy LSB / RSB / advance from another glyph"
 					>
 						<option value="" disabled selected>Copy from…</option>
@@ -1613,6 +1639,7 @@
 							type="number"
 							density="sm"
 							value={glyph.advanceWidth}
+							disabled={glyph.metricsLocked}
 							onchange={(e) =>
 								projectStore.updateGlyph(glyph.codepoint, (g) => ({
 									...g,
@@ -1625,6 +1652,7 @@
 							type="number"
 							density="sm"
 							value={glyph.leftSidebearing}
+							disabled={glyph.metricsLocked}
 							onchange={(e) =>
 								projectStore.updateGlyph(glyph.codepoint, (g) => ({
 									...g,
@@ -1637,6 +1665,7 @@
 							type="number"
 							density="sm"
 							value={glyph.rightSidebearing}
+							disabled={glyph.metricsLocked}
 							onchange={(e) =>
 								projectStore.updateGlyph(glyph.codepoint, (g) => ({
 									...g,
