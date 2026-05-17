@@ -3,6 +3,7 @@
  * All operations return new arrays — never mutate in place.
  */
 
+import polygonClipping from 'polygon-clipping';
 import type { BezierContour, PathCommand } from './types';
 
 export type PointRef = { contour: number; index: number };
@@ -457,6 +458,184 @@ export const insertPointOnSegment = (
 		contours: nextContours,
 		ref: { contour: seg.contourIndex, index: insertAt }
 	};
+};
+
+/**
+ * Sample a contour densely (handles M, L, Q, C, Z) and return a closed ring
+ * of [x, y] pairs, suitable for polygon-clipping. Curves are flattened with
+ * the same step count we use for bbox sampling.
+ */
+const contourToRing = (commands: PathCommand[], stepsPerCurve = 24): [number, number][] => {
+	const ring: [number, number][] = [];
+	let cx = 0,
+		cy = 0;
+	const push = (x: number, y: number) => {
+		const last = ring[ring.length - 1];
+		if (!last || last[0] !== x || last[1] !== y) ring.push([x, y]);
+	};
+	for (const c of commands) {
+		if (c.type === 'M' || c.type === 'L') {
+			push(c.x, c.y);
+			cx = c.x;
+			cy = c.y;
+		} else if (c.type === 'Q') {
+			for (let i = 1; i <= stepsPerCurve; i++) {
+				const t = i / stepsPerCurve;
+				const mt = 1 - t;
+				const x = mt * mt * cx + 2 * mt * t * c.x1 + t * t * c.x;
+				const y = mt * mt * cy + 2 * mt * t * c.y1 + t * t * c.y;
+				push(x, y);
+			}
+			cx = c.x;
+			cy = c.y;
+		} else if (c.type === 'C') {
+			for (let i = 1; i <= stepsPerCurve; i++) {
+				const t = i / stepsPerCurve;
+				const mt = 1 - t;
+				const x =
+					mt * mt * mt * cx + 3 * mt * mt * t * c.x1 + 3 * mt * t * t * c.x2 + t * t * t * c.x;
+				const y =
+					mt * mt * mt * cy + 3 * mt * mt * t * c.y1 + 3 * mt * t * t * c.y2 + t * t * t * c.y;
+				push(x, y);
+			}
+			cx = c.x;
+			cy = c.y;
+		}
+	}
+	if (ring.length > 0) {
+		const first = ring[0];
+		const last = ring[ring.length - 1];
+		if (first[0] !== last[0] || first[1] !== last[1]) ring.push([first[0], first[1]]);
+	}
+	return ring;
+};
+
+const ringToContour = (ring: [number, number][], winding: 'cw' | 'ccw' = 'ccw'): BezierContour => {
+	// Drop the duplicated closing point
+	let cleaned = ring;
+	if (ring.length >= 2) {
+		const first = ring[0];
+		const last = ring[ring.length - 1];
+		if (first[0] === last[0] && first[1] === last[1]) cleaned = ring.slice(0, -1);
+	}
+	if (cleaned.length < 3) return { closed: true, winding, commands: [] };
+	const commands: PathCommand[] = [
+		{ type: 'M', x: Math.round(cleaned[0][0]), y: Math.round(cleaned[0][1]) }
+	];
+	for (let i = 1; i < cleaned.length; i++)
+		commands.push({ type: 'L', x: Math.round(cleaned[i][0]), y: Math.round(cleaned[i][1]) });
+	commands.push({ type: 'Z' });
+	return { closed: true, winding, commands };
+};
+
+export type PathOp = 'union' | 'intersection' | 'difference' | 'xor';
+
+/**
+ * Run a boolean operation across the supplied contours. For union/xor the
+ * order is irrelevant; for difference, contours[0] is the subject and the
+ * rest are subtracted from it.
+ */
+export const booleanContours = (
+	contours: BezierContour[],
+	op: PathOp
+): BezierContour[] => {
+	if (contours.length === 0) return [];
+	const rings = contours.map((c) => contourToRing(c.commands));
+	const polys = rings.map((r) => [r] as [number, number][][]);
+	let merged: ReturnType<typeof polygonClipping.union>;
+	try {
+		if (op === 'union') merged = polygonClipping.union(polys[0], ...polys.slice(1));
+		else if (op === 'intersection')
+			merged = polygonClipping.intersection(polys[0], ...polys.slice(1));
+		else if (op === 'xor') merged = polygonClipping.xor(polys[0], ...polys.slice(1));
+		else merged = polygonClipping.difference(polys[0], ...polys.slice(1));
+	} catch {
+		return contours;
+	}
+	const out: BezierContour[] = [];
+	for (const poly of merged) {
+		for (let ringIdx = 0; ringIdx < poly.length; ringIdx++) {
+			const ring = poly[ringIdx] as [number, number][];
+			if (ring.length < 4) continue;
+			out.push(ringToContour(ring, ringIdx === 0 ? 'ccw' : 'cw'));
+		}
+	}
+	return out;
+};
+
+/**
+ * Transform a set of on-curve points + their adjacent off-curve handles by a
+ * 2D affine matrix [a b c d tx ty]. Equivalent to canvas transform: every
+ * point becomes (a*x + c*y + tx, b*x + d*y + ty).
+ */
+export type AffineMatrix = { a: number; b: number; c: number; d: number; tx: number; ty: number };
+
+export const transformPoints = (
+	contours: BezierContour[],
+	refs: PointRef[],
+	m: AffineMatrix
+): BezierContour[] => {
+	if (refs.length === 0) return contours;
+	const byContour = new Map<number, Set<number>>();
+	for (const r of refs) {
+		if (!byContour.has(r.contour)) byContour.set(r.contour, new Set());
+		byContour.get(r.contour)!.add(r.index);
+	}
+	const apply = (x: number, y: number) => ({
+		x: Math.round(m.a * x + m.c * y + m.tx),
+		y: Math.round(m.b * x + m.d * y + m.ty)
+	});
+	return contours.map((c, ci) => {
+		const set = byContour.get(ci);
+		if (!set) return c;
+		return {
+			...c,
+			commands: c.commands.map((cmd, i) => {
+				if (!set.has(i)) return cmd;
+				if (cmd.type === 'M' || cmd.type === 'L') {
+					const p = apply(cmd.x, cmd.y);
+					return { ...cmd, x: p.x, y: p.y };
+				}
+				if (cmd.type === 'Q') {
+					const p = apply(cmd.x, cmd.y);
+					const h = apply(cmd.x1, cmd.y1);
+					return { ...cmd, x: p.x, y: p.y, x1: h.x, y1: h.y };
+				}
+				if (cmd.type === 'C') {
+					const p = apply(cmd.x, cmd.y);
+					const h1 = apply(cmd.x1, cmd.y1);
+					const h2 = apply(cmd.x2, cmd.y2);
+					return { ...cmd, x: p.x, y: p.y, x1: h1.x, y1: h1.y, x2: h2.x, y2: h2.y };
+				}
+				return cmd;
+			})
+		};
+	});
+};
+
+/** Centroid of the bounding box of a set of selected points. */
+export const selectionCentroid = (
+	contours: BezierContour[],
+	refs: PointRef[]
+): { x: number; y: number } => {
+	let minX = Infinity,
+		maxX = -Infinity,
+		minY = Infinity,
+		maxY = -Infinity;
+	let n = 0;
+	for (const r of refs) {
+		const cmd = contours[r.contour]?.commands[r.index];
+		if (!cmd) continue;
+		if (cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C') {
+			minX = Math.min(minX, cmd.x);
+			maxX = Math.max(maxX, cmd.x);
+			minY = Math.min(minY, cmd.y);
+			maxY = Math.max(maxY, cmd.y);
+			n++;
+		}
+	}
+	if (n === 0) return { x: 0, y: 0 };
+	return { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
 };
 
 /** Chaikin smoothing: each polygon edge becomes 2 edges, corners get rounded. */

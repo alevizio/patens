@@ -5,7 +5,14 @@
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { Anchor, BezierContour, SketchStroke } from '$lib/font/types';
 	import { glyphBounds } from '$lib/font/path';
-	import { chaikinSmooth } from '$lib/font/path-edit';
+	import {
+		chaikinSmooth,
+		booleanContours,
+		transformPoints,
+		selectionCentroid,
+		type AffineMatrix,
+		type PathOp
+	} from '$lib/font/path-edit';
 	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -191,6 +198,64 @@
 			...g,
 			anchors: (g.anchors ?? []).filter((a) => a.name !== anchorName)
 		}));
+	};
+
+	const applyPathOp = (op: PathOp) => {
+		if (!glyph || glyph.contours.length < 2) return;
+		const next = booleanContours(glyph.contours, op);
+		if (next.length === 0) return;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
+	const flipSelection = (axis: 'horizontal' | 'vertical') => {
+		if (!glyph || glyph.contours.length === 0) return;
+		// Flip the whole glyph around its bbox center (selection-aware variants
+		// could be added later; for now we mirror the whole outline).
+		const bounds = glyphBounds(glyph.contours);
+		const cx = (bounds.minX + bounds.maxX) / 2;
+		const cy = (bounds.minY + bounds.maxY) / 2;
+		const m: AffineMatrix =
+			axis === 'horizontal'
+				? { a: -1, b: 0, c: 0, d: 1, tx: 2 * cx, ty: 0 }
+				: { a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 2 * cy };
+		// Build a fake "all points" PointRef list
+		const allRefs = glyph.contours.flatMap((c, ci) =>
+			c.commands
+				.map((cmd, i) =>
+					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+						? { contour: ci, index: i }
+						: null
+				)
+				.filter((r): r is { contour: number; index: number } => r !== null)
+		);
+		const next = transformPoints(glyph.contours, allRefs, m);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
+	const scaleGlyph = (factor: number) => {
+		if (!glyph || glyph.contours.length === 0) return;
+		const bounds = glyphBounds(glyph.contours);
+		const cx = (bounds.minX + bounds.maxX) / 2;
+		const cy = (bounds.minY + bounds.maxY) / 2;
+		const m: AffineMatrix = {
+			a: factor,
+			b: 0,
+			c: 0,
+			d: factor,
+			tx: cx - factor * cx,
+			ty: cy - factor * cy
+		};
+		const allRefs = glyph.contours.flatMap((c, ci) =>
+			c.commands
+				.map((cmd, i) =>
+					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+						? { contour: ci, index: i }
+						: null
+				)
+				.filter((r): r is { contour: number; index: number } => r !== null)
+		);
+		const next = transformPoints(glyph.contours, allRefs, m);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
 	const autoSpace = () => {
@@ -723,6 +788,87 @@
 							</button>
 						{/if}
 					{/each}
+				</div>
+			</div>
+
+			<div class="border-b border-border p-4">
+				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Path operations
+				</h3>
+				<div class="mb-2 grid grid-cols-2 gap-1.5">
+					<button
+						type="button"
+						onclick={() => applyPathOp('union')}
+						disabled={glyph.contours.length < 2}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Merge all contours into a single silhouette"
+					>
+						Union
+					</button>
+					<button
+						type="button"
+						onclick={() => applyPathOp('intersection')}
+						disabled={glyph.contours.length < 2}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Keep only the area common to all contours"
+					>
+						Intersect
+					</button>
+					<button
+						type="button"
+						onclick={() => applyPathOp('difference')}
+						disabled={glyph.contours.length < 2}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Subtract every contour after the first from the first"
+					>
+						Subtract
+					</button>
+					<button
+						type="button"
+						onclick={() => applyPathOp('xor')}
+						disabled={glyph.contours.length < 2}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Keep regions that belong to an odd number of contours"
+					>
+						Xor
+					</button>
+				</div>
+				<h3 class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Transform
+				</h3>
+				<div class="grid grid-cols-2 gap-1.5">
+					<button
+						type="button"
+						onclick={() => flipSelection('horizontal')}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					>
+						Flip H
+					</button>
+					<button
+						type="button"
+						onclick={() => flipSelection('vertical')}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					>
+						Flip V
+					</button>
+					<button
+						type="button"
+						onclick={() => scaleGlyph(1.05)}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					>
+						Scale +5%
+					</button>
+					<button
+						type="button"
+						onclick={() => scaleGlyph(1 / 1.05)}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					>
+						Scale −5%
+					</button>
 				</div>
 			</div>
 
