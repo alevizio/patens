@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Glyph } from '$lib/font/types';
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
+	import Pin from '@lucide/svelte/icons/pin';
+	import StickyNote from '@lucide/svelte/icons/sticky-note';
 
 	type Props = {
 		glyph: Glyph;
@@ -96,4 +98,16 @@
 		class="absolute right-1 top-1 size-1.5 rounded-full {statusColor}"
 		aria-label="Status: {glyph.status}"
 	></span>
+	{#if glyph.pinned}
+		<Pin
+			class="absolute left-1 top-1 size-2.5 fill-warn text-warn"
+			aria-label="Pinned"
+		/>
+	{/if}
+	{#if glyph.notes?.trim()}
+		<StickyNote
+			class="absolute bottom-1 right-1 size-2.5 text-accent"
+			aria-label="Has notes"
+		/>
+	{/if}
 </button>

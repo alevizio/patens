@@ -52,6 +52,7 @@
 	let tourOpen = $state(false);
 	let shortcutsOpen = $state(false);
 	let paletteOpen = $state(false);
+	let skipEmptyNav = $state(false);
 
 	const SHORTCUTS: Array<{ group: string; items: Array<{ keys: string; label: string }> }> = [
 		{
@@ -479,9 +480,17 @@
 	const handleKeyDown = (ev: KeyboardEvent) => {
 		if (ev.target instanceof HTMLInputElement) return;
 		if (ev.target instanceof HTMLTextAreaElement) return;
-		const codepoints = Object.keys(projectStore.project?.glyphs ?? {})
+		const allGlyphs = projectStore.project?.glyphs ?? {};
+		const allCodepoints = Object.keys(allGlyphs)
 			.map(Number)
 			.sort((a, b) => a - b);
+		const codepoints = skipEmptyNav
+			? allCodepoints.filter(
+					(cp) =>
+						allGlyphs[cp]?.contours.length > 0 ||
+						(allGlyphs[cp]?.components?.length ?? 0) > 0
+				)
+			: allCodepoints;
 		const idx = codepoints.indexOf(projectStore.selectedCodepoint);
 		if (ev.key === ']') {
 			ev.preventDefault();
@@ -639,6 +648,16 @@
 				</label>
 
 				<div class="ml-auto flex items-center gap-1">
+					<button
+						type="button"
+						onclick={() => (skipEmptyNav = !skipEmptyNav)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors {skipEmptyNav
+							? 'bg-accent-soft text-accent'
+							: 'text-fg-muted hover:bg-surface-2 hover:text-fg'}"
+						title="[ ] navigation skips empty glyphs"
+					>
+						Skip empty
+					</button>
 					<button
 						type="button"
 						onclick={() => (shortcutsOpen = true)}
