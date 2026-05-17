@@ -37,6 +37,7 @@
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
 	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
+	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 
@@ -995,6 +996,8 @@
 					{/each}
 				</div>
 			</div>
+
+			<ReferenceImagePanel />
 
 			<CompositeEditor />
 

@@ -27,6 +27,15 @@
 	let newClassName = $state('@A_left');
 	let newClassMembers = $state('A Á Â Ä À Å Ã');
 
+	// ---------- Spacing playground ----------
+	let playgroundText = $state('Hamburgefonts AVATAR To We La Pa\nQuick brown fox jumps over');
+	let playgroundSize = $state(72);
+	let playgroundKern = $state(true);
+	let playgroundLiga = $state(true);
+	const playgroundFeatures = $derived(
+		`'kern' ${playgroundKern ? 1 : 0}, 'liga' ${playgroundLiga ? 1 : 0}`
+	);
+
 	const cpOf = (s: string) => s.codePointAt(0) ?? 0;
 	const project = $derived(projectStore.project);
 
@@ -89,6 +98,63 @@
 			Per-glyph sidebearings are edited in the glyph editor. Set kerning pairs here.
 		</p>
 	</header>
+
+	<Panel>
+		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			Spacing playground
+		</h2>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Type anything, scrub the size, toggle features. This is the fastest way to
+			feel your rhythm and find awkward pairs.
+		</p>
+		<div class="mb-3 grid grid-cols-[1fr_180px_auto] items-center gap-3">
+			<input
+				bind:value={playgroundText}
+				class="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+				placeholder="Type to test spacing…"
+			/>
+			<label class="flex items-center gap-2 text-[11px] text-fg-muted">
+				Size
+				<input
+					type="range"
+					min={24}
+					max={200}
+					step={2}
+					bind:value={playgroundSize}
+					class="h-1 flex-1 accent-accent"
+				/>
+				<span class="w-8 text-right font-mono text-fg" data-numeric>{playgroundSize}</span>
+			</label>
+			<div class="flex items-center gap-1">
+				<button
+					type="button"
+					onclick={() => (playgroundKern = !playgroundKern)}
+					class="rounded-md border px-2 py-1 font-mono text-[11px] {playgroundKern
+						? 'border-accent bg-accent-soft text-accent'
+						: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
+					title="Toggle kerning"
+				>
+					kern
+				</button>
+				<button
+					type="button"
+					onclick={() => (playgroundLiga = !playgroundLiga)}
+					class="rounded-md border px-2 py-1 font-mono text-[11px] {playgroundLiga
+						? 'border-accent bg-accent-soft text-accent'
+						: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
+					title="Toggle ligatures"
+				>
+					liga
+				</button>
+			</div>
+		</div>
+		<div
+			class="preview-font min-h-[160px] whitespace-pre-wrap rounded-lg border border-border bg-canvas p-6 leading-[1.15]"
+			style="font-size: {playgroundSize}px; font-feature-settings: {playgroundFeatures};"
+		>
+			{playgroundText || 'Type above…'}
+		</div>
+	</Panel>
 
 	<Panel>
 		<h2 class="mb-4 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">

@@ -44,7 +44,24 @@ export type Glyph = {
 	anchors?: Anchor[];
 	/** Freeform designer notes for this glyph. */
 	notes?: string;
+	/** Optional bitmap reference (data URL) shown behind the canvas as a tracing template. */
+	referenceImage?: ReferenceImage;
 	updatedAt: string;
+};
+
+export type ReferenceImage = {
+	/** Data URL (image/*) — kept inline so the project file is self-contained. */
+	src: string;
+	/** Horizontal offset in font units — left edge of the image. */
+	x: number;
+	/** Vertical offset in font units — bottom edge of the image (baseline-relative). */
+	y: number;
+	/** Display width in font units. */
+	width: number;
+	/** Display height in font units (computed from the source aspect ratio at upload). */
+	height: number;
+	/** 0..1 opacity. */
+	opacity: number;
 };
 
 export type KerningSide = number | string; // codepoint OR @class-name (string starts with '@')

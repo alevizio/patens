@@ -340,6 +340,22 @@
 			{showGrid}
 		/>
 
+		<!-- Reference bitmap (data URL) — un-flip Y so the image renders right-side-up -->
+		{#if glyph.referenceImage}
+			{@const ri = glyph.referenceImage}
+			<g pointer-events="none" transform="scale(1, -1)">
+				<image
+					href={ri.src}
+					x={ri.x}
+					y={-(ri.y + ri.height)}
+					width={ri.width}
+					height={ri.height}
+					opacity={ri.opacity}
+					preserveAspectRatio="none"
+				/>
+			</g>
+		{/if}
+
 		<!-- Reference glyph ghosted behind current glyph for proportion comparison -->
 		{#if reference && reference.contours.length > 0 && reference.codepoint !== glyph.codepoint}
 			<g fill="var(--color-fg)" opacity="0.08" fill-rule="evenodd" pointer-events="none">
