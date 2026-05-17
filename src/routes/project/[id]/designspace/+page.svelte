@@ -9,6 +9,7 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Layers from '@lucide/svelte/icons/layers';
+	import Tag from '@lucide/svelte/icons/tag';
 
 	const project = $derived(projectStore.project);
 
@@ -39,6 +40,31 @@
 		if (!trimmed || (project?.axes ?? []).length === 0) return;
 		await projectStore.addMaster(trimmed, { ...newMasterLocation });
 		newMasterName = 'Master';
+	};
+
+	const COMMON_INSTANCES = [
+		{ styleName: 'Thin', wght: 100 },
+		{ styleName: 'Light', wght: 300 },
+		{ styleName: 'Regular', wght: 400 },
+		{ styleName: 'Medium', wght: 500 },
+		{ styleName: 'SemiBold', wght: 600 },
+		{ styleName: 'Bold', wght: 700 },
+		{ styleName: 'Black', wght: 900 }
+	];
+
+	const handleAddInstance = (styleName: string, baseLocation: Record<string, number>) => {
+		if (!project) return;
+		// Fill in any unspecified axes with their defaults
+		const loc: Record<string, number> = {};
+		for (const a of project.axes ?? []) {
+			loc[a.tag] = baseLocation[a.tag] ?? a.default;
+		}
+		projectStore.upsertInstance({
+			id: crypto.randomUUID(),
+			familyName: project.metadata.familyName,
+			styleName,
+			location: loc
+		});
 	};
 </script>
 
@@ -222,6 +248,58 @@
 					<p class="text-sm text-fg-muted">Add an axis above before creating additional masters.</p>
 				{/if}
 			</Panel>
+
+			{#if (project.axes ?? []).length > 0}
+				<Panel>
+					<h2 class="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						<Tag class="size-3" /> Named instances
+					</h2>
+					<p class="mb-3 text-[12px] text-fg-subtle">
+						Preset axis positions baked into the variable font's <code>fvar</code> table —
+						these appear as selectable styles in OS font menus.
+					</p>
+					{#if (project.instances ?? []).length > 0}
+						<ul class="mb-3 grid gap-1">
+							{#each project.instances ?? [] as inst (inst.id)}
+								<li
+									class="flex items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+								>
+									<div class="flex-1">
+										<div class="text-[13px] font-medium text-fg">{inst.styleName}</div>
+										<div class="font-mono text-[11px] text-fg-subtle" data-numeric>
+											{Object.entries(inst.location).map(([k, v]) => `${k}=${v}`).join(' · ')}
+										</div>
+									</div>
+									<button
+										type="button"
+										onclick={() => projectStore.removeInstance(inst.id)}
+										class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+										aria-label="Remove instance {inst.styleName}"
+									>
+										<Trash2 class="size-3.5" />
+									</button>
+								</li>
+							{/each}
+						</ul>
+					{/if}
+					<div class="flex flex-wrap items-center gap-1.5">
+						<span class="text-[11px] font-medium text-fg-muted">Add common weight:</span>
+						{#each COMMON_INSTANCES as preset (preset.styleName)}
+							{@const present = (project.instances ?? []).some(
+								(i) => i.styleName === preset.styleName
+							)}
+							<button
+								type="button"
+								onclick={() => handleAddInstance(preset.styleName, { wght: preset.wght })}
+								disabled={present}
+								class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:opacity-40"
+							>
+								+ {preset.styleName} ({preset.wght})
+							</button>
+						{/each}
+					</div>
+				</Panel>
+			{/if}
 		</div>
 	</div>
 {/if}

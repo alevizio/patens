@@ -45,16 +45,23 @@ export type Glyph = {
 	updatedAt: string;
 };
 
+export type KerningSide = number | string; // codepoint OR @class-name (string starts with '@')
+
 export type KerningPair = {
-	left: number; // codepoint
-	right: number; // codepoint
+	left: KerningSide;
+	right: KerningSide;
 	value: number; // negative = pull together, positive = push apart
 };
 
 export type KerningClass = {
+	/** Class name, including the leading '@' (e.g. '@A_left') */
 	name: string;
-	members: number[]; // codepoints
+	/** Member glyphs as codepoints */
+	members: number[];
 };
+
+export const isClassRef = (side: KerningSide): side is string =>
+	typeof side === 'string' && side.startsWith('@');
 
 export type FontMetrics = {
 	unitsPerEm: number;
@@ -149,6 +156,23 @@ export type Master = {
 	updatedAt: string;
 };
 
+/**
+ * A named instance in a variable font's fvar table — a preset axis location
+ * that shows up in OS font menus as a selectable style (e.g. "Regular",
+ * "Bold", "Black Condensed").
+ */
+export type VariableInstance = {
+	id: string;
+	/** Family name as shown in menus (usually same as the project's family). */
+	familyName?: string;
+	/** Style name as shown in menus (e.g. "Regular", "Bold", "Display Light"). */
+	styleName: string;
+	/** Map of axis tag → value within the axis range. */
+	location: Record<string, number>;
+	/** Optional PostScript name override; auto-derived if omitted. */
+	postScriptName?: string;
+};
+
 export type Project = {
 	id: string;
 	name: string;
@@ -163,6 +187,8 @@ export type Project = {
 	axes?: Axis[];
 	/** Additional masters beyond the default. */
 	masters?: Master[];
+	/** Named instances baked into the VF's fvar table. */
+	instances?: VariableInstance[];
 	createdAt: string;
 	updatedAt: string;
 };

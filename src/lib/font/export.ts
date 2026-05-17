@@ -230,6 +230,8 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	if (project.features.kern) {
 		const pairs: Record<string, number> = {};
 		for (const k of project.kerning) {
+			// Skip class-based pairs — those are handled by the .fea compile step
+			if (typeof k.left === 'string' || typeof k.right === 'string') continue;
 			const li = indexByCodepoint.get(k.left);
 			const ri = indexByCodepoint.get(k.right);
 			if (li === undefined || ri === undefined) continue;

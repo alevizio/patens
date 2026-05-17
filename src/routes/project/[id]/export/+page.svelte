@@ -155,7 +155,13 @@
 					maximum: a.maximum
 				})),
 				masters: allMasters,
-				defaultMasterName: 'Default'
+				defaultMasterName: 'Default',
+				instances: (project.instances ?? []).map((i) => ({
+					familyName: i.familyName ?? project.metadata.familyName,
+					styleName: i.styleName,
+					location: i.location,
+					postScriptName: i.postScriptName
+				}))
 			});
 			downloadBlob(
 				new Blob([vfBuffer], { type: 'font/ttf' }),

@@ -3,7 +3,16 @@
  * Autosaves to IndexedDB on a debounce.
  */
 
-import type { Axis, Glyph, KerningPair, Master, Project } from '$lib/font/types';
+import type {
+	Axis,
+	Glyph,
+	KerningClass,
+	KerningPair,
+	KerningSide,
+	Master,
+	Project,
+	VariableInstance
+} from '$lib/font/types';
 import {
 	addAxis as addAxisHelper,
 	addMaster as addMasterHelper,
@@ -177,9 +186,51 @@ class ProjectStore {
 		this.touch();
 	}
 
-	getKerningValue(left: number, right: number): number {
+	getKerningValue(left: KerningSide, right: KerningSide): number {
 		if (!this.project) return 0;
 		return this.project.kerning.find((k) => k.left === left && k.right === right)?.value ?? 0;
+	}
+
+	/** Kerning classes CRUD */
+	upsertKerningClass(cls: KerningClass) {
+		if (!this.project) return;
+		const existing = (this.project.classes ?? []).findIndex((c) => c.name === cls.name);
+		const next = [...(this.project.classes ?? [])];
+		if (existing >= 0) next[existing] = cls;
+		else next.push(cls);
+		this.project = { ...this.project, classes: next };
+		this.touch();
+	}
+
+	removeKerningClass(name: string) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			classes: (this.project.classes ?? []).filter((c) => c.name !== name),
+			// Also drop any kerning pairs that reference this class
+			kerning: this.project.kerning.filter((p) => p.left !== name && p.right !== name)
+		};
+		this.touch();
+	}
+
+	/** Named instances CRUD */
+	upsertInstance(inst: VariableInstance) {
+		if (!this.project) return;
+		const existing = (this.project.instances ?? []).findIndex((i) => i.id === inst.id);
+		const next = [...(this.project.instances ?? [])];
+		if (existing >= 0) next[existing] = inst;
+		else next.push(inst);
+		this.project = { ...this.project, instances: next };
+		this.touch();
+	}
+
+	removeInstance(id: string) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			instances: (this.project.instances ?? []).filter((i) => i.id !== id)
+		};
+		this.touch();
 	}
 
 	async addScriptPack(pack: ScriptPack) {

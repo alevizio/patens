@@ -249,22 +249,27 @@ font.save('/tmp/out.otf')
 /**
  * Build a variable font from a designspace of master OTFs.
  * Each master is supplied as `{ buffer, location }`; `axes` defines the fvar
- * range. The default master is identified by name (matched against `defaultMasterName`).
+ * range. Optional named `instances` are baked into fvar so OS font menus
+ * can list them as selectable styles.
  */
 export const buildVariableFont = async (input: {
 	axes: Array<{ tag: string; name: string; minimum: number; default: number; maximum: number }>;
 	masters: Array<{ name: string; buffer: ArrayBuffer; location: Record<string, number> }>;
 	defaultMasterName: string;
+	instances?: Array<{
+		familyName?: string;
+		styleName: string;
+		location: Record<string, number>;
+		postScriptName?: string;
+	}>;
 }): Promise<ArrayBuffer> => {
 	const py = await ensurePython();
-	// Drop all master OTFs into FS with deterministic filenames
 	const fileNames: string[] = [];
 	for (let i = 0; i < input.masters.length; i++) {
 		const fname = `/tmp/master_${i}.otf`;
 		py.FS.writeFile(fname, new Uint8Array(input.masters[i].buffer));
 		fileNames.push(fname);
 	}
-	// Build a tiny JSON payload describing the designspace
 	const payload = {
 		axes: input.axes,
 		masters: input.masters.map((m, i) => ({
@@ -272,16 +277,18 @@ export const buildVariableFont = async (input: {
 			file: fileNames[i],
 			location: m.location
 		})),
-		defaultName: input.defaultMasterName
+		defaultName: input.defaultMasterName,
+		instances: input.instances ?? []
 	};
 	py.FS.writeFile('/tmp/designspace.json', JSON.stringify(payload));
 	await py.runPythonAsync(`
 import json
 from fontTools.designspaceLib import (
-    DesignSpaceDocument, AxisDescriptor, SourceDescriptor
+    DesignSpaceDocument, AxisDescriptor, SourceDescriptor, InstanceDescriptor
 )
 from fontTools.ttLib import TTFont
 from fontTools.varLib import build
+from fontTools.otlLib.builder import buildStatTable
 
 with open('/tmp/designspace.json') as f:
     spec = json.load(f)
@@ -302,11 +309,58 @@ for m in spec['masters']:
     s = SourceDescriptor()
     s.name = m['name']
     s.font = TTFont(m['file'])
-    # Convert tag-keyed location into name-keyed location (designspace API uses names)
     s.location = { axis_name_for_tag[k]: v for k, v in m['location'].items() if k in axis_name_for_tag }
     doc.addSource(s)
 
+for inst in spec.get('instances') or []:
+    i = InstanceDescriptor()
+    i.familyName = inst.get('familyName')
+    i.styleName = inst.get('styleName')
+    if inst.get('postScriptName'):
+        i.postScriptName = inst['postScriptName']
+    i.location = { axis_name_for_tag[k]: v for k, v in inst['location'].items() if k in axis_name_for_tag }
+    doc.addInstance(i)
+
 vf, _, _ = build(doc)
+
+# Auto-generate a STAT table from the instances. STAT tells the OS which
+# axis values correspond to which named styles ("400 = Regular", etc.).
+# Without this, OS font menus often misclassify the styles.
+instances = spec.get('instances') or []
+if instances and spec['axes']:
+    # Build axis value records: one per unique value used by any instance,
+    # plus the axis default if not already covered.
+    stat_axes = []
+    for ax in spec['axes']:
+        tag = ax['tag']
+        values_by_value = {}
+        for inst in instances:
+            if tag in inst['location']:
+                v = inst['location'][tag]
+                # Name from the instance's styleName when only this axis is non-default;
+                # otherwise just fall back to the numeric value.
+                only_this_axis_non_default = all(
+                    other_tag == tag or inst['location'].get(other_tag, ax2['default']) == ax2['default']
+                    for ax2 in spec['axes']
+                    for other_tag in [ax2['tag']]
+                )
+                if v not in values_by_value:
+                    values_by_value[v] = inst['styleName'] if only_this_axis_non_default else str(v)
+        if ax['default'] not in values_by_value:
+            values_by_value[ax['default']] = 'Regular'
+        values = []
+        for v in sorted(values_by_value.keys()):
+            entry = {'value': v, 'name': values_by_value[v]}
+            if v == ax['default']:
+                entry['flags'] = 2  # ElidableAxisValueName — OS hides this from compound names
+            values.append(entry)
+        stat_axes.append({'tag': tag, 'name': ax['name'], 'values': values})
+    try:
+        buildStatTable(vf, stat_axes)
+    except Exception as e:
+        # STAT build is best-effort — keep the VF even if STAT details fail
+        print('STAT build skipped:', e)
+
 vf.save('/tmp/vf.ttf')
 	`);
 	const out = py.FS.readFile('/tmp/vf.ttf');
