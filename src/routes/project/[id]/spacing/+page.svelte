@@ -100,6 +100,47 @@
 		return String.fromCodePoint(side);
 	};
 
+	let bulkText = $state('');
+	let bulkResult = $state<string | null>(null);
+	const importBulkKerning = () => {
+		if (!bulkText.trim()) return;
+		const lines = bulkText
+			.split(/\r?\n/)
+			.map((l) => l.trim())
+			.filter(Boolean);
+		let added = 0;
+		let skipped = 0;
+		for (const line of lines) {
+			// Accept either whitespace or comma separators: "A V -50" or "A,V,-50"
+			const parts = line.split(/[\s,]+/);
+			if (parts.length < 3) {
+				skipped++;
+				continue;
+			}
+			const value = Number(parts[parts.length - 1]);
+			if (!Number.isFinite(value)) {
+				skipped++;
+				continue;
+			}
+			const leftRaw = parts[0];
+			const rightRaw = parts.slice(1, -1).join('');
+			const left: KerningSide = leftRaw.startsWith('@')
+				? leftRaw
+				: (leftRaw.codePointAt(0) ?? 0);
+			const right: KerningSide = rightRaw.startsWith('@')
+				? rightRaw
+				: (rightRaw.codePointAt(0) ?? 0);
+			if (!left || !right) {
+				skipped++;
+				continue;
+			}
+			projectStore.upsertKerningPair({ left, right, value: Math.round(value) });
+			added++;
+		}
+		bulkResult = `${added} added${skipped > 0 ? `, ${skipped} skipped` : ''}.`;
+		if (added > 0) bulkText = '';
+	};
+
 	const addClass = () => {
 		const name = newClassName.trim();
 		if (!name.startsWith('@')) {
@@ -329,6 +370,31 @@
 					{l}{r}
 				</button>
 			{/each}
+		</div>
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			Bulk import kerning
+		</h2>
+		<p class="mb-2 text-[12px] text-fg-subtle">
+			Paste pairs as <code>left right value</code> per line. Comma or whitespace
+			separated. Use <code>@classname</code> for class refs. Existing pairs are overwritten.
+		</p>
+		<textarea
+			bind:value={bulkText}
+			rows="5"
+			placeholder={`A V -60\nT a -40\n@upper_left o -20`}
+			class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-3 py-2 font-mono text-[12px] text-fg outline-none focus:border-accent focus:bg-surface"
+		></textarea>
+		<div class="mt-2 flex items-center justify-between gap-3">
+			<span class="text-[11px] text-fg-subtle">
+				{#if bulkResult}{bulkResult}{/if}
+			</span>
+			<Button density="sm" onclick={importBulkKerning} disabled={!bulkText.trim()}>
+				{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+				Import pairs
+			</Button>
 		</div>
 	</Panel>
 
