@@ -247,6 +247,75 @@ font.save('/tmp/out.otf')
 };
 
 /**
+ * Build a variable font from a designspace of master OTFs.
+ * Each master is supplied as `{ buffer, location }`; `axes` defines the fvar
+ * range. The default master is identified by name (matched against `defaultMasterName`).
+ */
+export const buildVariableFont = async (input: {
+	axes: Array<{ tag: string; name: string; minimum: number; default: number; maximum: number }>;
+	masters: Array<{ name: string; buffer: ArrayBuffer; location: Record<string, number> }>;
+	defaultMasterName: string;
+}): Promise<ArrayBuffer> => {
+	const py = await ensurePython();
+	// Drop all master OTFs into FS with deterministic filenames
+	const fileNames: string[] = [];
+	for (let i = 0; i < input.masters.length; i++) {
+		const fname = `/tmp/master_${i}.otf`;
+		py.FS.writeFile(fname, new Uint8Array(input.masters[i].buffer));
+		fileNames.push(fname);
+	}
+	// Build a tiny JSON payload describing the designspace
+	const payload = {
+		axes: input.axes,
+		masters: input.masters.map((m, i) => ({
+			name: m.name,
+			file: fileNames[i],
+			location: m.location
+		})),
+		defaultName: input.defaultMasterName
+	};
+	py.FS.writeFile('/tmp/designspace.json', JSON.stringify(payload));
+	await py.runPythonAsync(`
+import json
+from fontTools.designspaceLib import (
+    DesignSpaceDocument, AxisDescriptor, SourceDescriptor
+)
+from fontTools.ttLib import TTFont
+from fontTools.varLib import build
+
+with open('/tmp/designspace.json') as f:
+    spec = json.load(f)
+
+doc = DesignSpaceDocument()
+for ax in spec['axes']:
+    a = AxisDescriptor()
+    a.tag = ax['tag']
+    a.name = ax['name']
+    a.minimum = ax['minimum']
+    a.default = ax['default']
+    a.maximum = ax['maximum']
+    doc.addAxis(a)
+
+axis_name_for_tag = { ax['tag']: ax['name'] for ax in spec['axes'] }
+
+for m in spec['masters']:
+    s = SourceDescriptor()
+    s.name = m['name']
+    s.font = TTFont(m['file'])
+    # Convert tag-keyed location into name-keyed location (designspace API uses names)
+    s.location = { axis_name_for_tag[k]: v for k, v in m['location'].items() if k in axis_name_for_tag }
+    doc.addSource(s)
+
+vf, _, _ = build(doc)
+vf.save('/tmp/vf.ttf')
+	`);
+	const out = py.FS.readFile('/tmp/vf.ttf');
+	const buf = new ArrayBuffer(out.byteLength);
+	new Uint8Array(buf).set(out);
+	return buf;
+};
+
+/**
  * Export the project as a UFO 3 directory bundled into a ZIP. Generated using
  * a small custom writer because we don't need defcon — straight plist + XML.
  */

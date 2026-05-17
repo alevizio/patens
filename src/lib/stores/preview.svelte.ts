@@ -42,7 +42,9 @@ class PreviewStore {
 		this.error = null;
 		const start = performance.now();
 		try {
-			const { font, glyphCount } = buildFont(project);
+			const { font, glyphCount } = buildFont(project, {
+				masterId: projectStore.selectedMasterId
+			});
 			const buffer = font.toArrayBuffer();
 			const family = `${BASE_FAMILY}_${++this.buildSeq}`;
 			const blob = new Blob([buffer], { type: 'font/otf' });

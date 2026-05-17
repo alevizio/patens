@@ -10,6 +10,8 @@
 	import EyeIcon from '@lucide/svelte/icons/eye';
 	import Download from '@lucide/svelte/icons/download';
 	import Code from '@lucide/svelte/icons/code-2';
+	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
+	import Layers from '@lucide/svelte/icons/layers';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
@@ -39,6 +41,7 @@
 	const tabs = $derived([
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
 		{ href: `/project/${id}/spacing`, label: 'Spacing', icon: Ruler },
+		{ href: `/project/${id}/designspace`, label: 'Designspace', icon: Sliders },
 		{ href: `/project/${id}/features`, label: 'Features', icon: Code },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
@@ -73,6 +76,23 @@
 			<div class="text-[12px] text-fg-subtle" data-numeric>
 				{projectStore.project?.metadata.familyName} · v{projectStore.project?.metadata.version}
 			</div>
+			{#if projectStore.project && (projectStore.project.masters?.length ?? 0) > 0}
+				<label class="ml-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1">
+					<Layers class="size-3 text-fg-muted" />
+					<select
+						value={projectStore.selectedMasterId ?? ''}
+						onchange={(e) =>
+							projectStore.selectMaster(e.currentTarget.value || undefined)}
+						class="bg-transparent text-[12px] font-medium text-fg outline-none"
+						aria-label="Master"
+					>
+						<option value="">Default</option>
+						{#each projectStore.project.masters ?? [] as m (m.id)}
+							<option value={m.id}>{m.name}</option>
+						{/each}
+					</select>
+				</label>
+			{/if}
 		</div>
 
 		<nav class="flex items-center gap-0.5 rounded-lg bg-surface-2 p-0.5">

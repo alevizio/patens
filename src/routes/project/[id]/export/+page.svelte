@@ -6,6 +6,7 @@
 		otfToWoff2,
 		projectToUfoZip,
 		finalizeFont,
+		buildVariableFont,
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
@@ -32,8 +33,13 @@
 	let pythonProgress = $state(getPythonProgress());
 	let woff2Busy = $state(false);
 	let ufoBusy = $state(false);
+	let vfBusy = $state(false);
 
 	$effect(() => subscribeToPython((p) => (pythonProgress = p)));
+
+	const isVariable = $derived(
+		project ? (project.axes?.length ?? 0) > 0 && (project.masters?.length ?? 0) > 0 : false
+	);
 
 	const validation = $derived.by(() => {
 		if (!project) return { ok: false, issues: ['No project loaded'] };
@@ -113,6 +119,52 @@
 			alert('WOFF2 export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			woff2Busy = false;
+		}
+	};
+
+	const exportVf = async () => {
+		if (!project || !isVariable) return;
+		vfBusy = true;
+		try {
+			await ensurePython();
+			// Build a static OTF for every master (default + extras)
+			const allMasters: Array<{ name: string; buffer: ArrayBuffer; location: Record<string, number> }> = [];
+			// Default master at axis defaults
+			const defaultLocation: Record<string, number> = {};
+			for (const a of project.axes ?? []) defaultLocation[a.tag] = a.default;
+			const defaultBuild = buildFont(project);
+			allMasters.push({
+				name: 'Default',
+				buffer: defaultBuild.font.toArrayBuffer(),
+				location: defaultLocation
+			});
+			for (const m of project.masters ?? []) {
+				const b = buildFont(project, { masterId: m.id });
+				allMasters.push({
+					name: m.name,
+					buffer: b.font.toArrayBuffer(),
+					location: m.location
+				});
+			}
+			const vfBuffer = await buildVariableFont({
+				axes: (project.axes ?? []).map((a) => ({
+					tag: a.tag,
+					name: a.name,
+					minimum: a.minimum,
+					default: a.default,
+					maximum: a.maximum
+				})),
+				masters: allMasters,
+				defaultMasterName: 'Default'
+			});
+			downloadBlob(
+				new Blob([vfBuffer], { type: 'font/ttf' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-VF.ttf`
+			);
+		} catch (err) {
+			alert('Variable font build failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			vfBusy = false;
 		}
 	};
 
@@ -448,6 +500,22 @@
 						Standard OpenType file for design apps and Font Book.
 					</span>
 				</div>
+				{#if isVariable}
+					<div class="flex items-center gap-3">
+						<Button
+							variant="primary"
+							onclick={exportVf}
+							disabled={!validation.ok || vfBusy}
+							loading={vfBusy}
+						>
+							{#snippet icon()}<Download class="size-4" />{/snippet}
+							{vfBusy ? 'Compiling VF…' : 'Export variable font (.ttf)'}
+						</Button>
+						<span class="text-[12px] text-fg-subtle">
+							{(project.masters?.length ?? 0) + 1} masters · {project.axes?.map((a) => a.tag).join(' + ')}
+						</span>
+					</div>
+				{/if}
 				<div class="flex items-center gap-3">
 					<Button
 						variant="secondary"

@@ -52,9 +52,9 @@ const contoursToOpenTypePath = (contours: BezierContour[]): OTPath => {
  * with an anchor named '_top' on the second component (Glyphs / UFO
  * convention). When a match is found it overrides the stored xy offset.
  */
-const effectiveContours = (
+const effectiveContoursWithMap = (
 	glyph: ProjectGlyph,
-	project: Project,
+	glyphs: Record<number, ProjectGlyph>,
 	depth = 0
 ): BezierContour[] => {
 	if (depth > 4) return glyph.contours;
@@ -62,16 +62,15 @@ const effectiveContours = (
 	if (!glyph.components || glyph.components.length === 0) return [];
 
 	const components = glyph.components;
-	// Compute per-component translation, using anchors when matchable.
 	const translations: { dx: number; dy: number }[] = components.map((c) => ({
 		dx: c.offsetX,
 		dy: c.offsetY
 	}));
 	if (components.length >= 2) {
-		const base = project.glyphs[components[0].baseCodepoint];
+		const base = glyphs[components[0].baseCodepoint];
 		if (base) {
 			for (let i = 1; i < components.length; i++) {
-				const mark = project.glyphs[components[i].baseCodepoint];
+				const mark = glyphs[components[i].baseCodepoint];
 				if (!mark) continue;
 				const anchorPair = findAnchorPair(base.anchors, mark.anchors);
 				if (anchorPair) {
@@ -88,9 +87,9 @@ const effectiveContours = (
 	for (let i = 0; i < components.length; i++) {
 		const ref = components[i];
 		const t = translations[i];
-		const base = project.glyphs[ref.baseCodepoint];
+		const base = glyphs[ref.baseCodepoint];
 		if (!base) continue;
-		const baseContours = effectiveContours(base, project, depth + 1);
+		const baseContours = effectiveContoursWithMap(base, glyphs, depth + 1);
 		for (const c of baseContours) {
 			out.push({
 				...c,
@@ -100,6 +99,13 @@ const effectiveContours = (
 	}
 	return out;
 };
+
+/** Back-compat wrapper that keeps the original Project-based signature. */
+const effectiveContours = (
+	glyph: ProjectGlyph,
+	project: Project,
+	depth = 0
+): BezierContour[] => effectiveContoursWithMap(glyph, project.glyphs, depth);
 
 /**
  * Find a pair of anchors where the base has 'X' and the mark has '_X'
@@ -152,8 +158,25 @@ export type BuildResult = {
 	glyphCount: number;
 };
 
-export const buildFont = (project: Project): BuildResult => {
+export type BuildOptions = {
+	/** If set, render this master's glyphs instead of the project's default. */
+	masterId?: string;
+	/** If set, used as a name suffix (e.g. "Bold") in the PostScript subfamily. */
+	styleSuffix?: string;
+};
+
+export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResult => {
 	const { metrics, metadata } = project;
+	// Resolve which glyph set to use
+	let activeGlyphs = project.glyphs;
+	let styleName = metadata.styleName || 'Regular';
+	if (opts.masterId) {
+		const master = (project.masters ?? []).find((m) => m.id === opts.masterId);
+		if (master) {
+			activeGlyphs = master.glyphs;
+			styleName = opts.styleSuffix ?? master.name;
+		}
+	}
 
 	// .notdef is always glyph index 0.
 	const notdefPath = contoursToOpenTypePath(buildNotdefContours(metrics));
@@ -168,13 +191,13 @@ export const buildFont = (project: Project): BuildResult => {
 	const indexByCodepoint = new Map<number, number>();
 	indexByCodepoint.set(0, 0);
 
-	const codepoints = Object.keys(project.glyphs)
+	const codepoints = Object.keys(activeGlyphs)
 		.map((s) => Number(s))
 		.sort((a, b) => a - b);
 
 	for (const cp of codepoints) {
-		const g = project.glyphs[cp];
-		const eff = effectiveContours(g, project);
+		const g = activeGlyphs[cp];
+		const eff = effectiveContoursWithMap(g, activeGlyphs);
 		const advanceWidth = effectiveAdvanceWidth(g, eff);
 		const path = contoursToOpenTypePath(eff);
 		const otGlyph = new opentype.Glyph({
@@ -189,7 +212,7 @@ export const buildFont = (project: Project): BuildResult => {
 
 	const font = new opentype.Font({
 		familyName: metadata.familyName || 'Untitled',
-		styleName: metadata.styleName || 'Regular',
+		styleName,
 		unitsPerEm: metrics.unitsPerEm,
 		ascender: metrics.ascender,
 		descender: metrics.descender,

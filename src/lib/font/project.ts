@@ -4,8 +4,8 @@
  */
 
 import { get, set, del, createStore } from 'idb-keyval';
-import type { Glyph, Project, FontMetrics, FontMetadata } from './types';
-import { DEFAULT_METRICS, DEFAULT_FEATURES } from './types';
+import type { Axis, Glyph, Master, Project, FontMetrics, FontMetadata } from './types';
+import { DEFAULT_METRICS, DEFAULT_FEATURES, STANDARD_AXES } from './types';
 import { DEFAULT_GLYPH_SET } from './glyph-set';
 
 const store = createStore('font-studio', 'projects');
@@ -159,6 +159,106 @@ export const duplicateProject = async (id: string, newName?: string): Promise<Pr
 /** First contour ever drawn locks the UPM (warn UI before letting user change). */
 export const hasAnyContours = (project: Project): boolean =>
 	Object.values(project.glyphs).some((g) => g.contours.length > 0);
+
+/**
+ * Add a registered axis to the project (idempotent — no-op if axis with the
+ * same tag is already present).
+ */
+export const addAxis = (project: Project, tag: string, location = 0): Project => {
+	const existing = project.axes ?? [];
+	if (existing.some((a) => a.tag === tag)) return project;
+	const def = STANDARD_AXES[tag];
+	const axis: Axis = def
+		? {
+				tag,
+				name: def.name,
+				minimum: def.min,
+				default: def.default,
+				maximum: def.max
+			}
+		: {
+				tag,
+				name: tag,
+				minimum: 0,
+				default: 0,
+				maximum: 1000
+			};
+	return { ...project, axes: [...existing, axis], updatedAt: now() };
+};
+
+export const removeAxis = (project: Project, tag: string): Project => {
+	const axes = (project.axes ?? []).filter((a) => a.tag !== tag);
+	// Also clean up the tag from every master's location
+	const masters = (project.masters ?? []).map((m) => {
+		const loc = { ...m.location };
+		delete loc[tag];
+		return { ...m, location: loc };
+	});
+	return { ...project, axes, masters, updatedAt: now() };
+};
+
+// Deep-copy via JSON serialization to strip any Svelte $state proxies the
+// caller may have passed in. Project glyph data is plain JSON anyway, so the
+// round-trip is lossless. Avoids `structuredClone` which throws on proxies.
+const cloneGlyphs = (src: Record<number, Glyph>): Record<number, Glyph> => {
+	return JSON.parse(JSON.stringify(src)) as Record<number, Glyph>;
+};
+
+/**
+ * Add a new master, copying the default master's glyphs as a starting point
+ * (so it's automatically interpolation-compatible). Location should specify
+ * a value for at least one defined axis.
+ */
+export const addMaster = (
+	project: Project,
+	input: { name: string; location: Record<string, number> }
+): Project => {
+	const ts = now();
+	const master: Master = {
+		id: newId(),
+		name: input.name.trim() || 'Untitled master',
+		location: { ...input.location },
+		glyphs: cloneGlyphs(project.glyphs),
+		createdAt: ts,
+		updatedAt: ts
+	};
+	return { ...project, masters: [...(project.masters ?? []), master], updatedAt: ts };
+};
+
+export const removeMaster = (project: Project, masterId: string): Project => ({
+	...project,
+	masters: (project.masters ?? []).filter((m) => m.id !== masterId),
+	updatedAt: now()
+});
+
+export const updateMaster = (
+	project: Project,
+	masterId: string,
+	mut: (m: Master) => Master
+): Project => ({
+	...project,
+	masters: (project.masters ?? []).map((m) => (m.id === masterId ? mut(m) : m)),
+	updatedAt: now()
+});
+
+export const updateMasterGlyph = (
+	project: Project,
+	masterId: string,
+	codepoint: number,
+	mut: (g: Glyph) => Glyph
+): Project => {
+	return updateMaster(project, masterId, (m) => {
+		const current = m.glyphs[codepoint];
+		if (!current) return m;
+		const next = mut({ ...current });
+		next.updatedAt = now();
+		return {
+			...m,
+			glyphs: { ...m.glyphs, [codepoint]: next },
+			updatedAt: now()
+		};
+	});
+};
 
 /**
  * Add a script pack's glyphs to an existing project. No-ops for codepoints

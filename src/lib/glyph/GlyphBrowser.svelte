@@ -14,7 +14,7 @@
 		const m = new Map<GlyphCategory, Glyph[]>();
 		for (const cat of CATEGORY_ORDER) m.set(cat, []);
 		const lowerQuery = query.trim().toLowerCase();
-		for (const g of Object.values(project.glyphs)) {
+		for (const g of Object.values(projectStore.activeGlyphs)) {
 			if (lowerQuery) {
 				const char = String.fromCodePoint(g.codepoint).toLowerCase();
 				const hex = g.codepoint.toString(16).toLowerCase();
@@ -32,9 +32,7 @@
 	});
 
 	const totalDrawn = $derived.by(() => {
-		const project = projectStore.project;
-		if (!project) return 0;
-		return Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
+		return Object.values(projectStore.activeGlyphs).filter((g) => g.contours.length > 0).length;
 	});
 
 	function categoryOf(g: Glyph): GlyphCategory {

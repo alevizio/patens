@@ -3,13 +3,24 @@
  * Autosaves to IndexedDB on a debounce.
  */
 
-import type { Glyph, KerningPair, Project } from '$lib/font/types';
-import { addScriptPack as addScriptPackHelper, saveProject } from '$lib/font/project';
+import type { Axis, Glyph, KerningPair, Master, Project } from '$lib/font/types';
+import {
+	addAxis as addAxisHelper,
+	addMaster as addMasterHelper,
+	addScriptPack as addScriptPackHelper,
+	removeAxis as removeAxisHelper,
+	removeMaster as removeMasterHelper,
+	saveProject,
+	updateMaster as updateMasterHelper,
+	updateMasterGlyph
+} from '$lib/font/project';
 import type { ScriptPack } from '$lib/font/charsets';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
 	selectedCodepoint = $state<number>(0x0041);
+	/** undefined → default master; otherwise the id of an additional master. */
+	selectedMasterId = $state<string | undefined>(undefined);
 	dirty = $state(false);
 	saving = $state(false);
 
@@ -59,9 +70,38 @@ class ProjectStore {
 		}
 	}
 
+	/** Glyph map for the currently selected master (or the default master's). */
+	get activeGlyphs(): Record<number, Glyph> {
+		if (!this.project) return {};
+		if (this.selectedMasterId) {
+			const master = (this.project.masters ?? []).find((m) => m.id === this.selectedMasterId);
+			if (master) return master.glyphs;
+		}
+		return this.project.glyphs;
+	}
+
 	get selectedGlyph(): Glyph | null {
-		if (!this.project) return null;
-		return this.project.glyphs[this.selectedCodepoint] ?? null;
+		return this.activeGlyphs[this.selectedCodepoint] ?? null;
+	}
+
+	get activeMaster(): Master | null {
+		if (!this.project || !this.selectedMasterId) return null;
+		return (this.project.masters ?? []).find((m) => m.id === this.selectedMasterId) ?? null;
+	}
+
+	get masterOptions(): Array<{ id: string | undefined; name: string; location?: Record<string, number> }> {
+		if (!this.project) return [];
+		const out: Array<{ id: string | undefined; name: string; location?: Record<string, number> }> = [
+			{ id: undefined, name: 'Default' }
+		];
+		for (const m of this.project.masters ?? []) {
+			out.push({ id: m.id, name: m.name, location: m.location });
+		}
+		return out;
+	}
+
+	selectMaster(id: string | undefined) {
+		this.selectedMasterId = id;
 	}
 
 	selectGlyph(codepoint: number) {
@@ -71,14 +111,19 @@ class ProjectStore {
 
 	updateGlyph(codepoint: number, mut: (g: Glyph) => Glyph) {
 		if (!this.project) return;
-		const current = this.project.glyphs[codepoint];
-		if (!current) return;
-		const next = mut({ ...current });
-		next.updatedAt = new Date().toISOString();
-		this.project = {
-			...this.project,
-			glyphs: { ...this.project.glyphs, [codepoint]: next }
-		};
+		if (this.selectedMasterId) {
+			// Route to the additional master
+			this.project = updateMasterGlyph(this.project, this.selectedMasterId, codepoint, mut);
+		} else {
+			const current = this.project.glyphs[codepoint];
+			if (!current) return;
+			const next = mut({ ...current });
+			next.updatedAt = new Date().toISOString();
+			this.project = {
+				...this.project,
+				glyphs: { ...this.project.glyphs, [codepoint]: next }
+			};
+		}
 		this.touch();
 	}
 
@@ -141,8 +186,48 @@ class ProjectStore {
 		if (!this.project) return;
 		this.project = addScriptPackHelper(this.project, pack);
 		this.touch();
-		// Bulk additions are significant — flush immediately rather than waiting for debounce
 		await this.flush();
+	}
+
+	addAxis(tag: string) {
+		if (!this.project) return;
+		this.project = addAxisHelper(this.project, tag);
+		this.touch();
+	}
+
+	removeAxis(tag: string) {
+		if (!this.project) return;
+		this.project = removeAxisHelper(this.project, tag);
+		this.touch();
+	}
+
+	updateAxis(tag: string, mut: Partial<Axis>) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			axes: (this.project.axes ?? []).map((a) => (a.tag === tag ? { ...a, ...mut } : a))
+		};
+		this.touch();
+	}
+
+	async addMaster(name: string, location: Record<string, number>) {
+		if (!this.project) return;
+		this.project = addMasterHelper(this.project, { name, location });
+		this.touch();
+		await this.flush();
+	}
+
+	removeMaster(masterId: string) {
+		if (!this.project) return;
+		this.project = removeMasterHelper(this.project, masterId);
+		if (this.selectedMasterId === masterId) this.selectedMasterId = undefined;
+		this.touch();
+	}
+
+	updateMaster(masterId: string, mut: (m: Master) => Master) {
+		if (!this.project) return;
+		this.project = updateMasterHelper(this.project, masterId, mut);
+		this.touch();
 	}
 }
 

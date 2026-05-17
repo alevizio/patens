@@ -120,18 +120,60 @@ export type ProjectFeatures = {
 	feaSource?: string;
 };
 
+/**
+ * A variable-font axis (subset of the OpenType `fvar` schema).
+ * Tag is a four-char string: standard ones include 'wght', 'wdth', 'opsz',
+ * 'slnt', 'ital'. Custom axes use uppercase tags like 'GRAD'.
+ */
+export type Axis = {
+	tag: string;
+	name: string;
+	minimum: number;
+	default: number;
+	maximum: number;
+};
+
+/**
+ * An additional master in a multi-master/variable-font project.
+ * The "default master" is the project's main `glyphs` map — extra masters
+ * live in `Project.masters` keyed by id, each at its own axis location.
+ */
+export type Master = {
+	id: string;
+	name: string;
+	/** Map of axis tag → value (must lie within the axis range). */
+	location: Record<string, number>;
+	/** Per-master glyph overrides keyed by Unicode codepoint. */
+	glyphs: Record<number, Glyph>;
+	createdAt: string;
+	updatedAt: string;
+};
+
 export type Project = {
 	id: string;
 	name: string;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
-	/** Keyed by Unicode codepoint. */
+	/** Default master's glyphs, keyed by Unicode codepoint. */
 	glyphs: Record<number, Glyph>;
 	kerning: KerningPair[];
 	classes?: KerningClass[];
 	features: ProjectFeatures;
+	/** Variable font axes. Undefined / empty = static font. */
+	axes?: Axis[];
+	/** Additional masters beyond the default. */
+	masters?: Master[];
 	createdAt: string;
 	updatedAt: string;
+};
+
+/** Standard registered OpenType variation axes. */
+export const STANDARD_AXES: Record<string, { name: string; min: number; default: number; max: number }> = {
+	wght: { name: 'Weight', min: 100, default: 400, max: 900 },
+	wdth: { name: 'Width', min: 50, default: 100, max: 200 },
+	opsz: { name: 'Optical size', min: 8, default: 14, max: 144 },
+	slnt: { name: 'Slant', min: -15, default: 0, max: 0 },
+	ital: { name: 'Italic', min: 0, default: 0, max: 1 }
 };
 
 /** Default metrics — UPM 1000 industry standard. */

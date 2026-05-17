@@ -107,6 +107,50 @@ export const auditProject = (project: Project): AuditIssue[] => {
 };
 
 /**
+ * Per-glyph contour + point-count compatibility across all masters.
+ * Variable-font interpolation requires every master to match exactly.
+ */
+export const auditCompatibility = (project: Project): AuditIssue[] => {
+	if (!project.masters || project.masters.length === 0) return [];
+	const issues: AuditIssue[] = [];
+	const masters = [
+		{ name: 'Default', glyphs: project.glyphs },
+		...project.masters.map((m) => ({ name: m.name, glyphs: m.glyphs }))
+	];
+	const codepoints = new Set<number>();
+	for (const m of masters) for (const cp of Object.keys(m.glyphs)) codepoints.add(Number(cp));
+	for (const cp of codepoints) {
+		const variants = masters.map((m) => ({ name: m.name, glyph: m.glyphs[cp] }));
+		const drawn = variants.filter((v) => v.glyph?.contours && v.glyph.contours.length > 0);
+		if (drawn.length === 0) continue;
+		// Contour count check
+		const counts = drawn.map((d) => d.glyph!.contours.length);
+		if (new Set(counts).size > 1) {
+			issues.push({
+				codepoint: cp,
+				severity: 'error',
+				code: 'master-contour-count',
+				message: `U+${cp.toString(16).toUpperCase().padStart(4, '0')}: contour count differs across masters (${counts.join(' / ')})`
+			});
+			continue;
+		}
+		// Per-contour command count check
+		for (let ci = 0; ci < counts[0]; ci++) {
+			const pointCounts = drawn.map((d) => d.glyph!.contours[ci]?.commands.length ?? 0);
+			if (new Set(pointCounts).size > 1) {
+				issues.push({
+					codepoint: cp,
+					severity: 'error',
+					code: 'master-point-count',
+					message: `U+${cp.toString(16).toUpperCase().padStart(4, '0')} contour ${ci}: point count differs across masters (${pointCounts.join(' / ')})`
+				});
+			}
+		}
+	}
+	return issues;
+};
+
+/**
  * Project-level pre-flight checks aligned with FontBakery's check-universal
  * and Google Fonts' naming/metrics guidance. Run before export.
  */
@@ -184,6 +228,12 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			code: 'glyph-count-low',
 			message: `Only ${drawn} glyphs drawn — most apps expect at least full A–Z + a–z + 0–9 + punctuation (~95 glyphs) for a usable font`
 		});
+
+	// Master compatibility (only matters for VF projects)
+	if ((project.masters?.length ?? 0) > 0) {
+		const compatIssues = auditCompatibility(project);
+		issues.push(...compatIssues);
+	}
 
 	return sortBySeverity(issues);
 };
