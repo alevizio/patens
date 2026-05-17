@@ -20,6 +20,7 @@
 		showSketch?: boolean;
 		showVector?: boolean;
 		showGrid?: boolean;
+		showAnatomy?: boolean;
 		/** Optional reference glyph rendered behind the current one for proportion comparison. */
 		reference?: Glyph | null;
 		/** Optional onion-skin previous/next glyphs (rendered translucent flanking the current advance). */
@@ -49,6 +50,7 @@
 		showSketch = true,
 		showVector = true,
 		showGrid = false,
+		showAnatomy = false,
 		reference = null,
 		onionPrev = null,
 		onionNext = null,
@@ -338,6 +340,7 @@
 			leftSidebearing={glyph.leftSidebearing}
 			rightSidebearing={glyph.rightSidebearing}
 			{showGrid}
+			{showAnatomy}
 		/>
 
 		<!-- Reference bitmap (data URL) — un-flip Y so the image renders right-side-up -->

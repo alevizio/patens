@@ -7,6 +7,7 @@
 		leftSidebearing: number;
 		rightSidebearing: number;
 		showGrid?: boolean;
+		showAnatomy?: boolean;
 	};
 
 	let {
@@ -14,8 +15,13 @@
 		advanceWidth,
 		leftSidebearing,
 		rightSidebearing,
-		showGrid = false
+		showGrid = false,
+		showAnatomy = false
 	}: Props = $props();
+
+	// Overshoot ~2% of cap height — round glyphs (o, O, c, e, s) extend slightly past
+	// cap/x/baseline so they appear optically aligned with flat-topped peers.
+	const overshoot = $derived(Math.round(metrics.capHeight * 0.02));
 
 	const advance = $derived(advanceWidth);
 
@@ -62,6 +68,68 @@
 				vector-effect="non-scaling-stroke"
 			/>
 		{/each}
+	{/if}
+
+	{#if showAnatomy}
+		<!-- Overshoot zones: subtle horizontal bands where round chars should reach -->
+		<rect
+			x={-50}
+			y={-(metrics.capHeight + overshoot)}
+			width={advance + 100}
+			height={overshoot}
+			fill="var(--color-cap-height)"
+			opacity="0.06"
+		/>
+		<rect
+			x={-50}
+			y={-(metrics.xHeight + overshoot)}
+			width={advance + 100}
+			height={overshoot}
+			fill="var(--color-x-height)"
+			opacity="0.06"
+		/>
+		<rect
+			x={-50}
+			y={0}
+			width={advance + 100}
+			height={overshoot}
+			fill="var(--color-baseline)"
+			opacity="0.06"
+		/>
+		<!-- Overshoot guide lines (dotted) -->
+		<line
+			x1={-50}
+			x2={advance + 50}
+			y1={-(metrics.capHeight + overshoot)}
+			y2={-(metrics.capHeight + overshoot)}
+			stroke="var(--color-cap-height)"
+			stroke-width="1"
+			stroke-dasharray="1 4"
+			vector-effect="non-scaling-stroke"
+			opacity="0.5"
+		/>
+		<line
+			x1={-50}
+			x2={advance + 50}
+			y1={-(metrics.xHeight + overshoot)}
+			y2={-(metrics.xHeight + overshoot)}
+			stroke="var(--color-x-height)"
+			stroke-width="1"
+			stroke-dasharray="1 4"
+			vector-effect="non-scaling-stroke"
+			opacity="0.5"
+		/>
+		<line
+			x1={-50}
+			x2={advance + 50}
+			y1={overshoot}
+			y2={overshoot}
+			stroke="var(--color-baseline)"
+			stroke-width="1"
+			stroke-dasharray="1 4"
+			vector-effect="non-scaling-stroke"
+			opacity="0.5"
+		/>
 	{/if}
 
 	<!-- Horizontal guide lines -->

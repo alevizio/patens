@@ -54,6 +54,7 @@
 	let shortcutsOpen = $state(false);
 	let paletteOpen = $state(false);
 	let skipEmptyNav = $state(false);
+	let showAnatomy = $state(false);
 
 	let canvasDragActive = $state(false);
 	let canvasDragCounter = 0;
@@ -950,6 +951,17 @@
 						<Grid3x3 class="size-3.5" />
 						Grid
 					</button>
+					<button
+						type="button"
+						onclick={() => (showAnatomy = !showAnatomy)}
+						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnatomy
+							? 'bg-fg/10 text-fg'
+							: 'text-fg-subtle hover:bg-surface-2'}"
+						title="Show overshoot zones for round glyphs"
+					>
+						<Eye class="size-3.5" />
+						Overshoot
+					</button>
 				</div>
 			</div>
 
@@ -1002,6 +1014,7 @@
 						{showSketch}
 						{showVector}
 						{showGrid}
+						{showAnatomy}
 						reference={referenceGlyph}
 						onionPrev={onionGlyphs.prev}
 						onionNext={onionGlyphs.next}
