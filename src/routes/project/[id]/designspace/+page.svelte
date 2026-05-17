@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { STANDARD_AXES } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -178,7 +179,7 @@
 					</div>
 					{#each project.masters ?? [] as m (m.id)}
 						<div
-							class="grid grid-cols-[1fr_auto_auto] items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5"
+							class="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5"
 						>
 							<div>
 								<input
@@ -198,6 +199,18 @@
 							<span class="rounded-full bg-fg/10 px-2 py-0.5 text-[10px] font-medium text-fg-muted">
 								{Object.keys(m.glyphs).filter((cp) => m.glyphs[Number(cp)].contours.length > 0).length} drawn
 							</span>
+							<button
+								type="button"
+								onclick={() => {
+									const n = projectStore.syncAllEmptyFromDefault(m.id);
+									if (n > 0) toast.success(`Copied ${n} glyph${n === 1 ? '' : 's'} from Default into ${m.name}`);
+									else toast.info(`${m.name} already has all the default's drawn glyphs`);
+								}}
+								class="rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+								title="Copy every drawn default glyph into this master (skips glyphs already drawn here)"
+							>
+								Fill from Default
+							</button>
 							<button
 								type="button"
 								onclick={() => {

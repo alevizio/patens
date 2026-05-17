@@ -538,6 +538,34 @@ class ProjectStore {
 	}
 
 	/**
+	 * Sync every glyph in a master from the default master that doesn't
+	 * already have a drawn outline in that master. Useful for setting up a
+	 * fresh master with the same starting point as default.
+	 *
+	 * Returns the number of glyphs copied.
+	 */
+	syncAllEmptyFromDefault(masterId: string): number {
+		if (!this.project) return 0;
+		let count = 0;
+		this.project = updateMasterHelper(this.project, masterId, (m) => {
+			const next = { ...m.glyphs };
+			for (const [cpStr, srcGlyph] of Object.entries(this.project!.glyphs)) {
+				const cp = Number(cpStr);
+				const existing = next[cp];
+				const existingDrawn =
+					existing && existing.contours && existing.contours.length > 0;
+				if (existingDrawn) continue;
+				if (srcGlyph.contours.length === 0) continue;
+				next[cp] = JSON.parse(JSON.stringify(srcGlyph)) as Glyph;
+				count++;
+			}
+			return { ...m, glyphs: next };
+		});
+		this.touch();
+		return count;
+	}
+
+	/**
 	 * Copy a glyph's full data (contours, metrics, anchors, components) from
 	 * the default master into the named additional master. Used to keep
 	 * interpolation compatible when starting fresh on a master.
