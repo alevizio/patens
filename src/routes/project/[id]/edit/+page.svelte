@@ -929,8 +929,11 @@
 				'4': 'final'
 			};
 			projectStore.setGlyphStatus(glyph.codepoint, map[ev.key]);
+			toast.info(`Status: ${map[ev.key]}`, 1500);
 		} else if (ev.key === '`' && glyph) {
+			const willPin = !glyph.pinned;
 			projectStore.toggleGlyphPin(glyph.codepoint);
+			toast.info(willPin ? `Pinned ${glyph.name}` : `Unpinned ${glyph.name}`, 1500);
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			if (ev.shiftKey) {
@@ -1491,6 +1494,7 @@
 										glyph.codepoint,
 										projectStore.selectedMasterId
 									);
+									toast.success('Synced from default master');
 								}
 							}}
 							class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
@@ -1611,8 +1615,11 @@
 									confirm(
 										`Reset glyph "${glyph.name}" to empty? Clears outlines, sketches, components, anchors, notes, and the reference image.`
 									)
-								)
+								) {
+									const name = glyph.name;
 									projectStore.resetGlyph(glyph.codepoint);
+									toast.warn(`Reset "${name}" — ⌘Z to undo`, 4000);
+								}
 							}}
 							class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn"
 							aria-label="Reset glyph to empty"
@@ -1628,8 +1635,11 @@
 									confirm(
 										`Remove glyph "${glyph.name}" from the font? Any kerning references will also be dropped.`
 									)
-								)
+								) {
+									const name = glyph.name;
 									projectStore.removeGlyph(glyph.codepoint);
+									toast.warn(`Removed "${name}" — ⌘Z to undo`, 4000);
+								}
 							}}
 							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 							aria-label="Delete glyph"

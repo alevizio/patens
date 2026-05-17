@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import { isClassRef, type KerningSide } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
@@ -109,7 +110,7 @@
 			.map((cp) => project.glyphs[cp])
 			.filter((g) => g && g.contours.length > 0);
 		if (digits.length === 0) {
-			alert('No figures (0–9) drawn yet.');
+			toast.warn('No figures (0–9) drawn yet.');
 			return;
 		}
 		const targetAdvance = Math.max(...digits.map((g) => g.advanceWidth));
@@ -124,7 +125,7 @@
 				rightSidebearing: rsb
 			}));
 		}
-		alert(`Set ${digits.length} figures to advance ${targetAdvance} units (centred).`);
+		toast.success(`Set ${digits.length} figures to advance ${targetAdvance} units (centred).`);
 	};
 
 	const setAllSidebearings = (which: 'left' | 'right' | 'both', value: number, category: 'all' | 'upper' | 'lower' | 'figure') => {
@@ -145,7 +146,7 @@
 			(g) => g.contours.length > 0 && inRange(g.codepoint)
 		);
 		if (targets.length === 0) {
-			alert('No drawn glyphs in this category.');
+			toast.warn('No drawn glyphs in this category.');
 			return;
 		}
 		for (const g of targets) {
@@ -157,7 +158,7 @@
 				return next;
 			});
 		}
-		alert(`Updated ${targets.length} glyph${targets.length === 1 ? '' : 's'}.`);
+		toast.success(`Updated ${targets.length} glyph${targets.length === 1 ? '' : 's'}.`);
 	};
 
 	let bulkSbCategory = $state<'all' | 'upper' | 'lower' | 'figure'>('lower');
@@ -205,7 +206,7 @@
 	const addClass = () => {
 		const name = newClassName.trim();
 		if (!name.startsWith('@')) {
-			alert('Class name must start with @ (e.g. @A_left)');
+			toast.warn('Class name must start with @ (e.g. @A_left)');
 			return;
 		}
 		const members = newClassMembers
