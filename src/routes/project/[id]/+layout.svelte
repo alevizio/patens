@@ -16,6 +16,7 @@
 	import Settings from '@lucide/svelte/icons/settings';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import Redo2 from '@lucide/svelte/icons/redo-2';
+	import FileText from '@lucide/svelte/icons/file-text';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
@@ -52,6 +53,7 @@
 		{ href: `/project/${id}/features`, label: 'Features', icon: Code },
 		{ href: `/project/${id}/ai`, label: 'AI', icon: Sparkles },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
+		{ href: `/project/${id}/specimen`, label: 'Specimen', icon: FileText },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);
 

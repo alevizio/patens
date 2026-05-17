@@ -31,8 +31,11 @@
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
+	import Copy from '@lucide/svelte/icons/copy';
+	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
+	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 
 	let tool = $state<'pencil' | 'eraser' | 'edit'>('pencil');
 	let strokeSize = $state(DEFAULT_STROKE.size);
@@ -197,6 +200,30 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({
 			...g,
 			anchors: (g.anchors ?? []).filter((a) => a.name !== anchorName)
+		}));
+	};
+
+	const copyGlyph = async () => {
+		if (!glyph) return;
+		await copyGlyphToClipboard(glyph);
+	};
+
+	const pasteGlyph = async () => {
+		if (!glyph) return;
+		const payload = await readGlyphFromClipboard();
+		if (!payload) {
+			alert('Clipboard does not contain a Font Studio glyph.');
+			return;
+		}
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			contours: payload.contours,
+			advanceWidth: payload.advanceWidth,
+			leftSidebearing: payload.leftSidebearing,
+			rightSidebearing: payload.rightSidebearing,
+			anchors: payload.anchors ?? g.anchors,
+			components: payload.components ?? g.components,
+			status: payload.contours.length > 0 ? 'draft' : g.status
 		}));
 	};
 
@@ -371,6 +398,12 @@
 		} else if ((ev.key === 'y' || ev.key === 'Y') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			projectStore.redo();
+		} else if ((ev.key === 'c' || ev.key === 'C') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
+			ev.preventDefault();
+			copyGlyph();
+		} else if ((ev.key === 'v' || ev.key === 'V') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
+			ev.preventDefault();
+			pasteGlyph();
 		}
 	};
 </script>
@@ -660,6 +693,25 @@
 				>
 					{#snippet icon()}<AlignHorizontalSpaceAround class="size-3.5" />{/snippet}
 					Auto-space
+				</Button>
+				<Button
+					variant="ghost"
+					density="sm"
+					onclick={copyGlyph}
+					disabled={glyph.contours.length === 0}
+					aria-label="Copy glyph (⌘⇧C)"
+				>
+					{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+					Copy
+				</Button>
+				<Button
+					variant="ghost"
+					density="sm"
+					onclick={pasteGlyph}
+					aria-label="Paste glyph (⌘⇧V)"
+				>
+					{#snippet icon()}<ClipboardPaste class="size-3.5" />{/snippet}
+					Paste
 				</Button>
 				<div class="ml-auto flex items-center gap-2">
 					<Button
@@ -1005,6 +1057,7 @@
 					<li>Wheel<span class="ml-2 text-fg-muted">zoom</span></li>
 					<li>⌘0<span class="ml-2 text-fg-muted">fit to glyph</span></li>
 					<li>⌘Z / ⌘⇧Z<span class="ml-2 text-fg-muted">undo / redo</span></li>
+					<li>⌘⇧C / ⌘⇧V<span class="ml-2 text-fg-muted">copy / paste glyph</span></li>
 				</ul>
 			</div>
 		</aside>

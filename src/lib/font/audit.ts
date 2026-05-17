@@ -235,6 +235,121 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		issues.push(...compatIssues);
 	}
 
+	// Variable-font specific
+	if ((project.axes?.length ?? 0) > 0) {
+		// Every axis should be in standard ranges where applicable
+		for (const a of project.axes ?? []) {
+			if (a.minimum > a.default || a.default > a.maximum) {
+				issues.push({
+					codepoint: 0,
+					severity: 'error',
+					code: 'axis-range-invalid',
+					message: `Axis '${a.tag}' has min/default/max out of order (${a.minimum} / ${a.default} / ${a.maximum})`
+				});
+			}
+		}
+		// Each master location should be within all axis ranges
+		for (const m of project.masters ?? []) {
+			for (const [tag, val] of Object.entries(m.location)) {
+				const axis = (project.axes ?? []).find((a) => a.tag === tag);
+				if (!axis) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'master-orphan-axis',
+						message: `Master '${m.name}' references undefined axis '${tag}'`
+					});
+				} else if (val < axis.minimum || val > axis.maximum) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'master-out-of-range',
+						message: `Master '${m.name}' value ${val} for '${tag}' is outside axis range ${axis.minimum}..${axis.maximum}`
+					});
+				}
+			}
+		}
+		// Instances should match axis tags too
+		for (const inst of project.instances ?? []) {
+			for (const tag of Object.keys(inst.location)) {
+				if (!(project.axes ?? []).some((a) => a.tag === tag)) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'instance-orphan-axis',
+						message: `Instance '${inst.styleName}' references undefined axis '${tag}'`
+					});
+				}
+			}
+		}
+		// No instances at all in a VF project is a soft warn
+		if ((project.instances?.length ?? 0) === 0) {
+			issues.push({
+				codepoint: 0,
+				severity: 'info',
+				code: 'no-instances',
+				message:
+					'Variable font has no named instances — OS font menus may only show "Regular". Add at least Regular + Bold on the Designspace tab.'
+			});
+		}
+	}
+
+	// Kerning class sanity
+	for (const cls of project.classes ?? []) {
+		if (!cls.name.startsWith('@')) {
+			issues.push({
+				codepoint: 0,
+				severity: 'warn',
+				code: 'class-name-format',
+				message: `Kerning class '${cls.name}' should start with '@'`
+			});
+		}
+		if (cls.members.length === 0) {
+			issues.push({
+				codepoint: 0,
+				severity: 'info',
+				code: 'class-empty',
+				message: `Kerning class '${cls.name}' has no members`
+			});
+		}
+		// Each member must resolve to a project glyph
+		for (const cp of cls.members) {
+			if (!project.glyphs[cp]) {
+				issues.push({
+					codepoint: cp,
+					severity: 'warn',
+					code: 'class-missing-member',
+					message: `Kerning class '${cls.name}' references missing glyph U+${cp.toString(16).toUpperCase().padStart(4, '0')}`
+				});
+				break;
+			}
+		}
+	}
+
+	// Kerning pair references should resolve
+	const classNames = new Set((project.classes ?? []).map((c) => c.name));
+	for (const pair of project.kerning) {
+		for (const side of [pair.left, pair.right]) {
+			if (typeof side === 'string') {
+				if (!classNames.has(side)) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'pair-orphan-class',
+						message: `Kerning pair references undefined class '${side}'`
+					});
+				}
+			} else if (!project.glyphs[side]) {
+				issues.push({
+					codepoint: side,
+					severity: 'warn',
+					code: 'pair-missing-glyph',
+					message: `Kerning pair references missing glyph U+${side.toString(16).toUpperCase().padStart(4, '0')}`
+				});
+			}
+		}
+	}
+
 	return sortBySeverity(issues);
 };
 
