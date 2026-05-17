@@ -278,6 +278,57 @@
 		);
 	});
 
+	const spacingSuggestion = $derived.by(() => {
+		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
+		// Pick a peer in the same category (upper/lower/figure) with the
+		// closest bbox width — its sidebearings are a sensible starting point.
+		const cp = glyph.codepoint;
+		const sameCategory = (other: number): boolean => {
+			if (cp >= 0x0041 && cp <= 0x005a) return other >= 0x0041 && other <= 0x005a;
+			if (cp >= 0x0061 && cp <= 0x007a) return other >= 0x0061 && other <= 0x007a;
+			if (cp >= 0x0030 && cp <= 0x0039) return other >= 0x0030 && other <= 0x0039;
+			return false;
+		};
+		const myBounds = glyphBounds(glyph.contours);
+		const myWidth = myBounds.maxX - myBounds.minX;
+		if (myWidth <= 0) return null;
+		const peers = Object.values(projectStore.project.glyphs).filter(
+			(g) =>
+				g.codepoint !== cp &&
+				g.contours.length > 0 &&
+				sameCategory(g.codepoint)
+		);
+		if (peers.length === 0) return null;
+		const scored = peers
+			.map((g) => {
+				const b = glyphBounds(g.contours);
+				const w = b.maxX - b.minX;
+				return { glyph: g, diff: Math.abs(w - myWidth) };
+			})
+			.sort((a, b) => a.diff - b.diff);
+		const closest = scored[0];
+		if (
+			closest.glyph.leftSidebearing === glyph.leftSidebearing &&
+			closest.glyph.rightSidebearing === glyph.rightSidebearing
+		)
+			return null;
+		return {
+			peerName: closest.glyph.name,
+			peerChar: String.fromCodePoint(closest.glyph.codepoint),
+			lsb: closest.glyph.leftSidebearing,
+			rsb: closest.glyph.rightSidebearing
+		};
+	});
+
+	const applySpacingSuggestion = () => {
+		if (!glyph || !spacingSuggestion) return;
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			leftSidebearing: spacingSuggestion.lsb,
+			rightSidebearing: spacingSuggestion.rsb
+		}));
+	};
+
 	const copyableMetricSources = $derived.by(() => {
 		if (!projectStore.project || !glyph) return [];
 		return Object.values(projectStore.project.glyphs)
@@ -1500,6 +1551,20 @@
 						/>
 					</Field>
 				</div>
+				{#if spacingSuggestion}
+					<button
+						type="button"
+						onclick={applySpacingSuggestion}
+						class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-accent/40 bg-accent-soft/30 px-2 py-1.5 text-left text-[11px] text-fg-muted hover:border-accent hover:bg-accent-soft"
+						title="Apply suggested LSB/RSB from a similar-width peer"
+					>
+						<span>Match peer</span>
+						<span class="preview-font text-fg">{spacingSuggestion.peerChar}</span>
+						<span class="ml-auto font-mono text-accent" data-numeric>
+							{spacingSuggestion.lsb} / {spacingSuggestion.rsb}
+						</span>
+					</button>
+				{/if}
 			</div>
 
 			<div class="border-b border-border p-4">
