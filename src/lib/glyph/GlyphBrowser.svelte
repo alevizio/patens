@@ -11,6 +11,17 @@
 	let showAddForm = $state(false);
 	let newCpInput = $state('');
 
+	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final';
+	let statusFilter = $state<StatusFilter>('all');
+	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
+		{ id: 'all', label: 'All', title: 'Show every glyph' },
+		{ id: 'drawn', label: 'Drawn', title: 'Glyphs with at least one contour' },
+		{ id: 'undrawn', label: 'Empty', title: 'Glyphs with no contours yet' },
+		{ id: 'sketch', label: 'Sketch', title: 'Status = sketch' },
+		{ id: 'draft', label: 'Draft', title: 'Status = draft' },
+		{ id: 'final', label: 'Final', title: 'Status = final' }
+	];
+
 	const parseCodepoint = (s: string): number | null => {
 		const trimmed = s.trim();
 		if (!trimmed) return null;
@@ -46,6 +57,19 @@
 		projectStore.removeGlyph(codepoint);
 	};
 
+	const matchesStatus = (g: Glyph): boolean => {
+		switch (statusFilter) {
+			case 'all':
+				return true;
+			case 'drawn':
+				return g.contours.length > 0 || (g.components?.length ?? 0) > 0;
+			case 'undrawn':
+				return g.contours.length === 0 && (g.components?.length ?? 0) === 0;
+			default:
+				return g.status === statusFilter;
+		}
+	};
+
 	const grouped = $derived.by(() => {
 		const project = projectStore.project;
 		if (!project) return new Map<GlyphCategory, Glyph[]>();
@@ -53,6 +77,7 @@
 		for (const cat of CATEGORY_ORDER) m.set(cat, []);
 		const lowerQuery = query.trim().toLowerCase();
 		for (const g of Object.values(projectStore.activeGlyphs)) {
+			if (!matchesStatus(g)) continue;
 			if (lowerQuery) {
 				const char = String.fromCodePoint(g.codepoint).toLowerCase();
 				const hex = g.codepoint.toString(16).toLowerCase();
@@ -67,6 +92,12 @@
 		}
 		for (const [, list] of m) list.sort((a, b) => a.codepoint - b.codepoint);
 		return m;
+	});
+
+	const filteredTotal = $derived.by(() => {
+		let n = 0;
+		for (const [, list] of grouped) n += list.length;
+		return n;
 	});
 
 	const totalDrawn = $derived.by(() => {
@@ -102,9 +133,30 @@
 				class="pl-8"
 			/>
 		</div>
+		<div class="mt-2 -mx-0.5 flex flex-wrap gap-0.5">
+			{#each STATUS_OPTIONS as opt (opt.id)}
+				<button
+					type="button"
+					onclick={() => (statusFilter = opt.id)}
+					class="rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
+					opt.id
+						? 'bg-accent-soft text-accent'
+						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
+					title={opt.title}
+				>
+					{opt.label}
+				</button>
+			{/each}
+		</div>
 		<div class="mt-2 flex items-center justify-between gap-2">
 			<div class="text-[11px] text-fg-subtle" data-numeric>
-				{totalDrawn} of {projectStore.project ? Object.keys(projectStore.project.glyphs).length : 0} drawn
+				{#if statusFilter === 'all'}
+					{totalDrawn} of {projectStore.project
+						? Object.keys(projectStore.project.glyphs).length
+						: 0} drawn
+				{:else}
+					{filteredTotal} shown
+				{/if}
 			</div>
 			<button
 				type="button"
@@ -134,6 +186,11 @@
 		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
+		{#if filteredTotal === 0}
+			<div class="px-2 py-6 text-center text-[11px] text-fg-subtle">
+				{query.trim() ? 'No glyphs match the search.' : 'No glyphs match this filter.'}
+			</div>
+		{/if}
 		{#each CATEGORY_ORDER as cat (cat)}
 			{@const list = grouped.get(cat) ?? []}
 			{#if list.length > 0}

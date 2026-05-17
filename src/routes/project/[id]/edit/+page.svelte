@@ -32,6 +32,7 @@
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
+	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	import EditorTour from '$lib/ui/EditorTour.svelte';
@@ -45,6 +46,57 @@
 	let cubicTrace = $state(DEFAULT_TRACE.cubic);
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let tourOpen = $state(false);
+	let shortcutsOpen = $state(false);
+
+	const SHORTCUTS: Array<{ group: string; items: Array<{ keys: string; label: string }> }> = [
+		{
+			group: 'Tools',
+			items: [
+				{ keys: 'P', label: 'Pencil' },
+				{ keys: 'E', label: 'Eraser' },
+				{ keys: 'A', label: 'Edit points' },
+				{ keys: 'T', label: 'Trace sketch to vector' }
+			]
+		},
+		{
+			group: 'Navigation',
+			items: [
+				{ keys: '[', label: 'Previous glyph' },
+				{ keys: ']', label: 'Next glyph' }
+			]
+		},
+		{
+			group: 'Layers',
+			items: [
+				{ keys: 'S', label: 'Toggle sketch layer' },
+				{ keys: 'V', label: 'Toggle vector layer' },
+				{ keys: 'G', label: 'Toggle grid' },
+				{ keys: 'R', label: 'Toggle reference glyph' },
+				{ keys: 'O', label: 'Toggle onion-skin neighbours' },
+				{ keys: 'X', label: 'Toggle anchors' }
+			]
+		},
+		{
+			group: 'History',
+			items: [
+				{ keys: '⌘Z / Ctrl+Z', label: 'Undo' },
+				{ keys: '⌘⇧Z / Ctrl+Y', label: 'Redo' }
+			]
+		},
+		{
+			group: 'Clipboard',
+			items: [
+				{ keys: '⌘⇧C', label: 'Copy glyph' },
+				{ keys: '⌘⇧V', label: 'Paste glyph' }
+			]
+		},
+		{
+			group: 'Help',
+			items: [
+				{ keys: '?', label: 'Show this cheat sheet' }
+			]
+		}
+	];
 
 	$effect(() => {
 		// Auto-open the tour the first time someone visits the editor.
@@ -72,6 +124,28 @@
 
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);
+
+	const countPathPoints = (commands: BezierContour['commands']) =>
+		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')
+			.length;
+
+	const glyphStats = $derived.by(() => {
+		if (!glyph || glyph.contours.length === 0) {
+			return { contours: 0, points: 0, minX: 0, maxX: 0, minY: 0, maxY: 0, width: 0, height: 0 };
+		}
+		const b = glyphBounds(glyph.contours);
+		const points = glyph.contours.reduce((n, c) => n + countPathPoints(c.commands), 0);
+		return {
+			contours: glyph.contours.length,
+			points,
+			minX: Math.round(b.minX),
+			maxX: Math.round(b.maxX),
+			minY: Math.round(b.minY),
+			maxY: Math.round(b.maxY),
+			width: Math.round(b.maxX - b.minX),
+			height: Math.round(b.maxY - b.minY)
+		};
+	});
 
 	// Control-glyph onboarding (n o H O a e s c p v y f g — the canonical proportion/texture set)
 	const CONTROL_GLYPHS = [0x006e, 0x006f, 0x0048, 0x004f, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079, 0x0066, 0x0067];
@@ -419,6 +493,11 @@
 		} else if ((ev.key === 'v' || ev.key === 'V') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			pasteGlyph();
+		} else if (ev.key === '?' || (ev.key === '/' && ev.shiftKey)) {
+			ev.preventDefault();
+			shortcutsOpen = !shortcutsOpen;
+		} else if (ev.key === 'Escape' && shortcutsOpen) {
+			shortcutsOpen = false;
 		}
 	};
 </script>
@@ -509,6 +588,15 @@
 				</label>
 
 				<div class="ml-auto flex items-center gap-1">
+					<button
+						type="button"
+						onclick={() => (shortcutsOpen = true)}
+						class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+						title="Keyboard shortcuts (?)"
+						aria-label="Keyboard shortcuts"
+					>
+						<Keyboard class="size-3.5" />
+					</button>
 					<button
 						type="button"
 						onclick={() => (tourOpen = true)}
@@ -753,6 +841,38 @@
 
 		<!-- Right properties panel -->
 		<aside class="flex min-h-0 flex-col border-l border-border bg-surface">
+			<div class="border-b border-border p-4">
+				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Glyph
+				</h3>
+				<Field label="Name">
+					<Input
+						density="sm"
+						value={glyph.name}
+						onchange={(e) => projectStore.renameGlyph(glyph.codepoint, e.currentTarget.value)}
+						class="font-mono text-[12px]"
+					/>
+				</Field>
+				<dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
+					<dt class="text-fg-subtle">Contours</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>{glyphStats.contours}</dd>
+					<dt class="text-fg-subtle">Points</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>{glyphStats.points}</dd>
+					<dt class="text-fg-subtle">Width × Height</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>
+						{glyphStats.width} × {glyphStats.height}
+					</dd>
+					<dt class="text-fg-subtle">BBox X</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>
+						{glyphStats.minX} → {glyphStats.maxX}
+					</dd>
+					<dt class="text-fg-subtle">BBox Y</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>
+						{glyphStats.minY} → {glyphStats.maxY}
+					</dd>
+				</dl>
+			</div>
+
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Metrics
@@ -1104,4 +1224,54 @@
 		</aside>
 	</div>
 	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
+
+	{#if shortcutsOpen}
+		<button
+			type="button"
+			class="fixed inset-0 z-40 cursor-default bg-canvas/60 backdrop-blur-sm"
+			onclick={() => (shortcutsOpen = false)}
+			aria-label="Close shortcuts"
+			tabindex="-1"
+		></button>
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label="Keyboard shortcuts"
+			class="fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface p-6 shadow-2xl"
+		>
+			<div class="mb-4 flex items-center justify-between gap-3">
+				<div class="flex items-center gap-2">
+					<Keyboard class="size-4 text-fg-muted" />
+					<h2 class="text-base font-semibold tracking-tight">Keyboard shortcuts</h2>
+				</div>
+				<button
+					type="button"
+					onclick={() => (shortcutsOpen = false)}
+					class="rounded-md px-2 py-1 text-[11px] font-medium text-fg-muted hover:bg-surface-2 hover:text-fg"
+				>
+					Close · Esc
+				</button>
+			</div>
+			<div class="grid gap-5 sm:grid-cols-2">
+				{#each SHORTCUTS as section (section.group)}
+					<div>
+						<h3 class="mb-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							{section.group}
+						</h3>
+						<ul class="grid gap-1">
+							{#each section.items as item (item.keys)}
+								<li class="flex items-center justify-between gap-3 text-[12px]">
+									<span class="text-fg-muted">{item.label}</span>
+									<kbd
+										class="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg"
+										data-numeric>{item.keys}</kbd
+									>
+								</li>
+							{/each}
+						</ul>
+					</div>
+				{/each}
+			</div>
+		</div>
+	{/if}
 {/if}

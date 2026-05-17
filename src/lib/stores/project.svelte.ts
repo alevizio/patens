@@ -327,6 +327,36 @@ class ProjectStore {
 		return true;
 	}
 
+	setGlyphStatus(codepoint: number, status: Glyph['status']) {
+		if (!this.project) return;
+		if (!this.project.glyphs[codepoint]) return;
+		const current = this.project.glyphs[codepoint];
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: { ...current, status, updatedAt: new Date().toISOString() }
+			}
+		};
+		this.touch();
+	}
+
+	renameGlyph(codepoint: number, name: string) {
+		if (!this.project) return;
+		if (!this.project.glyphs[codepoint]) return;
+		const trimmed = name.trim();
+		if (!trimmed) return;
+		const current = this.project.glyphs[codepoint];
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: { ...current, name: trimmed, updatedAt: new Date().toISOString() }
+			}
+		};
+		this.touch();
+	}
+
 	removeGlyph(codepoint: number) {
 		if (!this.project) return;
 		if (!this.project.glyphs[codepoint]) return;
