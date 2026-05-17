@@ -24,6 +24,7 @@ import {
 	updateMasterGlyph
 } from '$lib/font/project';
 import type { ScriptPack } from '$lib/font/charsets';
+import { aglfnName } from '$lib/font/aglfn';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -303,8 +304,7 @@ class ProjectStore {
 	addCustomGlyph(codepoint: number, name?: string) {
 		if (!this.project) return false;
 		if (this.project.glyphs[codepoint]) return false;
-		const auto =
-			name?.trim() || `uni${codepoint.toString(16).toUpperCase().padStart(4, '0')}`;
+		const auto = name?.trim() || aglfnName(codepoint);
 		const sb = this.project.metrics.defaultSidebearing;
 		const advance = Math.round(this.project.metrics.unitsPerEm * 0.6);
 		this.project = {
