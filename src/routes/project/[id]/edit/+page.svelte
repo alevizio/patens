@@ -299,6 +299,64 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, anchors }));
 	};
 
+	type DeriveTransform = 'copy' | 'flipH' | 'flipV' | 'rotate180';
+	let deriveSourceCp = $state<number | null>(null);
+	let deriveTransform = $state<DeriveTransform>('flipH');
+
+	const drawnSources = $derived.by(() => {
+		if (!projectStore.project || !glyph) return [];
+		return Object.values(projectStore.project.glyphs)
+			.filter((g) => g.codepoint !== glyph.codepoint && g.contours.length > 0)
+			.sort((a, b) => a.codepoint - b.codepoint);
+	});
+
+	const applyDerive = () => {
+		if (!glyph || !projectStore.project || deriveSourceCp == null) return;
+		const src = projectStore.project.glyphs[deriveSourceCp];
+		if (!src || src.contours.length === 0) return;
+		const bounds = glyphBounds(src.contours);
+		const cx = (bounds.minX + bounds.maxX) / 2;
+		const cy = (bounds.minY + bounds.maxY) / 2;
+		let m: AffineMatrix;
+		switch (deriveTransform) {
+			case 'flipH':
+				m = { a: -1, b: 0, c: 0, d: 1, tx: 2 * cx, ty: 0 };
+				break;
+			case 'flipV':
+				m = { a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 2 * cy };
+				break;
+			case 'rotate180':
+				m = { a: -1, b: 0, c: 0, d: -1, tx: 2 * cx, ty: 2 * cy };
+				break;
+			case 'copy':
+			default:
+				m = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0 };
+		}
+		const refs = src.contours.flatMap((c, ci) =>
+			c.commands
+				.map((cmd, i) =>
+					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+						? { contour: ci, index: i }
+						: null
+				)
+				.filter((r): r is { contour: number; index: number } => r !== null)
+		);
+		const next = transformPoints(
+			JSON.parse(JSON.stringify(src.contours)) as BezierContour[],
+			refs,
+			m
+		);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			...g,
+			contours: next,
+			advanceWidth: src.advanceWidth,
+			leftSidebearing: src.leftSidebearing,
+			rightSidebearing: src.rightSidebearing,
+			status: 'draft'
+		}));
+		deriveSourceCp = null;
+	};
+
 	const addAnchor = (name: string) => {
 		if (!glyph || !metrics) return;
 		const trimmed = name.trim();
@@ -1190,6 +1248,47 @@
 			</div>
 
 			<ReferenceImagePanel />
+
+			{#if glyph.contours.length === 0 && drawnSources.length > 0}
+				<div class="border-b border-border p-4">
+					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Derive from another glyph
+					</h3>
+					<p class="mb-2 text-[11px] text-fg-subtle">
+						One-shot generate this glyph from one you've already drawn. Good for
+						<code class="font-mono">b/d</code>, <code class="font-mono">p/q</code>,
+						<code class="font-mono">n/u</code>.
+					</p>
+					<div class="grid grid-cols-2 gap-1.5">
+						<select
+							bind:value={deriveSourceCp}
+							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+						>
+							<option value={null} disabled>Source glyph</option>
+							{#each drawnSources as g (g.codepoint)}
+								<option value={g.codepoint}>{g.name}</option>
+							{/each}
+						</select>
+						<select
+							bind:value={deriveTransform}
+							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+						>
+							<option value="copy">Copy as-is</option>
+							<option value="flipH">Flip horizontal</option>
+							<option value="flipV">Flip vertical</option>
+							<option value="rotate180">Rotate 180°</option>
+						</select>
+					</div>
+					<button
+						type="button"
+						onclick={applyDerive}
+						disabled={deriveSourceCp == null}
+						class="mt-2 w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+					>
+						Generate
+					</button>
+				</div>
+			{/if}
 
 			<CompositeEditor />
 
