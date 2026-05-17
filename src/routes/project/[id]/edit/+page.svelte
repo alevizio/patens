@@ -751,6 +751,28 @@
 		}));
 	};
 
+	const alignVertically = (target: 'baseline' | 'capHeight' | 'xHeight') => {
+		if (!glyph || glyph.contours.length === 0 || !metrics) return;
+		const bounds = glyphBounds(glyph.contours);
+		let dy = 0;
+		if (target === 'baseline') dy = -bounds.minY; // bbox bottom → 0
+		else if (target === 'capHeight') dy = metrics.capHeight - bounds.maxY; // bbox top → cap
+		else dy = metrics.xHeight - bounds.maxY; // bbox top → x-height
+		if (dy === 0) return;
+		const m: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: Math.round(dy) };
+		const allRefs = glyph.contours.flatMap((c, ci) =>
+			c.commands
+				.map((cmd, i) =>
+					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+						? { contour: ci, index: i }
+						: null
+				)
+				.filter((r): r is { contour: number; index: number } => r !== null)
+		);
+		const next = transformPoints(glyph.contours, allRefs, m);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
+	};
+
 	const centerHorizontally = () => {
 		if (!glyph || glyph.contours.length === 0) return;
 		const bounds = glyphBounds(glyph.contours);
@@ -1980,6 +2002,33 @@
 						title="Shift contours so the bbox centre matches advance/2"
 					>
 						Center in advance
+					</button>
+					<button
+						type="button"
+						onclick={() => alignVertically('baseline')}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Shift contours so the bbox bottom sits on baseline"
+					>
+						Sit on baseline
+					</button>
+					<button
+						type="button"
+						onclick={() => alignVertically('capHeight')}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Shift contours so the bbox top hits cap-height"
+					>
+						Top to cap
+					</button>
+					<button
+						type="button"
+						onclick={() => alignVertically('xHeight')}
+						disabled={glyph.contours.length === 0}
+						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+						title="Shift contours so the bbox top hits x-height"
+					>
+						Top to x-height
 					</button>
 				</div>
 			</div>
