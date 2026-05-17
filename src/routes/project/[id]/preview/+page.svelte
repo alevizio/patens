@@ -66,22 +66,91 @@ function rgb(hex) {
 	];
 
 	// ---------- OpenType feature toggles (CSS font-feature-settings) ----------
-	const FEATURES: Array<{ tag: string; label: string; desc: string; default: boolean }> = [
-		{ tag: 'kern', label: 'kern', desc: 'Kerning', default: true },
-		{ tag: 'liga', label: 'liga', desc: 'Standard ligatures (fi, fl)', default: true },
-		{ tag: 'dlig', label: 'dlig', desc: 'Discretionary ligatures', default: false },
-		{ tag: 'calt', label: 'calt', desc: 'Contextual alternates', default: true },
-		{ tag: 'onum', label: 'onum', desc: 'Old-style figures (oldstyle nums)', default: false },
-		{ tag: 'tnum', label: 'tnum', desc: 'Tabular figures', default: false },
-		{ tag: 'lnum', label: 'lnum', desc: 'Lining figures', default: false },
-		{ tag: 'smcp', label: 'smcp', desc: 'Small caps', default: false },
-		{ tag: 'zero', label: 'zero', desc: 'Slashed zero', default: false },
-		{ tag: 'ss01', label: 'ss01', desc: 'Stylistic set 1', default: false }
+	// Descriptions are paraphrased from the Microsoft OpenType Layout tag registry
+	// — useful inline hints for designers learning what each feature actually does.
+	const FEATURES: Array<{
+		tag: string;
+		label: string;
+		desc: string;
+		long: string;
+		default: boolean;
+	}> = [
+		{
+			tag: 'kern',
+			label: 'kern',
+			desc: 'Kerning',
+			long: 'Adjusts spacing between specific glyph pairs to even out visual rhythm (GPOS table).',
+			default: true
+		},
+		{
+			tag: 'liga',
+			label: 'liga',
+			desc: 'Standard ligatures',
+			long: 'Substitutes connected single glyphs for pairs that overlap or collide (fi, fl, ffi).',
+			default: true
+		},
+		{
+			tag: 'dlig',
+			label: 'dlig',
+			desc: 'Discretionary ligatures',
+			long: 'Decorative ligatures meant for display use (ct, st, sp). Disabled by default in body text.',
+			default: false
+		},
+		{
+			tag: 'calt',
+			label: 'calt',
+			desc: 'Contextual alternates',
+			long: 'Swaps glyphs based on surrounding characters — used for connecting scripts and avoiding collisions.',
+			default: true
+		},
+		{
+			tag: 'onum',
+			label: 'onum',
+			desc: 'Old-style figures',
+			long: 'Numerals with ascenders and descenders that sit alongside lowercase in body copy.',
+			default: false
+		},
+		{
+			tag: 'tnum',
+			label: 'tnum',
+			desc: 'Tabular figures',
+			long: 'Forces all digits to the same advance width — required for data tables and price columns.',
+			default: false
+		},
+		{
+			tag: 'lnum',
+			label: 'lnum',
+			desc: 'Lining figures',
+			long: 'Capital-height numerals; default in most modern sans serifs.',
+			default: false
+		},
+		{
+			tag: 'smcp',
+			label: 'smcp',
+			desc: 'Small caps',
+			long: 'Replaces lowercase with custom small-cap glyphs (not algorithmically scaled caps).',
+			default: false
+		},
+		{
+			tag: 'zero',
+			label: 'zero',
+			desc: 'Slashed zero',
+			long: 'Disambiguates 0 from O in code, monospace, or data contexts.',
+			default: false
+		},
+		{
+			tag: 'ss01',
+			label: 'ss01',
+			desc: 'Stylistic set 1',
+			long: 'Designer-defined alternate set (e.g., single-storey a, alternate g).',
+			default: false
+		}
 	];
 
 	let featureState = $state<Record<string, boolean>>(
 		Object.fromEntries(FEATURES.map((f) => [f.tag, f.default]))
 	);
+	let focusedFeature = $state<string | null>(null);
 
 	const featureSettings = $derived(
 		FEATURES.map((f) => `'${f.tag}' ${featureState[f.tag] ? 1 : 0}`).join(', ')
@@ -371,11 +440,16 @@ function rgb(hex) {
 				Toggle features at render time via <code class="font-mono">font-feature-settings</code>.
 				Compile the font to see them really work.
 			</p>
-			<div class="mb-4 flex flex-wrap gap-1.5">
+			<div class="mb-3 flex flex-wrap gap-1.5">
 				{#each FEATURES as f (f.tag)}
 					<button
 						type="button"
-						onclick={() => (featureState = { ...featureState, [f.tag]: !featureState[f.tag] })}
+						onclick={() => {
+							featureState = { ...featureState, [f.tag]: !featureState[f.tag] };
+							focusedFeature = f.tag;
+						}}
+						onmouseenter={() => (focusedFeature = f.tag)}
+						onfocus={() => (focusedFeature = f.tag)}
 						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors {featureState[
 							f.tag
 						]
@@ -387,6 +461,21 @@ function rgb(hex) {
 					</button>
 				{/each}
 			</div>
+			{#if focusedFeature}
+				{@const f = FEATURES.find((x) => x.tag === focusedFeature)}
+				{#if f}
+					<div class="mb-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[11px] text-fg-muted">
+						<span class="font-mono text-fg">{f.tag}</span>
+						·
+						<span class="font-medium text-fg">{f.desc}</span>
+						<span class="block">{f.long}</span>
+					</div>
+				{/if}
+			{:else}
+				<div class="mb-3 rounded-md border border-dashed border-border-strong/40 bg-surface-2/40 px-3 py-2 text-[11px] text-fg-subtle">
+					Hover a feature tag above to see what it controls.
+				</div>
+			{/if}
 			<div
 				class="preview-font rounded-lg border border-border bg-canvas p-6 text-3xl leading-snug"
 				style="font-feature-settings: {featureSettings};"

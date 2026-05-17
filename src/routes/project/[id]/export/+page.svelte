@@ -858,6 +858,66 @@ document.querySelectorAll('.controls button').forEach((b) => {
 
 		<Panel>
 			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				What format should I ship?
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Pick by deployment context, not fashion. Most projects ship two or three of these.
+			</p>
+			<dl class="grid gap-2.5 text-[12px]">
+				<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2">
+					<dt class="font-mono text-fg">Static OTF</dt>
+					<dd class="text-fg-muted">
+						Print, desktop publishing, broad desktop delivery. Strong traditional support;
+						CFF outlines.
+					</dd>
+				</div>
+				<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2">
+					<dt class="font-mono text-fg">Static TTF</dt>
+					<dd class="text-fg-muted">
+						UI, desktop, TrueType-oriented rendering workflows. Best fit when the user
+						may add manual hinting later.
+					</dd>
+				</div>
+				<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2">
+					<dt class="font-mono text-fg">WOFF2</dt>
+					<dd class="text-fg-muted">
+						Web delivery. Best compression, broad browser support — the W3C web standard
+						in 2026. Default for any site / app.
+					</dd>
+				</div>
+				{#if (project.axes?.length ?? 0) > 0}
+					<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-accent/30 bg-accent-soft/30 px-3 py-2">
+						<dt class="font-mono text-accent">Variable TTF</dt>
+						<dd class="text-fg-muted">
+							Many styles in one file — responsive families, UI systems with weight/width
+							sliders. Pair with WOFF2 for web. Compatible with this project's
+							{(project.axes ?? []).map((a) => a.tag).join(' / ')} axes.
+						</dd>
+					</div>
+				{/if}
+				<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2">
+					<dt class="font-mono text-fg">UFO 3</dt>
+					<dd class="text-fg-muted">
+						Editable source — round-trip with Glyphs / RoboFont / FontLab. Always keep this
+						archive even if you only ship binaries.
+					</dd>
+				</div>
+				<div class="grid grid-cols-[100px_1fr] gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2">
+					<dt class="font-mono text-fg">.font.json</dt>
+					<dd class="text-fg-muted">
+						This app's native source — sketches, notes, references, snapshots all in one
+						file. Versionable.
+					</dd>
+				</div>
+			</dl>
+			<p class="mt-3 text-[11px] text-fg-subtle">
+				Heuristic: web-only product → WOFF2 + (optional) Variable TTF. Editorial / print →
+				OTF + TTF. Open-source release → all four binaries + UFO + license + specimen.
+			</p>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 				CSS snippet
 			</h2>
 			<p class="mb-3 text-[12px] text-fg-subtle">

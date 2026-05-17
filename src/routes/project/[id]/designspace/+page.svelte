@@ -53,6 +53,23 @@
 		{ styleName: 'Black', wght: 900 }
 	];
 
+	/**
+	 * Optical-size named instances follow the convention popularised by
+	 * Adobe Originals (Source Serif 4, Source Sans 3) and reaffirmed in
+	 * Google Fonts' opsz guidance: distinct cuts for 8pt captions, 14pt
+	 * text, 28pt subheads, and 72pt display. Caption widens and opens up
+	 * counters; Display tightens and refines.
+	 */
+	const OPSZ_INSTANCES = [
+		{ styleName: 'Caption', opsz: 8, description: '6–10pt, very small UI text or footnotes' },
+		{ styleName: 'Text', opsz: 14, description: '11–18pt, paragraph reading' },
+		{ styleName: 'Subhead', opsz: 28, description: '20–40pt, intro lines and quotes' },
+		{ styleName: 'Display', opsz: 72, description: '50pt+, headlines and posters' }
+	];
+
+	const hasOpsz = $derived((project?.axes ?? []).some((a) => a.tag === 'opsz'));
+	const hasWght = $derived((project?.axes ?? []).some((a) => a.tag === 'wght'));
+
 	const handleAddInstance = (styleName: string, baseLocation: Record<string, number>) => {
 		if (!project) return;
 		// Fill in any unspecified axes with their defaults
@@ -295,22 +312,65 @@
 							{/each}
 						</ul>
 					{/if}
-					<div class="flex flex-wrap items-center gap-1.5">
-						<span class="text-[11px] font-medium text-fg-muted">Add common weight:</span>
-						{#each COMMON_INSTANCES as preset (preset.styleName)}
-							{@const present = (project.instances ?? []).some(
-								(i) => i.styleName === preset.styleName
-							)}
-							<button
-								type="button"
-								onclick={() => handleAddInstance(preset.styleName, { wght: preset.wght })}
-								disabled={present}
-								class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:opacity-40"
-							>
-								+ {preset.styleName} ({preset.wght})
-							</button>
-						{/each}
-					</div>
+					{#if hasWght}
+						<div class="flex flex-wrap items-center gap-1.5">
+							<span class="text-[11px] font-medium text-fg-muted">Add common weight:</span>
+							{#each COMMON_INSTANCES as preset (preset.styleName)}
+								{@const present = (project.instances ?? []).some(
+									(i) => i.styleName === preset.styleName
+								)}
+								<button
+									type="button"
+									onclick={() => handleAddInstance(preset.styleName, { wght: preset.wght })}
+									disabled={present}
+									class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:opacity-40"
+								>
+									+ {preset.styleName} ({preset.wght})
+								</button>
+							{/each}
+						</div>
+					{/if}
+					{#if hasOpsz}
+						<div class="mt-2 flex flex-wrap items-center gap-1.5">
+							<span class="text-[11px] font-medium text-fg-muted">Add optical size:</span>
+							{#each OPSZ_INSTANCES as preset (preset.styleName)}
+								{@const present = (project.instances ?? []).some(
+									(i) => i.styleName === preset.styleName
+								)}
+								<button
+									type="button"
+									onclick={() => handleAddInstance(preset.styleName, { opsz: preset.opsz })}
+									disabled={present}
+									class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:opacity-40"
+									title={preset.description}
+								>
+									+ {preset.styleName} ({preset.opsz}pt)
+								</button>
+							{/each}
+						</div>
+						<p class="mt-1 text-[10px] text-fg-subtle">
+							Convention from Adobe Originals (Source Serif / Source Sans). Caption
+							widens counters for small sizes; Display tightens for large sizes.
+						</p>
+					{/if}
+					{#if !hasWght && !hasOpsz}
+						<div class="flex flex-wrap items-center gap-1.5">
+							<span class="text-[11px] font-medium text-fg-muted">Add common weight:</span>
+							{#each COMMON_INSTANCES as preset (preset.styleName)}
+								{@const present = (project.instances ?? []).some(
+									(i) => i.styleName === preset.styleName
+								)}
+								<button
+									type="button"
+									onclick={() => handleAddInstance(preset.styleName, { wght: preset.wght })}
+									disabled={present}
+									class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:opacity-40"
+								>
+									+ {preset.styleName} ({preset.wght})
+								</button>
+							{/each}
+						</div>
+					{/if}
 				</Panel>
 			{/if}
 		</div>
