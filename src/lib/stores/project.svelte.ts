@@ -356,6 +356,73 @@ class ProjectStore {
 		this.touch();
 	}
 
+	saveRevision(codepoint: number, label?: string) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current || current.contours.length === 0) return;
+		const rev: import('$lib/font/types').GlyphRevision = {
+			id: crypto.randomUUID(),
+			takenAt: new Date().toISOString(),
+			label: label?.trim() || undefined,
+			contours: JSON.parse(JSON.stringify(current.contours)),
+			advanceWidth: current.advanceWidth,
+			leftSidebearing: current.leftSidebearing,
+			rightSidebearing: current.rightSidebearing
+		};
+		const next = [...(current.revisions ?? []), rev];
+		// Cap at 8 most-recent revisions to keep the project file lean.
+		const trimmed = next.length > 8 ? next.slice(-8) : next;
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: { ...current, revisions: trimmed, updatedAt: new Date().toISOString() }
+			}
+		};
+		this.touch();
+	}
+
+	restoreRevision(codepoint: number, revisionId: string) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		const rev = (current.revisions ?? []).find((r) => r.id === revisionId);
+		if (!rev) return;
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: {
+					...current,
+					contours: JSON.parse(JSON.stringify(rev.contours)),
+					advanceWidth: rev.advanceWidth,
+					leftSidebearing: rev.leftSidebearing,
+					rightSidebearing: rev.rightSidebearing,
+					updatedAt: new Date().toISOString()
+				}
+			}
+		};
+		this.touch();
+	}
+
+	deleteRevision(codepoint: number, revisionId: string) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current?.revisions) return;
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: {
+					...current,
+					revisions: current.revisions.filter((r) => r.id !== revisionId),
+					updatedAt: new Date().toISOString()
+				}
+			}
+		};
+		this.touch();
+	}
+
 	toggleGlyphPin(codepoint: number) {
 		if (!this.project) return;
 		const current = this.project.glyphs[codepoint];
