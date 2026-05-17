@@ -251,6 +251,15 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 			/* ignore */
 		}
 	};
+
+	const saveToCurrentGlyphNotes = () => {
+		if (!response || !project) return;
+		const g = project.glyphs[projectStore.selectedCodepoint];
+		if (!g) return;
+		const prefix = `[${lastTitle ?? 'AI'}]`;
+		const next = g.notes?.trim() ? `${g.notes.trim()}\n\n${prefix}\n${response}` : `${prefix}\n${response}`;
+		projectStore.updateGlyph(g.codepoint, (gg) => ({ ...gg, notes: next }));
+	};
 </script>
 
 {#if !project}
@@ -364,14 +373,20 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 
 			{#if response}
 				<Panel>
-					<div class="mb-3 flex items-center justify-between">
+					<div class="mb-3 flex items-center justify-between gap-2">
 						<h2 class="inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 							<Sparkles class="size-3" /> {lastTitle ?? 'Response'}
 						</h2>
-						<Button density="sm" variant="ghost" onclick={copyResponse}>
-							{#snippet icon()}<Copy class="size-3.5" />{/snippet}
-							Copy
-						</Button>
+						<div class="flex items-center gap-1">
+							<Button density="sm" variant="ghost" onclick={saveToCurrentGlyphNotes}>
+								{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+								Save to glyph notes
+							</Button>
+							<Button density="sm" variant="ghost" onclick={copyResponse}>
+								{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+								Copy
+							</Button>
+						</div>
 					</div>
 					<pre class="whitespace-pre-wrap break-words rounded-md bg-surface-2/40 p-4 text-[13px] leading-[1.55] text-fg">{response}</pre>
 				</Panel>
