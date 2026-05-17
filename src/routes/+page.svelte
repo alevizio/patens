@@ -50,7 +50,17 @@
 	];
 
 	let projects = $state<ProjectIndexEntry[]>([]);
+	let projectQuery = $state('');
 	let loading = $state(true);
+
+	const filteredProjects = $derived.by(() => {
+		const q = projectQuery.trim().toLowerCase();
+		if (!q) return projects;
+		return projects.filter(
+			(p) =>
+				p.name.toLowerCase().includes(q) || p.familyName.toLowerCase().includes(q)
+		);
+	});
 	let creating = $state(false);
 	let importing = $state(false);
 	let ufoImporting = $state(false);
@@ -288,14 +298,21 @@
 
 	<div class="grid gap-6 lg:grid-cols-[1fr_320px]">
 		<Panel padding="md">
-			<div class="mb-4 flex items-center justify-between">
+			<div class="mb-3 flex items-center justify-between gap-3">
 				<h2 class="text-sm font-semibold tracking-wide text-fg-muted uppercase">Your fonts</h2>
 				{#if !loading}
 					<span class="text-[12px] text-fg-subtle" data-numeric>
-						{projects.length} project{projects.length === 1 ? '' : 's'}
+						{filteredProjects.length} of {projects.length}
 					</span>
 				{/if}
 			</div>
+			{#if projects.length > 6}
+				<input
+					bind:value={projectQuery}
+					placeholder="Filter by name or family…"
+					class="mb-3 block w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+				/>
+			{/if}
 
 			{#if loading}
 				<div class="grid gap-2">
@@ -308,9 +325,13 @@
 					<PenTool class="mx-auto mb-3 size-8 text-fg-subtle" />
 					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin.</p>
 				</div>
+			{:else if filteredProjects.length === 0}
+				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-6 text-center text-[12px] text-fg-muted">
+					No projects match "{projectQuery}".
+				</div>
 			{:else}
 				<ul class="grid gap-2">
-					{#each projects as p (p.id)}
+					{#each filteredProjects as p (p.id)}
 						<li
 							class="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-2"
 						>
