@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { GlyphReference } from '$lib/font/types';
+	import { contoursToSvgPath } from '$lib/font/path';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Plus from '@lucide/svelte/icons/plus';
 
@@ -83,6 +84,64 @@
 		if (!c) return;
 		updateComponent(idx, { offsetX: c.offsetX + dx, offsetY: c.offsetY + dy });
 	};
+
+	// Live preview: render each referenced glyph at its current offset.
+	type PreviewLayer = {
+		path: string;
+		idx: number;
+		offsetX: number;
+		offsetY: number;
+		anchors: Array<{ name: string; x: number; y: number }>;
+	};
+	const previewLayers = $derived.by<PreviewLayer[]>(() => {
+		if (!project || components.length === 0) return [];
+		const layers: PreviewLayer[] = [];
+		components.forEach((comp, idx) => {
+			const base = project.glyphs[comp.baseCodepoint];
+			if (!base) return;
+			const path = contoursToSvgPath(base.contours);
+			layers.push({
+				path,
+				idx,
+				offsetX: comp.offsetX,
+				offsetY: comp.offsetY,
+				anchors: base.anchors ?? []
+			});
+		});
+		return layers;
+	});
+	// Pair base anchors with mark anchors that share the same name (with mark
+	// names prefixed by an underscore, e.g. base has `top`, mark has `_top`).
+	type AnchorMatch = { name: string; baseIdx: number; markIdx: number; x: number; y: number };
+	const anchorMatches = $derived.by<AnchorMatch[]>(() => {
+		const out: AnchorMatch[] = [];
+		if (previewLayers.length < 2) return out;
+		const base = previewLayers[0];
+		for (let i = 1; i < previewLayers.length; i++) {
+			const mark = previewLayers[i];
+			for (const ba of base.anchors) {
+				if (ba.name.startsWith('_')) continue;
+				const ma = mark.anchors.find((a) => a.name === `_${ba.name}`);
+				if (!ma) continue;
+				out.push({
+					name: ba.name,
+					baseIdx: 0,
+					markIdx: i,
+					x: base.offsetX + ba.x,
+					y: base.offsetY + ba.y
+				});
+			}
+		}
+		return out;
+	});
+
+	const metrics = $derived(project?.metrics);
+	const previewViewBox = $derived.by(() => {
+		const asc = metrics?.ascender ?? 800;
+		const desc = metrics?.descender ?? -200;
+		const width = Math.max(...previewLayers.map((l) => l.offsetX + 1000), 1000);
+		return `0 ${-asc} ${width} ${asc - desc}`;
+	});
 </script>
 
 {#if glyph}
@@ -104,6 +163,49 @@
 			<p class="text-[11px] text-fg-subtle">
 				No components. Compose this glyph from references (e.g. <code class="font-mono">a</code> + <code class="font-mono">U+0301</code>).
 			</p>
+		{/if}
+
+		{#if components.length > 0 && previewLayers.length > 0}
+			<div class="mb-2 overflow-hidden rounded-md border border-border bg-canvas">
+				<svg
+					viewBox={previewViewBox}
+					preserveAspectRatio="xMidYMid meet"
+					class="h-32 w-full"
+					style="transform: scaleY(-1);"
+					aria-label="Composite preview"
+				>
+					{#each previewLayers as layer (layer.idx)}
+						<g transform="translate({layer.offsetX} {layer.offsetY})">
+							<path
+								d={layer.path}
+								fill={layer.idx === 0 ? 'currentColor' : 'var(--color-accent)'}
+								fill-rule="evenodd"
+								opacity={layer.idx === 0 ? 1 : 0.7}
+							/>
+							{#each layer.anchors as a (a.name)}
+								<circle cx={a.x} cy={a.y} r="14" fill="var(--color-warn)" opacity="0.6" />
+							{/each}
+						</g>
+					{/each}
+					{#each anchorMatches as m (m.name)}
+						<circle
+							cx={m.x}
+							cy={m.y}
+							r="22"
+							fill="none"
+							stroke="var(--color-success)"
+							stroke-width="6"
+							opacity="0.9"
+						/>
+					{/each}
+				</svg>
+			</div>
+			{#if anchorMatches.length > 0}
+				<p class="mb-2 text-[10px] text-success">
+					{anchorMatches.length} anchor match{anchorMatches.length === 1 ? '' : 'es'}: {anchorMatches.map((m) => m.name).join(', ')}
+					— GPOS mkmk will use these at export.
+				</p>
+			{/if}
 		{/if}
 
 		{#if components.length > 0}
