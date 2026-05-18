@@ -142,6 +142,65 @@
 	const autoPasses = $derived(errors === 0 && drawn >= 26);
 	const readyToShip = $derived(autoPasses && manualPct === 100);
 
+	// Google Fonts onboarding readiness — based on the official requirements
+	// (OFL 1.1, fsType=0, complete metadata, full Basic Latin). This is an
+	// approximation of FontBakery's check-googlefonts profile, not a substitute.
+	const gfChecks = $derived.by(() => {
+		if (!project) return [];
+		const md = project.metadata;
+		const drawnGlyphs = Object.values(project.glyphs).filter(
+			(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+		);
+		const hasFullBasicLatin = (() => {
+			// A-Z, a-z, 0-9, space = 63 codepoints
+			const required: number[] = [0x20];
+			for (let cp = 0x30; cp <= 0x39; cp++) required.push(cp);
+			for (let cp = 0x41; cp <= 0x5a; cp++) required.push(cp);
+			for (let cp = 0x61; cp <= 0x7a; cp++) required.push(cp);
+			const drawnCps = new Set(drawnGlyphs.map((g) => g.codepoint));
+			return required.every((cp) => drawnCps.has(cp));
+		})();
+		return [
+			{
+				label: 'License is SIL OFL 1.1',
+				ok: /SIL Open Font License|OFL\s*1\.1/i.test(md.license ?? ''),
+				hint: 'Google Fonts requires OFL 1.1 for the library.'
+			},
+			{
+				label: 'fsType is Installable (0)',
+				ok: (md.fsType ?? 0) === 0,
+				hint: 'Libre fonts must allow installable embedding (OS/2.fsType=0).'
+			},
+			{
+				label: 'Copyright filled in',
+				ok: !!md.copyright?.trim(),
+				hint: 'Copyright string is required in the name table.'
+			},
+			{
+				label: 'Version >= 1.000',
+				ok: parseFloat(md.version ?? '0') >= 1,
+				hint: 'GF expects production-grade releases.'
+			},
+			{
+				label: 'Designer attribution',
+				ok: !!md.designer?.trim(),
+				hint: 'Name table needs a designer / manufacturer.'
+			},
+			{
+				label: 'Full Basic Latin (A–Z, a–z, 0–9, space)',
+				ok: hasFullBasicLatin,
+				hint: 'Minimum viable Latin coverage for the library.'
+			},
+			{
+				label: 'No audit errors',
+				ok: errors === 0,
+				hint: 'Pre-flight + structural checks must pass.'
+			}
+		];
+	});
+	const gfPassed = $derived(gfChecks.filter((c) => c.ok).length);
+	const gfReady = $derived(gfChecks.length > 0 && gfPassed === gfChecks.length);
+
 	let newChangelogVersion = $state('');
 	let newChangelogNotes = $state('');
 	$effect(() => {
@@ -390,6 +449,44 @@
 					</div>
 				</Panel>
 			{/if}
+
+			<Panel>
+				<div class="mb-2 flex items-baseline justify-between gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Google Fonts onboarding
+					</h2>
+					<span
+						class="rounded-full px-1.5 py-0.5 text-[10px] font-medium {gfReady
+							? 'bg-success/15 text-success'
+							: 'bg-fg-subtle/10 text-fg-subtle'}"
+						data-numeric
+					>
+						{gfPassed}/{gfChecks.length}
+					</span>
+				</div>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Approximate readiness for Google Fonts' onboarding (their
+					<code>check-googlefonts</code> profile is the source of truth — run
+					<code>fontbakery</code> locally before submitting).
+				</p>
+				<ul class="grid gap-1.5">
+					{#each gfChecks as c (c.label)}
+						<li
+							class="flex items-start gap-2 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+						>
+							{#if c.ok}
+								<CheckCircle2 class="mt-0.5 size-3.5 shrink-0 text-success" />
+							{:else}
+								<AlertCircle class="mt-0.5 size-3.5 shrink-0 text-warn" />
+							{/if}
+							<div class="min-w-0 flex-1">
+								<div class="text-[12px] text-fg">{c.label}</div>
+								<div class="mt-0.5 text-[11px] text-fg-subtle">{c.hint}</div>
+							</div>
+						</li>
+					{/each}
+				</ul>
+			</Panel>
 
 			<Panel>
 				<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
