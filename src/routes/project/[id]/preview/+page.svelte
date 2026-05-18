@@ -40,6 +40,66 @@ function rgb(hex) {
 
 	const sample = $derived(projectStore.project?.metadata.familyName ?? 'Sample');
 
+	// ---------- Proof at intended sizes (driven by Brief use cases) ----------
+	type ProofRow = { sizes: number[]; label: string; text: string; mono?: boolean; tnum?: boolean };
+	const proofForUseCases = (useCases: string[] | undefined): ProofRow[] => {
+		const rows: ProofRow[] = [];
+		const has = (uc: string) => useCases?.includes(uc) ?? false;
+		if (has('body-text')) {
+			rows.push({
+				label: 'Body / paragraph (11–16px)',
+				sizes: [11, 13, 14, 16],
+				text: 'In typography, a typeface is a design of letters, numbers and other symbols.'
+			});
+		}
+		if (has('web-ui')) {
+			rows.push({
+				label: 'Web UI (12–20px)',
+				sizes: [12, 14, 16, 20],
+				text: 'Cancel · Save changes · Dashboard · Settings · Sign out'
+			});
+		}
+		if (has('display')) {
+			rows.push({
+				label: 'Display / headlines (48–144px)',
+				sizes: [48, 72, 96, 144],
+				text: 'Headline'
+			});
+		}
+		if (has('signage')) {
+			rows.push({
+				label: 'Signage / wayfinding (60–144px)',
+				sizes: [60, 96, 144],
+				text: 'EXIT 14 · Platform 9 · Departures'
+			});
+		}
+		if (has('code')) {
+			rows.push({
+				label: 'Code / monospace (12–18px)',
+				sizes: [12, 14, 16, 18],
+				text: 'const palette = { primary: "#0066FF" };',
+				mono: true
+			});
+		}
+		if (has('data-tables')) {
+			rows.push({
+				label: 'Data tables (11–14px, tnum)',
+				sizes: [11, 12, 13, 14],
+				text: '1,247.50  892.10  71.5%',
+				tnum: true
+			});
+		}
+		if (rows.length === 0) {
+			rows.push({
+				label: 'Default proof set',
+				sizes: [14, 24, 48, 96],
+				text: 'The quick brown fox'
+			});
+		}
+		return rows;
+	};
+	const proofRows = $derived(proofForUseCases(projectStore.project?.brief?.useCases));
+
 	// ---------- Multi-language samples ----------
 	const LANGUAGE_SAMPLES: Array<{ id: string; label: string; text: string }> = [
 		{ id: 'latin', label: 'Latin', text: 'The quick brown fox jumps over the lazy dog.' },
@@ -336,6 +396,43 @@ function rgb(hex) {
 				placeholder="Type something…"
 			/>
 			<div class="preview-font mt-4 text-6xl leading-tight">{customText}</div>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Proof at intended sizes
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Auto-generated from the use cases checked on the
+				<a href="/project/{project?.id}/brief" class="underline hover:text-fg">Brief</a> tab.
+				Each row exercises a real reading condition at its real sizes.
+			</p>
+			<div class="grid gap-5">
+				{#each proofRows as row (row.label)}
+					<div>
+						<div class="mb-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							{row.label}
+						</div>
+						<div class="grid gap-1.5">
+							{#each row.sizes as size (size)}
+								<div class="flex items-baseline gap-3 border-b border-border/40 py-1">
+									<span class="w-10 shrink-0 text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+										{size}px
+									</span>
+									<span
+										class={row.mono ? 'preview-font font-mono leading-[1.4]' : 'preview-font leading-[1.4]'}
+										style="font-size: {size}px; font-feature-settings: 'kern' 1, 'liga' 1{row.tnum
+											? `, 'tnum' 1`
+											: ''};"
+									>
+										{row.text}
+									</span>
+								</div>
+							{/each}
+						</div>
+					</div>
+				{/each}
+			</div>
 		</Panel>
 
 		<Panel>
