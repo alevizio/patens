@@ -428,6 +428,53 @@
 	);
 	const showControlHint = $derived(totalDrawn < 13 && controlMissing.length > 0);
 
+	/**
+	 * Priority codepoints by use case. We surface up to 8 missing glyphs in
+	 * priority order — control glyphs first, then use-case-specific picks
+	 * derived from the Brief.
+	 */
+	const useCaseTargets = (uc: string | undefined): number[] => {
+		const digits = [0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039];
+		const corePunct = [0x002e, 0x002c, 0x003a, 0x003b, 0x0021, 0x003f, 0x0027, 0x0022];
+		const wrap = [0x0028, 0x0029, 0x002d, 0x002013, 0x2014];
+		switch (uc) {
+			case 'web-ui':
+				return [...digits, ...corePunct];
+			case 'body-text':
+				return [...corePunct, ...wrap, ...digits];
+			case 'data-tables':
+				return [...digits, 0x002e, 0x002c, 0x0025, 0x0024];
+			case 'code':
+				return [...digits, 0x005b, 0x005d, 0x007b, 0x007d, 0x002f, 0x005c, 0x003d];
+			case 'display':
+				return [];
+			default:
+				return [...digits, ...corePunct];
+		}
+	};
+
+	const suggestedNext = $derived.by(() => {
+		if (!projectStore.project) return [] as number[];
+		const useCases = projectStore.project.brief?.useCases ?? [];
+		const priority: number[] = [];
+		// Start with control glyphs not yet drawn
+		for (const cp of CONTROL_GLYPHS) {
+			if ((projectStore.project.glyphs[cp]?.contours.length ?? 0) === 0) priority.push(cp);
+		}
+		// Then use-case targets
+		for (const uc of useCases) {
+			for (const cp of useCaseTargets(uc)) {
+				if (priority.includes(cp)) continue;
+				if ((projectStore.project.glyphs[cp]?.contours.length ?? 0) === 0) priority.push(cp);
+			}
+		}
+		return priority.slice(0, 10);
+	});
+
+	const showSuggestedNext = $derived(
+		totalDrawn >= 1 && suggestedNext.length > 0 && totalDrawn < 50
+	);
+
 	const briefIsEmpty = $derived.by(() => {
 		const b = projectStore.project?.brief;
 		if (!b) return true;
@@ -1374,6 +1421,30 @@
 								title="Jump to {String.fromCodePoint(cp)}"
 							>
 								{String.fromCodePoint(cp)}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{:else if showSuggestedNext}
+				<div
+					class="flex items-center gap-3 border-b border-border bg-accent-soft/20 px-4 py-2 text-[12px] text-fg-muted"
+				>
+					<span class="font-medium text-accent">Suggested next →</span>
+					<span>
+						Priority picks based on your Brief use cases ({(projectStore.project?.brief
+							?.useCases ?? []).join(', ') || 'defaults'}).
+					</span>
+					<div class="ml-auto flex flex-wrap items-center gap-1">
+						{#each suggestedNext as cp (cp)}
+							{@const ch =
+								cp > 0x20 && cp < 0x10000 ? String.fromCodePoint(cp) : '?'}
+							<button
+								type="button"
+								onclick={() => projectStore.selectGlyph(cp)}
+								class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
+								title="Jump to U+{cp.toString(16).toUpperCase().padStart(4, '0')}"
+							>
+								{ch}
 							</button>
 						{/each}
 					</div>
