@@ -95,6 +95,26 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Surface TODO / FIXME left in glyph notes — visible reminder pre-release
+	if (glyph.notes && /(?:^|\W)(TODO|FIXME)\b/i.test(glyph.notes)) {
+		issues.push({
+			codepoint: cp,
+			severity: 'info',
+			code: 'notes-todo',
+			message: 'Notes contain TODO/FIXME — open work item.'
+		});
+	}
+
+	// Surface unaddressed review flags
+	if (glyph.flagged) {
+		issues.push({
+			codepoint: cp,
+			severity: 'info',
+			code: 'flagged-for-review',
+			message: 'Flagged for review — ⇧F to clear once addressed.'
+		});
+	}
+
 	// Glyph name validation per Adobe glyph-list naming rules + OpenType
 	// post table constraints: must start with letter or period, then
 	// letters/digits/period/underscore/hyphen; max 63 chars; not reserved.
