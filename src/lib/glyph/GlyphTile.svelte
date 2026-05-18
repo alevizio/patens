@@ -13,6 +13,7 @@
 		descender?: number;
 		incompatible?: boolean;
 		onclick?: () => void;
+		oncontextmenu?: (ev: MouseEvent) => void;
 	};
 
 	let {
@@ -23,7 +24,8 @@
 		ascender = 800,
 		descender = -200,
 		incompatible = false,
-		onclick
+		onclick,
+		oncontextmenu
 	}: Props = $props();
 
 	const char = $derived(
@@ -68,6 +70,7 @@
 <button
 	type="button"
 	{onclick}
+	oncontextmenu={oncontextmenu ?? undefined}
 	aria-pressed={selected}
 	class="group relative flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 		? 'border-accent bg-accent-soft'

@@ -360,6 +360,10 @@
 							descender={projectStore.project?.metrics.descender ?? -200}
 							incompatible={incompatibleCodepoints.has(g.codepoint)}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
+							oncontextmenu={(ev) => {
+								ev.preventDefault();
+								projectStore.toggleGlyphPin(g.codepoint);
+							}}
 						/>
 					{/each}
 				</div>
@@ -382,6 +386,10 @@
 							descender={projectStore.project?.metrics.descender ?? -200}
 							incompatible={incompatibleCodepoints.has(g.codepoint)}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
+							oncontextmenu={(ev) => {
+								ev.preventDefault();
+								projectStore.toggleGlyphPin(g.codepoint);
+							}}
 						/>
 					{/each}
 				</div>
@@ -424,6 +432,11 @@
 									bulkMode
 										? toggleSelect(g.codepoint)
 										: projectStore.selectGlyph(g.codepoint)}
+								oncontextmenu={(ev) => {
+									if (bulkMode) return;
+									ev.preventDefault();
+									projectStore.toggleGlyphPin(g.codepoint);
+								}}
 							/>
 						{/each}
 					</div>
