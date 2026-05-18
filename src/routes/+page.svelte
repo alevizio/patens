@@ -72,6 +72,19 @@
 			.slice(0, 5)
 	);
 
+	const todayTotals = $derived.by(() => {
+		const visible = projects.filter((p) => !p.archived);
+		let activeProjects = 0;
+		let editedToday = 0;
+		let editedThisWeek = 0;
+		for (const p of visible) {
+			if ((p.editsToday ?? 0) > 0) activeProjects++;
+			editedToday += p.editsToday ?? 0;
+			editedThisWeek += p.editsThisWeek ?? 0;
+		}
+		return { activeProjects, editedToday, editedThisWeek };
+	});
+
 	const lastVisitedSlug = (id: string): string => {
 		if (typeof localStorage === 'undefined') return 'edit';
 		try {
@@ -441,6 +454,32 @@
 			your browser. Every project is saved locally.
 		</p>
 	</header>
+
+	{#if todayTotals.editedToday > 0 || todayTotals.editedThisWeek > 0}
+		<div
+			class="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px]"
+		>
+			<span
+				class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+			>
+				Today
+			</span>
+			{#if todayTotals.editedToday > 0}
+				<span class="text-fg-muted" data-numeric>
+					<span class="font-mono font-semibold text-accent">{todayTotals.editedToday}</span> edit{todayTotals.editedToday === 1 ? '' : 's'} across
+					<span class="font-mono font-semibold text-accent">{todayTotals.activeProjects}</span>
+					project{todayTotals.activeProjects === 1 ? '' : 's'}
+				</span>
+			{:else}
+				<span class="text-fg-subtle">No edits yet.</span>
+			{/if}
+			{#if todayTotals.editedThisWeek > todayTotals.editedToday}
+				<span class="text-fg-subtle" data-numeric>
+					· {todayTotals.editedThisWeek} this week
+				</span>
+			{/if}
+		</div>
+	{/if}
 
 	{#if continueCandidate}
 		<a
