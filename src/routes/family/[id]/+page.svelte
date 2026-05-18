@@ -7,6 +7,7 @@
 		deleteFamily,
 		findRegularSibling,
 		loadFamily,
+		loadSiblingFonts,
 		listSiblings,
 		propagateFamilyMetadata,
 		propagateKerningClasses,
@@ -14,8 +15,10 @@
 		syncAnchorsFromRegular,
 		syncMetricsFromRegular,
 		syncMissingClassesFromRegular,
+		unloadSiblingFonts,
 		unlinkProjectFromFamily
 	} from '$lib/font/family';
+	import { onDestroy } from 'svelte';
 	import { loadProject } from '$lib/font/project';
 	import { downloadFamilyBundle } from '$lib/font/family-export';
 	import { auditFamily, type FamilyIssue } from '$lib/font/family-audit';
@@ -233,6 +236,32 @@
 			propagating = false;
 		}
 	};
+
+	// Side-by-side comparison: build each sibling's font, register as FontFace,
+	// render the same string per sibling. Loaded on demand to avoid the upfront
+	// cost when the user is just managing the family.
+	let compareOpen = $state(false);
+	let compareLoading = $state(false);
+	let siblingFonts = $state<Map<string, string>>(new Map());
+	let compareText = $state('Hamburgefonstiv');
+	let compareSize = $state(48);
+	const toggleCompare = async () => {
+		if (compareOpen) {
+			compareOpen = false;
+			return;
+		}
+		compareLoading = true;
+		try {
+			siblingFonts = await loadSiblingFonts(data.family.id);
+			compareOpen = true;
+		} finally {
+			compareLoading = false;
+		}
+	};
+	onDestroy(() => {
+		// Clean up registered FontFaces when navigating away
+		unloadSiblingFonts();
+	});
 
 	let exporting = $state(false);
 	const handleExportBundle = async () => {
@@ -513,6 +542,72 @@
 					? 'Pushing…'
 					: `Push ${regularClassCount} class${regularClassCount === 1 ? '' : 'es'} to ${siblings.length - 1} sibling${siblings.length - 1 === 1 ? '' : 's'}`}
 			</Button>
+		</Panel>
+	{/if}
+
+	{#if siblings.length > 1}
+		<Panel class="mt-6">
+			<div class="mb-2 flex items-baseline justify-between gap-2">
+				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Side-by-side proof
+				</h2>
+				<Button
+					density="sm"
+					variant="ghost"
+					onclick={toggleCompare}
+					loading={compareLoading}
+				>
+					{compareOpen ? 'Hide' : compareLoading ? 'Building…' : 'Render all siblings'}
+				</Button>
+			</div>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Builds every sibling's OTF in-browser and renders the same string in each — the
+				canonical foundry proof for evaluating a family's consistency. Updates whenever you
+				rebuild a sibling and re-open this panel.
+			</p>
+			{#if compareOpen}
+				<div class="mb-3 grid grid-cols-[1fr_auto] items-center gap-2">
+					<input
+						bind:value={compareText}
+						placeholder="Hamburgefonstiv"
+						class="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+					/>
+					<label class="flex items-center gap-2 text-[11px] text-fg-muted">
+						<span>Size</span>
+						<input
+							type="range"
+							min="16"
+							max="120"
+							step="1"
+							bind:value={compareSize as number}
+							class="w-24 accent-accent"
+						/>
+						<span class="w-10 text-right font-mono text-[10px]" data-numeric>{compareSize}px</span>
+					</label>
+				</div>
+				<div class="grid gap-3 rounded-md border border-border bg-canvas p-4">
+					{#each siblings as s (s.id)}
+						{@const family = siblingFonts.get(s.id)}
+						<div>
+							<div
+								class="mb-1 flex items-baseline justify-between gap-2 text-[10px] font-mono text-fg-subtle"
+								data-numeric
+							>
+								<span>{s.name}</span>
+								<span>
+									{#if s.familyAxes?.wght}wght {s.familyAxes.wght}{/if}{#if s.familyAxes?.ital} · italic{/if}
+								</span>
+							</div>
+							<div
+								class="text-fg"
+								style="font-family: '{family}', sans-serif; font-size: {compareSize}px; line-height: 1.2;"
+							>
+								{compareText || ' '}
+							</div>
+						</div>
+					{/each}
+				</div>
+			{/if}
 		</Panel>
 	{/if}
 

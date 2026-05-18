@@ -305,6 +305,51 @@ export const propagateKerningClasses = async (familyId: string): Promise<number>
 };
 
 /**
+ * Build every sibling's OTF in-browser and register each as a FontFace with a
+ * unique CSS family name (e.g. `__family-<id>__regular`). The caller can then
+ * render the same text in every sibling's actual rendered font, side-by-side.
+ *
+ * Returns a map of sibling project id → CSS family name. Already-registered
+ * faces are returned without rebuilding. Caller can call `unloadSiblingFonts`
+ * to clean up when the comparison view is dismissed.
+ */
+const loadedFontFaces = new Map<string, FontFace>();
+export const loadSiblingFonts = async (familyId: string): Promise<Map<string, string>> => {
+	const sibs = await listSiblings(familyId);
+	const out = new Map<string, string>();
+	for (const s of sibs) {
+		const familyName = `__sibling-${s.id}__`;
+		out.set(s.id, familyName);
+		if (loadedFontFaces.has(s.id)) continue;
+		const project = await loadProject(s.id);
+		if (!project) continue;
+		const { buildFont } = await import('./export');
+		const { font } = buildFont(project);
+		const buffer = font.toArrayBuffer();
+		try {
+			const face = new FontFace(familyName, buffer);
+			await face.load();
+			document.fonts.add(face);
+			loadedFontFaces.set(s.id, face);
+		} catch (err) {
+			console.warn(`Failed to load sibling font ${s.id}:`, err);
+		}
+	}
+	return out;
+};
+
+export const unloadSiblingFonts = (): void => {
+	for (const face of loadedFontFaces.values()) {
+		try {
+			document.fonts.delete(face);
+		} catch {
+			// ignore
+		}
+	}
+	loadedFontFaces.clear();
+};
+
+/**
  * Slant every contour point of a glyph by `tan(slantDeg)` on X (the standard
  * shear-italic transform). Coordinates are rounded to integer font units. The
  * skew center is the baseline (y=0), matching foundry convention.
