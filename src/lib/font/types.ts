@@ -226,6 +226,8 @@ export type Project = {
 	locked?: boolean;
 	/** When true, the project floats to the top of the home page list. */
 	pinned?: boolean;
+	/** When true, the project is hidden from the default home list (toggle "Show archived"). */
+	archived?: boolean;
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
 	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */

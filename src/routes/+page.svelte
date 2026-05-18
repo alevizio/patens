@@ -7,6 +7,7 @@
 		listProjects,
 		saveProject,
 		toggleProjectPin,
+		toggleProjectArchive,
 		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
@@ -25,6 +26,8 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Pin from '@lucide/svelte/icons/pin';
+	import Archive from '@lucide/svelte/icons/archive';
+	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import PenTool from '@lucide/svelte/icons/pen-tool';
 	import Type from '@lucide/svelte/icons/type';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
@@ -57,7 +60,10 @@
 	let projectQuery = $state('');
 	let projectSort = $state<'updated' | 'name' | 'brief' | 'glyphs'>('updated');
 	let onlyToday = $state(false);
+	let showArchived = $state(false);
 	let loading = $state(true);
+
+	const archivedCount = $derived(projects.filter((p) => p.archived).length);
 
 	const filteredProjects = $derived.by(() => {
 		const q = projectQuery.trim().toLowerCase();
@@ -67,6 +73,7 @@
 						p.name.toLowerCase().includes(q) || p.familyName.toLowerCase().includes(q)
 				)
 			: [...projects];
+		if (!showArchived) filtered = filtered.filter((p) => !p.archived);
 		if (onlyToday) filtered = filtered.filter((p) => (p.editsToday ?? 0) > 0);
 		let sorted: ProjectIndexEntry[];
 		switch (projectSort) {
@@ -108,6 +115,11 @@
 
 	const handleTogglePin = async (id: string) => {
 		await toggleProjectPin(id);
+		await refresh();
+	};
+
+	const handleToggleArchive = async (id: string) => {
+		await toggleProjectArchive(id);
 		await refresh();
 	};
 
@@ -422,6 +434,19 @@
 					>
 						Today
 					</button>
+					{#if archivedCount > 0}
+						<button
+							type="button"
+							onclick={() => (showArchived = !showArchived)}
+							class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {showArchived
+								? 'border-accent bg-accent-soft text-accent'
+								: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
+							title={showArchived ? 'Hide archived projects' : 'Show archived projects'}
+						>
+							<Archive class="inline size-3 align-[-2px]" />
+							{showArchived ? 'Hide' : 'Show'} archived <span data-numeric>({archivedCount})</span>
+						</button>
+					{/if}
 					<select
 						bind:value={projectSort}
 						class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted outline-none focus:border-accent"
@@ -454,7 +479,9 @@
 				<ul class="grid gap-2">
 					{#each filteredProjects as p (p.id)}
 						<li
-							class="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-2"
+							class="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-2 {p.archived
+								? 'opacity-60'
+								: ''}"
 						>
 							<a
 								href="/project/{p.id}/edit"
@@ -566,6 +593,16 @@
 										aria-label="Duplicate"
 									>
 										{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+									</Button>
+									<Button
+										variant="ghost"
+										density="sm"
+										onclick={() => handleToggleArchive(p.id)}
+										aria-label={p.archived ? 'Unarchive' : 'Archive'}
+									>
+										{#snippet icon()}{#if p.archived}<ArchiveRestore
+													class="size-3.5"
+												/>{:else}<Archive class="size-3.5" />{/if}{/snippet}
 									</Button>
 									<Button
 										variant="ghost"

@@ -74,6 +74,8 @@ export type ProjectIndexEntry = {
 	lastSealedAt?: string;
 	/** When true, sorts to top of the home page. */
 	pinned?: boolean;
+	/** When true, hidden from home list unless "Show archived" is enabled. */
+	archived?: boolean;
 };
 
 const newId = () => crypto.randomUUID();
@@ -245,7 +247,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		kerningCount: p.kerning.length,
 		lastSealedVersion: p.changelog?.[0]?.version,
 		lastSealedAt: p.changelog?.[0]?.date,
-		pinned: p.pinned
+		pinned: p.pinned,
+		archived: p.archived
 	};
 };
 
@@ -288,6 +291,18 @@ export const toggleProjectPin = async (id: string): Promise<boolean> => {
 	filtered.push(indexEntry(next));
 	await set(INDEX_KEY, filtered, store);
 	return next.pinned === true;
+};
+
+export const toggleProjectArchive = async (id: string): Promise<boolean> => {
+	const value = await get<Project>(id, store);
+	if (!value) return false;
+	const next: Project = { ...value, archived: !value.archived };
+	await set(id, next, store);
+	const idx = (await get<ProjectIndexEntry[]>(INDEX_KEY, store)) ?? [];
+	const filtered = idx.filter((e) => e.id !== id);
+	filtered.push(indexEntry(next));
+	await set(INDEX_KEY, filtered, store);
+	return next.archived === true;
 };
 
 export const duplicateProject = async (id: string, newName?: string): Promise<Project | null> => {
