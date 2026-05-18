@@ -3,6 +3,7 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		createSibling,
+		createSlantedSibling,
 		deleteFamily,
 		findRegularSibling,
 		loadFamily,
@@ -78,6 +79,8 @@
 	let newItal = $state<0 | 1>(1);
 	let newWdth = $state<number>(100);
 	let templateId = $state<string>('');
+	let newSlantMode = $state<'blank' | 'slant'>('blank');
+	let newSlantDeg = $state<number>(12);
 	$effect(() => {
 		// Pre-pick the first sibling as template when none chosen
 		if (!templateId && siblings.length > 0) templateId = siblings[0].id;
@@ -117,12 +120,20 @@
 		const axes: FamilyAxes = {
 			wght: newWght,
 			ital: newItal,
-			wdth: newWdth
+			wdth: newWdth,
+			...(newSlantMode === 'slant' ? { slnt: -newSlantDeg } : {})
 		};
-		const sib = await createSibling(templateId, {
-			styleName: newStyleName.trim() || 'Untitled',
-			familyAxes: axes
-		});
+		const sib =
+			newSlantMode === 'slant'
+				? await createSlantedSibling(templateId, {
+						styleName: newStyleName.trim() || 'Untitled',
+						familyAxes: axes,
+						slantDeg: newSlantDeg
+					})
+				: await createSibling(templateId, {
+						styleName: newStyleName.trim() || 'Untitled',
+						familyAxes: axes
+					});
 		if (!sib) {
 			toast.error('Could not load the template project.');
 			return;
@@ -133,7 +144,7 @@
 		toast.success(`Created sibling "${sib.metadata.styleName}".`);
 		await refresh();
 		// Hop into the new sibling's editor
-		goto(`/project/${sib.id}/edit`);
+		await goto(`/project/${sib.id}/edit`);
 	};
 
 	const handleUnlinkSibling = async (id: string) => {
@@ -455,6 +466,49 @@
 			class structure, and anchors; resets all glyph contours to empty so you draw the new
 			style fresh.
 		</p>
+		<div class="mb-3 inline-flex rounded-md border border-border bg-surface p-0.5">
+			<button
+				type="button"
+				onclick={() => (newSlantMode = 'blank')}
+				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'blank'
+					? 'bg-accent-soft text-accent'
+					: 'text-fg-muted hover:text-fg'}"
+				title="Start from empty glyph contours"
+			>
+				Blank clone
+			</button>
+			<button
+				type="button"
+				onclick={() => (newSlantMode = 'slant')}
+				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'slant'
+					? 'bg-accent-soft text-accent'
+					: 'text-fg-muted hover:text-fg'}"
+				title="Pre-fill outlines by slanting the template — useful for italic siblings"
+			>
+				Slant from template
+			</button>
+		</div>
+		{#if newSlantMode === 'slant'}
+			<div class="mb-3 rounded-md border border-dashed border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px]">
+				<label class="flex items-center gap-2">
+					<span class="font-medium text-fg-muted">Slant angle</span>
+					<input
+						type="range"
+						min="6"
+						max="18"
+						step="1"
+						bind:value={newSlantDeg as number}
+						class="flex-1 accent-accent"
+					/>
+					<span class="font-mono text-[11px]" data-numeric>{newSlantDeg}°</span>
+				</label>
+				<p class="mt-1 text-[11px] text-fg-subtle">
+					Shears every contour and anchor by <code>tan({newSlantDeg}°)</code> ≈ <span data-numeric>{(Math.tan((newSlantDeg * Math.PI) / 180)).toFixed(3)}</span>.
+					Glyphs land as drafts so you can refine. Typical italic = 12°.
+				</p>
+			</div>
+		{/if}
+
 		<div class="mb-3 flex flex-wrap gap-1.5">
 			<span class="text-[11px] font-medium text-fg-muted">Preset:</span>
 			<button

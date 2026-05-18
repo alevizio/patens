@@ -216,6 +216,96 @@ export const propagateKerningClasses = async (familyId: string): Promise<number>
 };
 
 /**
+ * Slant every contour point of a glyph by `tan(slantDeg)` on X (the standard
+ * shear-italic transform). Coordinates are rounded to integer font units. The
+ * skew center is the baseline (y=0), matching foundry convention.
+ */
+const slantContours = (
+	contours: import('./types').BezierContour[],
+	slantDeg: number
+): import('./types').BezierContour[] => {
+	const k = Math.tan((slantDeg * Math.PI) / 180);
+	const shift = (x: number, y: number): { x: number; y: number } => ({
+		x: Math.round(x + y * k),
+		y
+	});
+	return contours.map((c) => ({
+		...c,
+		commands: c.commands.map((cmd) => {
+			if (cmd.type === 'Z') return cmd;
+			if (cmd.type === 'C') {
+				const p1 = shift(cmd.x1, cmd.y1);
+				const p2 = shift(cmd.x2, cmd.y2);
+				const p = shift(cmd.x, cmd.y);
+				return { ...cmd, x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, x: p.x, y: p.y };
+			}
+			if (cmd.type === 'Q') {
+				const p1 = shift(cmd.x1, cmd.y1);
+				const p = shift(cmd.x, cmd.y);
+				return { ...cmd, x1: p1.x, y1: p1.y, x: p.x, y: p.y };
+			}
+			const p = shift(cmd.x, cmd.y);
+			return { ...cmd, x: p.x, y: p.y };
+		})
+	}));
+};
+
+/**
+ * Create an italic sibling by slanting every contour from the template
+ * (typically the Regular). Skips empty glyphs; preserves anchors (with the same
+ * slant applied so they keep their relationship to the outlines).
+ */
+export const createSlantedSibling = async (
+	templateProjectId: string,
+	input: {
+		styleName: string;
+		familyAxes: Project['familyAxes'];
+		slantDeg: number;
+	}
+): Promise<Project | null> => {
+	const template = await loadProject(templateProjectId);
+	if (!template) return null;
+	const ts = now();
+	const k = Math.tan((input.slantDeg * Math.PI) / 180);
+	const slantedGlyphs: Project['glyphs'] = {};
+	for (const [cpStr, g] of Object.entries(template.glyphs)) {
+		const cp = Number(cpStr);
+		const hasContent = g.contours.length > 0;
+		slantedGlyphs[cp] = {
+			...g,
+			contours: hasContent ? slantContours(g.contours, input.slantDeg) : [],
+			anchors: (g.anchors ?? []).map((a) => ({
+				...a,
+				x: Math.round(a.x + a.y * k)
+			})),
+			// Drop sketch + components — they don't slant meaningfully
+			sketch: undefined,
+			components: undefined,
+			// Auto-italicized starts as 'draft' for content-bearing glyphs; designer
+			// refines from here.
+			status: hasContent ? 'draft' : 'empty',
+			updatedAt: ts
+		};
+	}
+	const sibling: Project = {
+		...template,
+		id: newId(),
+		name: `${template.metadata.familyName} ${input.styleName}`,
+		metadata: { ...template.metadata, styleName: input.styleName, version: '0.001' },
+		glyphs: slantedGlyphs,
+		kerning: [],
+		instances: [],
+		decisions: [],
+		changelog: [],
+		familyAxes: input.familyAxes,
+		createdAt: ts,
+		updatedAt: ts
+	};
+	await saveProject(sibling);
+	return sibling;
+};
+
+/**
  * Create a new sibling style by cloning an existing project. The clone keeps
  * the family's structure (UPM, metrics, kerning classes, anchors) but starts
  * with empty glyphs so the designer can draw the new style from scratch.
