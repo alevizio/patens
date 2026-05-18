@@ -22,6 +22,12 @@
 		projectStore.updateBrief({ useCases: next });
 	};
 
+	const countWords = (s: string | undefined): number => {
+		const trimmed = (s ?? '').trim();
+		if (!trimmed) return 0;
+		return trimmed.split(/\s+/).length;
+	};
+
 	let newRefName = $state('');
 	let newRefUrl = $state('');
 	let newRefKind = $state<'functional' | 'historical' | 'competitive'>('competitive');
@@ -86,6 +92,9 @@
 						rows="3"
 						class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					></textarea>
+					<div class="text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+						{countWords(brief.intent)} words · {(brief.intent ?? '').length} chars
+					</div>
 				</Field>
 
 				<Field
@@ -99,6 +108,9 @@
 						rows="2"
 						class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					></textarea>
+					<div class="text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+						{countWords(brief.audience)} words · {(brief.audience ?? '').length} chars
+					</div>
 				</Field>
 
 				<Field
@@ -113,6 +125,9 @@
 						rows="2"
 						class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					></textarea>
+					<div class="text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+						{countWords(brief.readingConditions)} words · {(brief.readingConditions ?? '').length} chars
+					</div>
 				</Field>
 			</Panel>
 
@@ -156,6 +171,9 @@
 						rows="3"
 						class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					></textarea>
+					<div class="text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+						{countWords(brief.differentiation)} words · {(brief.differentiation ?? '').length} chars
+					</div>
 				</Field>
 			</Panel>
 
@@ -174,9 +192,12 @@
 					rows="6"
 					class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm leading-[1.55] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 				></textarea>
-				<p class="mt-2 text-[11px] text-fg-subtle">
-					Appears in the Specimen between Cover and Character set when set.
-				</p>
+				<div class="mt-1 flex items-baseline justify-between gap-3 text-[11px] text-fg-subtle">
+					<span>Appears in the Specimen between Cover and Character set when set.</span>
+					<span class="font-mono text-[10px]" data-numeric>
+						{countWords(brief.designNotes)} words · {(brief.designNotes ?? '').length} chars
+					</span>
+				</div>
 		</Panel>
 
 		<Panel>
