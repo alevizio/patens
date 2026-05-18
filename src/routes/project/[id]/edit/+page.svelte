@@ -47,6 +47,7 @@
 	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
 	import RevisionsPanel from '$lib/glyph/RevisionsPanel.svelte';
 	import StemsPanel from '$lib/glyph/StemsPanel.svelte';
+	import MetricsInspector from '$lib/glyph/MetricsInspector.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -2125,6 +2126,8 @@
 			{/if}
 
 			<CompositeEditor />
+
+			<MetricsInspector />
 
 			<RevisionsPanel />
 
