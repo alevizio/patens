@@ -57,6 +57,20 @@
 	const id = $derived(page.params.id);
 	const currentPath = $derived(page.url.pathname);
 
+	// Persist the last visited tab per project so the home page can deep-link "Continue working".
+	$effect(() => {
+		const cp = currentPath;
+		const projectId = projectStore.project?.id;
+		if (!projectId) return;
+		const match = cp.match(/\/project\/[^/]+\/([^/?]+)/);
+		const slug = match?.[1] ?? 'edit';
+		try {
+			localStorage.setItem(`font-studio:last-tab:${projectId}`, slug);
+		} catch {
+			// localStorage may be unavailable; fail silently.
+		}
+	});
+
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
 	let shortcutsOpen = $state(false);

@@ -65,6 +65,23 @@
 
 	const archivedCount = $derived(projects.filter((p) => p.archived).length);
 
+	const lastVisitedSlug = (id: string): string => {
+		if (typeof localStorage === 'undefined') return 'edit';
+		try {
+			return localStorage.getItem(`font-studio:last-tab:${id}`) || 'edit';
+		} catch {
+			return 'edit';
+		}
+	};
+
+	const continueCandidate = $derived.by(() => {
+		const visible = projects.filter((p) => !p.archived);
+		if (visible.length === 0) return null;
+		const top = [...visible].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))[0];
+		if (!top) return null;
+		return { ...top, slug: lastVisitedSlug(top.id) };
+	});
+
 	const filteredProjects = $derived.by(() => {
 		const q = projectQuery.trim().toLowerCase();
 		let filtered = q
@@ -407,6 +424,40 @@
 			your browser. Every project is saved locally.
 		</p>
 	</header>
+
+	{#if continueCandidate}
+		<a
+			href="/project/{continueCandidate.id}/{continueCandidate.slug}"
+			class="group mb-6 flex items-center gap-4 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-accent hover:bg-surface-2"
+		>
+			<div
+				class="flex size-9 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent"
+			>
+				<PenTool class="size-4" />
+			</div>
+			<div class="min-w-0 flex-1">
+				<div class="flex items-baseline gap-2">
+					<span
+						class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+					>
+						Continue working
+					</span>
+					<span class="text-[11px] text-fg-subtle" data-numeric>
+						{continueCandidate.slug} · updated {formatRelative(continueCandidate.updatedAt)}
+					</span>
+				</div>
+				<div class="truncate text-[13px] font-medium text-fg">
+					{continueCandidate.name}
+					<span class="text-fg-muted">· {continueCandidate.familyName}</span>
+				</div>
+			</div>
+			<span
+				class="hidden text-[12px] text-fg-muted transition-colors group-hover:text-accent md:inline"
+			>
+				Resume →
+			</span>
+		</a>
+	{/if}
 
 	<div class="grid gap-6 lg:grid-cols-[1fr_320px]">
 		<Panel padding="md">
