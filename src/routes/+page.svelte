@@ -33,6 +33,7 @@
 	import Pin from '@lucide/svelte/icons/pin';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
+	import Layers from '@lucide/svelte/icons/layers';
 	import PenTool from '@lucide/svelte/icons/pen-tool';
 	import Type from '@lucide/svelte/icons/type';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
@@ -269,6 +270,17 @@
 	const handleToggleArchive = async (id: string) => {
 		await toggleProjectArchive(id);
 		await refresh();
+	};
+
+	const handleStartFamily = async (p: ProjectIndexEntry) => {
+		const { createFamily, linkProjectToFamily } = await import('$lib/font/family');
+		const family = await createFamily({
+			name: p.familyName || p.name
+		});
+		// Link the originating project as the "Regular" sibling.
+		await linkProjectToFamily(p.id, family.id, { wght: 400, ital: 0, wdth: 100 });
+		await refresh();
+		goto(`/family/${family.id}`);
 	};
 
 	const handleDeleteAllArchived = async () => {
@@ -893,6 +905,28 @@
 											{/each}
 										</div>
 									{/if}
+									{#if p.familyId}
+										<div class="mt-1">
+											<button
+												type="button"
+												onclick={(ev) => {
+													ev.preventDefault();
+													ev.stopPropagation();
+													goto(`/family/${p.familyId}`);
+												}}
+												class="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg"
+												title="Open family hub"
+											>
+												<Layers class="size-2.5" />
+												Family
+												{#if p.familyAxes}
+													<span class="font-mono" data-numeric>
+														{#if p.familyAxes.wght}{p.familyAxes.wght}{/if}{#if p.familyAxes.ital}i{/if}
+													</span>
+												{/if}
+											</button>
+										</div>
+									{/if}
 								</div>
 							</a>
 							<div class="flex shrink-0 gap-1">
@@ -1311,6 +1345,30 @@
 					Archive
 				{/if}
 			</button>
+			{#if menuTarget.familyId}
+				<a
+					role="menuitem"
+					href="/family/{menuTarget.familyId}"
+					onclick={closeMenu}
+					class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+				>
+					<Layers class="size-3.5" />
+					Open family
+				</a>
+			{:else}
+				<button
+					type="button"
+					role="menuitem"
+					onclick={() => {
+						handleStartFamily(menuTarget!);
+						closeMenu();
+					}}
+					class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+				>
+					<Layers class="size-3.5" />
+					Start family from this project…
+				</button>
+			{/if}
 			<button
 				type="button"
 				role="menuitem"
