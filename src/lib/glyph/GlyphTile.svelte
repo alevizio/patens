@@ -123,8 +123,12 @@
 	{/if}
 	{#if glyph.notes?.trim()}
 		<StickyNote
-			class="absolute bottom-1 right-1 size-2.5 text-accent"
-			aria-label="Has notes"
+			class="absolute bottom-1 right-1 size-2.5 {/(?:^|\W)(TODO|FIXME)\b/i.test(glyph.notes)
+				? 'text-warn'
+				: 'text-accent'}"
+			aria-label={/(?:^|\W)(TODO|FIXME)\b/i.test(glyph.notes ?? '')
+				? 'Note contains TODO/FIXME'
+				: 'Has notes'}
 		/>
 	{/if}
 	{#if incompatible}
