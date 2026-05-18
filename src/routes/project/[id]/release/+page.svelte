@@ -385,10 +385,34 @@
 								: `${totalChecks - passedChecks} manual check${totalChecks - passedChecks === 1 ? '' : 's'} still open${errors > 0 ? `, ${errors} pre-flight error${errors === 1 ? '' : 's'} to fix` : ''}.`}
 						</div>
 					</div>
-					<Button onclick={() => goto(`/project/${project.id}/export`)} disabled={!readyToShip}>
-						{#snippet icon()}<Rocket class="size-4" />{/snippet}
-						Go to Export
-					</Button>
+					<div class="flex items-center gap-2">
+						{#if readyToShip}
+							<button
+								type="button"
+								onclick={() => {
+									if (
+										confirm(
+											`Seal release v${project.metadata.version}? Locks the project read-only. Unlock from the header.`
+										)
+									) {
+										projectStore.addChangelogEntry({
+											version: project.metadata.version,
+											notes: '(Sealed release — see above for change set.)'
+										});
+										if (!project.locked) projectStore.toggleLock();
+										toast.success(`v${project.metadata.version} sealed.`);
+									}
+								}}
+								class="inline-flex items-center gap-1.5 rounded-md border border-warn bg-warn/15 px-3 py-1.5 text-[12px] font-medium text-warn hover:bg-warn/25"
+							>
+								Seal v{project.metadata.version}
+							</button>
+						{/if}
+						<Button onclick={() => goto(`/project/${project.id}/export`)} disabled={!readyToShip}>
+							{#snippet icon()}<Rocket class="size-4" />{/snippet}
+							Go to Export
+						</Button>
+					</div>
 				</div>
 			</Panel>
 		</div>
