@@ -181,6 +181,7 @@ class ProjectStore {
 
 	updateGlyph(codepoint: number, mut: (g: Glyph) => Glyph) {
 		if (!this.project) return;
+		const drawnBefore = this.countDrawnGlyphs();
 		if (this.selectedMasterId) {
 			// Route to the additional master
 			this.project = updateMasterGlyph(this.project, this.selectedMasterId, codepoint, mut);
@@ -195,6 +196,40 @@ class ProjectStore {
 			};
 		}
 		this.touch();
+		this.checkMilestone(drawnBefore);
+	}
+
+	private countDrawnGlyphs(): number {
+		if (!this.project) return 0;
+		return Object.values(this.project.glyphs).filter((g) => g.contours.length > 0).length;
+	}
+
+	private milestoneKey(): string {
+		return `font-studio:milestones:${this.project?.id ?? ''}`;
+	}
+
+	private checkMilestone(drawnBefore: number) {
+		if (!this.project || typeof localStorage === 'undefined') return;
+		const drawnAfter = this.countDrawnGlyphs();
+		if (drawnAfter <= drawnBefore) return; // only celebrate going up
+		const milestones = [5, 10, 25, 50, 100, 200];
+		let celebrated: number[] = [];
+		try {
+			celebrated = JSON.parse(localStorage.getItem(this.milestoneKey()) ?? '[]') as number[];
+		} catch {
+			/* ignore */
+		}
+		for (const m of milestones) {
+			if (drawnBefore < m && drawnAfter >= m && !celebrated.includes(m)) {
+				celebrated.push(m);
+				localStorage.setItem(this.milestoneKey(), JSON.stringify(celebrated));
+				// Lazy-import the toast to avoid a circular dep through types-only modules
+				import('./toast.svelte').then(({ toast }) => {
+					toast.success(`${m} glyphs drawn — keep going.`);
+				});
+				break;
+			}
+		}
 	}
 
 	updateMetadata(mut: Partial<Project['metadata']>) {
