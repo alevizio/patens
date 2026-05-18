@@ -75,6 +75,15 @@
 		}).length;
 	});
 
+	const editsThisWeek = $derived.by(() => {
+		if (!project) return 0;
+		const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+		return Object.values(project.glyphs).filter((g) => {
+			const t = Date.parse(g.updatedAt);
+			return Number.isFinite(t) && t >= weekAgo;
+		}).length;
+	});
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -169,6 +178,8 @@
 				<dd class="text-right font-mono text-fg" data-numeric>{notesCount}</dd>
 				<dt class="text-fg-muted">Edited today</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{editsToday}</dd>
+				<dt class="text-fg-muted">Edited this week</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{editsThisWeek}</dd>
 				<dt class="text-fg-muted">Flagged</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>
 					{#if flaggedCount > 0}
