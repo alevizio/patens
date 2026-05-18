@@ -13,7 +13,7 @@
 		getPythonProgress
 	} from '$lib/font/python';
 	import { autoFeaSource } from '$lib/font/fea';
-	import { resolveVerticalMetrics } from '$lib/font/types';
+	import { resolveVerticalMetrics, FS_TYPE_OPTIONS } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -734,6 +734,38 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				>
 					Personal use only
 				</button>
+			</div>
+
+			{@const currentFsType = project.metadata.fsType ?? 0}
+			<div class="mt-4 grid gap-2 border-t border-border pt-3">
+				<div class="flex items-baseline justify-between gap-2">
+					<span class="text-[12px] font-medium text-fg-muted">
+						OS/2 <span class="font-mono">fsType</span> (embedding permissions)
+					</span>
+					<a
+						href="https://learn.microsoft.com/en-us/typography/opentype/spec/os2#fstype"
+						target="_blank"
+						rel="noopener"
+						class="text-[10px] text-fg-subtle hover:text-accent"
+					>
+						spec ↗
+					</a>
+				</div>
+				<select
+					value={currentFsType}
+					onchange={(e) =>
+						projectStore.updateMetadata({
+							fsType: Number(e.currentTarget.value) as 0 | 2 | 4 | 8
+						})}
+					class="rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+				>
+					{#each FS_TYPE_OPTIONS as opt (opt.value)}
+						<option value={opt.value}>{opt.label}</option>
+					{/each}
+				</select>
+				<p class="text-[11px] text-fg-subtle">
+					{FS_TYPE_OPTIONS.find((o) => o.value === currentFsType)?.hint}
+				</p>
 			</div>
 		</Panel>
 

@@ -240,6 +240,13 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		font.kerningPairs = pairs;
 	}
 
+	// OS/2.fsType — embedding bits. Default 0 (installable, no restrictions) per
+	// Google Fonts' OFL requirement; users can opt into restricted/preview/editable.
+	const os2 = (font.tables as Record<string, unknown> | undefined)?.os2 as
+		| { fsType?: number }
+		| undefined;
+	if (os2) os2.fsType = metadata.fsType ?? 0;
+
 	return { font, indexByCodepoint, glyphCount: glyphs.length };
 };
 

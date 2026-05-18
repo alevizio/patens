@@ -153,7 +153,21 @@ export type FontMetadata = {
 	copyright: string;
 	license: string;
 	version: string;
+	/**
+	 * OS/2.fsType embedding bits — controls how desktop apps embed the font.
+	 * 0 = Installable (Google Fonts requirement for libre fonts);
+	 * 2 = Restricted; 4 = Preview & Print; 8 = Editable.
+	 * Undefined defaults to 0 at build time.
+	 */
+	fsType?: 0 | 2 | 4 | 8;
 };
+
+export const FS_TYPE_OPTIONS: Array<{ value: 0 | 2 | 4 | 8; label: string; hint: string }> = [
+	{ value: 0, label: 'Installable embedding (0)', hint: 'No restrictions — required by Google Fonts for OFL projects.' },
+	{ value: 2, label: 'Restricted (2)', hint: 'No embedding without explicit permission. Commercial-restrictive.' },
+	{ value: 4, label: 'Preview & Print (4)', hint: 'Documents may embed but text is read-only when embedded.' },
+	{ value: 8, label: 'Editable (8)', hint: 'Documents may embed and text remains editable downstream.' }
+];
 
 export type ProjectFeatures = {
 	kern: boolean;
