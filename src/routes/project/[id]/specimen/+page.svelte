@@ -88,6 +88,18 @@
 				</div>
 			</section>
 
+			{#if project.brief?.designNotes?.trim()}
+				<!-- Design notes (Hoefler-style essay) -->
+				<section class="page">
+					<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
+						Design notes
+					</h2>
+					<div class="max-w-prose whitespace-pre-line text-[15px] leading-[1.65] text-neutral-800">
+						{project.brief.designNotes}
+					</div>
+				</section>
+			{/if}
+
 			<!-- Character set -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">

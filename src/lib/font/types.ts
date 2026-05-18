@@ -245,6 +245,8 @@ export type ProjectBrief = {
 	readingConditions?: string;
 	differentiation?: string;
 	references?: BriefReference[];
+	/** Editorial "design notes" essay — Hoefler-style narrative shown on the specimen. */
+	designNotes?: string;
 };
 
 export type UseCase =

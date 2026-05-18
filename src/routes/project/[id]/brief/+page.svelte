@@ -161,6 +161,26 @@
 
 			<Panel>
 				<h2 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Design notes
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					The editorial story behind the typeface — the kind of essay that lives at the
+					top of a foundry's specimen page. Markdown-light, kept whole.
+				</p>
+				<textarea
+					value={brief.designNotes ?? ''}
+					oninput={(e) => projectStore.updateBrief({ designNotes: e.currentTarget.value })}
+					placeholder={`e.g., A digital-first reading face whose proportions were derived from… The italic was drawn first and informed the upright via shared stress angles… Vietnamese diacritics use a single shared shape across two-storey marks…`}
+					rows="6"
+					class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm leading-[1.55] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+				></textarea>
+				<p class="mt-2 text-[11px] text-fg-subtle">
+					Appears in the Specimen between Cover and Character set when set.
+				</p>
+		</Panel>
+
+		<Panel>
+				<h2 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Reference corpus ({brief.references?.length ?? 0})
 				</h2>
 				<p class="mb-3 text-[12px] text-fg-subtle">
