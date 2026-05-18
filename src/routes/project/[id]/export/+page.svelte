@@ -213,6 +213,31 @@ body {
 		}
 	};
 
+	let bundleBusy = $state(false);
+	/**
+	 * Export the full release bundle in one go: OTF + WOFF2 + HTML test page +
+	 * .font.json. Sequential downloads — most browsers allow multiple downloads
+	 * after the user explicitly clicks the bundle button.
+	 */
+	const exportAll = async () => {
+		if (!project || bundleBusy) return;
+		bundleBusy = true;
+		try {
+			await exportOtf();
+			await new Promise((r) => setTimeout(r, 350));
+			await exportWoff2();
+			await new Promise((r) => setTimeout(r, 350));
+			await exportTestPage();
+			await new Promise((r) => setTimeout(r, 350));
+			exportProjectJson();
+			toast.success('Release bundle: 4 files downloaded.');
+		} catch (err) {
+			toast.error('Bundle export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			bundleBusy = false;
+		}
+	};
+
 	const exportVf = async () => {
 		if (!project || !isVariable) return;
 		vfBusy = true;
@@ -789,6 +814,15 @@ document.querySelectorAll('.controls button').forEach((b) => {
 			<h2 class="mb-4 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 				Download
 			</h2>
+			<div class="mb-3 flex items-center gap-3 rounded-md border border-accent/30 bg-accent-soft/30 px-3 py-2">
+				<Button onclick={exportAll} disabled={!validation.ok || bundleBusy} loading={bundleBusy}>
+					{#snippet icon()}<Download class="size-4" />{/snippet}
+					{bundleBusy ? 'Bundling…' : 'Export release bundle'}
+				</Button>
+				<span class="text-[12px] text-fg-muted">
+					4 downloads in sequence: OTF + WOFF2 + HTML test page + .font.json
+				</span>
+			</div>
 			<div class="grid gap-2">
 				<div class="flex items-center gap-3">
 					<Button onclick={exportOtf} disabled={!validation.ok}>
