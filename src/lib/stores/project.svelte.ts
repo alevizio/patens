@@ -62,6 +62,16 @@ class ProjectStore {
 		}
 		const upper = codepoints.find((cp) => cp >= 0x0041 && cp <= 0x005a);
 		this.selectedCodepoint = initial ?? upper ?? codepoints[0] ?? 0x0041;
+		try {
+			const masterId = localStorage.getItem(`font-studio:last-master:${project.id}`);
+			if (masterId && (project.masters ?? []).some((m) => m.id === masterId)) {
+				this.selectedMasterId = masterId;
+			} else {
+				this.selectedMasterId = undefined;
+			}
+		} catch {
+			this.selectedMasterId = undefined;
+		}
 		// Seed history with the loaded state
 		this.undoStack = [JSON.parse(JSON.stringify(project)) as Project];
 		this.redoStack = [];
@@ -187,6 +197,14 @@ class ProjectStore {
 
 	selectMaster(id: string | undefined) {
 		this.selectedMasterId = id;
+		if (!this.project) return;
+		try {
+			const key = `font-studio:last-master:${this.project.id}`;
+			if (id) localStorage.setItem(key, id);
+			else localStorage.removeItem(key);
+		} catch {
+			/* ignore */
+		}
 	}
 
 	selectGlyph(codepoint: number) {
