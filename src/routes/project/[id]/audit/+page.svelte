@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		auditProject,
 		preflightProject,
@@ -9,6 +10,7 @@
 		type AuditIssue,
 		type AuditSeverity
 	} from '$lib/font/audit';
+	import { glyphBounds } from '$lib/font/path';
 	import Panel from '$lib/ui/Panel.svelte';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -16,6 +18,7 @@
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import Search from '@lucide/svelte/icons/search';
 	import ListChecks from '@lucide/svelte/icons/list-checks';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
 
 	const project = $derived(projectStore.project);
 
@@ -74,6 +77,63 @@
 		if (!project || cp === 0 || !project.glyphs[cp]) return;
 		projectStore.selectGlyph(cp);
 		goto(`/project/${project.id}/edit`);
+	};
+
+	const FIXABLE_CODES = new Set([
+		'open-contour',
+		'overflows-advance',
+		'zero-advance',
+		'naming-version',
+		'metrics-asc-mismatch',
+		'metrics-desc-mismatch',
+		'metrics-gap-mismatch',
+		'metrics-use-typo-off'
+	]);
+
+	const fixIssue = (issue: AuditIssue) => {
+		if (!project) return;
+		switch (issue.code) {
+			case 'open-contour': {
+				projectStore.updateGlyph(issue.codepoint, (g) => ({
+					...g,
+					contours: g.contours.map((c) => (c.closed ? c : { ...c, closed: true }))
+				}));
+				toast.success('Closed open contours');
+				return;
+			}
+			case 'overflows-advance':
+			case 'zero-advance': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g || g.contours.length === 0) return;
+				const b = glyphBounds(g.contours);
+				const sb = project.metrics.defaultSidebearing;
+				const target = Math.max(1, Math.round(b.maxX) + sb);
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, advanceWidth: target }));
+				toast.success(`Set advance to ${target}`);
+				return;
+			}
+			case 'naming-version': {
+				projectStore.updateMetadata({ version: '1.000' });
+				toast.success('Version set to 1.000');
+				return;
+			}
+			case 'metrics-asc-mismatch':
+			case 'metrics-desc-mismatch':
+			case 'metrics-gap-mismatch': {
+				projectStore.updateMetrics({
+					hheaAscender: project.metrics.typoAscender ?? project.metrics.ascender,
+					hheaDescender: project.metrics.typoDescender ?? project.metrics.descender,
+					hheaLineGap: project.metrics.typoLineGap ?? 0
+				});
+				toast.success('hhea metrics synced to typo metrics');
+				return;
+			}
+			case 'metrics-use-typo-off': {
+				projectStore.updateMetrics({ useTypoMetrics: true });
+				toast.success('USE_TYPO_METRICS enabled');
+				return;
+			}
+		}
 	};
 
 	const labelFor = (cp: number) => {
@@ -172,6 +232,16 @@
 											<div class="min-w-0 flex-1">
 												<div class="text-[12px] text-fg">{i.message}</div>
 											</div>
+											{#if FIXABLE_CODES.has(i.code)}
+												<button
+													type="button"
+													onclick={() => fixIssue(i)}
+													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+													title="Apply automatic fix"
+												>
+													<Wand class="size-2.5" /> Fix
+												</button>
+											{/if}
 											{#if i.codepoint > 0 && project.glyphs[i.codepoint]}
 												<button
 													type="button"
