@@ -48,8 +48,20 @@ class ProjectStore {
 		this.project = project;
 		this.dirty = false;
 		const codepoints = Object.keys(project.glyphs).map(Number);
+		// Restore last-selected glyph from localStorage if it's still in the set;
+		// otherwise default to the first uppercase Latin glyph that exists.
+		let initial: number | undefined;
+		try {
+			const stored = localStorage.getItem(`font-studio:last-cp:${project.id}`);
+			if (stored) {
+				const cp = Number(stored);
+				if (Number.isFinite(cp) && project.glyphs[cp]) initial = cp;
+			}
+		} catch {
+			/* ignore */
+		}
 		const upper = codepoints.find((cp) => cp >= 0x0041 && cp <= 0x005a);
-		this.selectedCodepoint = upper ?? codepoints[0] ?? 0x0041;
+		this.selectedCodepoint = initial ?? upper ?? codepoints[0] ?? 0x0041;
 		// Seed history with the loaded state
 		this.undoStack = [JSON.parse(JSON.stringify(project)) as Project];
 		this.redoStack = [];
@@ -179,7 +191,14 @@ class ProjectStore {
 
 	selectGlyph(codepoint: number) {
 		if (!this.project) return;
-		if (this.project.glyphs[codepoint]) this.selectedCodepoint = codepoint;
+		if (this.project.glyphs[codepoint]) {
+			this.selectedCodepoint = codepoint;
+			try {
+				localStorage.setItem(`font-studio:last-cp:${this.project.id}`, String(codepoint));
+			} catch {
+				/* ignore */
+			}
+		}
 	}
 
 	toggleLock() {
