@@ -30,6 +30,10 @@ export type TraceOptions = {
 	cubicMaxError?: number;
 	/** Drop contours shorter than this (in points). Default 8. */
 	minPoints?: number;
+	/** Brightness adjustment, -100 to 100. Default 0. */
+	brightness?: number;
+	/** Contrast adjustment, -100 to 100. Default 0. */
+	contrast?: number;
 };
 
 const DEFAULTS: Required<TraceOptions> = {
@@ -38,7 +42,9 @@ const DEFAULTS: Required<TraceOptions> = {
 	maxDimension: 480,
 	simplifyTolerance: 1.5,
 	cubicMaxError: 4,
-	minPoints: 8
+	minPoints: 8,
+	brightness: 0,
+	contrast: 0
 };
 
 type Point = { x: number; y: number };
@@ -71,6 +77,16 @@ export const traceBitmapToContours = async (
 	ctx.drawImage(img, 0, 0, w, h);
 	const data = ctx.getImageData(0, 0, w, h).data;
 
+	// Apply brightness + contrast in -100..100 space, then threshold.
+	// brightness: shifts the curve up/down by ±brightness*1.275 in 0..255 space.
+	// contrast: scales around the midpoint (128). +100 = 2× contrast, -100 = 0.
+	const bAdd = (opts.brightness / 100) * 127.5;
+	const cMul = 1 + opts.contrast / 100;
+	const adjust = (v: number) => {
+		const stretched = (v - 128) * cMul + 128 + bAdd;
+		return stretched < 0 ? 0 : stretched > 255 ? 255 : stretched;
+	};
+
 	// Binary mask: 1 = ink, 0 = background. Includes a 1-px border of 0s so
 	// boundary tracing doesn't run off the edge.
 	const stride = w + 2;
@@ -80,7 +96,8 @@ export const traceBitmapToContours = async (
 			const o = (y * w + x) * 4;
 			const a = data[o + 3];
 			if (a < 32) continue; // transparent pixels = background
-			const lum = 0.299 * data[o] + 0.587 * data[o + 1] + 0.114 * data[o + 2];
+			const lumRaw = 0.299 * data[o] + 0.587 * data[o + 1] + 0.114 * data[o + 2];
+			const lum = adjust(lumRaw);
 			const isDark = lum < opts.threshold;
 			const isInk = opts.darkIsInk ? isDark : !isDark;
 			if (isInk) mask[(y + 1) * stride + (x + 1)] = 1;

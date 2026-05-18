@@ -64,6 +64,8 @@
 	let traceDarkIsInk = $state(true);
 	let traceFitMetrics = $state(true);
 	let traceReplace = $state(true);
+	let traceBrightness = $state(0);
+	let traceContrast = $state(0);
 	const runTrace = async () => {
 		if (!glyph?.referenceImage || tracing) return;
 		tracing = true;
@@ -72,7 +74,12 @@
 			const contours = await traceBitmapToContours(
 				ri.src,
 				{ x: ri.x, y: ri.y, width: ri.width, height: ri.height },
-				{ threshold: traceThreshold, darkIsInk: traceDarkIsInk }
+				{
+					threshold: traceThreshold,
+					darkIsInk: traceDarkIsInk,
+					brightness: traceBrightness,
+					contrast: traceContrast
+				}
 			);
 			if (contours.length === 0) {
 				toast.warn('No contours detected — try adjusting the threshold or inverting dark/light.');
@@ -254,6 +261,34 @@
 						class="mt-1 h-1 w-full accent-accent"
 					/>
 					<span class="font-mono text-fg" data-numeric>{traceThreshold}</span>
+				</label>
+				<label class="mt-1 block text-[10px] text-fg-subtle">
+					Brightness
+					<input
+						type="range"
+						min={-100}
+						max={100}
+						step={5}
+						bind:value={traceBrightness}
+						class="mt-1 h-1 w-full accent-accent"
+					/>
+					<span class="font-mono text-fg" data-numeric>
+						{traceBrightness > 0 ? '+' : ''}{traceBrightness}
+					</span>
+				</label>
+				<label class="mt-1 block text-[10px] text-fg-subtle">
+					Contrast
+					<input
+						type="range"
+						min={-100}
+						max={100}
+						step={5}
+						bind:value={traceContrast}
+						class="mt-1 h-1 w-full accent-accent"
+					/>
+					<span class="font-mono text-fg" data-numeric>
+						{traceContrast > 0 ? '+' : ''}{traceContrast}
+					</span>
 				</label>
 				<label class="mt-1 flex items-center gap-1.5 text-[10px] text-fg-muted">
 					<input type="checkbox" bind:checked={traceDarkIsInk} class="accent-accent" />
