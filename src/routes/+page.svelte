@@ -368,6 +368,11 @@
 											p.updatedAt
 										)}
 									</div>
+									{#if p.tagline}
+										<div class="mt-0.5 truncate text-[11px] italic text-fg-subtle">
+											{p.tagline}
+										</div>
+									{/if}
 								</div>
 							</a>
 							<div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">

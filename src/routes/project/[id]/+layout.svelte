@@ -152,6 +152,11 @@
 								<div class="truncate text-[11px] text-fg-subtle" data-numeric>
 									{p.familyName} · {p.glyphCount} drawn
 								</div>
+								{#if p.tagline}
+									<div class="mt-0.5 truncate text-[10px] italic text-fg-subtle">
+										{p.tagline}
+									</div>
+								{/if}
 							</div>
 						</a>
 					{/each}

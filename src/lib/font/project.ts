@@ -50,6 +50,8 @@ export type ProjectIndexEntry = {
 	createdAt: string;
 	updatedAt: string;
 	glyphCount: number;
+	/** First line of brief.intent or project.description — surfaces project's purpose. */
+	tagline?: string;
 	/** SVG path of the first drawn glyph + its viewBox — for thumbnail preview on the home page. */
 	thumbnail?: { path: string; viewBox: string; advance: number };
 };
@@ -168,6 +170,10 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 			advance: pick.advanceWidth
 		};
 	}
+	const taglineRaw = (p.brief?.intent ?? p.description ?? '').trim();
+	const tagline = taglineRaw
+		? taglineRaw.split(/\r?\n/)[0].trim().slice(0, 140)
+		: undefined;
 	return {
 		id: p.id,
 		name: p.name,
@@ -177,6 +183,7 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		glyphCount: Object.values(p.glyphs).filter(
 			(g) => g.contours.length > 0 || (g.components && g.components.length > 0)
 		).length,
+		tagline,
 		thumbnail
 	};
 };
