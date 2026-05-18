@@ -162,6 +162,50 @@ export const propagateFamilyMetadata = async (familyId: string): Promise<number>
 };
 
 /**
+ * Find the canonical "Regular" sibling — `wght=400 ital=0`. Falls back to the
+ * first sibling when no exact match exists. Used as the source of truth for
+ * family-wide structural decisions (kerning classes, anchors).
+ */
+export const findRegularSibling = async (familyId: string) => {
+	const siblings = await listSiblings(familyId);
+	const exact = siblings.find(
+		(s) =>
+			(s.familyAxes?.wght ?? 400) === 400 &&
+			!s.familyAxes?.ital &&
+			(s.familyAxes?.wdth ?? 100) === 100
+	);
+	return exact ?? siblings[0] ?? null;
+};
+
+/**
+ * Push the Regular sibling's kerning class *definitions* (names + members) to
+ * every other sibling. The *pair values* in each sibling stay independent —
+ * only the class shape propagates. Returns the number of siblings updated.
+ */
+export const propagateKerningClasses = async (familyId: string): Promise<number> => {
+	const regular = await findRegularSibling(familyId);
+	if (!regular) return 0;
+	const regularProject = await loadProject(regular.id);
+	if (!regularProject) return 0;
+	const sourceClasses = regularProject.classes ?? [];
+	const siblings = await listSiblings(familyId);
+	let count = 0;
+	for (const s of siblings) {
+		if (s.id === regular.id) continue;
+		const p = await loadProject(s.id);
+		if (!p) continue;
+		// Deep clone to avoid sharing refs across IndexedDB writes.
+		const next: Project = {
+			...p,
+			classes: sourceClasses.map((c) => ({ ...c, members: [...c.members] }))
+		};
+		await saveProject(next);
+		count++;
+	}
+	return count;
+};
+
+/**
  * Create a new sibling style by cloning an existing project. The clone keeps
  * the family's structure (UPM, metrics, kerning classes, anchors) but starts
  * with empty glyphs so the designer can draw the new style from scratch.

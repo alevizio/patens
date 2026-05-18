@@ -4,12 +4,13 @@
 	import {
 		createSibling,
 		deleteFamily,
+		findRegularSibling,
 		loadFamily,
 		listSiblings,
 		propagateFamilyMetadata,
+		propagateKerningClasses,
 		saveFamily,
-		unlinkProjectFromFamily,
-		type FamilyIndexEntry
+		unlinkProjectFromFamily
 	} from '$lib/font/family';
 	import { loadProject } from '$lib/font/project';
 	import { downloadFamilyBundle } from '$lib/font/family-export';
@@ -138,6 +139,37 @@
 		if (!ok) return;
 		await unlinkProjectFromFamily(id);
 		await refresh();
+	};
+
+	let regularClassCount = $state(0);
+	$effect(() => {
+		void siblings.length;
+		(async () => {
+			const reg = await findRegularSibling(data.family.id);
+			if (!reg) {
+				regularClassCount = 0;
+				return;
+			}
+			const { loadProject: lp } = await import('$lib/font/project');
+			const p = await lp(reg.id);
+			regularClassCount = p?.classes?.length ?? 0;
+		})();
+	});
+
+	let propagating = $state(false);
+	const handlePropagateClasses = async () => {
+		if (propagating) return;
+		propagating = true;
+		try {
+			const updated = await propagateKerningClasses(data.family.id);
+			toast.success(
+				updated > 0
+					? `Pushed ${regularClassCount} class${regularClassCount === 1 ? '' : 'es'} to ${updated} sibling${updated === 1 ? '' : 's'}.`
+					: 'No other siblings to update.'
+			);
+		} finally {
+			propagating = false;
+		}
 	};
 
 	let exporting = $state(false);
@@ -372,6 +404,35 @@
 			</ul>
 		{/if}
 	</Panel>
+
+	{#if siblings.length > 1}
+		<Panel class="mt-6">
+			<div class="mb-2 flex items-baseline justify-between gap-2">
+				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Kerning class structure
+				</h2>
+				<span class="font-mono text-[11px] text-fg-muted" data-numeric>
+					{regularClassCount} class{regularClassCount === 1 ? '' : 'es'} in Regular
+				</span>
+			</div>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Class <em>definitions</em> (names + members) should match across siblings so kerning
+				groups stay aligned. Push the Regular sibling's class structure to every other
+				sibling — pair values stay per-style.
+			</p>
+			<Button
+				density="sm"
+				variant="secondary"
+				onclick={handlePropagateClasses}
+				disabled={propagating || regularClassCount === 0}
+				loading={propagating}
+			>
+				{propagating
+					? 'Pushing…'
+					: `Push ${regularClassCount} class${regularClassCount === 1 ? '' : 'es'} to ${siblings.length - 1} sibling${siblings.length - 1 === 1 ? '' : 's'}`}
+			</Button>
+		</Panel>
+	{/if}
 
 	<Panel class="mt-6">
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
