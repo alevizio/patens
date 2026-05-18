@@ -141,6 +141,16 @@
 		return [...set].filter((t) => !currentTags.includes(t));
 	});
 
+	const projectFileSizeKb = $derived.by(() => {
+		if (!project) return 0;
+		try {
+			// JSON.stringify works on the $state proxy without unwrapping for this size estimate.
+			return JSON.stringify(project).length / 1024;
+		} catch {
+			return 0;
+		}
+	});
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -380,6 +390,10 @@
 				<dt class="text-fg-muted">Last build</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>
 					{previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(0)}ms
+				</dd>
+				<dt class="text-fg-muted">Project file</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>
+					{projectFileSizeKb.toFixed(1)} KB JSON
 				</dd>
 			</dl>
 
