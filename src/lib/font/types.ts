@@ -220,6 +220,8 @@ export type Project = {
 	releaseChecks?: Record<string, boolean>;
 	/** Versioned release notes — one entry per shipped version. */
 	changelog?: ChangelogEntry[];
+	/** Which specimen sections render. Unset = all on. */
+	specimenSections?: Record<string, boolean>;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */

@@ -251,6 +251,15 @@ class ProjectStore {
 		this.touch();
 	}
 
+	toggleSpecimenSection(id: string) {
+		if (!this.project) return;
+		const cur = this.project.specimenSections ?? {};
+		// undefined means "on"; once toggled, store explicit boolean
+		const next = { ...cur, [id]: !(cur[id] ?? true) };
+		this.project = { ...this.project, specimenSections: next };
+		this.touch();
+	}
+
 	toggleReleaseCheck(id: string) {
 		if (!this.project) return;
 		const next = { ...(this.project.releaseChecks ?? {}) };

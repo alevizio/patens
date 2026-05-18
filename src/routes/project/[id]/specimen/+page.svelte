@@ -27,6 +27,19 @@
 	});
 
 	const printPage = () => window.print();
+
+	const SECTIONS = [
+		{ id: 'cover', label: 'Cover' },
+		{ id: 'design-notes', label: 'Design notes' },
+		{ id: 'character-set', label: 'Character set' },
+		{ id: 'display', label: 'Display' },
+		{ id: 'waterfall', label: 'Waterfall' },
+		{ id: 'paragraph', label: 'Paragraph' },
+		{ id: 'pangrams', label: 'Pangrams' },
+		{ id: 'colophon', label: 'Colophon' }
+	];
+	const isSectionOn = (id: string): boolean =>
+		(projectStore.project?.specimenSections?.[id] ?? true) !== false;
 </script>
 
 <svelte:head>
@@ -37,9 +50,24 @@
 	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
 {:else}
 	<div class="h-full overflow-auto bg-canvas">
-		<div class="screen-toolbar sticky top-0 z-10 flex items-center justify-between border-b border-border bg-surface px-6 py-2.5">
+		<div class="screen-toolbar sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-6 py-2.5">
 			<div class="text-[12px] text-fg-muted">
 				Specimen — {drawnGlyphs.length} drawn glyphs · {previewStore.sizeKb.toFixed(1)} KB
+			</div>
+			<div class="flex flex-wrap items-center gap-1">
+				<span class="text-[11px] text-fg-subtle">Sections:</span>
+				{#each SECTIONS as s (s.id)}
+					{@const on = isSectionOn(s.id)}
+					<button
+						type="button"
+						onclick={() => projectStore.toggleSpecimenSection(s.id)}
+						class="rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors {on
+							? 'border-accent/40 bg-accent-soft text-accent'
+							: 'border-border bg-surface-2/40 text-fg-subtle hover:border-border-strong hover:text-fg'}"
+					>
+						{s.label}
+					</button>
+				{/each}
 			</div>
 			<button
 				type="button"
@@ -51,6 +79,7 @@
 		</div>
 
 		<div class="specimen mx-auto bg-white text-black">
+			{#if isSectionOn('cover')}
 			<!-- Cover -->
 			<section class="page">
 				<header class="mb-12 flex items-baseline justify-between">
@@ -87,8 +116,9 @@
 					</div>
 				</div>
 			</section>
+			{/if}
 
-			{#if project.brief?.designNotes?.trim()}
+			{#if isSectionOn('design-notes') && project.brief?.designNotes?.trim()}
 				<!-- Design notes (Hoefler-style essay) -->
 				<section class="page">
 					<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
@@ -100,6 +130,7 @@
 				</section>
 			{/if}
 
+			{#if isSectionOn('character-set')}
 			<!-- Character set -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
@@ -111,7 +142,9 @@
 					{/each}
 				</div>
 			</section>
+			{/if}
 
+			{#if isSectionOn('display')}
 			<!-- Display block -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">Display</h2>
@@ -123,7 +156,9 @@
 					</div>
 				</div>
 			</section>
+			{/if}
 
+			{#if isSectionOn('waterfall')}
 			<!-- Waterfall -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">Waterfall</h2>
@@ -140,7 +175,9 @@
 					{/each}
 				</div>
 			</section>
+			{/if}
 
+			{#if isSectionOn('paragraph')}
 			<!-- Paragraph -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
@@ -156,7 +193,9 @@
 					{PARAGRAPH}
 				</p>
 			</section>
+			{/if}
 
+			{#if isSectionOn('pangrams')}
 			<!-- Pangrams -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">Pangrams</h2>
@@ -166,7 +205,9 @@
 					{/each}
 				</div>
 			</section>
+			{/if}
 
+			{#if isSectionOn('colophon')}
 			<!-- Colophon -->
 			<section class="page">
 				<h2 class="mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">Colophon</h2>
@@ -228,6 +269,7 @@
 					</dl>
 				{/if}
 			</section>
+			{/if}
 		</div>
 	</div>
 {/if}
