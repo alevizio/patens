@@ -1002,7 +1002,9 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						{ufoBusy ? 'Packing UFO…' : 'Export UFO 3 (zip)'}
 					</Button>
 					<span class="text-[12px] text-fg-subtle">
-						Industry-standard editable source. Open in Glyphs, RoboFont, FontLab.
+						Industry-standard editable source. Open in Glyphs, RoboFont, FontLab — or
+						compile from a terminal with
+						<code class="font-mono text-fg">fontmake -u {safeFilename(project.metadata.familyName) || 'Untitled'}.ufo -o otf ttf</code>.
 					</span>
 				</div>
 				<div class="flex items-center gap-3">
