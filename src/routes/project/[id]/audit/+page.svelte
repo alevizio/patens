@@ -90,6 +90,21 @@
 		'metrics-use-typo-off'
 	]);
 
+	const fixableInList = $derived(filtered.filter((i) => FIXABLE_CODES.has(i.code)));
+
+	const fixAllVisible = () => {
+		if (fixableInList.length === 0) return;
+		const counts = new Map<string, number>();
+		for (const i of fixableInList) {
+			fixIssue(i);
+			counts.set(i.code, (counts.get(i.code) ?? 0) + 1);
+		}
+		const summary = [...counts.entries()]
+			.map(([c, n]) => `${n}× ${c}`)
+			.join(', ');
+		toast.success(`Applied ${fixableInList.length} fixes (${summary})`);
+	};
+
 	const fixIssue = (issue: AuditIssue) => {
 		if (!project) return;
 		switch (issue.code) {
@@ -179,6 +194,16 @@
 							<span class="font-mono {opt.color}" data-numeric>{opt.n}</span>
 						</button>
 					{/each}
+					{#if fixableInList.length > 0}
+						<button
+							type="button"
+							onclick={fixAllVisible}
+							class="inline-flex items-center gap-1 rounded-md border border-accent bg-accent text-accent-fg px-2.5 py-1 text-[11px] font-medium hover:bg-accent/90"
+							title="Apply automatic fixes to every mechanically-fixable issue in the visible list"
+						>
+							<Wand class="size-3" /> Fix {fixableInList.length} applicable
+						</button>
+					{/if}
 					<div class="ml-auto relative">
 						<Search
 							class="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle"
