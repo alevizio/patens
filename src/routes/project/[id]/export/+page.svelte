@@ -370,6 +370,16 @@ body {
 		);
 	};
 
+	const exportFeaSource = () => {
+		if (!project) return;
+		// Prefer user-customized .fea; otherwise serialize the auto-generated source.
+		const text = project.features.feaSource?.trim() || autoFeaSource(project);
+		downloadBlob(
+			new Blob([text], { type: 'text/plain' }),
+			`${safeFilename(project.name)}.fea`
+		);
+	};
+
 	const exportSvgArchive = () => {
 		if (!project) return;
 		const lines: string[] = [
@@ -914,6 +924,17 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					</Button>
 					<span class="text-[12px] text-fg-subtle">
 						Round-trippable backup including sketches and metadata.
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
+					<Button variant="secondary" onclick={exportFeaSource}>
+						{#snippet icon()}<FileText class="size-4" />{/snippet}
+						Export features (.fea)
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						AFDKO-style feature file with current kerning, classes, and OT features —
+						edit alongside any tool that speaks <code>.fea</code> (Glyphs, FontLab,
+						fontmake).
 					</span>
 				</div>
 				<div class="flex items-center gap-3">
