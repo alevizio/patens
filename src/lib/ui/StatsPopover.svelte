@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import { preflightProject } from '$lib/font/audit';
+	import { computeBlockCoverage } from '$lib/font/unicode-blocks';
 	import Sparkline from '$lib/ui/Sparkline.svelte';
 	import GlyphStatusHeatmap from '$lib/ui/GlyphStatusHeatmap.svelte';
 	import X from '@lucide/svelte/icons/x';
@@ -141,6 +142,10 @@
 		return [...set].filter((t) => !currentTags.includes(t));
 	});
 
+	const blockCoverage = $derived(
+		project ? computeBlockCoverage(project.glyphs) : []
+	);
+
 	const projectFileSizeKb = $derived.by(() => {
 		if (!project) return 0;
 		try {
@@ -247,6 +252,42 @@
 					}}
 				/>
 			</div>
+
+			{#if blockCoverage.length > 0}
+				<div>
+					<div class="mb-1 flex items-baseline justify-between text-[11px]">
+						<span class="font-medium text-fg-muted">Coverage by Unicode block</span>
+						<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+							{blockCoverage.length} blocks
+						</span>
+					</div>
+					<ul class="grid gap-1">
+						{#each blockCoverage as c (c.block.name)}
+							{@const pct = c.defined > 0 ? Math.round((c.drawn / c.defined) * 100) : 0}
+							<li>
+								<div
+									class="flex items-baseline justify-between gap-2 text-[11px]"
+									data-numeric
+								>
+									<span class="min-w-0 truncate text-fg-muted">{c.block.name}</span>
+									<span class="font-mono text-fg-subtle">
+										{c.drawn}/{c.defined}
+										{#if c.defined < c.total}
+											<span class="opacity-50">· {c.total - c.defined} not in project</span>
+										{/if}
+									</span>
+								</div>
+								<div class="mt-0.5 h-1 overflow-hidden rounded-full bg-surface-2">
+									<div
+										class="h-full {pct === 100 ? 'bg-success' : pct >= 50 ? 'bg-accent' : 'bg-warn'}"
+										style="width: {pct}%;"
+									></div>
+								</div>
+							</li>
+						{/each}
+					</ul>
+				</div>
+			{/if}
 
 			{#if recentEdits.length > 0}
 				<div>
