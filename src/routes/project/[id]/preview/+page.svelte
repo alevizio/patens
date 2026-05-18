@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { buildFont } from '$lib/font/export';
 	import {
@@ -314,6 +315,23 @@ function rgb(hex) {
 	let axisValues = $state<Record<string, number>>({});
 	let currentVfFace: FontFace | null = null;
 	let currentVfUrl: string | null = null;
+
+	onDestroy(() => {
+		// Clean up VF FontFace + object URL when navigating away — otherwise the
+		// registered face persists in document.fonts past the component lifetime.
+		if (currentVfFace) {
+			try {
+				document.fonts.delete(currentVfFace);
+			} catch {
+				// ignore
+			}
+			currentVfFace = null;
+		}
+		if (currentVfUrl) {
+			URL.revokeObjectURL(currentVfUrl);
+			currentVfUrl = null;
+		}
+	});
 
 	$effect(() => {
 		if (!project?.axes) return;

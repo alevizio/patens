@@ -74,6 +74,8 @@ export type FamilyBundle = {
 	siblingCount: number;
 	/** Names of siblings that had VF axes but were exported as static OTFs. */
 	flattenedVfSiblings: string[];
+	/** Names of siblings whose build threw and were skipped from the bundle. */
+	failedSiblings: string[];
 };
 
 /**
@@ -93,26 +95,35 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 
 	const familySafe = safe(family.name);
 	const flattenedVfSiblings: string[] = [];
+	const failedSiblings: string[] = [];
 	for (const entry of siblings) {
 		const project = await loadProject(entry.id);
 		if (!project) continue;
 		const styleName = project.metadata.styleName || 'Regular';
-		// Family ZIP bundles are always static-style files. If a sibling has VF
-		// axes defined, we flatten to the default master here and warn the user;
-		// the per-project export route still produces a real VF binary.
-		if ((project.axes?.length ?? 0) > 0) {
-			flattenedVfSiblings.push(styleName);
+		try {
+			// Family ZIP bundles are always static-style files. If a sibling has VF
+			// axes defined, we flatten to the default master here and warn the user;
+			// the per-project export route still produces a real VF binary.
+			if ((project.axes?.length ?? 0) > 0) {
+				flattenedVfSiblings.push(styleName);
+			}
+			const { font } = buildFont(project, {
+				styleSuffix: undefined
+			});
+			patchFontForFamily(font, family.name, styleName, project.familyAxes);
+			const buffer = font.toArrayBuffer();
+			const filename = `${familySafe}-${safe(styleName)}.otf`;
+			files[filename] = new Uint8Array(buffer);
+			designLines.push(
+				`- **${styleName}** · ${(buffer.byteLength / 1024).toFixed(1)} KB · \`${filename}\`${(project.axes?.length ?? 0) > 0 ? ' _(VF flattened to default master)_' : ''}`
+			);
+		} catch (err) {
+			// Per-sibling build failures must not poison the whole bundle. Collect
+			// the failure, keep going so the rest of the family still ships.
+			console.error(`buildFamilyBundle: sibling "${styleName}" failed`, err);
+			failedSiblings.push(styleName);
+			designLines.push(`- **${styleName}** _(build failed — skipped)_`);
 		}
-		const { font } = buildFont(project, {
-			styleSuffix: undefined
-		});
-		patchFontForFamily(font, family.name, styleName, project.familyAxes);
-		const buffer = font.toArrayBuffer();
-		const filename = `${familySafe}-${safe(styleName)}.otf`;
-		files[filename] = new Uint8Array(buffer);
-		designLines.push(
-			`- **${styleName}** · ${(buffer.byteLength / 1024).toFixed(1)} KB · \`${filename}\`${(project.axes?.length ?? 0) > 0 ? ' _(VF flattened to default master)_' : ''}`
-		);
 	}
 
 	// Append the canonical DESIGN.md from the first sibling (or the project the
@@ -136,7 +147,8 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 		zip,
 		familyName: family.name,
 		siblingCount: siblings.length,
-		flattenedVfSiblings
+		flattenedVfSiblings,
+		failedSiblings
 	};
 };
 

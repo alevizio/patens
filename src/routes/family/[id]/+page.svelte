@@ -249,6 +249,7 @@
 	let compareText = $state('Hamburgefonstiv');
 	let compareSize = $state(48);
 	const toggleCompare = async () => {
+		if (compareLoading) return;
 		if (compareOpen) {
 			compareOpen = false;
 			return;
@@ -282,6 +283,11 @@
 			if (bundle.flattenedVfSiblings.length > 0) {
 				toast.warn(
 					`Flattened to static: ${bundle.flattenedVfSiblings.join(', ')}. Export those siblings via their project /export route for true VF.`
+				);
+			}
+			if (bundle.failedSiblings.length > 0) {
+				toast.error(
+					`Failed to build: ${bundle.failedSiblings.join(', ')}. These siblings are missing from the ZIP — check their project audit.`
 				);
 			}
 		} catch (err) {

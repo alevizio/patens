@@ -153,6 +153,11 @@ class ProjectStore {
 
 	async flush() {
 		if (!this.project) return;
+		// Cancel any pending debounced save so we don't fire twice
+		if (this.saveTimer) {
+			clearTimeout(this.saveTimer);
+			this.saveTimer = null;
+		}
 		this.saving = true;
 		try {
 			// $state.snapshot strips Svelte's reactive proxy so idb-keyval can
@@ -164,6 +169,8 @@ class ProjectStore {
 			this.lastSavedAt = Date.now();
 		} catch (err) {
 			console.error('Project save failed:', err);
+			// Keep dirty=true so the user can see save is pending + retry
+			this.dirty = true;
 		} finally {
 			this.saving = false;
 		}
