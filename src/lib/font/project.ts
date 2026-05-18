@@ -56,6 +56,8 @@ export type ProjectIndexEntry = {
 	thumbnail?: { path: string; viewBox: string; advance: number };
 	/** Brief completeness 0-100 (6 fields, even weight). */
 	briefPct?: number;
+	/** Glyphs whose updatedAt is within the last 24 hours. */
+	editsToday?: number;
 };
 
 const newId = () => crypto.randomUUID();
@@ -186,6 +188,11 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		(b.references?.length ?? 0) > 0
 	];
 	const briefPct = Math.round((briefChecks.filter(Boolean).length / briefChecks.length) * 100);
+	const dayAgo = Date.now() - 24 * 3600 * 1000;
+	const editsToday = Object.values(p.glyphs).filter((g) => {
+		const t = Date.parse(g.updatedAt);
+		return Number.isFinite(t) && t >= dayAgo;
+	}).length;
 	return {
 		id: p.id,
 		name: p.name,
@@ -197,7 +204,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		).length,
 		tagline,
 		thumbnail,
-		briefPct
+		briefPct,
+		editsToday
 	};
 };
 
