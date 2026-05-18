@@ -556,12 +556,15 @@ function rgb(hex) {
 			</h2>
 			<div class="grid gap-3">
 				{#each WATERFALL as size (size)}
+					{@const pt = Math.round((size * 72) / 96)}
 					<div class="flex items-baseline gap-4">
 						<span
-							class="w-10 shrink-0 text-right font-mono text-[11px] text-fg-subtle"
+							class="w-20 shrink-0 text-right font-mono text-[11px] text-fg-subtle"
 							data-numeric
+							title="{size}px ≈ {pt}pt at 96 DPI"
 						>
 							{size}px
+							<span class="opacity-60">/ {pt}pt</span>
 						</span>
 						<span class="preview-font truncate leading-[1.2]" style="font-size: {size}px;">
 							{SAMPLES[0]}
@@ -569,6 +572,11 @@ function rgb(hex) {
 					</div>
 				{/each}
 			</div>
+			<p class="mt-2 text-[10px] text-fg-subtle">
+				Point sizes computed at 96 DPI (CSS default). Legge's reading research shows print
+				size remains a dominant readability variable — proof at the sizes your typeface will
+				actually be set.
+			</p>
 		</Panel>
 
 		<Panel>
