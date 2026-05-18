@@ -158,6 +158,51 @@
 		return n;
 	});
 
+	// font5.md "four interacting layers" mental model — Brief, Drawing, Compiled, Business.
+	const fourLayers = $derived.by(() => {
+		const p = projectStore.project;
+		if (!p) return [];
+		const b = p.brief ?? {};
+		const briefChecks = [
+			!!b.intent?.trim(),
+			!!b.audience?.trim(),
+			(b.useCases?.length ?? 0) > 0,
+			!!b.readingConditions?.trim(),
+			!!b.differentiation?.trim(),
+			(b.references?.length ?? 0) > 0
+		];
+		const briefPct = Math.round((briefChecks.filter(Boolean).length / 6) * 100);
+		const total = Object.keys(p.glyphs).length;
+		const drawn = Object.values(p.glyphs).filter(
+			(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+		).length;
+		const drawingPct = total > 0 ? Math.round((drawn / total) * 100) : 0;
+		const compiledOk = auditErrorCount === 0 && drawn >= 26;
+		const businessChecks = [
+			!!p.metadata.license?.trim(),
+			!!p.metadata.copyright?.trim(),
+			!!p.metadata.version?.trim(),
+			(p.changelog?.length ?? 0) > 0
+		];
+		const businessPct = Math.round((businessChecks.filter(Boolean).length / 4) * 100);
+		return [
+			{ key: 'brief', label: 'Brief', pct: briefPct, href: `/project/${p.id}/brief` },
+			{ key: 'drawing', label: 'Drawing', pct: drawingPct, href: `/project/${p.id}/edit` },
+			{
+				key: 'compiled',
+				label: 'Compiled',
+				pct: compiledOk ? 100 : drawn >= 26 ? 50 : 0,
+				href: `/project/${p.id}/audit`
+			},
+			{
+				key: 'business',
+				label: 'Business',
+				pct: businessPct,
+				href: `/project/${p.id}/release`
+			}
+		];
+	});
+
 	const tabs = $derived([
 		{ href: `/project/${id}/brief`, label: 'Brief', icon: Compass, shortcut: '⌘⇧B' },
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
@@ -474,6 +519,34 @@
 				<Redo2 class="size-4" />
 			</button>
 		</div>
+
+		{#if fourLayers.length > 0}
+			<div
+				class="hidden items-center gap-1.5 lg:flex"
+				title="font5.md's four-layer model: brief → drawing → compiled → business"
+				aria-label="Project layer progress"
+			>
+				{#each fourLayers as layer (layer.key)}
+					<a
+						href={layer.href}
+						class="group flex flex-col items-center gap-0.5"
+						title="{layer.label}: {layer.pct}%"
+					>
+						<div class="h-1 w-10 overflow-hidden rounded-full bg-surface-2">
+							<div
+								class="h-full {layer.pct === 100 ? 'bg-success' : layer.pct >= 50 ? 'bg-accent' : 'bg-warn'}"
+								style="width: {layer.pct}%;"
+							></div>
+						</div>
+						<span
+							class="text-[9px] font-medium uppercase tracking-wider text-fg-subtle group-hover:text-fg"
+						>
+							{layer.label}
+						</span>
+					</a>
+				{/each}
+			</div>
+		{/if}
 
 		<div class="flex items-center gap-2 text-[12px] text-fg-subtle" data-numeric>
 			{#if projectStore.saving}
