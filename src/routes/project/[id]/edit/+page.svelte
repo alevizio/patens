@@ -47,6 +47,8 @@
 	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
 	import RevisionsPanel from '$lib/glyph/RevisionsPanel.svelte';
 	import StemsPanel from '$lib/glyph/StemsPanel.svelte';
+	import { tipFor } from '$lib/font/anatomy-tips';
+	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
@@ -381,6 +383,8 @@
 			height: Math.round(b.maxY - b.minY)
 		};
 	});
+
+	const anatomyTip = $derived(glyph ? tipFor(glyph.codepoint) : null);
 
 	const peerComparison = $derived.by(() => {
 		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
@@ -1592,6 +1596,15 @@
 						class="font-mono text-[12px]"
 					/>
 				</Field>
+				{#if anatomyTip}
+					<div class="mt-2 flex items-start gap-2 rounded-md border border-warn/30 bg-warn/5 px-2 py-1.5">
+						<Lightbulb class="mt-0.5 size-3 shrink-0 text-warn" />
+						<div class="min-w-0">
+							<div class="text-[11px] font-semibold text-fg">{anatomyTip.headline}</div>
+							<div class="text-[11px] leading-snug text-fg-muted">{anatomyTip.body}</div>
+						</div>
+					</div>
+				{/if}
 				<dl class="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-[11px]">
 					<dt class="text-fg-subtle">Contours</dt>
 					<dd class="text-right font-mono text-fg" data-numeric>{glyphStats.contours}</dd>
