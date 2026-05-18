@@ -122,6 +122,11 @@
 						{project.metadata.familyName}
 					</h1>
 					<div class="mt-2 text-2xl text-neutral-500 preview-font">{project.metadata.styleName}</div>
+					{#if project.brief?.intent?.trim()}
+						<p class="mt-8 max-w-prose text-[15px] italic leading-[1.6] text-neutral-700">
+							“{project.brief.intent.trim()}”
+						</p>
+					{/if}
 				</div>
 				<div class="mt-auto grid grid-cols-3 gap-6 text-[11px] text-neutral-500">
 					<div>
