@@ -3,6 +3,7 @@
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
 	import Pin from '@lucide/svelte/icons/pin';
 	import StickyNote from '@lucide/svelte/icons/sticky-note';
+	import Link2 from '@lucide/svelte/icons/link-2';
 
 	type Props = {
 		glyph: Glyph;
@@ -65,6 +66,15 @@
 		const width = Math.max(glyph.advanceWidth, 100);
 		return `0 ${-ascender} ${width} ${totalHeight}`;
 	});
+
+	const componentCount = $derived(glyph.components?.length ?? 0);
+
+	const noteSnippet = $derived.by(() => {
+		const n = glyph.notes?.trim();
+		if (!n) return '';
+		const first = n.split('\n')[0] ?? '';
+		return first.length > 60 ? ` · "${first.slice(0, 57)}…"` : ` · "${first}"`;
+	});
 </script>
 
 <button
@@ -75,7 +85,7 @@
 	class="group relative flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 		? 'border-accent bg-accent-soft'
 		: 'border-transparent bg-transparent hover:border-border hover:bg-surface-2/60'}"
-	title="{glyph.name} · U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}{dimsLabel} · adv {glyph.advanceWidth}"
+	title="{glyph.name} · U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}{dimsLabel} · adv {glyph.advanceWidth}{componentCount > 0 ? ` · ${componentCount} component${componentCount === 1 ? '' : 's'}` : ''}{noteSnippet}"
 	style="width: {size + 12}px;"
 >
 	<div
@@ -140,5 +150,11 @@
 			aria-label="Incompatible with default master"
 			title="Contour or point counts differ from the default master"
 		></span>
+	{/if}
+	{#if componentCount > 0}
+		<Link2
+			class="absolute bottom-1 left-1/2 size-2.5 -translate-x-1/2 text-accent"
+			aria-label="Composite glyph ({componentCount} component{componentCount === 1 ? '' : 's'})"
+		/>
 	{/if}
 </button>
