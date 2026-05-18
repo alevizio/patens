@@ -429,7 +429,22 @@
 									{/if}
 								</div>
 								<div class="min-w-0 flex-1">
-									<div class="truncate text-sm font-medium text-fg">{p.name}</div>
+									<div class="flex items-center gap-2">
+										<div class="truncate text-sm font-medium text-fg">{p.name}</div>
+										{#if (p.briefPct ?? 0) > 0}
+											<span
+												class="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium {(p.briefPct ?? 0) >= 67
+													? 'bg-success/15 text-success'
+													: (p.briefPct ?? 0) >= 33
+														? 'bg-warn/15 text-warn'
+														: 'bg-fg/10 text-fg-subtle'}"
+												title="Brief completeness"
+												data-numeric
+											>
+												Brief {p.briefPct}%
+											</span>
+										{/if}
+									</div>
 									<div class="truncate text-[12px] text-fg-muted" data-numeric>
 										{p.familyName} · {p.glyphCount} drawn · updated {formatRelative(
 											p.updatedAt

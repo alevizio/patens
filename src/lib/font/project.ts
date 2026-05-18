@@ -54,6 +54,8 @@ export type ProjectIndexEntry = {
 	tagline?: string;
 	/** SVG path of the first drawn glyph + its viewBox — for thumbnail preview on the home page. */
 	thumbnail?: { path: string; viewBox: string; advance: number };
+	/** Brief completeness 0-100 (6 fields, even weight). */
+	briefPct?: number;
 };
 
 const newId = () => crypto.randomUUID();
@@ -174,6 +176,16 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 	const tagline = taglineRaw
 		? taglineRaw.split(/\r?\n/)[0].trim().slice(0, 140)
 		: undefined;
+	const b = p.brief ?? {};
+	const briefChecks = [
+		!!b.intent?.trim(),
+		!!b.audience?.trim(),
+		(b.useCases?.length ?? 0) > 0,
+		!!b.readingConditions?.trim(),
+		!!b.differentiation?.trim(),
+		(b.references?.length ?? 0) > 0
+	];
+	const briefPct = Math.round((briefChecks.filter(Boolean).length / briefChecks.length) * 100);
 	return {
 		id: p.id,
 		name: p.name,
@@ -184,7 +196,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 			(g) => g.contours.length > 0 || (g.components && g.components.length > 0)
 		).length,
 		tagline,
-		thumbnail
+		thumbnail,
+		briefPct
 	};
 };
 
