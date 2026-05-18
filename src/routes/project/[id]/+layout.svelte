@@ -577,6 +577,21 @@
 					{previewStore.sizeKb.toFixed(1)} KB
 				</a>
 			{/if}
+			{#if projectStore.project?.familyId}
+				<a
+					href="/family/{projectStore.project.familyId}"
+					class="hidden items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg md:inline-flex"
+					title="Open family hub"
+				>
+					<Layers class="size-2.5" />
+					Family
+					{#if projectStore.project.familyAxes?.wght || projectStore.project.familyAxes?.ital}
+						<span class="font-mono" data-numeric>
+							{projectStore.project.familyAxes?.wght ?? 400}{projectStore.project.familyAxes?.ital ? 'i' : ''}
+						</span>
+					{/if}
+				</a>
+			{/if}
 		</div>
 
 		<div class="relative">
