@@ -307,6 +307,12 @@ class ProjectStore {
 		this.touch();
 	}
 
+	resetReleaseChecks() {
+		if (!this.project) return;
+		this.project = { ...this.project, releaseChecks: {} };
+		this.touch();
+	}
+
 	toggleReleaseCheck(id: string) {
 		if (!this.project) return;
 		const next = { ...(this.project.releaseChecks ?? {}) };

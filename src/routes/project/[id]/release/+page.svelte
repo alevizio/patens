@@ -188,8 +188,24 @@
 						</div>
 					</div>
 					<div>
-						<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-							Manual checks
+						<div class="flex items-baseline justify-between gap-2">
+							<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+								Manual checks
+							</div>
+							{#if passedChecks > 0}
+								<button
+									type="button"
+									onclick={() => {
+										if (confirm(`Reset all ${passedChecks} manual checks?`)) {
+											projectStore.resetReleaseChecks();
+											toast.info('Release checks reset');
+										}
+									}}
+									class="text-[10px] text-fg-subtle hover:text-warn"
+								>
+									Reset all
+								</button>
+							{/if}
 						</div>
 						<div class="mt-1 flex items-baseline gap-2">
 							<span class="text-[14px] font-medium text-fg" data-numeric>

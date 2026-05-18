@@ -53,6 +53,15 @@
 		project ? Object.values(project.glyphs).filter((g) => g.notes?.trim()).length : 0
 	);
 
+	const editsToday = $derived.by(() => {
+		if (!project) return 0;
+		const dayAgo = Date.now() - 24 * 3600 * 1000;
+		return Object.values(project.glyphs).filter((g) => {
+			const t = Date.parse(g.updatedAt);
+			return Number.isFinite(t) && t >= dayAgo;
+		}).length;
+	});
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -145,6 +154,8 @@
 				<dd class="text-right font-mono text-fg" data-numeric>{pinnedCount}</dd>
 				<dt class="text-fg-muted">With notes</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{notesCount}</dd>
+				<dt class="text-fg-muted">Edited today</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{editsToday}</dd>
 				<dt class="text-fg-muted">Last build</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>
 					{previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(0)}ms

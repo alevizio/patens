@@ -96,7 +96,27 @@
 		currentPath === href || currentPath.startsWith(href + '/');
 
 	const nameInput = $derived(projectStore.project?.name ?? '');
+
+	import { toast as t } from '$lib/stores/toast.svelte';
+	const handleGlobalKey = async (e: KeyboardEvent) => {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+			if (!(e.metaKey || e.ctrlKey)) return;
+		}
+		if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
+			e.preventDefault();
+			await projectStore.flush();
+			t.success('Saved.');
+		} else if ((e.metaKey || e.ctrlKey) && (e.key === 'p' || e.key === 'P')) {
+			// Only steal Cmd+P on the specimen page; print there directly
+			if (currentPath.endsWith('/specimen')) {
+				e.preventDefault();
+				window.print();
+			}
+		}
+	};
 </script>
+
+<svelte:window onkeydown={handleGlobalKey} />
 
 <div class="flex h-screen flex-col">
 	<header
@@ -168,7 +188,9 @@
 							<div class="min-w-0 flex-1">
 								<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
 								<div class="truncate text-[11px] text-fg-subtle" data-numeric>
-									{p.familyName} · {p.glyphCount} drawn
+									{p.familyName} · {p.glyphCount} drawn{(p.editsToday ?? 0) > 0
+										? ` · ${p.editsToday} today`
+										: ''}
 								</div>
 								{#if p.tagline}
 									<div class="mt-0.5 truncate text-[10px] italic text-fg-subtle">

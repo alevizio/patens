@@ -130,10 +130,12 @@
 			if (lowerQuery) {
 				const char = String.fromCodePoint(g.codepoint).toLowerCase();
 				const hex = g.codepoint.toString(16).toLowerCase();
+				const notes = (g.notes ?? '').toLowerCase();
 				const matches =
 					g.name.toLowerCase().includes(lowerQuery) ||
 					char === lowerQuery ||
-					hex.includes(lowerQuery);
+					hex.includes(lowerQuery) ||
+					notes.includes(lowerQuery);
 				if (!matches) continue;
 			}
 			const cat = categoryOf(g);
