@@ -35,6 +35,15 @@
 	let playgroundSize = $state(72);
 	let playgroundKern = $state(true);
 	let playgroundLiga = $state(true);
+	let referenceFont = $state('');
+	const REFERENCE_PRESETS = [
+		{ id: '', label: 'Off' },
+		{ id: 'Inter', label: 'Inter' },
+		{ id: 'Helvetica Neue, Helvetica, Arial', label: 'Helvetica' },
+		{ id: 'Georgia, Times, serif', label: 'Georgia' },
+		{ id: 'ui-monospace, Menlo, monospace', label: 'Mono' },
+		{ id: '-apple-system, system-ui, sans-serif', label: 'System UI' }
+	];
 	const playgroundFeatures = $derived(
 		`'kern' ${playgroundKern ? 1 : 0}, 'liga' ${playgroundLiga ? 1 : 0}`
 	);
@@ -350,6 +359,34 @@
 		>
 			{playgroundText || 'Type above…'}
 		</div>
+		<div class="mt-3 flex flex-wrap items-center gap-1.5">
+			<span class="text-[11px] font-medium text-fg-muted">Compare with:</span>
+			{#each REFERENCE_PRESETS as opt (opt.id)}
+				<button
+					type="button"
+					onclick={() => (referenceFont = opt.id)}
+					class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {referenceFont ===
+					opt.id
+						? 'bg-accent-soft text-accent'
+						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
+				>
+					{opt.label}
+				</button>
+			{/each}
+			<input
+				bind:value={referenceFont}
+				placeholder="Or any font family…"
+				class="ml-2 rounded-md border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent"
+			/>
+		</div>
+		{#if referenceFont}
+			<div
+				class="mt-2 min-h-[160px] whitespace-pre-wrap rounded-lg border border-dashed border-border-strong/50 bg-canvas/50 p-6 leading-[1.15] text-fg-muted"
+				style="font-family: {referenceFont}, sans-serif; font-size: {playgroundSize}px; font-feature-settings: {playgroundFeatures};"
+			>
+				{playgroundText || `Reference: ${referenceFont}`}
+			</div>
+		{/if}
 	</Panel>
 
 	<Panel>
