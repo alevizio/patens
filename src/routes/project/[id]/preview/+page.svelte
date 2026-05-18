@@ -22,6 +22,53 @@
 	const WATERFALL = [12, 18, 24, 32, 48, 72, 96, 144];
 
 	const DEFAULT_PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size (e.g., 24 point), weight (light, bold), slope (italic, oblique), width (condensed, extended), and so on.`;
+
+	// Curated real-text proofs across genres. Each pressure-tests different glyph
+	// neighborhoods and rhythms. font5.md: "proof paragraphs at actual use sizes".
+	const PROOF_LIBRARY: Array<{ label: string; text: string }> = [
+		{
+			label: 'Typography essay (default)',
+			text: DEFAULT_PARAGRAPH
+		},
+		{
+			label: 'Wikipedia opening — "Typeface"',
+			text: `A typeface is a design of letters, numbers and other symbols. Each typeface is a coordinated set of glyphs designed with stylistic unity. A typeface usually comprises an alphabet of letters, numerals, and punctuation marks; it may also include ideograms and symbols, or consist entirely of them.`
+		},
+		{
+			label: 'News lead',
+			text: `The committee voted 9–2 on Thursday to approve a $4.7 billion budget, ending a three-month impasse and clearing the way for road repairs across all 47 districts before winter sets in. Officials said the first contracts would be awarded by Nov. 15.`
+		},
+		{
+			label: 'Novel opening (Calvino)',
+			text: `You are about to begin reading Italo Calvino's new novel, If on a winter's night a traveler. Relax. Concentrate. Dispel every other thought. Let the world around you fade. Best to close the door; the TV is always on in the next room.`
+		},
+		{
+			label: 'Recipe',
+			text: `Preheat the oven to 425°F (220°C). Toss 1½ lb of small potatoes with 3 Tbsp olive oil, 1 tsp salt, and ½ tsp pepper. Roast 25–30 min, shaking the pan halfway, until the skins blister and the centers yield to a fork.`
+		},
+		{
+			label: 'Code (TypeScript)',
+			text: `// Reverse a string using array methods\nconst reverse = (s: string): string =>\n  [...s].reverse().join('');\n\nconst greeting = 'Hello, world!';\nconsole.log(reverse(greeting)); // "!dlrow ,olleH"`
+		},
+		{
+			label: 'Legal / contract',
+			text: `IN CONSIDERATION OF the mutual covenants and agreements herein contained, and for other good and valuable consideration, the receipt and sufficiency of which are hereby acknowledged, the parties hereto agree as follows: 1. Definitions. 2. Term. 3. Payment.`
+		},
+		{
+			label: 'Numbers + currency',
+			text: `Quarterly revenue rose 12.4% to $3,481,902 — up from $3,097,455 in Q2 2025. Operating margin held at 21%, while headcount grew from 184 to 211. The board approved a €0.42 dividend payable on 2026-06-15.`
+		}
+	];
+	let proofIndex = $state(0);
+	const shuffleProof = () => {
+		// Pick a different index than the current one
+		let next = Math.floor(Math.random() * PROOF_LIBRARY.length);
+		if (PROOF_LIBRARY.length > 1) {
+			while (next === proofIndex) next = Math.floor(Math.random() * PROOF_LIBRARY.length);
+		}
+		proofIndex = next;
+	};
+
 	let drawnOnly = $state(false);
 	let measureCh = $state(60);
 	const drawnCodepoints = $derived.by(() => {
@@ -46,10 +93,17 @@
 		return out.replace(/[ \t]{2,}/g, ' ').replace(/\s+([,.!?;:])/g, '$1');
 	};
 	const PARAGRAPH = $derived.by(() => {
-		const base =
-			projectStore.project?.samples?.paragraph?.trim() || DEFAULT_PARAGRAPH;
+		// If the project has a custom sample paragraph, that always wins (it's the
+		// designer's chosen text). Otherwise rotate through the proof library.
+		const custom = projectStore.project?.samples?.paragraph?.trim();
+		const base = custom || PROOF_LIBRARY[proofIndex]?.text || DEFAULT_PARAGRAPH;
 		return drawnOnly ? filterToDrawn(base) : base;
 	});
+	const proofLabel = $derived(
+		projectStore.project?.samples?.paragraph?.trim()
+			? 'Custom project sample'
+			: PROOF_LIBRARY[proofIndex]?.label ?? 'Default'
+	);
 
 	const UI_LABELS = ['Settings', 'Account', 'Notifications', 'Search', 'Download', 'Share', 'New project', 'Sign out'];
 
@@ -473,10 +527,22 @@ function rgb(hex) {
 
 		<Panel>
 			<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				<h2 class="inline-flex items-baseline gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Paragraph (16/24)
+					<span class="text-fg-subtle/70 normal-case tracking-normal">· {proofLabel}</span>
 				</h2>
 				<div class="flex items-center gap-3">
+					<button
+						type="button"
+						onclick={shuffleProof}
+						disabled={!!projectStore.project?.samples?.paragraph?.trim()}
+						class="rounded border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+						title={projectStore.project?.samples?.paragraph?.trim()
+							? 'Disabled — clear the custom sample to rotate the proof library'
+							: 'Rotate to a different real-text proof'}
+					>
+						Shuffle
+					</button>
 					<label
 						class="inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-fg-muted hover:text-fg"
 					>
