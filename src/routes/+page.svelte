@@ -63,6 +63,19 @@
 	let showArchived = $state(false);
 	let activeTag = $state<string | null>(null);
 	let loading = $state(true);
+	let searchEl = $state<HTMLInputElement | null>(null);
+
+	const handleGlobalKey = (e: KeyboardEvent) => {
+		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+			return;
+		if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			e.preventDefault();
+			searchEl?.focus();
+			searchEl?.select();
+		} else if (e.key === 'Escape' && activeTag) {
+			activeTag = null;
+		}
+	};
 
 	const archivedCount = $derived(projects.filter((p) => p.archived).length);
 
@@ -454,6 +467,8 @@
 	};
 </script>
 
+<svelte:window onkeydown={handleGlobalKey} />
+
 <div
 	class="relative mx-auto max-w-5xl px-6 py-12 sm:py-20"
 	ondragenter={onDragEnter}
@@ -560,8 +575,9 @@
 			{#if projects.length > 6}
 				<div class="mb-3 flex flex-wrap gap-2">
 					<input
+						bind:this={searchEl}
 						bind:value={projectQuery}
-						placeholder="Filter by name or family…"
+						placeholder="Filter by name or family… (/)"
 						class="min-w-[160px] flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					/>
 					<button
