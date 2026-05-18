@@ -36,6 +36,7 @@
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Pin from '@lucide/svelte/icons/pin';
+	import Flag from '@lucide/svelte/icons/flag';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Lock from '@lucide/svelte/icons/lock';
 	import Unlock from '@lucide/svelte/icons/unlock';
@@ -1251,6 +1252,17 @@
 						title={glyph.pinned ? 'Unpin' : 'Pin for quick access'}
 					>
 						<Pin class="size-3.5 {glyph.pinned ? 'fill-current' : ''}" />
+					</button>
+					<button
+						type="button"
+						onclick={() => projectStore.toggleGlyphFlag(glyph.codepoint)}
+						class="inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.flagged
+							? 'text-warn hover:text-warn'
+							: 'hover:text-fg'}"
+						aria-label={glyph.flagged ? 'Unflag glyph' : 'Flag glyph for review'}
+						title={glyph.flagged ? 'Unflag' : 'Flag for review (⇧F)'}
+					>
+						<Flag class="size-3.5 {glyph.flagged ? 'fill-current' : ''}" />
 					</button>
 				</div>
 
