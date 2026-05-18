@@ -27,6 +27,7 @@
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
+	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
@@ -74,6 +75,7 @@
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
 	let shortcutsOpen = $state(false);
+	let paletteOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
 	// Tick every 30s so the "Saved Xs ago" string stays fresh
 	let nowTick = $state(Date.now());
@@ -135,6 +137,19 @@
 		if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {
 			e.preventDefault();
 			shortcutsOpen = !shortcutsOpen;
+			return;
+		}
+		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+			e.preventDefault();
+			paletteOpen = !paletteOpen;
+			return;
+		}
+		if (e.key === '/' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			// When not focused in an input/textarea, `/` opens the glyph palette anywhere in the project.
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+				return;
+			e.preventDefault();
+			paletteOpen = true;
 			return;
 		}
 		if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
@@ -414,6 +429,7 @@
 
 	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
 	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
+	<CommandPalette open={paletteOpen} onclose={() => (paletteOpen = false)} />
 
 	{#if projectStore.project?.locked}
 		<div
