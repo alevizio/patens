@@ -65,6 +65,13 @@
 
 	const archivedCount = $derived(projects.filter((p) => p.archived).length);
 
+	const recentReleases = $derived(
+		projects
+			.filter((p) => p.lastSealedVersion && p.lastSealedAt)
+			.sort((a, b) => (a.lastSealedAt! < b.lastSealedAt! ? 1 : -1))
+			.slice(0, 5)
+	);
+
 	const lastVisitedSlug = (id: string): string => {
 		if (typeof localStorage === 'undefined') return 'edit';
 		try {
@@ -683,6 +690,33 @@
 		</Panel>
 
 		<div class="grid gap-4">
+			{#if recentReleases.length > 0}
+				<Panel padding="md">
+					<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+						Recent releases
+					</h2>
+					<ul class="grid gap-1.5">
+						{#each recentReleases as r (r.id)}
+							<a
+								href="/project/{r.id}/release"
+								class="flex items-center justify-between gap-2 rounded-md border border-border bg-surface-2/40 px-2.5 py-1.5 text-[12px] transition-colors hover:border-accent hover:bg-accent-soft/40"
+							>
+								<span class="min-w-0 truncate text-fg">{r.name}</span>
+								<span
+									class="flex shrink-0 items-baseline gap-1.5 font-mono text-[11px] text-fg-muted"
+									data-numeric
+								>
+									<span class="text-accent">v{r.lastSealedVersion}</span>
+									<span class="text-fg-subtle">
+										{formatRelative(r.lastSealedAt!)}
+									</span>
+								</span>
+							</a>
+						{/each}
+					</ul>
+				</Panel>
+			{/if}
+
 			<Panel padding="md">
 				<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
 					Quick start
