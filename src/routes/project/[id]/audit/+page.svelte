@@ -43,6 +43,7 @@
 
 	let query = $state('');
 	let severityFilter = $state<AuditSeverity | 'all'>('all');
+	let groupMode = $state<'code' | 'glyph'>('code');
 
 	const filtered = $derived.by(() => {
 		const q = query.trim().toLowerCase();
@@ -72,6 +73,22 @@
 			map.set(i.code, list);
 		}
 		return [...map.entries()].sort((a, b) => b[1].length - a[1].length);
+	});
+
+	const groupedByGlyph = $derived.by(() => {
+		const map = new Map<number, AuditIssue[]>();
+		for (const i of filtered) {
+			const key = i.codepoint;
+			const list = map.get(key) ?? [];
+			list.push(i);
+			map.set(key, list);
+		}
+		// Sort by issue count desc; project-level issues (cp=0) shown first.
+		return [...map.entries()].sort((a, b) => {
+			if (a[0] === 0 && b[0] !== 0) return -1;
+			if (b[0] === 0 && a[0] !== 0) return 1;
+			return b[1].length - a[1].length;
+		});
 	});
 
 	const jumpToGlyph = (cp: number) => {
@@ -229,15 +246,39 @@
 							<Wand class="size-3" /> Fix {fixableInList.length} applicable
 						</button>
 					{/if}
-					<div class="ml-auto relative">
-						<Search
-							class="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle"
-						/>
-						<input
-							bind:value={query}
-							placeholder="Search by message, code, hex…"
-							class="w-64 rounded-md border border-border bg-surface px-3 py-1.5 pl-8 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
-						/>
+					<div class="ml-auto flex items-center gap-2">
+						<div class="inline-flex rounded-md border border-border bg-surface p-0.5">
+							<button
+								type="button"
+								onclick={() => (groupMode = 'code')}
+								class="rounded px-2 py-0.5 text-[11px] {groupMode === 'code'
+									? 'bg-accent-soft text-accent'
+									: 'text-fg-muted hover:text-fg'}"
+								title="Group issues by check"
+							>
+								By check
+							</button>
+							<button
+								type="button"
+								onclick={() => (groupMode = 'glyph')}
+								class="rounded px-2 py-0.5 text-[11px] {groupMode === 'glyph'
+									? 'bg-accent-soft text-accent'
+									: 'text-fg-muted hover:text-fg'}"
+								title="Group issues by glyph"
+							>
+								By glyph
+							</button>
+						</div>
+						<div class="relative">
+							<Search
+								class="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle"
+							/>
+							<input
+								bind:value={query}
+								placeholder="Search by message, code, hex…"
+								class="w-64 rounded-md border border-border bg-surface px-3 py-1.5 pl-8 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+							/>
+						</div>
 					</div>
 				</div>
 
@@ -253,7 +294,7 @@
 							<div class="text-[13px] font-medium text-fg">No issues match this filter.</div>
 						{/if}
 					</div>
-				{:else}
+				{:else if groupMode === 'code'}
 					<div class="grid gap-4">
 						{#each grouped as [code, issues] (code)}
 							<div>
@@ -303,6 +344,70 @@
 												</button>
 											{:else}
 												<span class="text-[10px] text-fg-subtle">{labelFor(i.codepoint)}</span>
+											{/if}
+										</li>
+									{/each}
+								</ul>
+							</div>
+						{/each}
+					</div>
+				{:else}
+					<div class="grid gap-4">
+						{#each groupedByGlyph as [cp, issues] (cp)}
+							<div>
+								<div class="mb-1.5 flex items-baseline justify-between gap-2">
+									<h3 class="text-[12px] font-semibold text-fg">
+										{#if cp === 0}
+											Project-level
+										{:else if project.glyphs[cp]}
+											<button
+												type="button"
+												onclick={() => jumpToGlyph(cp)}
+												class="font-mono text-fg hover:text-accent"
+												title="Open this glyph in the editor"
+											>
+												{labelFor(cp)}
+												<span class="text-fg-subtle" data-numeric>
+													· U+{cp.toString(16).toUpperCase().padStart(4, '0')}
+												</span>
+											</button>
+										{:else}
+											<span class="font-mono">{labelFor(cp)}</span>
+										{/if}
+									</h3>
+									<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
+										{issues.length} issue{issues.length === 1 ? '' : 's'}
+									</span>
+								</div>
+								<ul class="grid gap-1">
+									{#each issues as i (`${i.code}:${i.message}`)}
+										<li
+											class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+										>
+											<span class="mt-0.5">
+												{#if i.severity === 'error'}
+													<AlertCircle class="size-3.5 text-danger" />
+												{:else if i.severity === 'warn'}
+													<AlertTriangle class="size-3.5 text-warn" />
+												{:else}
+													<Info class="size-3.5 text-accent" />
+												{/if}
+											</span>
+											<div class="min-w-0 flex-1">
+												<div class="text-[12px] text-fg">{i.message}</div>
+												<div class="mt-0.5 font-mono text-[10px] text-fg-subtle">
+													{i.code}
+												</div>
+											</div>
+											{#if FIXABLE_CODES.has(i.code)}
+												<button
+													type="button"
+													onclick={() => fixIssue(i)}
+													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+													title="Apply automatic fix"
+												>
+													<Wand class="size-2.5" /> Fix
+												</button>
 											{/if}
 										</li>
 									{/each}
