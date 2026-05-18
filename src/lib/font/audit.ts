@@ -6,6 +6,7 @@
 import type { Glyph, Project } from './types';
 import { resolveVerticalMetrics } from './types';
 import { glyphBounds } from './path';
+import { auditPeers } from './peer-audit';
 
 export type AuditSeverity = 'info' | 'warn' | 'error';
 
@@ -459,6 +460,12 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			}
 		}
 	}
+
+	// Peer-consistency: flag glyphs whose dimensions drift unexpectedly far
+	// from their structural peers (round caps, vertical-stem caps, ascenders,
+	// descenders, lower-rounds, lower-stems, figures). Catches slip-of-the-pen
+	// drift that a designer working alone commonly misses.
+	issues.push(...auditPeers(project));
 
 	return sortBySeverity(issues);
 };
