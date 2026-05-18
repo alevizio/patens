@@ -208,6 +208,19 @@
 		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
 			e.preventDefault();
 			await quickExportOtf();
+		} else if (
+			(e.metaKey || e.ctrlKey) &&
+			!e.shiftKey &&
+			!e.altKey &&
+			e.key >= '1' &&
+			e.key <= '9'
+		) {
+			const idx = parseInt(e.key, 10) - 1;
+			const tab = tabs[idx];
+			if (tab) {
+				e.preventDefault();
+				goto(tab.href);
+			}
 		}
 	};
 
