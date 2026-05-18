@@ -53,16 +53,18 @@
 	let projects = $state<ProjectIndexEntry[]>([]);
 	let projectQuery = $state('');
 	let projectSort = $state<'updated' | 'name' | 'brief' | 'glyphs'>('updated');
+	let onlyToday = $state(false);
 	let loading = $state(true);
 
 	const filteredProjects = $derived.by(() => {
 		const q = projectQuery.trim().toLowerCase();
-		const filtered = q
+		let filtered = q
 			? projects.filter(
 					(p) =>
 						p.name.toLowerCase().includes(q) || p.familyName.toLowerCase().includes(q)
 				)
 			: [...projects];
+		if (onlyToday) filtered = filtered.filter((p) => (p.editsToday ?? 0) > 0);
 		switch (projectSort) {
 			case 'name':
 				return filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -388,12 +390,21 @@
 				{/if}
 			</div>
 			{#if projects.length > 6}
-				<div class="mb-3 flex gap-2">
+				<div class="mb-3 flex flex-wrap gap-2">
 					<input
 						bind:value={projectQuery}
 						placeholder="Filter by name or family…"
-						class="flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+						class="min-w-[160px] flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					/>
+					<button
+						type="button"
+						onclick={() => (onlyToday = !onlyToday)}
+						class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {onlyToday
+							? 'border-accent bg-accent-soft text-accent'
+							: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
+					>
+						Today
+					</button>
 					<select
 						bind:value={projectSort}
 						class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted outline-none focus:border-accent"
