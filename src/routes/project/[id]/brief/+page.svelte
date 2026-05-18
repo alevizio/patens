@@ -57,6 +57,56 @@
 		historical: 'bg-warn/15 text-warn',
 		competitive: 'bg-accent/15 text-accent'
 	};
+
+	const COMMON_REFS: Array<{
+		name: string;
+		url: string;
+		kind: 'functional' | 'historical' | 'competitive';
+		notes: string;
+	}> = [
+		{
+			name: 'Inter',
+			url: 'https://rsms.me/inter/',
+			kind: 'competitive',
+			notes: 'Reference UI sans — high x-height, generous apertures.'
+		},
+		{
+			name: 'IBM Plex Sans',
+			url: 'https://www.ibm.com/plex/',
+			kind: 'competitive',
+			notes: 'System-style with distinctive humanist details.'
+		},
+		{
+			name: 'Source Serif',
+			url: 'https://github.com/adobe-fonts/source-serif',
+			kind: 'competitive',
+			notes: 'Open-source workhorse serif from Adobe.'
+		},
+		{
+			name: 'JetBrains Mono',
+			url: 'https://www.jetbrains.com/lp/mono/',
+			kind: 'competitive',
+			notes: 'Reference mono — tall lowercase, ligature-friendly.'
+		},
+		{
+			name: 'Recursive',
+			url: 'https://www.recursive.design/',
+			kind: 'competitive',
+			notes: 'Variable, casual/proportional axes — modern range example.'
+		}
+	];
+
+	const addCommonRef = (preset: (typeof COMMON_REFS)[number]) => {
+		const exists = (brief.references ?? []).some(
+			(r) => r.name.toLowerCase() === preset.name.toLowerCase()
+		);
+		if (exists) {
+			toast.success(`"${preset.name}" already in references.`);
+			return;
+		}
+		projectStore.addBriefReference(preset);
+		toast.success(`Added "${preset.name}"`);
+	};
 </script>
 
 {#if !project}
@@ -254,6 +304,21 @@
 						{/each}
 					</ul>
 				{/if}
+				<div class="mb-3 flex flex-wrap items-center gap-1.5">
+					<span class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Quick add
+					</span>
+					{#each COMMON_REFS as preset (preset.name)}
+						<button
+							type="button"
+							onclick={() => addCommonRef(preset)}
+							class="inline-flex items-center gap-1 rounded-full border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+							title={preset.notes}
+						>
+							{preset.name}
+						</button>
+					{/each}
+				</div>
 				<form
 					onsubmit={addReference}
 					class="rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 p-3"
