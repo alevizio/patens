@@ -18,7 +18,10 @@
 		'How vexingly quick daft zebras jump'
 	];
 
-	const PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size, weight, slope, width — letting designers express texture, hierarchy, and voice across a single coherent system.`;
+	const DEFAULT_PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size, weight, slope, width — letting designers express texture, hierarchy, and voice across a single coherent system.`;
+	const PARAGRAPH = $derived(
+		(projectStore.project?.samples?.paragraph?.trim() || DEFAULT_PARAGRAPH)
+	);
 
 	const today = new Date().toLocaleDateString('en-US', {
 		year: 'numeric',
@@ -50,10 +53,11 @@
 	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
 {:else}
 	<div class="h-full overflow-auto bg-canvas">
-		<div class="screen-toolbar sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 border-b border-border bg-surface px-6 py-2.5">
-			<div class="text-[12px] text-fg-muted">
-				Specimen — {drawnGlyphs.length} drawn glyphs · {previewStore.sizeKb.toFixed(1)} KB
-			</div>
+		<div class="screen-toolbar sticky top-0 z-10 flex flex-col gap-2 border-b border-border bg-surface px-6 py-2.5">
+			<div class="flex flex-wrap items-center justify-between gap-3">
+				<div class="text-[12px] text-fg-muted">
+					Specimen — {drawnGlyphs.length} drawn glyphs · {previewStore.sizeKb.toFixed(1)} KB
+				</div>
 			<div class="flex flex-wrap items-center gap-1">
 				<span class="text-[11px] text-fg-subtle">Sections:</span>
 				{#each SECTIONS as s (s.id)}
@@ -76,6 +80,24 @@
 			>
 				Print / Save as PDF
 			</button>
+			</div>
+			<details class="text-[12px]">
+				<summary class="cursor-pointer text-fg-subtle hover:text-fg">
+					Customise sample paragraph
+				</summary>
+				<textarea
+					value={project.samples?.paragraph ?? ''}
+					oninput={(e) =>
+						projectStore.updateSamples({ paragraph: e.currentTarget.value })}
+					placeholder={DEFAULT_PARAGRAPH}
+					rows="3"
+					class="mt-2 block w-full resize-y rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[13px] text-fg outline-none focus:border-accent focus:bg-surface"
+				></textarea>
+				<p class="mt-1 text-[10px] text-fg-subtle">
+					Used here and on the Preview tab's Paragraph panel. Leave empty to fall back
+					to the default.
+				</p>
+			</details>
 		</div>
 
 		<div class="specimen mx-auto bg-white text-black">

@@ -222,6 +222,8 @@ export type Project = {
 	changelog?: ChangelogEntry[];
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
+	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */
+	samples?: ProjectSamples;
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */
@@ -274,6 +276,11 @@ export const USE_CASE_LABELS: Record<UseCase, string> = {
 	editorial: 'Editorial',
 	branding: 'Branding identity',
 	multiscript: 'Multiscript / multilingual'
+};
+
+export type ProjectSamples = {
+	/** Paragraph used in Preview's Paragraph panel + Specimen's Paragraph section. */
+	paragraph?: string;
 };
 
 export type ChangelogEntry = {

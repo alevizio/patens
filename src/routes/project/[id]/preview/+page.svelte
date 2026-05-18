@@ -21,7 +21,10 @@
 
 	const WATERFALL = [12, 18, 24, 32, 48, 72, 96, 144];
 
-	const PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size (e.g., 24 point), weight (light, bold), slope (italic, oblique), width (condensed, extended), and so on.`;
+	const DEFAULT_PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size (e.g., 24 point), weight (light, bold), slope (italic, oblique), width (condensed, extended), and so on.`;
+	const PARAGRAPH = $derived(
+		projectStore.project?.samples?.paragraph?.trim() || DEFAULT_PARAGRAPH
+	);
 
 	const UI_LABELS = ['Settings', 'Account', 'Notifications', 'Search', 'Download', 'Share', 'New project', 'Sign out'];
 

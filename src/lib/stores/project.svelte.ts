@@ -251,6 +251,15 @@ class ProjectStore {
 		this.touch();
 	}
 
+	updateSamples(mut: Partial<import('$lib/font/types').ProjectSamples>) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			samples: { ...(this.project.samples ?? {}), ...mut }
+		};
+		this.touch();
+	}
+
 	toggleSpecimenSection(id: string) {
 		if (!this.project) return;
 		const cur = this.project.specimenSections ?? {};
