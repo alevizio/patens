@@ -23,6 +23,7 @@
 
 	const DEFAULT_PARAGRAPH = `In typography, a typeface is a design of letters, numbers and other symbols, to be used in printing or for electronic display. Most typefaces include variations in size (e.g., 24 point), weight (light, bold), slope (italic, oblique), width (condensed, extended), and so on.`;
 	let drawnOnly = $state(false);
+	let measureCh = $state(60);
 	const drawnCodepoints = $derived.by(() => {
 		const set = new Set<number>([0x20, 0x0a]); // include space + newline
 		const project = projectStore.project;
@@ -471,22 +472,41 @@ function rgb(hex) {
 		</Panel>
 
 		<Panel>
-			<div class="mb-3 flex items-baseline justify-between gap-2">
+			<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
 				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Paragraph (16/24)
 				</h2>
-				<label
-					class="inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-fg-muted hover:text-fg"
-				>
-					<input
-						type="checkbox"
-						bind:checked={drawnOnly}
-						class="size-3 rounded border-border accent-accent"
-					/>
-					Drawn glyphs only
-				</label>
+				<div class="flex items-center gap-3">
+					<label
+						class="inline-flex cursor-pointer items-center gap-1.5 text-[11px] text-fg-muted hover:text-fg"
+					>
+						<input
+							type="checkbox"
+							bind:checked={drawnOnly}
+							class="size-3 rounded border-border accent-accent"
+						/>
+						Drawn glyphs only
+					</label>
+					<label class="inline-flex items-center gap-1.5 text-[11px] text-fg-muted">
+						Measure
+						<input
+							type="range"
+							min="30"
+							max="100"
+							step="1"
+							bind:value={measureCh}
+							class="w-24 accent-accent"
+						/>
+						<span class="font-mono text-[10px]" data-numeric>{measureCh}ch</span>
+					</label>
+				</div>
 			</div>
-			<p class="preview-font max-w-prose text-base leading-[1.5]">{PARAGRAPH}</p>
+			<p
+				class="preview-font text-base leading-[1.5]"
+				style="max-width: {measureCh}ch;"
+			>
+				{PARAGRAPH}
+			</p>
 			{#if drawnOnly && PARAGRAPH.length < 80}
 				<p class="mt-2 text-[11px] text-fg-subtle">
 					Filtered to drawn glyphs only — draw more letters to see a fuller paragraph.
