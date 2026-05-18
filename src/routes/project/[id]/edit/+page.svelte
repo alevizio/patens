@@ -49,7 +49,6 @@
 	import StemsPanel from '$lib/glyph/StemsPanel.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
-	import CommandPalette from '$lib/ui/CommandPalette.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -61,7 +60,6 @@
 	let cubicTrace = $state(DEFAULT_TRACE.cubic);
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let tourOpen = $state(false);
-	let paletteOpen = $state(false);
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
 
@@ -1129,14 +1127,6 @@
 		} else if ((ev.key === 'v' || ev.key === 'V') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			pasteGlyph();
-		} else if (ev.key === '/' && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey) {
-			ev.preventDefault();
-			paletteOpen = true;
-		} else if ((ev.key === 'k' || ev.key === 'K') && (ev.metaKey || ev.ctrlKey)) {
-			ev.preventDefault();
-			paletteOpen = true;
-		} else if (ev.key === 'Escape') {
-			if (paletteOpen) paletteOpen = false;
 		}
 	};
 </script>
@@ -2443,6 +2433,5 @@
 		</aside>
 	</div>
 	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
-	<CommandPalette open={paletteOpen} onclose={() => (paletteOpen = false)} />
 
 {/if}
