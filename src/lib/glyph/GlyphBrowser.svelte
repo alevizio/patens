@@ -340,6 +340,27 @@
 					Add
 				</button>
 			</form>
+			<div class="mt-1.5 flex flex-wrap gap-1 text-[10px]">
+				<span class="text-fg-subtle">Quick:</span>
+				{#each [{ cp: 0x2026, label: '…' }, { cp: 0x2014, label: '—' }, { cp: 0x2013, label: '–' }, { cp: 0x2018, label: '‘' }, { cp: 0x2019, label: '’' }, { cp: 0x201c, label: '“' }, { cp: 0x201d, label: '”' }, { cp: 0x00a0, label: 'nbsp' }, { cp: 0x00d7, label: '×' }, { cp: 0x2022, label: '•' }] as preset (preset.cp)}
+					<button
+						type="button"
+						onclick={() => {
+							const added = projectStore.addCustomGlyph(preset.cp);
+							if (added) {
+								projectStore.selectGlyph(preset.cp);
+								showAddForm = false;
+							} else {
+								toast.warn(`U+${preset.cp.toString(16).toUpperCase()} already in project`);
+							}
+						}}
+						class="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-fg-muted hover:border-accent hover:text-accent"
+						title="Add U+{preset.cp.toString(16).toUpperCase().padStart(4, '0')}"
+					>
+						{preset.label}
+					</button>
+				{/each}
+			</div>
 		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
