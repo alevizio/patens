@@ -19,7 +19,8 @@
 				{ keys: '⌘⇧E', label: 'Quick-export OTF' },
 				{ keys: '⌘P', label: 'Print specimen (on Specimen page)' },
 				{ keys: '⌘K', label: 'Open command palette' },
-				{ keys: '/', label: 'Open command palette' }
+				{ keys: '/', label: 'Open command palette' },
+				{ keys: '⌘1..9', label: 'Jump to nth tab' }
 			]
 		},
 		{
