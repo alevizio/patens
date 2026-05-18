@@ -17,6 +17,7 @@
 				{ keys: '⌘⇧B', label: 'Open Brief' },
 				{ keys: '⌘⇧R', label: 'Open Release' },
 				{ keys: '⌘⇧E', label: 'Quick-export OTF' },
+				{ keys: '⌘,', label: 'Open Settings' },
 				{ keys: '⌘P', label: 'Print specimen (on Specimen page)' },
 				{ keys: '⌘K', label: 'Open command palette' },
 				{ keys: '/', label: 'Open command palette' },
