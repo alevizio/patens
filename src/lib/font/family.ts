@@ -13,7 +13,12 @@ import { get, set, del, createStore } from 'idb-keyval';
 import type { Family, Project } from './types';
 import { listProjects, loadProject, saveProject } from './project';
 
-const familyStore = createStore('font-studio', 'families');
+// Use a *separate* IndexedDB database for families. The existing
+// `font-studio` DB was created in v1 with only the `projects` store, and
+// idb-keyval can't add a second store to an existing DB without a manual
+// version bump + upgrade handler. A dedicated DB sidesteps that entirely and
+// keeps family persistence independent from the project store.
+const familyStore = createStore('font-studio-families', 'families');
 const FAMILY_INDEX_KEY = '__family_index__';
 
 const newId = () => crypto.randomUUID();
