@@ -997,6 +997,45 @@
 		});
 	};
 
+	const exportGlyphPng = () => {
+		if (!glyph || !metrics || glyph.contours.length === 0) return;
+		const bounds = glyphBounds(glyph.contours);
+		const padX = 60;
+		const padY = 60;
+		const left = Math.min(0, bounds.minX) - padX;
+		const right = Math.max(glyph.advanceWidth, bounds.maxX) + padX;
+		const top = metrics.ascender + padY;
+		const bottom = metrics.descender - padY;
+		const width = right - left;
+		const height = top - bottom;
+		const px = 800; // canvas pixel width
+		const scale = px / width;
+		const c = document.createElement('canvas');
+		c.width = Math.round(px);
+		c.height = Math.round(height * scale);
+		const ctx = c.getContext('2d');
+		if (!ctx) return;
+		ctx.fillStyle = 'white';
+		ctx.fillRect(0, 0, c.width, c.height);
+		ctx.save();
+		ctx.translate(-left * scale, top * scale);
+		ctx.scale(scale, -scale);
+		ctx.fillStyle = 'black';
+		ctx.fill(new Path2D(contoursToSvgPath(glyph.contours)), 'evenodd');
+		ctx.restore();
+		c.toBlob((blob) => {
+			if (!blob) return;
+			const safeName = (glyph.name || 'glyph').replace(/[^a-zA-Z0-9_-]/g, '_');
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${safeName}.png`;
+			a.click();
+			URL.revokeObjectURL(url);
+			toast.success(`Exported ${safeName}.png`);
+		}, 'image/png');
+	};
+
 	const copyGlyphPath = async () => {
 		if (!glyph || glyph.contours.length === 0) return;
 		const d = contoursToSvgPath(glyph.contours);
@@ -1129,6 +1168,13 @@
 			const willPin = !glyph.pinned;
 			projectStore.toggleGlyphPin(glyph.codepoint);
 			toast.info(willPin ? `Pinned ${glyph.name}` : `Unpinned ${glyph.name}`, 1500);
+		} else if ((ev.key === 'F' || ev.key === 'f') && ev.shiftKey && glyph) {
+			const willFlag = !glyph.flagged;
+			projectStore.toggleGlyphFlag(glyph.codepoint);
+			toast.info(
+				willFlag ? `Flagged ${glyph.name} for review` : `Unflagged ${glyph.name}`,
+				1500
+			);
 		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			if (ev.shiftKey) {
@@ -1699,6 +1745,16 @@
 					>
 						{#snippet icon()}<Copy class="size-3.5" />{/snippet}
 						Copy path
+					</Button>
+					<Button
+						variant="ghost"
+						density="sm"
+						onclick={exportGlyphPng}
+						disabled={glyph.contours.length === 0}
+						aria-label="Export this glyph as PNG"
+					>
+						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
+						PNG
 					</Button>
 					<Button
 						variant="ghost"

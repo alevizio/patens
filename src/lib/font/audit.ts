@@ -246,6 +246,25 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			message: `${anchorless} Latin base glyphs have no anchors — composites with marks will use fixed offsets instead of proper positioning`
 		});
 
+	// Tabular figures: warn when 0-9 have non-uniform advance widths
+	const digits: number[] = [];
+	for (let cp = 0x0030; cp <= 0x0039; cp++) {
+		const g = project.glyphs[cp];
+		if (g && g.contours.length > 0) digits.push(g.advanceWidth);
+	}
+	if (digits.length >= 2) {
+		const min = Math.min(...digits);
+		const max = Math.max(...digits);
+		if (max - min > 2) {
+			issues.push({
+				codepoint: 0,
+				severity: 'info',
+				code: 'figures-non-tabular',
+				message: `Digits 0–9 have varying advance widths (${min}–${max}) — proportional figures. For data tables, run "Tabularise 0–9" on the Spacing tab.`
+			});
+		}
+	}
+
 	// Glyph count vs declared character set
 	const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
 	if (drawn < 26)

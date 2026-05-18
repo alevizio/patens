@@ -588,6 +588,20 @@ class ProjectStore {
 		this.touch();
 	}
 
+	toggleGlyphFlag(codepoint: number) {
+		if (!this.project) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		this.project = {
+			...this.project,
+			glyphs: {
+				...this.project.glyphs,
+				[codepoint]: { ...current, flagged: !current.flagged, updatedAt: new Date().toISOString() }
+			}
+		};
+		this.touch();
+	}
+
 	toggleGlyphPin(codepoint: number) {
 		if (!this.project) return;
 		const current = this.project.glyphs[codepoint];

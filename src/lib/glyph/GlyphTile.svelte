@@ -114,6 +114,13 @@
 			aria-label="Pinned"
 		/>
 	{/if}
+	{#if glyph.flagged}
+		<span
+			class="absolute right-2 top-2 size-2 rounded-full bg-warn ring-1 ring-canvas"
+			aria-label="Flagged for review"
+			title="Flagged for review"
+		></span>
+	{/if}
 	{#if glyph.notes?.trim()}
 		<StickyNote
 			class="absolute bottom-1 right-1 size-2.5 text-accent"

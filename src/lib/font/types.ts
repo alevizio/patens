@@ -48,6 +48,8 @@ export type Glyph = {
 	referenceImage?: ReferenceImage;
 	/** Pinned glyphs surface at the top of the browser for fast access. */
 	pinned?: boolean;
+	/** Flagged for review — orthogonal to status. Surfaces as a warning dot on the tile. */
+	flagged?: boolean;
 	/** When true, sidebearing/advance inputs in the editor are read-only — protect finalised metrics from accidental edits. */
 	metricsLocked?: boolean;
 	/** Saved snapshots of the contour state — for iteration / undo at a coarse level. */
