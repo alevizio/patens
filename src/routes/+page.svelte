@@ -140,6 +140,16 @@
 		await refresh();
 	};
 
+	let menuOpen = $state<{ id: string; x: number; y: number } | null>(null);
+	const openMenu = (p: ProjectIndexEntry, ev: MouseEvent) => {
+		ev.preventDefault();
+		menuOpen = { id: p.id, x: ev.clientX, y: ev.clientY };
+	};
+	const closeMenu = () => (menuOpen = null);
+	const menuTarget = $derived(
+		menuOpen ? projects.find((p) => p.id === menuOpen!.id) : undefined
+	);
+
 	const handleCreate = async (e: Event) => {
 		e.preventDefault();
 		const trimmed = newName.trim();
@@ -530,6 +540,7 @@
 				<ul class="grid gap-2">
 					{#each filteredProjects as p (p.id)}
 						<li
+							oncontextmenu={(ev) => openMenu(p, ev)}
 							class="group flex items-center justify-between gap-3 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-border-strong hover:bg-surface-2 {p.archived
 								? 'opacity-60'
 								: ''}"
@@ -864,4 +875,91 @@
 		open={!settings.welcomeDismissed}
 		onclose={() => settings.dismissWelcome()}
 	/>
+
+	{#if menuOpen && menuTarget}
+		<button
+			type="button"
+			class="fixed inset-0 z-40 cursor-default"
+			onclick={closeMenu}
+			aria-label="Close menu"
+			tabindex="-1"
+		></button>
+		<div
+			role="menu"
+			class="fixed z-50 w-56 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-xl"
+			style="left: {Math.min(menuOpen.x, window.innerWidth - 240)}px; top: {Math.min(
+				menuOpen.y,
+				window.innerHeight - 280
+			)}px;"
+		>
+			<div class="border-b border-border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider text-fg-subtle">
+				{menuTarget.name}
+			</div>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					handleTogglePin(menuTarget!.id);
+					closeMenu();
+				}}
+				class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+			>
+				<Pin class="size-3.5" />
+				{menuTarget.pinned ? 'Unpin from top' : 'Pin to top'}
+			</button>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					handleDuplicate(menuTarget!.id);
+					closeMenu();
+				}}
+				class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+			>
+				<Copy class="size-3.5" />
+				Duplicate
+			</button>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					handleToggleArchive(menuTarget!.id);
+					closeMenu();
+				}}
+				class="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+			>
+				{#if menuTarget.archived}
+					<ArchiveRestore class="size-3.5" />
+					Unarchive
+				{:else}
+					<Archive class="size-3.5" />
+					Archive
+				{/if}
+			</button>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					navigator.clipboard?.writeText(menuTarget!.id).catch(() => {});
+					closeMenu();
+				}}
+				class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+			>
+				<span class="font-mono text-[10px] text-fg-subtle">ID</span>
+				Copy project ID
+			</button>
+			<button
+				type="button"
+				role="menuitem"
+				onclick={() => {
+					handleDelete(menuTarget!);
+					closeMenu();
+				}}
+				class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-danger hover:bg-danger/10"
+			>
+				<Trash2 class="size-3.5" />
+				Delete…
+			</button>
+		</div>
+	{/if}
 </div>
