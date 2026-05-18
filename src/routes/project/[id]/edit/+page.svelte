@@ -1111,6 +1111,10 @@
 			showVector = !showVector;
 		} else if (ev.key === 'g' || ev.key === 'G') {
 			showGrid = !showGrid;
+		} else if (ev.key === 'R' && ev.shiftKey && familyRegularProject) {
+			// Shift+R toggles the family-Regular ghost overlay (only when this is a
+			// sibling — Regular project itself doesn't have anything to compare to).
+			showFamilyRegular = !showFamilyRegular;
 		} else if (ev.key === 'r' || ev.key === 'R') {
 			showReference = !showReference;
 		} else if (ev.key === 'o' || ev.key === 'O') {
@@ -1311,7 +1315,7 @@
 							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showFamilyRegular
 								? 'bg-accent-soft text-accent'
 								: 'text-fg-subtle hover:bg-surface-2'}"
-							title="Overlay the family Regular's same-glyph contour as a ghost"
+							title="Overlay the family Regular's same-glyph contour as a ghost (⇧R)"
 						>
 							{#if showFamilyRegular}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 							Regular

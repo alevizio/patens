@@ -61,6 +61,7 @@
 				{ keys: 'V', label: 'Toggle vector layer' },
 				{ keys: 'G', label: 'Toggle grid' },
 				{ keys: 'R', label: 'Toggle reference glyph' },
+				{ keys: '⇧R', label: 'Toggle family-Regular overlay (sibling editor)' },
 				{ keys: 'O', label: 'Toggle onion-skin neighbours' },
 				{ keys: 'X', label: 'Toggle anchors' }
 			]
