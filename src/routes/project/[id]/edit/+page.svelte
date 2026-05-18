@@ -997,6 +997,17 @@
 		});
 	};
 
+	const copyGlyphPath = async () => {
+		if (!glyph || glyph.contours.length === 0) return;
+		const d = contoursToSvgPath(glyph.contours);
+		try {
+			await navigator.clipboard.writeText(d);
+			toast.success(`Copied path (${d.length} chars)`);
+		} catch {
+			toast.error('Clipboard write failed.');
+		}
+	};
+
 	const exportGlyphSvg = () => {
 		if (!glyph || !metrics || glyph.contours.length === 0) return;
 		const bounds = glyphBounds(glyph.contours);
@@ -1679,6 +1690,16 @@
 					Paste
 				</Button>
 				<div class="ml-auto flex items-center gap-2">
+					<Button
+						variant="ghost"
+						density="sm"
+						onclick={copyGlyphPath}
+						disabled={glyph.contours.length === 0}
+						aria-label="Copy SVG path attribute to clipboard"
+					>
+						{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+						Copy path
+					</Button>
 					<Button
 						variant="ghost"
 						density="sm"
