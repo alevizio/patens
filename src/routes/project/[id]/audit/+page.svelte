@@ -91,12 +91,6 @@
 		});
 	});
 
-	const jumpToGlyph = (cp: number) => {
-		if (!project || cp === 0 || !project.glyphs[cp]) return;
-		projectStore.selectGlyph(cp);
-		goto(`/project/${project.id}/edit`);
-	};
-
 	const FIXABLE_CODES = new Set([
 		'open-contour',
 		'overflows-advance',
@@ -110,6 +104,26 @@
 		'glyph-name-empty',
 		'glyph-name-too-long'
 	]);
+
+	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
+	// then errors, then warnings, then anything with an auto-fix.
+	const nextToFix = $derived.by(() => {
+		const score = (i: AuditIssue) => {
+			let s = 0;
+			if (i.severity === 'error') s += 100;
+			else if (i.severity === 'warn') s += 50;
+			else s += 20;
+			if (FIXABLE_CODES.has(i.code)) s += 30;
+			return s;
+		};
+		return [...allIssues].sort((a, b) => score(b) - score(a)).slice(0, 3);
+	});
+
+	const jumpToGlyph = (cp: number) => {
+		if (!project || cp === 0 || !project.glyphs[cp]) return;
+		projectStore.selectGlyph(cp);
+		goto(`/project/${project.id}/edit`);
+	};
 
 	const fixableInList = $derived(filtered.filter((i) => FIXABLE_CODES.has(i.code)));
 
@@ -220,6 +234,65 @@
 					</p>
 				</div>
 			</header>
+
+			{#if nextToFix.length > 0}
+				<Panel>
+					<div class="mb-2 flex items-baseline justify-between gap-2">
+						<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							Next to fix
+						</h2>
+						<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
+							top {nextToFix.length} of {allIssues.length}
+						</span>
+					</div>
+					<ul class="grid gap-1">
+						{#each nextToFix as i (`${i.codepoint}:${i.code}:${i.message}`)}
+							<li
+								class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+							>
+								<span class="mt-0.5">
+									{#if i.severity === 'error'}
+										<AlertCircle class="size-3.5 text-danger" />
+									{:else if i.severity === 'warn'}
+										<AlertTriangle class="size-3.5 text-warn" />
+									{:else}
+										<Info class="size-3.5 text-accent" />
+									{/if}
+								</span>
+								<div class="min-w-0 flex-1">
+									<div class="text-[12px] text-fg">{i.message}</div>
+									<div class="mt-0.5 font-mono text-[10px] text-fg-subtle" data-numeric>
+										{i.code}
+										{#if i.codepoint > 0}
+											· {labelFor(i.codepoint)}
+										{/if}
+									</div>
+								</div>
+								{#if FIXABLE_CODES.has(i.code)}
+									<button
+										type="button"
+										onclick={() => fixIssue(i)}
+										class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+										title="Apply automatic fix"
+									>
+										<Wand class="size-2.5" /> Fix
+									</button>
+								{/if}
+								{#if i.codepoint > 0 && project.glyphs[i.codepoint]}
+									<button
+										type="button"
+										onclick={() => jumpToGlyph(i.codepoint)}
+										class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+										title="Open this glyph in the editor"
+									>
+										Open →
+									</button>
+								{/if}
+							</li>
+						{/each}
+					</ul>
+				</Panel>
+			{/if}
 
 			<Panel>
 				<div class="mb-3 flex flex-wrap items-center gap-2">
