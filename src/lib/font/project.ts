@@ -66,6 +66,8 @@ export type ProjectIndexEntry = {
 	locked?: boolean;
 	/** Count of kerning pairs at index time — surfaces in stats popover / switcher. */
 	kerningCount?: number;
+	/** Edits per day for the last 14 days (index 0 = 14 days ago, index 13 = today). */
+	editsByDay?: number[];
 };
 
 const newId = () => crypto.randomUUID();
@@ -202,11 +204,20 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 	const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
 	let editsToday = 0;
 	let editsThisWeek = 0;
+	const DAY_MS = 24 * 3600 * 1000;
+	const todayMid = new Date();
+	todayMid.setHours(0, 0, 0, 0);
+	const todayMidMs = todayMid.getTime();
+	const editsByDay = new Array<number>(14).fill(0);
 	for (const g of Object.values(p.glyphs)) {
 		const t = Date.parse(g.updatedAt);
 		if (!Number.isFinite(t)) continue;
 		if (t >= dayAgo) editsToday++;
 		if (t >= weekAgo) editsThisWeek++;
+		const dayOffset = Math.floor((todayMidMs - t) / DAY_MS);
+		if (dayOffset >= 0 && dayOffset < 14) {
+			editsByDay[13 - dayOffset]++;
+		}
 	}
 	return {
 		id: p.id,
@@ -223,6 +234,7 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		briefMissing,
 		editsToday,
 		editsThisWeek,
+		editsByDay,
 		locked: p.locked,
 		kerningCount: p.kerning.length
 	};

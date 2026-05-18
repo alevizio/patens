@@ -14,6 +14,7 @@
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
+	import Sparkline from '$lib/ui/Sparkline.svelte';
 	import { importFromOtf } from '$lib/font/import';
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
 	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
@@ -495,6 +496,19 @@
 												data-numeric
 											>
 												{p.editsToday} today
+											</span>
+										{/if}
+										{#if (p.editsByDay ?? []).some((n) => n > 0)}
+											<span
+												class="inline-flex items-center"
+												title="Edits per day, last 14d · {p.editsByDay?.reduce((a, b) => a + b, 0) ?? 0} total"
+											>
+												<Sparkline
+													values={p.editsByDay ?? []}
+													width={56}
+													height={14}
+													label="Edits per day, last 14d"
+												/>
 											</span>
 										{/if}
 									</div>
