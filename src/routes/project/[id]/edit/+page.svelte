@@ -759,6 +759,47 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
+	let autoCleaning = $state(false);
+	const autoCleanGlyph = async () => {
+		if (!glyph || glyph.contours.length === 0 || autoCleaning) return;
+		autoCleaning = true;
+		try {
+			// 1. Simplify (re-sample, DP, refit cubics) for noise reduction
+			const simplified = await simplifyContours(glyph.contours);
+			if (simplified.length === 0) {
+				toast.warn('Simplify returned empty geometry; nothing changed.');
+				return;
+			}
+			// 2. Snap every command coordinate to nearest 10 units
+			const snap = (n: number) => Math.round(n / 10) * 10;
+			const snapped = simplified.map((c) => ({
+				...c,
+				commands: c.commands.map((cmd) => {
+					if (cmd.type === 'Z') return cmd;
+					if (cmd.type === 'M' || cmd.type === 'L') {
+						return { ...cmd, x: snap(cmd.x), y: snap(cmd.y) };
+					}
+					if (cmd.type === 'Q') {
+						return { ...cmd, x: snap(cmd.x), y: snap(cmd.y), x1: snap(cmd.x1), y1: snap(cmd.y1) };
+					}
+					return {
+						...cmd,
+						x: snap(cmd.x),
+						y: snap(cmd.y),
+						x1: snap(cmd.x1),
+						y1: snap(cmd.y1),
+						x2: snap(cmd.x2),
+						y2: snap(cmd.y2)
+					};
+				})
+			}));
+			projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: snapped }));
+			toast.success('Auto-clean: simplified + snapped to 10u grid');
+		} finally {
+			autoCleaning = false;
+		}
+	};
+
 	let simplifying = $state(false);
 	const applySimplify = async () => {
 		if (!glyph || glyph.contours.length === 0 || simplifying) return;
@@ -2018,6 +2059,16 @@
 				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Path operations
 				</h3>
+				<button
+					type="button"
+					onclick={autoCleanGlyph}
+					disabled={glyph.contours.length === 0 || autoCleaning}
+					class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent bg-accent text-accent-fg px-2 py-1.5 text-[11px] font-medium hover:bg-accent/90 disabled:opacity-40"
+					title="Simplify + snap to 10u grid in one step"
+				>
+					<Wand class="size-3" />
+					{autoCleaning ? 'Cleaning…' : 'Auto-clean glyph'}
+				</button>
 				<div class="mb-2 grid grid-cols-2 gap-1.5">
 					<button
 						type="button"
