@@ -68,6 +68,13 @@
 	let searchEl = $state<HTMLInputElement | null>(null);
 
 	const handleGlobalKey = (e: KeyboardEvent) => {
+		// ⌘K always focuses the project search, even from inside an input
+		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+			e.preventDefault();
+			searchEl?.focus();
+			searchEl?.select();
+			return;
+		}
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
 			return;
 		if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
