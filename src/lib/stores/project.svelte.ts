@@ -492,6 +492,80 @@ class ProjectStore {
 		this.touch();
 	}
 
+	/** Sidebearing classes — linked LSB/RSB across a group of glyphs. */
+	addSidebearingClass(name: string, members: number[]): string {
+		const id = crypto.randomUUID();
+		if (!this.project) return id;
+		const cleanName = name.trim() || `Group ${(this.project.sidebearingClasses?.length ?? 0) + 1}`;
+		this.project = {
+			...this.project,
+			sidebearingClasses: [
+				...(this.project.sidebearingClasses ?? []),
+				{ id, name: cleanName, members: [...new Set(members)] }
+			]
+		};
+		this.touch();
+		return id;
+	}
+
+	removeSidebearingClass(id: string) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			sidebearingClasses: (this.project.sidebearingClasses ?? []).filter((c) => c.id !== id)
+		};
+		this.touch();
+	}
+
+	updateSidebearingClassMembers(id: string, members: number[]) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			sidebearingClasses: (this.project.sidebearingClasses ?? []).map((c) =>
+				c.id === id ? { ...c, members: [...new Set(members)] } : c
+			)
+		};
+		this.touch();
+	}
+
+	renameSidebearingClass(id: string, name: string) {
+		if (!this.project) return;
+		const cleanName = name.trim();
+		if (!cleanName) return;
+		this.project = {
+			...this.project,
+			sidebearingClasses: (this.project.sidebearingClasses ?? []).map((c) =>
+				c.id === id ? { ...c, name: cleanName } : c
+			)
+		};
+		this.touch();
+	}
+
+	/** Set LSB and/or RSB on every member of a sidebearing class, recomputing advance from bbox + sb. */
+	setSidebearingClassValues(id: string, lsb: number | null, rsb: number | null) {
+		if (!this.project) return;
+		const cls = (this.project.sidebearingClasses ?? []).find((c) => c.id === id);
+		if (!cls) return;
+		const nextGlyphs = { ...this.project.glyphs };
+		for (const cp of cls.members) {
+			const g = nextGlyphs[cp];
+			if (!g) continue;
+			const newLsb = lsb !== null ? lsb : g.leftSidebearing;
+			const newRsb = rsb !== null ? rsb : g.rightSidebearing;
+			// Recompute advance: keep bbox width stable, slide LSB and pad RSB.
+			const bboxW = Math.max(0, g.advanceWidth - g.leftSidebearing - g.rightSidebearing);
+			nextGlyphs[cp] = {
+				...g,
+				leftSidebearing: newLsb,
+				rightSidebearing: newRsb,
+				advanceWidth: newLsb + bboxW + newRsb,
+				updatedAt: new Date().toISOString()
+			};
+		}
+		this.project = { ...this.project, glyphs: nextGlyphs };
+		this.touch();
+	}
+
 	/** Named instances CRUD */
 	upsertInstance(inst: VariableInstance) {
 		if (!this.project) return;

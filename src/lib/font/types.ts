@@ -98,6 +98,18 @@ export type KerningClass = {
 	members: number[];
 };
 
+/**
+ * A sidebearing class: a named group of glyphs that share LSB and RSB. Editing
+ * any one through the class updates every member. font5.md: "well-set
+ * sidebearings should create a stable text color across repeated patterns of
+ * stems, rounds, diagonals … before heavy kerning is introduced."
+ */
+export type SidebearingClass = {
+	id: string;
+	name: string;
+	members: number[];
+};
+
 export const isClassRef = (side: KerningSide): side is string =>
 	typeof side === 'string' && side.startsWith('@');
 
@@ -254,6 +266,8 @@ export type Project = {
 	glyphs: Record<number, Glyph>;
 	kerning: KerningPair[];
 	classes?: KerningClass[];
+	/** Sidebearing groups — linked LSB/RSB across members. */
+	sidebearingClasses?: SidebearingClass[];
 	features: ProjectFeatures;
 	/** Variable font axes. Undefined / empty = static font. */
 	axes?: Axis[];

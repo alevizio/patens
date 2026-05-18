@@ -26,6 +26,42 @@
 
 	let leftChar = $state('A');
 	let rightChar = $state('V');
+
+	// ---------- Sidebearing classes ----------
+	let newSbName = $state('');
+	let newSbMembers = $state('');
+	const parseMemberCodepoints = (s: string): number[] => {
+		const result: number[] = [];
+		for (const ch of s) {
+			const cp = ch.codePointAt(0);
+			if (cp && cp > 0x20) result.push(cp);
+		}
+		return Array.from(new Set(result));
+	};
+	const createSbClass = () => {
+		const cps = parseMemberCodepoints(newSbMembers);
+		if (cps.length === 0) {
+			toast.warn('Add at least one character.');
+			return;
+		}
+		projectStore.addSidebearingClass(newSbName, cps);
+		newSbName = '';
+		newSbMembers = '';
+	};
+	const sbClassAvg = (members: number[]): { lsb: number; rsb: number } => {
+		if (!project || members.length === 0) return { lsb: 0, rsb: 0 };
+		let lsb = 0;
+		let rsb = 0;
+		let n = 0;
+		for (const cp of members) {
+			const g = project.glyphs[cp];
+			if (!g) continue;
+			lsb += g.leftSidebearing;
+			rsb += g.rightSidebearing;
+			n++;
+		}
+		return n > 0 ? { lsb: Math.round(lsb / n), rsb: Math.round(rsb / n) } : { lsb: 0, rsb: 0 };
+	};
 	let pairsOnlyDrawn = $state(true);
 	const visiblePairs = $derived.by(() => {
 		if (!pairsOnlyDrawn || !project) return COMMON_PAIRS;
@@ -587,6 +623,101 @@
 				{/each}
 			</ul>
 		{/if}
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-2 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			<Group class="size-3" /> Sidebearing classes ({project?.sidebearingClasses?.length ?? 0})
+		</h2>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Group glyphs that should share LSB/RSB (e.g. H I L M N for vertical stems, O C G Q for rounds).
+			Edits to a class propagate to every member, so spacing stays coherent before kerning starts.
+		</p>
+		{#if project?.sidebearingClasses && project.sidebearingClasses.length > 0}
+			<ul class="mb-3 grid gap-2">
+				{#each project.sidebearingClasses as cls (cls.id)}
+					{@const avg = sbClassAvg(cls.members)}
+					<li class="rounded-md border border-border bg-surface-2/40 px-3 py-2">
+						<div class="mb-1.5 flex items-center justify-between gap-2">
+							<input
+								type="text"
+								value={cls.name}
+								onchange={(e) =>
+									projectStore.renameSidebearingClass(cls.id, e.currentTarget.value)}
+								class="min-w-0 flex-1 border-0 bg-transparent text-[13px] font-medium text-fg outline-none focus:ring-1 focus:ring-accent"
+							/>
+							<button
+								type="button"
+								onclick={() => projectStore.removeSidebearingClass(cls.id)}
+								class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+								aria-label="Delete class"
+							>
+								<Trash2 class="size-3.5" />
+							</button>
+						</div>
+						<div class="mb-2 flex flex-wrap gap-1">
+							{#each cls.members as cp (cp)}
+								{@const g = project.glyphs[cp]}
+								<button
+									type="button"
+									onclick={() =>
+										projectStore.updateSidebearingClassMembers(
+											cls.id,
+											cls.members.filter((m) => m !== cp)
+										)}
+									class="inline-flex items-center gap-0.5 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-danger/10 hover:text-danger"
+									title="Remove {g?.name ?? cp.toString(16)}"
+								>
+									{#if cp > 0x20 && cp < 0x10000}
+										{String.fromCodePoint(cp)}
+									{:else}
+										{g?.name ?? cp}
+									{/if}
+								</button>
+							{/each}
+						</div>
+						<div class="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-2 text-[11px]">
+							<span class="text-fg-muted">LSB</span>
+							<input
+								type="number"
+								value={avg.lsb}
+								onchange={(e) =>
+									projectStore.setSidebearingClassValues(
+										cls.id,
+										Number(e.currentTarget.value),
+										null
+									)}
+								class="w-full rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-accent"
+							/>
+							<span class="text-fg-muted">RSB</span>
+							<input
+								type="number"
+								value={avg.rsb}
+								onchange={(e) =>
+									projectStore.setSidebearingClassValues(
+										cls.id,
+										null,
+										Number(e.currentTarget.value)
+									)}
+								class="w-full rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-accent"
+							/>
+						</div>
+					</li>
+				{/each}
+			</ul>
+		{/if}
+		<div class="grid grid-cols-[1fr_2fr_auto] gap-2">
+			<Field label="Name">
+				<Input density="sm" bind:value={newSbName} placeholder="Vertical stems" />
+			</Field>
+			<Field label="Members (paste characters)">
+				<Input density="sm" bind:value={newSbMembers} placeholder="HILMN" />
+			</Field>
+			<Button density="sm" onclick={createSbClass} disabled={!newSbMembers.trim()}>
+				{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+				Add class
+			</Button>
+		</div>
 	</Panel>
 
 	<Panel>
