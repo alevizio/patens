@@ -438,7 +438,9 @@
 													: (p.briefPct ?? 0) >= 33
 														? 'bg-warn/15 text-warn'
 														: 'bg-fg/10 text-fg-subtle'}"
-												title="Brief completeness"
+												title={(p.briefMissing ?? []).length === 0
+													? 'Brief complete'
+													: `Missing: ${(p.briefMissing ?? []).join(', ')}`}
 												data-numeric
 											>
 												Brief {p.briefPct}%

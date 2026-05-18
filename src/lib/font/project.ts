@@ -56,6 +56,8 @@ export type ProjectIndexEntry = {
 	thumbnail?: { path: string; viewBox: string; advance: number };
 	/** Brief completeness 0-100 (6 fields, even weight). */
 	briefPct?: number;
+	/** Comma-joined list of unfilled brief fields — populates the badge tooltip. */
+	briefMissing?: string[];
 	/** Glyphs whose updatedAt is within the last 24 hours. */
 	editsToday?: number;
 };
@@ -179,15 +181,17 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		? taglineRaw.split(/\r?\n/)[0].trim().slice(0, 140)
 		: undefined;
 	const b = p.brief ?? {};
-	const briefChecks = [
-		!!b.intent?.trim(),
-		!!b.audience?.trim(),
-		(b.useCases?.length ?? 0) > 0,
-		!!b.readingConditions?.trim(),
-		!!b.differentiation?.trim(),
-		(b.references?.length ?? 0) > 0
+	const briefFieldChecks: Array<[string, boolean]> = [
+		['intent', !!b.intent?.trim()],
+		['audience', !!b.audience?.trim()],
+		['use cases', (b.useCases?.length ?? 0) > 0],
+		['reading conditions', !!b.readingConditions?.trim()],
+		['differentiation', !!b.differentiation?.trim()],
+		['references', (b.references?.length ?? 0) > 0]
 	];
-	const briefPct = Math.round((briefChecks.filter(Boolean).length / briefChecks.length) * 100);
+	const filled = briefFieldChecks.filter(([, ok]) => ok).length;
+	const briefPct = Math.round((filled / briefFieldChecks.length) * 100);
+	const briefMissing = briefFieldChecks.filter(([, ok]) => !ok).map(([name]) => name);
 	const dayAgo = Date.now() - 24 * 3600 * 1000;
 	const editsToday = Object.values(p.glyphs).filter((g) => {
 		const t = Date.parse(g.updatedAt);
@@ -205,6 +209,7 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		tagline,
 		thumbnail,
 		briefPct,
+		briefMissing,
 		editsToday
 	};
 };
