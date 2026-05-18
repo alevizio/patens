@@ -582,12 +582,21 @@
 				<Type class="size-3.5" />
 				Font Studio
 			</div>
-			<a
-				href="/learn"
-				class="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
-			>
-				Learn the craft →
-			</a>
+			<div class="flex items-center gap-2">
+				<a
+					href="/families"
+					class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+				>
+					<Layers class="size-3.5" />
+					Families
+				</a>
+				<a
+					href="/learn"
+					class="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+				>
+					Learn the craft →
+				</a>
+			</div>
 		</div>
 		<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
 			Design your own typeface,<br />
