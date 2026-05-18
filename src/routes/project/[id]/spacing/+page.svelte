@@ -33,6 +33,8 @@
 	// ---------- Spacing playground ----------
 	let playgroundText = $state('Hamburgefonts AVATAR To We La Pa\nQuick brown fox jumps over');
 	let playgroundSize = $state(72);
+	let playgroundLineHeight = $state(1.15);
+	let playgroundTracking = $state(0); // em-based, scaled to 1000ths
 	let playgroundKern = $state(true);
 	let playgroundLiga = $state(true);
 	let referenceFont = $state('');
@@ -430,9 +432,39 @@
 				</button>
 			</div>
 		</div>
+		<div class="mb-3 grid grid-cols-2 gap-3">
+			<label class="flex items-center gap-2 text-[11px] text-fg-muted">
+				Line height
+				<input
+					type="range"
+					min={0.8}
+					max={2}
+					step={0.05}
+					bind:value={playgroundLineHeight}
+					class="h-1 flex-1 accent-accent"
+				/>
+				<span class="w-10 text-right font-mono text-fg" data-numeric>
+					{playgroundLineHeight.toFixed(2)}
+				</span>
+			</label>
+			<label class="flex items-center gap-2 text-[11px] text-fg-muted">
+				Tracking
+				<input
+					type="range"
+					min={-50}
+					max={200}
+					step={5}
+					bind:value={playgroundTracking}
+					class="h-1 flex-1 accent-accent"
+				/>
+				<span class="w-12 text-right font-mono text-fg" data-numeric>
+					{playgroundTracking > 0 ? '+' : ''}{playgroundTracking}
+				</span>
+			</label>
+		</div>
 		<div
-			class="preview-font min-h-[160px] whitespace-pre-wrap rounded-lg border border-border bg-canvas p-6 leading-[1.15]"
-			style="font-size: {playgroundSize}px; font-feature-settings: {playgroundFeatures};"
+			class="preview-font min-h-[160px] whitespace-pre-wrap rounded-lg border border-border bg-canvas p-6"
+			style="font-size: {playgroundSize}px; line-height: {playgroundLineHeight}; letter-spacing: {playgroundTracking / 1000}em; font-feature-settings: {playgroundFeatures};"
 		>
 			{playgroundText || 'Type above…'}
 		</div>
@@ -471,8 +503,8 @@
 		</div>
 		{#if referenceFont}
 			<div
-				class="mt-2 min-h-[160px] whitespace-pre-wrap rounded-lg border border-dashed border-border-strong/50 bg-canvas/50 p-6 leading-[1.15] text-fg-muted"
-				style="font-family: {referenceFont}, sans-serif; font-size: {playgroundSize}px; font-feature-settings: {playgroundFeatures};"
+				class="mt-2 min-h-[160px] whitespace-pre-wrap rounded-lg border border-dashed border-border-strong/50 bg-canvas/50 p-6 text-fg-muted"
+				style="font-family: {referenceFont}, sans-serif; font-size: {playgroundSize}px; line-height: {playgroundLineHeight}; letter-spacing: {playgroundTracking / 1000}em; font-feature-settings: {playgroundFeatures};"
 			>
 				{playgroundText || `Reference: ${referenceFont}`}
 			</div>
