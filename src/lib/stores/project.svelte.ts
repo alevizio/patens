@@ -548,6 +548,7 @@ class ProjectStore {
 	addSidebearingClass(name: string, members: number[]): string {
 		const id = crypto.randomUUID();
 		if (!this.project) return id;
+		if (this.project.locked) return id;
 		const cleanName = name.trim() || `Group ${(this.project.sidebearingClasses?.length ?? 0) + 1}`;
 		this.project = {
 			...this.project,
@@ -654,6 +655,7 @@ class ProjectStore {
 
 	addCustomGlyph(codepoint: number, name?: string) {
 		if (!this.project) return false;
+		if (this.project.locked) return false;
 		if (this.project.glyphs[codepoint]) return false;
 		const auto = name?.trim() || aglfnName(codepoint);
 		const sb = this.project.metrics.defaultSidebearing;
@@ -920,6 +922,7 @@ class ProjectStore {
 	 */
 	syncAllEmptyFromDefault(masterId: string): number {
 		if (!this.project) return 0;
+		if (this.project.locked) return 0;
 		let count = 0;
 		this.project = updateMasterHelper(this.project, masterId, (m) => {
 			const next = { ...m.glyphs };
