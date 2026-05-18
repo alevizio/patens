@@ -52,6 +52,21 @@
 	const notesCount = $derived(
 		project ? Object.values(project.glyphs).filter((g) => g.notes?.trim()).length : 0
 	);
+
+	const briefCompleteness = $derived.by(() => {
+		if (!project) return { filled: 0, total: 6, pct: 0 };
+		const b = project.brief ?? {};
+		const checks = [
+			!!b.intent?.trim(),
+			!!b.audience?.trim(),
+			(b.useCases?.length ?? 0) > 0,
+			!!b.readingConditions?.trim(),
+			!!b.differentiation?.trim(),
+			(b.references?.length ?? 0) > 0
+		];
+		const filled = checks.filter(Boolean).length;
+		return { filled, total: checks.length, pct: Math.round((filled / checks.length) * 100) };
+	});
 </script>
 
 {#if open && project}
@@ -135,6 +150,27 @@
 					{previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(0)}ms
 				</dd>
 			</dl>
+
+			<div class="border-t border-border pt-3">
+				<a
+					href="/project/{project.id}/brief"
+					onclick={onclose}
+					class="block rounded-md border border-border bg-surface-2/40 px-2 py-1.5 hover:border-accent"
+				>
+					<div class="flex items-baseline justify-between text-[11px]">
+						<span class="font-medium text-fg-muted">Brief completeness</span>
+						<span class="font-mono text-fg" data-numeric>
+							{briefCompleteness.filled}/{briefCompleteness.total} · {briefCompleteness.pct}%
+						</span>
+					</div>
+					<div class="mt-1 h-1 overflow-hidden rounded-full bg-surface-2">
+						<div
+							class="h-full bg-accent transition-all duration-500"
+							style="width: {briefCompleteness.pct}%;"
+						></div>
+					</div>
+				</a>
+			</div>
 
 			<div class="border-t border-border pt-3">
 				<div class="mb-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">

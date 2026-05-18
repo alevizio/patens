@@ -224,6 +224,14 @@
 
 	$effect(() => {
 		if (!projectStore.project?.axes) return;
+		// Only re-assign when the axis tag set changes — avoid a reactive loop
+		// where the effect reads + writes vfAxisValues every tick.
+		const existingTags = new Set(Object.keys(vfAxisValues));
+		const projectTags = new Set(projectStore.project.axes.map((a) => a.tag));
+		let needsUpdate = false;
+		for (const a of projectStore.project.axes) if (!existingTags.has(a.tag)) needsUpdate = true;
+		for (const k of existingTags) if (!projectTags.has(k)) needsUpdate = true;
+		if (!needsUpdate) return;
 		const next: Record<string, number> = {};
 		for (const a of projectStore.project.axes) {
 			next[a.tag] = vfAxisValues[a.tag] ?? a.default;

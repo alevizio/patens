@@ -235,6 +235,14 @@ function rgb(hex) {
 
 	$effect(() => {
 		if (!project?.axes) return;
+		// Only re-assign axisValues when an axis is missing — avoid a reactive
+		// loop where the effect reads + writes the same $state object each tick.
+		const existingTags = new Set(Object.keys(axisValues));
+		const projectTags = new Set(project.axes.map((a) => a.tag));
+		let needsUpdate = false;
+		for (const a of project.axes) if (!existingTags.has(a.tag)) needsUpdate = true;
+		for (const k of existingTags) if (!projectTags.has(k)) needsUpdate = true;
+		if (!needsUpdate) return;
 		const next: Record<string, number> = {};
 		for (const a of project.axes) {
 			next[a.tag] = axisValues[a.tag] ?? a.default;
