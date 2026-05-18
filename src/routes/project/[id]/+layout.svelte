@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
+	import { settings } from '$lib/stores/settings.svelte';
 	import { listProjects, type ProjectIndexEntry } from '$lib/font/project';
 	import GlyphBrowser from '$lib/glyph/GlyphBrowser.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -228,6 +229,13 @@
 		} else if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
 			e.preventDefault();
 			toggleSidebar();
+		} else if ((e.metaKey || e.ctrlKey) && (e.key === 'j' || e.key === 'J')) {
+			e.preventDefault();
+			const order: Array<'system' | 'light' | 'dark'> = ['system', 'light', 'dark'];
+			const idx = order.indexOf(settings.theme);
+			const next = order[(idx + 1) % order.length];
+			settings.setTheme(next);
+			t.success(`Theme: ${next}`);
 		} else if ((e.metaKey || e.ctrlKey) && (e.key === 'm' || e.key === 'M')) {
 			// Cycle to the next master
 			const masters = projectStore.project?.masters ?? [];

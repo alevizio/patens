@@ -23,7 +23,8 @@
 				{ keys: '/', label: 'Open command palette' },
 				{ keys: '⌘1..9', label: 'Jump to nth tab' },
 				{ keys: '⌘\\', label: 'Toggle glyph browser sidebar' },
-				{ keys: '⌘M', label: 'Cycle active master (VF projects)' }
+				{ keys: '⌘M', label: 'Cycle active master (VF projects)' },
+				{ keys: '⌘J', label: 'Cycle theme (system / light / dark)' }
 			]
 		},
 		{
