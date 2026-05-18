@@ -53,13 +53,31 @@
 		{
 			title: 'Rendering matrix',
 			items: [
-				{ id: 'render-chrome-mac', label: 'Chrome on macOS', hint: '12–72px, dark + light' },
-				{ id: 'render-safari-mac', label: 'Safari on macOS', hint: 'Core Text rendering path' },
-				{ id: 'render-firefox-mac', label: 'Firefox on macOS' },
-				{ id: 'render-chrome-win', label: 'Chrome on Windows', hint: 'DirectWrite + ClearType' },
-				{ id: 'render-edge-win', label: 'Edge on Windows' },
-				{ id: 'render-safari-ios', label: 'Safari on iOS' },
-				{ id: 'render-chrome-android', label: 'Chrome on Android' }
+				{
+					id: 'render-win-blink',
+					label: 'Windows · Edge or Chrome',
+					hint: 'Small UI text, hinting, clipping, style linking, numerals (DirectWrite + ClearType)'
+				},
+				{
+					id: 'render-win-firefox',
+					label: 'Windows · Firefox',
+					hint: 'GSUB/GPOS behavior, fallback, second engine on the same OS'
+				},
+				{
+					id: 'render-mac-safari',
+					label: 'macOS · Safari',
+					hint: 'Text sizes, optical sizes, menu naming, line spacing (Core Text + WebKit)'
+				},
+				{
+					id: 'render-mac-blink',
+					label: 'macOS · Chrome or Firefox',
+					hint: 'Webfont loading, CSS feature access, paragraph color (Blink/Gecko on Apple stack)'
+				},
+				{
+					id: 'render-linux-android',
+					label: 'Linux or Android sanity pass',
+					hint: 'Shaping-sensitive strings, WOFF2 loading, fallback (FreeType + HarfBuzz)'
+				}
 			]
 		},
 		{
