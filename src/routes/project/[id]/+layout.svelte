@@ -568,6 +568,15 @@
 					v{projectStore.project.changelog[0].version}
 				</a>
 			{/if}
+			{#if previewStore.sizeKb > 0}
+				<a
+					href="/project/{projectStore.project?.id}/export"
+					class="hidden rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg lg:inline-flex"
+					title="Last preview build size · {previewStore.lastBuildMs.toFixed(0)}ms — jump to Export"
+				>
+					{previewStore.sizeKb.toFixed(1)} KB
+				</a>
+			{/if}
 		</div>
 
 		<div class="relative">
