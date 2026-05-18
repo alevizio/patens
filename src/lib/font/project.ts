@@ -5,7 +5,7 @@
 
 import { get, set, del, createStore } from 'idb-keyval';
 import type { Axis, Glyph, Master, Project, FontMetrics, FontMetadata } from './types';
-import { DEFAULT_METRICS, DEFAULT_FEATURES, STANDARD_AXES } from './types';
+import { DEFAULT_METRICS, DEFAULT_FEATURES, STANDARD_AXES, CURRENT_SCHEMA_VERSION } from './types';
 
 /**
  * Project kind presets — each tweaks metric defaults to suit the family's
@@ -154,6 +154,7 @@ export const createProject = (input: {
 		};
 	}
 	return {
+		schemaVersion: CURRENT_SCHEMA_VERSION,
 		id: newId(),
 		name: input.name.trim() || 'Untitled font',
 		metadata,
@@ -163,6 +164,52 @@ export const createProject = (input: {
 		features: { ...DEFAULT_FEATURES },
 		createdAt: ts,
 		updatedAt: ts
+	};
+};
+
+/**
+ * Migrate a raw stored object forward to the current schema. Defensive: returns
+ * `null` if the input is too broken to salvage. For backwards-compatible
+ * additions we just fill in defaults; for shape-changing migrations, add an
+ * explicit step in the switch below and bump `CURRENT_SCHEMA_VERSION` in types.
+ */
+export type MigrationResult = {
+	project: Project;
+	fromVersion: number;
+	toVersion: number;
+	upgraded: boolean;
+};
+export const migrate = (raw: unknown): MigrationResult | null => {
+	if (!raw || typeof raw !== 'object') return null;
+	const r = raw as Record<string, unknown> & Partial<Project>;
+	// Must have an id and a glyphs map to be salvageable.
+	if (typeof r.id !== 'string' || !r.glyphs || typeof r.glyphs !== 'object') return null;
+	const fromVersion = typeof r.schemaVersion === 'number' ? r.schemaVersion : 0;
+	let p = r as unknown as Project;
+	// Stepwise migrations (none required yet at v1, but the switch is ready)
+	let v = fromVersion;
+	// Example for future use:
+	// while (v < CURRENT_SCHEMA_VERSION) {
+	//   switch (v) {
+	//     case 0: p = migrateV0ToV1(p); v = 1; break;
+	//     case 1: p = migrateV1ToV2(p); v = 2; break;
+	//   }
+	// }
+	v = CURRENT_SCHEMA_VERSION;
+	// Fill in any missing required fields with defaults, in case the stored
+	// record predates a field being added.
+	if (!p.metadata) p = { ...p, metadata: { ...({} as FontMetadata) } };
+	if (!p.metrics) p = { ...p, metrics: { ...DEFAULT_METRICS } };
+	if (!p.features) p = { ...p, features: { ...DEFAULT_FEATURES } };
+	if (!Array.isArray(p.kerning)) p = { ...p, kerning: [] };
+	if (!p.createdAt) p = { ...p, createdAt: now() };
+	if (!p.updatedAt) p = { ...p, updatedAt: now() };
+	const finalised: Project = { ...p, schemaVersion: v };
+	return {
+		project: finalised,
+		fromVersion,
+		toVersion: v,
+		upgraded: fromVersion !== v
 	};
 };
 
@@ -273,8 +320,16 @@ export const listProjects = async (): Promise<ProjectIndexEntry[]> => {
 };
 
 export const loadProject = async (id: string): Promise<Project | null> => {
-	const value = await get<Project>(id, store);
-	return value ?? null;
+	const value = await get<unknown>(id, store);
+	if (value === undefined) return null;
+	const result = migrate(value);
+	if (!result) return null;
+	// If the schema actually advanced, persist the upgraded record so the next
+	// load is a no-op. Defensive against indefinitely-stale on-disk records.
+	if (result.upgraded) {
+		await set(id, result.project, store);
+	}
+	return result.project;
 };
 
 export const saveProject = async (project: Project): Promise<void> => {
@@ -308,31 +363,46 @@ export const toggleProjectPin = async (id: string): Promise<boolean> => {
 	return next.pinned === true;
 };
 
-export const backupAllProjects = async (): Promise<{
+/** Current backup envelope version. Bumped to 2 when schemaVersion was added. */
+export const BACKUP_VERSION = 2;
+export type Backup = {
 	exportedAt: string;
-	version: 1;
+	version: number;
+	schemaVersion?: number;
 	projects: Project[];
-}> => {
+};
+
+export const backupAllProjects = async (): Promise<Backup> => {
 	const idx = (await get<ProjectIndexEntry[]>(INDEX_KEY, store)) ?? [];
 	const projects: Project[] = [];
 	for (const entry of idx) {
-		const p = await get<Project>(entry.id, store);
-		if (p) projects.push(p);
+		const raw = await get<unknown>(entry.id, store);
+		const migrated = migrate(raw);
+		if (migrated) projects.push(migrated.project);
 	}
-	return { exportedAt: new Date().toISOString(), version: 1, projects };
+	return {
+		exportedAt: new Date().toISOString(),
+		version: BACKUP_VERSION,
+		schemaVersion: CURRENT_SCHEMA_VERSION,
+		projects
+	};
 };
 
 export const restoreFromBackup = async (
-	data: { projects: Project[] },
+	data: { projects: unknown[]; version?: number },
 	opts: { overwrite?: boolean } = {}
-): Promise<{ added: number; skipped: number }> => {
+): Promise<{ added: number; skipped: number; upgraded: number }> => {
 	let added = 0;
 	let skipped = 0;
-	for (const project of data.projects) {
-		if (!project?.id) {
+	let upgraded = 0;
+	for (const raw of data.projects) {
+		const result = migrate(raw);
+		if (!result) {
 			skipped++;
 			continue;
 		}
+		const project = result.project;
+		if (result.upgraded) upgraded++;
 		if (!opts.overwrite) {
 			const existing = await get<Project>(project.id, store);
 			if (existing) {
@@ -343,7 +413,7 @@ export const restoreFromBackup = async (
 		await saveProject(project);
 		added++;
 	}
-	return { added, skipped };
+	return { added, skipped, upgraded };
 };
 
 export const toggleProjectArchive = async (id: string): Promise<boolean> => {

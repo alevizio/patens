@@ -80,6 +80,7 @@ class ProjectStore {
 
 	private snapshotForHistory() {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const snap = JSON.parse(JSON.stringify(this.project)) as Project;
 		this.undoStack.push(snap);
 		if (this.undoStack.length > this.maxHistory) this.undoStack.shift();
@@ -99,6 +100,7 @@ class ProjectStore {
 
 	undo() {
 		if (this.undoStack.length < 2) return;
+		if (this.project?.locked) return;
 		// Cancel any pending snapshot so it doesn't overwrite our restored state
 		if (this.snapshotTimer) {
 			clearTimeout(this.snapshotTimer);
@@ -115,6 +117,7 @@ class ProjectStore {
 
 	redo() {
 		if (this.redoStack.length === 0) return;
+		if (this.project?.locked) return;
 		if (this.snapshotTimer) {
 			clearTimeout(this.snapshotTimer);
 			this.snapshotTimer = null;
@@ -136,6 +139,7 @@ class ProjectStore {
 
 	private touch() {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = { ...this.project, updatedAt: new Date().toISOString() };
 		this.dirty = true;
 		this.scheduleSave();
@@ -222,11 +226,16 @@ class ProjectStore {
 	toggleLock() {
 		if (!this.project) return;
 		this.project = { ...this.project, locked: !this.project.locked };
-		this.touch();
+		// touch() also short-circuits when locked, so when locking we need to write
+		// updatedAt+dirty manually to ensure the lock state actually persists.
+		this.project = { ...this.project, updatedAt: new Date().toISOString() };
+		this.dirty = true;
+		this.scheduleSave();
 	}
 
 	updateTags(tags: string[]) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const cleaned = Array.from(
 			new Set(tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0))
 		);
@@ -290,6 +299,7 @@ class ProjectStore {
 
 	updateMetadata(mut: Partial<Project['metadata']>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			metadata: { ...this.project.metadata, ...mut }
@@ -299,6 +309,7 @@ class ProjectStore {
 
 	updateMetrics(mut: Partial<Project['metrics']>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			metrics: { ...this.project.metrics, ...mut }
@@ -308,18 +319,21 @@ class ProjectStore {
 
 	updateName(name: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = { ...this.project, name };
 		this.touch();
 	}
 
 	updateDescription(description: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = { ...this.project, description };
 		this.touch();
 	}
 
 	addChangelogEntry(entry: { version: string; notes: string }) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const next: import('$lib/font/types').ChangelogEntry = {
 			id: crypto.randomUUID(),
 			version: entry.version.trim() || this.project.metadata.version,
@@ -335,6 +349,7 @@ class ProjectStore {
 
 	addDecision(entry: { decision: string; rationale: string }) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const next: import('$lib/font/types').DecisionEntry = {
 			id: crypto.randomUUID(),
 			date: new Date().toISOString(),
@@ -350,6 +365,7 @@ class ProjectStore {
 
 	removeDecision(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			decisions: (this.project.decisions ?? []).filter((e) => e.id !== id)
@@ -359,6 +375,7 @@ class ProjectStore {
 
 	removeChangelogEntry(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			changelog: (this.project.changelog ?? []).filter((e) => e.id !== id)
@@ -368,6 +385,7 @@ class ProjectStore {
 
 	updateSamples(mut: Partial<import('$lib/font/types').ProjectSamples>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			samples: { ...(this.project.samples ?? {}), ...mut }
@@ -377,6 +395,7 @@ class ProjectStore {
 
 	toggleSpecimenSection(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const cur = this.project.specimenSections ?? {};
 		// undefined means "on"; once toggled, store explicit boolean
 		const next = { ...cur, [id]: !(cur[id] ?? true) };
@@ -386,12 +405,14 @@ class ProjectStore {
 
 	resetReleaseChecks() {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = { ...this.project, releaseChecks: {} };
 		this.touch();
 	}
 
 	toggleReleaseCheck(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const next = { ...(this.project.releaseChecks ?? {}) };
 		next[id] = !next[id];
 		this.project = { ...this.project, releaseChecks: next };
@@ -400,6 +421,7 @@ class ProjectStore {
 
 	updateBrief(mut: Partial<import('$lib/font/types').ProjectBrief>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			brief: { ...(this.project.brief ?? {}), ...mut }
@@ -428,6 +450,7 @@ class ProjectStore {
 
 	addBriefReference(ref: Omit<import('$lib/font/types').BriefReference, 'id'>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const brief = this.project.brief ?? {};
 		this.project = {
 			...this.project,
@@ -452,6 +475,7 @@ class ProjectStore {
 
 	removeBriefReference(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const brief = this.project.brief ?? {};
 		this.project = {
 			...this.project,
@@ -465,6 +489,7 @@ class ProjectStore {
 
 	updateFeatures(mut: Partial<Project['features']>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			features: { ...this.project.features, ...mut }
@@ -474,6 +499,7 @@ class ProjectStore {
 
 	upsertKerningPair(pair: KerningPair) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const existing = this.project.kerning.findIndex(
 			(k) => k.left === pair.left && k.right === pair.right
 		);
@@ -497,6 +523,7 @@ class ProjectStore {
 	/** Kerning classes CRUD */
 	upsertKerningClass(cls: KerningClass) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const existing = (this.project.classes ?? []).findIndex((c) => c.name === cls.name);
 		const next = [...(this.project.classes ?? [])];
 		if (existing >= 0) next[existing] = cls;
@@ -507,6 +534,7 @@ class ProjectStore {
 
 	removeKerningClass(name: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			classes: (this.project.classes ?? []).filter((c) => c.name !== name),
@@ -534,6 +562,7 @@ class ProjectStore {
 
 	removeSidebearingClass(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			sidebearingClasses: (this.project.sidebearingClasses ?? []).filter((c) => c.id !== id)
@@ -543,6 +572,7 @@ class ProjectStore {
 
 	updateSidebearingClassMembers(id: string, members: number[]) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			sidebearingClasses: (this.project.sidebearingClasses ?? []).map((c) =>
@@ -554,6 +584,7 @@ class ProjectStore {
 
 	renameSidebearingClass(id: string, name: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const cleanName = name.trim();
 		if (!cleanName) return;
 		this.project = {
@@ -568,6 +599,7 @@ class ProjectStore {
 	/** Set LSB and/or RSB on every member of a sidebearing class, recomputing advance from bbox + sb. */
 	setSidebearingClassValues(id: string, lsb: number | null, rsb: number | null) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const cls = (this.project.sidebearingClasses ?? []).find((c) => c.id === id);
 		if (!cls) return;
 		const nextGlyphs = { ...this.project.glyphs };
@@ -593,6 +625,7 @@ class ProjectStore {
 	/** Named instances CRUD */
 	upsertInstance(inst: VariableInstance) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const existing = (this.project.instances ?? []).findIndex((i) => i.id === inst.id);
 		const next = [...(this.project.instances ?? [])];
 		if (existing >= 0) next[existing] = inst;
@@ -603,6 +636,7 @@ class ProjectStore {
 
 	removeInstance(id: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			instances: (this.project.instances ?? []).filter((i) => i.id !== id)
@@ -612,6 +646,7 @@ class ProjectStore {
 
 	async addScriptPack(pack: ScriptPack) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = addScriptPackHelper(this.project, pack);
 		this.touch();
 		await this.flush();
@@ -645,6 +680,7 @@ class ProjectStore {
 
 	resetGlyph(codepoint: number) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
 		const sb = this.project.metrics.defaultSidebearing;
@@ -674,6 +710,7 @@ class ProjectStore {
 
 	saveRevision(codepoint: number, label?: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current || current.contours.length === 0) return;
 		const rev: import('$lib/font/types').GlyphRevision = {
@@ -700,6 +737,7 @@ class ProjectStore {
 
 	restoreRevision(codepoint: number, revisionId: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
 		const rev = (current.revisions ?? []).find((r) => r.id === revisionId);
@@ -723,6 +761,7 @@ class ProjectStore {
 
 	deleteRevision(codepoint: number, revisionId: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current?.revisions) return;
 		this.project = {
@@ -741,6 +780,7 @@ class ProjectStore {
 
 	toggleGlyphFlag(codepoint: number) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
 		this.project = {
@@ -755,6 +795,7 @@ class ProjectStore {
 
 	toggleGlyphPin(codepoint: number) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
 		this.project = {
@@ -769,6 +810,7 @@ class ProjectStore {
 
 	setGlyphStatus(codepoint: number, status: Glyph['status']) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		if (!this.project.glyphs[codepoint]) return;
 		const current = this.project.glyphs[codepoint];
 		this.project = {
@@ -783,6 +825,7 @@ class ProjectStore {
 
 	renameGlyph(codepoint: number, name: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		if (!this.project.glyphs[codepoint]) return;
 		const trimmed = name.trim();
 		if (!trimmed) return;
@@ -799,6 +842,7 @@ class ProjectStore {
 
 	removeGlyph(codepoint: number) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		if (!this.project.glyphs[codepoint]) return;
 		const { [codepoint]: _, ...rest } = this.project.glyphs;
 		this.project = {
@@ -822,18 +866,21 @@ class ProjectStore {
 
 	addAxis(tag: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = addAxisHelper(this.project, tag);
 		this.touch();
 	}
 
 	removeAxis(tag: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = removeAxisHelper(this.project, tag);
 		this.touch();
 	}
 
 	updateAxis(tag: string, mut: Partial<Axis>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = {
 			...this.project,
 			axes: (this.project.axes ?? []).map((a) => (a.tag === tag ? { ...a, ...mut } : a))
@@ -843,6 +890,7 @@ class ProjectStore {
 
 	async addMaster(name: string, location: Record<string, number>) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = addMasterHelper(this.project, { name, location });
 		this.touch();
 		await this.flush();
@@ -850,6 +898,7 @@ class ProjectStore {
 
 	removeMaster(masterId: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = removeMasterHelper(this.project, masterId);
 		if (this.selectedMasterId === masterId) this.selectedMasterId = undefined;
 		this.touch();
@@ -857,6 +906,7 @@ class ProjectStore {
 
 	updateMaster(masterId: string, mut: (m: Master) => Master) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		this.project = updateMasterHelper(this.project, masterId, mut);
 		this.touch();
 	}
@@ -896,6 +946,7 @@ class ProjectStore {
 	 */
 	syncGlyphFromDefault(codepoint: number, masterId: string) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const src = this.project.glyphs[codepoint];
 		if (!src) return;
 		this.project = updateMasterHelper(this.project, masterId, (m) => ({

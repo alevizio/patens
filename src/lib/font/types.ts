@@ -237,7 +237,17 @@ export type VariableInstance = {
 	postScriptName?: string;
 };
 
+/**
+ * The current Project schema version. Bump when making a breaking change to the
+ * shape of `Project` or any of its nested types. Pair the bump with a step in
+ * `migrate()` in `project.ts` that transforms the prior shape forward.
+ */
+export const CURRENT_SCHEMA_VERSION = 1;
+
 export type Project = {
+	/** Schema version of this Project record. Pinned via `CURRENT_SCHEMA_VERSION`
+	 * at create time; `migrate()` advances older records to the current version. */
+	schemaVersion?: number;
 	id: string;
 	name: string;
 	/** Freeform brief / goals / sketch ideas — shown on the home page tooltip + stats popover. */

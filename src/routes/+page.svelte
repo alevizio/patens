@@ -226,7 +226,8 @@
 				`Restore ${parsed.projects.length} projects from "${file.name}"?\n\nClick OK to OVERWRITE existing ones with the same ID, or Cancel to skip duplicates.`
 			);
 			const result = await restoreFromBackup(parsed, { overwrite });
-			restoreMessage = `Added ${result.added}${result.skipped ? `, skipped ${result.skipped}` : ''}.`;
+			const upgradedNote = result.upgraded > 0 ? ` · ${result.upgraded} upgraded` : '';
+			restoreMessage = `Added ${result.added}${result.skipped ? `, skipped ${result.skipped}` : ''}${upgradedNote}.`;
 			await refresh();
 		} catch (err) {
 			restoreMessage = `Restore failed: ${(err as Error).message}`;
