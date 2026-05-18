@@ -13,6 +13,7 @@
 		saveFamily,
 		syncAnchorsFromRegular,
 		syncMetricsFromRegular,
+		syncMissingClassesFromRegular,
 		unlinkProjectFromFamily
 	} from '$lib/font/family';
 	import { loadProject } from '$lib/font/project';
@@ -162,12 +163,14 @@
 		'family-metrics-mismatch-descender',
 		'family-metrics-mismatch-capHeight',
 		'family-metrics-mismatch-xHeight',
-		'family-anchor-missing'
+		'family-anchor-missing',
+		'family-class-missing'
 	]);
 	const fixLabel = (code: string): string => {
 		if (code === 'family-upm-mismatch') return 'Sync UPM';
 		if (code.startsWith('family-metrics-mismatch-')) return 'Sync metrics';
 		if (code === 'family-anchor-missing') return 'Copy anchors';
+		if (code === 'family-class-missing') return 'Copy class';
 		return 'Fix';
 	};
 	const handleFixIssue = async (issue: FamilyIssue) => {
@@ -185,6 +188,14 @@
 			const added = await syncAnchorsFromRegular(data.family.id, issue.siblingId);
 			if (added > 0) {
 				toast.success(`Copied ${added} missing anchor${added === 1 ? '' : 's'}.`);
+				await refresh();
+			} else {
+				toast.warn('Nothing to copy.');
+			}
+		} else if (issue.code === 'family-class-missing') {
+			const added = await syncMissingClassesFromRegular(data.family.id, issue.siblingId);
+			if (added > 0) {
+				toast.success(`Copied ${added} kerning class${added === 1 ? '' : 'es'}.`);
 				await refresh();
 			} else {
 				toast.warn('Nothing to copy.');

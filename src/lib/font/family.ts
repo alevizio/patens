@@ -172,6 +172,33 @@ export const propagateFamilyMetadata = async (familyId: string): Promise<number>
 };
 
 /**
+ * Copy any kerning class names present in the Regular sibling but missing from
+ * the target sibling. Existing classes on the target are left untouched (the
+ * designer may have customized them).
+ */
+export const syncMissingClassesFromRegular = async (
+	familyId: string,
+	targetProjectId: string
+): Promise<number> => {
+	const regular = await findRegularSibling(familyId);
+	if (!regular || regular.id === targetProjectId) return 0;
+	const [regularProject, target] = await Promise.all([
+		loadProject(regular.id),
+		loadProject(targetProjectId)
+	]);
+	if (!regularProject || !target) return 0;
+	const present = new Set((target.classes ?? []).map((c) => c.name));
+	const toAdd = (regularProject.classes ?? []).filter((c) => !present.has(c.name));
+	if (toAdd.length === 0) return 0;
+	const next: Project = {
+		...target,
+		classes: [...(target.classes ?? []), ...toAdd.map((c) => ({ ...c, members: [...c.members] }))]
+	};
+	await saveProject(next);
+	return toAdd.length;
+};
+
+/**
  * Sync structural metrics (UPM + ascender/descender/capHeight/xHeight) from
  * the Regular sibling to one specific other sibling. Used by the family audit
  * auto-fix actions.
