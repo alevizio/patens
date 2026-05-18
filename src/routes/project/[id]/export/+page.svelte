@@ -13,6 +13,7 @@
 		getPythonProgress
 	} from '$lib/font/python';
 	import { autoFeaSource } from '$lib/font/fea';
+	import { generateDesignMd } from '$lib/font/design-md';
 	import { resolveVerticalMetrics, FS_TYPE_OPTIONS } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
@@ -423,6 +424,15 @@ body {
 		downloadBlob(
 			new Blob([text], { type: 'text/plain' }),
 			`${safeFilename(project.name)}.fea`
+		);
+	};
+
+	const exportDesignMd = () => {
+		if (!project) return;
+		const md = generateDesignMd(project);
+		downloadBlob(
+			new Blob([md], { type: 'text/markdown' }),
+			`DESIGN-${safeFilename(project.name)}.md`
 		);
 	};
 
@@ -1013,6 +1023,16 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						AFDKO-style feature file with current kerning, classes, and OT features —
 						edit alongside any tool that speaks <code>.fea</code> (Glyphs, FontLab,
 						fontmake).
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
+					<Button variant="secondary" onclick={exportDesignMd}>
+						{#snippet icon()}<FileText class="size-4" />{/snippet}
+						Export DESIGN.md
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						Foundry-style markdown summarizing the brief, features, axes, and changelog
+						— ready to commit alongside your sources.
 					</span>
 				</div>
 				<div class="flex items-center gap-3">
