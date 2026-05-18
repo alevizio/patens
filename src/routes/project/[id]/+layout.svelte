@@ -228,6 +228,22 @@
 		} else if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
 			e.preventDefault();
 			toggleSidebar();
+		} else if ((e.metaKey || e.ctrlKey) && (e.key === 'm' || e.key === 'M')) {
+			// Cycle to the next master
+			const masters = projectStore.project?.masters ?? [];
+			if (masters.length > 0) {
+				e.preventDefault();
+				const all = ['default', ...masters.map((m) => m.id)];
+				const current = projectStore.selectedMasterId ?? 'default';
+				const idx = all.indexOf(current);
+				const next = all[(idx + 1) % all.length];
+				projectStore.selectMaster(next === 'default' ? undefined : next);
+				const label =
+					next === 'default'
+						? 'Default'
+						: masters.find((m) => m.id === next)?.name ?? next;
+				t.success(`Master: ${label}`);
+			}
 		} else if (
 			(e.metaKey || e.ctrlKey) &&
 			!e.shiftKey &&
