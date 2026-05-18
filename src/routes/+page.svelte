@@ -602,6 +602,18 @@
 				<div class="truncate text-[13px] font-medium text-fg">
 					{continueCandidate.name}
 					<span class="text-fg-muted">· {continueCandidate.familyName}</span>
+					{#if continueCandidate.lastEditedGlyph}
+						<span class="text-fg-subtle" data-numeric>
+							· last on
+							<span class="font-mono text-fg-muted">
+								{#if continueCandidate.lastEditedGlyph.codepoint > 0x20 && continueCandidate.lastEditedGlyph.codepoint < 0x10000}
+									{String.fromCodePoint(continueCandidate.lastEditedGlyph.codepoint)}
+								{:else}
+									{continueCandidate.lastEditedGlyph.name}
+								{/if}
+							</span>
+						</span>
+					{/if}
 				</div>
 			</div>
 			<span
