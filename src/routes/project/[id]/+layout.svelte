@@ -72,6 +72,39 @@
 		}
 	});
 
+	// Resizable sidebar — persisted globally (not per project).
+	let sidebarWidth = $state(260);
+	$effect(() => {
+		try {
+			const stored = localStorage.getItem('font-studio:sidebar-width');
+			const n = stored ? parseInt(stored, 10) : NaN;
+			if (Number.isFinite(n) && n >= 200 && n <= 500) sidebarWidth = n;
+		} catch {
+			// ignore
+		}
+	});
+	let dragging = $state(false);
+	const startDrag = (ev: PointerEvent) => {
+		ev.preventDefault();
+		dragging = true;
+		const move = (m: PointerEvent) => {
+			const next = Math.max(200, Math.min(500, m.clientX));
+			sidebarWidth = next;
+		};
+		const up = () => {
+			dragging = false;
+			window.removeEventListener('pointermove', move);
+			window.removeEventListener('pointerup', up);
+			try {
+				localStorage.setItem('font-studio:sidebar-width', String(sidebarWidth));
+			} catch {
+				// ignore
+			}
+		};
+		window.addEventListener('pointermove', move);
+		window.addEventListener('pointerup', up);
+	};
+
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
 	let shortcutsOpen = $state(false);
@@ -442,8 +475,19 @@
 	{/if}
 
 	<div class="flex min-h-0 flex-1">
-		<div class="w-[260px] shrink-0">
+		<div class="shrink-0" style="width: {sidebarWidth}px;">
 			<GlyphBrowser />
+		</div>
+		<div
+			role="separator"
+			aria-orientation="vertical"
+			aria-label="Resize sidebar"
+			onpointerdown={startDrag}
+			class="group flex w-1 shrink-0 cursor-col-resize items-center justify-center bg-border transition-colors hover:bg-accent {dragging
+				? 'bg-accent'
+				: ''}"
+		>
+			<span class="h-8 w-px bg-border-strong group-hover:bg-accent"></span>
 		</div>
 		<main class="min-h-0 min-w-0 flex-1 overflow-hidden bg-canvas">
 			{@render children()}
