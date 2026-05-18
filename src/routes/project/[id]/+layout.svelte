@@ -23,6 +23,7 @@
 	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import UnlockIcon from '@lucide/svelte/icons/unlock';
+	import { auditProject, preflightProject, auditCompatibility } from '$lib/font/audit';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
@@ -80,6 +81,16 @@
 		if (projectSwitcherOpen) listProjects().then((list) => (allProjects = list));
 	});
 
+	const auditErrorCount = $derived.by(() => {
+		const p = projectStore.project;
+		if (!p) return 0;
+		let n = 0;
+		for (const i of auditProject(p)) if (i.severity === 'error') n++;
+		for (const i of auditCompatibility(p)) if (i.severity === 'error') n++;
+		for (const i of preflightProject(p)) if (i.severity === 'error') n++;
+		return n;
+	});
+
 	const tabs = $derived([
 		{ href: `/project/${id}/brief`, label: 'Brief', icon: Compass },
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
@@ -89,7 +100,7 @@
 		{ href: `/project/${id}/ai`, label: 'AI', icon: Sparkles },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/specimen`, label: 'Specimen', icon: FileText },
-		{ href: `/project/${id}/audit`, label: 'Audit', icon: ListChecks },
+		{ href: `/project/${id}/audit`, label: 'Audit', icon: ListChecks, badge: auditErrorCount },
 		{ href: `/project/${id}/release`, label: 'Release', icon: Rocket },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);
@@ -258,6 +269,15 @@
 				>
 					<Icon class="size-3.5" />
 					{tab.label}
+					{#if 'badge' in tab && (tab.badge ?? 0) > 0}
+						<span
+							class="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 font-mono text-[9px] font-semibold text-canvas"
+							data-numeric
+							aria-label="{tab.badge} errors"
+						>
+							{tab.badge}
+						</span>
+					{/if}
 				</button>
 			{/each}
 		</nav>
