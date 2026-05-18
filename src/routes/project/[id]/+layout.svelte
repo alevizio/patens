@@ -205,6 +205,23 @@
 		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'r' || e.key === 'R')) {
 			e.preventDefault();
 			if (projectStore.project) goto(`/project/${projectStore.project.id}/release`);
+		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
+			e.preventDefault();
+			await quickExportOtf();
+		}
+	};
+
+	const quickExportOtf = async () => {
+		const project = projectStore.project;
+		if (!project) return;
+		try {
+			const { buildFont, downloadFont } = await import('$lib/font/export');
+			const result = buildFont(project);
+			const filename = `${project.metadata.familyName.replace(/\s+/g, '')}-${project.metadata.styleName.replace(/\s+/g, '')}.otf`;
+			downloadFont(result.font, filename);
+			t.success(`Exported ${filename}`);
+		} catch (err) {
+			t.error(`Export failed: ${(err as Error).message}`);
 		}
 	};
 </script>

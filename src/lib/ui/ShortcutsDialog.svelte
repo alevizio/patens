@@ -16,7 +16,10 @@
 				{ keys: '⌘⇧L', label: 'Lock / unlock project' },
 				{ keys: '⌘⇧B', label: 'Open Brief' },
 				{ keys: '⌘⇧R', label: 'Open Release' },
-				{ keys: '⌘P', label: 'Print specimen (on Specimen page)' }
+				{ keys: '⌘⇧E', label: 'Quick-export OTF' },
+				{ keys: '⌘P', label: 'Print specimen (on Specimen page)' },
+				{ keys: '⌘K', label: 'Open command palette' },
+				{ keys: '/', label: 'Open command palette' }
 			]
 		},
 		{
