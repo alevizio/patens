@@ -48,6 +48,22 @@
 		newSbName = '';
 		newSbMembers = '';
 	};
+
+	// font5.md: spacing as "stable text color across repeated patterns of stems,
+	// rounds, diagonals, punctuation, and figures." These presets cover the
+	// classic four-axis split.
+	const SB_PRESETS: Array<{ name: string; chars: string }> = [
+		{ name: 'Vertical stems (upper)', chars: 'HILMNEFTKBDPR' },
+		{ name: 'Vertical stems (lower)', chars: 'hilmnbdpqkfr' },
+		{ name: 'Rounds (upper)', chars: 'OCGQUS' },
+		{ name: 'Rounds (lower)', chars: 'oceqsbdp' },
+		{ name: 'Diagonals', chars: 'AVWXYKMN' },
+		{ name: 'Figures', chars: '0123456789' }
+	];
+	const insertPreset = (preset: (typeof SB_PRESETS)[number]) => {
+		newSbName = preset.name;
+		newSbMembers = preset.chars;
+	};
 	const sbClassAvg = (members: number[]): { lsb: number; rsb: number } => {
 		if (!project || members.length === 0) return { lsb: 0, rsb: 0 };
 		let lsb = 0;
@@ -732,6 +748,19 @@
 				{#snippet icon()}<Plus class="size-3.5" />{/snippet}
 				Add class
 			</Button>
+		</div>
+		<div class="mt-1.5 flex flex-wrap items-center gap-1 text-[10px]">
+			<span class="text-fg-subtle">Quick presets:</span>
+			{#each SB_PRESETS as preset (preset.name)}
+				<button
+					type="button"
+					onclick={() => insertPreset(preset)}
+					class="rounded-full border border-border bg-surface px-2 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
+					title="Pre-fill: {preset.chars}"
+				>
+					{preset.name}
+				</button>
+			{/each}
 		</div>
 	</Panel>
 
