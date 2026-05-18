@@ -147,6 +147,19 @@
 			month: 'short',
 			day: 'numeric'
 		});
+
+	const lastSeal = $derived(project?.changelog?.[0]);
+	const changedSinceLastSeal = $derived.by(() => {
+		if (!project || !lastSeal) return [];
+		const sealTime = Date.parse(lastSeal.date);
+		if (!Number.isFinite(sealTime)) return [];
+		return Object.values(project.glyphs)
+			.filter((g) => {
+				const t = Date.parse(g.updatedAt);
+				return Number.isFinite(t) && t > sealTime;
+			})
+			.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+	});
 </script>
 
 {#if !project}
@@ -315,6 +328,50 @@
 					</ul>
 				</Panel>
 			{/each}
+
+			{#if lastSeal && changedSinceLastSeal.length > 0}
+				<Panel>
+					<div class="mb-2 flex items-baseline justify-between gap-2">
+						<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							Changed since v{lastSeal.version}
+						</h2>
+						<span class="font-mono text-[11px] text-fg-muted" data-numeric>
+							{changedSinceLastSeal.length} glyph{changedSinceLastSeal.length === 1 ? '' : 's'} · sealed {formatDate(lastSeal.date)}
+						</span>
+					</div>
+					<p class="mb-3 text-[12px] text-fg-subtle">
+						These glyphs have been edited since the last sealed version. Use this list
+						to seed the next changelog entry.
+					</p>
+					<div class="flex flex-wrap gap-1">
+						{#each changedSinceLastSeal.slice(0, 80) as g (g.codepoint)}
+							<a
+								href="/project/{project.id}/edit"
+								onclick={() => projectStore.selectGlyph(g.codepoint)}
+								class="inline-flex items-center gap-1 rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-surface-2"
+								data-numeric
+								title="{g.name} · U+{g.codepoint.toString(16).toUpperCase().padStart(4, '0')} · edited {formatDate(g.updatedAt)}"
+							>
+								<span>
+									{#if g.codepoint > 0x20 && g.codepoint < 0x10000}
+										{String.fromCodePoint(g.codepoint)}
+									{:else}
+										{g.name}
+									{/if}
+								</span>
+								<span class="text-fg-subtle">
+									{g.codepoint.toString(16).toUpperCase().padStart(4, '0')}
+								</span>
+							</a>
+						{/each}
+						{#if changedSinceLastSeal.length > 80}
+							<span class="rounded bg-surface-2/40 px-1.5 py-0.5 text-[10px] text-fg-subtle" data-numeric>
+								+{changedSinceLastSeal.length - 80} more
+							</span>
+						{/if}
+					</div>
+				</Panel>
+			{/if}
 
 			<Panel>
 				<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
