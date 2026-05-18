@@ -6,6 +6,7 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
+	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
@@ -21,6 +22,29 @@
 		const loc: Record<string, number> = {};
 		for (const a of project?.axes ?? []) loc[a.tag] = a.default;
 		return loc;
+	});
+
+	// Current selected glyph rendered across every master — quick visual sanity
+	// check that interpolation is structurally compatible.
+	const selectedCp = $derived(projectStore.selectedCodepoint);
+	const masterGlyphCells = $derived.by(() => {
+		if (!project || !selectedCp) return [];
+		const defaultGlyph = project.glyphs[selectedCp];
+		if (!defaultGlyph) return [];
+		const cells: Array<{ label: string; loc: string; glyph: typeof defaultGlyph }> = [
+			{ label: 'Default', loc: 'axis defaults', glyph: defaultGlyph }
+		];
+		for (const m of project.masters ?? []) {
+			const override = m.glyphs?.[selectedCp];
+			cells.push({
+				label: m.name,
+				loc: Object.entries(m.location)
+					.map(([t, v]) => `${t}=${v}`)
+					.join(' · '),
+				glyph: override ?? defaultGlyph
+			});
+		}
+		return cells;
 	});
 
 	$effect(() => {
@@ -308,6 +332,46 @@
 					<p class="text-sm text-fg-muted">Add an axis above before creating additional masters.</p>
 				{/if}
 			</Panel>
+
+			{#if (project.masters ?? []).length > 0 && masterGlyphCells.length > 0}
+				<Panel>
+					<div class="mb-2 flex items-baseline justify-between gap-2">
+						<h2 class="inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							<Layers class="size-3" /> Selected glyph across masters
+						</h2>
+						<a
+							href="/project/{project.id}/edit"
+							class="text-[11px] text-fg-muted hover:text-accent"
+						>
+							{masterGlyphCells[0].glyph.name} →
+						</a>
+					</div>
+					<p class="mb-3 text-[12px] text-fg-subtle">
+						Quick visual check that the current glyph stays structurally compatible
+						across every master. A red incompatibility dot in the editor browser means
+						contour or point counts differ.
+					</p>
+					<div class="flex flex-wrap gap-3">
+						{#each masterGlyphCells as cell, i (cell.label)}
+							<div class="flex flex-col items-center gap-1">
+								<GlyphTile
+									glyph={cell.glyph}
+									size={72}
+									showLabel={false}
+									ascender={project.metrics.ascender}
+									descender={project.metrics.descender}
+								/>
+								<div class="text-center text-[11px] font-medium text-fg">{cell.label}</div>
+								{#if i > 0}
+									<div class="font-mono text-[10px] text-fg-subtle" data-numeric>
+										{cell.loc}
+									</div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+				</Panel>
+			{/if}
 
 			{#if (project.axes ?? []).length > 0}
 				<Panel>
