@@ -19,6 +19,7 @@
 	import Input from '$lib/ui/Input.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Sparkline from '$lib/ui/Sparkline.svelte';
+	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import { importFromOtf } from '$lib/font/import';
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
 	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
@@ -67,6 +68,7 @@
 	let loading = $state(true);
 	let searchEl = $state<HTMLInputElement | null>(null);
 
+	let shortcutsOpen = $state(false);
 	const handleGlobalKey = (e: KeyboardEvent) => {
 		// ⌘K always focuses the project search, even from inside an input
 		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
@@ -77,12 +79,16 @@
 		}
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
 			return;
-		if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+		if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			e.preventDefault();
+			shortcutsOpen = !shortcutsOpen;
+		} else if (e.key === '/' && !e.metaKey && !e.ctrlKey && !e.altKey) {
 			e.preventDefault();
 			searchEl?.focus();
 			searchEl?.select();
-		} else if (e.key === 'Escape' && activeTag) {
-			activeTag = null;
+		} else if (e.key === 'Escape') {
+			if (shortcutsOpen) shortcutsOpen = false;
+			else if (activeTag) activeTag = null;
 		}
 	};
 
@@ -1205,6 +1211,7 @@
 		open={!settings.welcomeDismissed}
 		onclose={() => settings.dismissWelcome()}
 	/>
+	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
 
 	{#if menuOpen && menuTarget}
 		<button
