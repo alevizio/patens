@@ -295,6 +295,50 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			message: `Only ${drawn} glyphs drawn — most apps expect at least full A–Z + a–z + 0–9 + punctuation (~95 glyphs) for a usable font`
 		});
 
+	// Brief discipline (font5.md: "type design is system design — define the
+	// problem before drawing"). These are info-level nudges, not blockers.
+	const brief = project.brief ?? {};
+	if (!brief.intent?.trim() && drawn >= 12) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'brief-no-intent',
+			message:
+				'No brief.intent set. Even one sentence about who this is for and at what size keeps later decisions honest.'
+		});
+	}
+	if (!brief.designNotes?.trim() && drawn >= 50) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'brief-no-design-notes',
+			message:
+				'No design-notes essay yet. Foundries that explain their decisions (KLIM, Hoefler, Commercial Type) get studied — write 2–3 paragraphs while the choices are still fresh.'
+		});
+	}
+
+	// Kerning consolidation (font5.md hierarchy: sidebearings → classes → pairs)
+	const kernCount = project.kerning.length;
+	const classCount = project.classes?.length ?? 0;
+	if (kernCount > 100 && classCount === 0) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'kerning-no-classes',
+			message: `${kernCount} flat kerning pairs and 0 kerning classes — consider grouping accented variants (e.g. @A_left = [A Á Â Ä À]) to consolidate and stay maintainable.`
+		});
+	}
+	const sbClassCount = project.sidebearingClasses?.length ?? 0;
+	if (drawn >= 26 && sbClassCount === 0) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'sidebearings-no-classes',
+			message:
+				'No sidebearing classes yet. Grouping vertical stems / rounds / diagonals lets you tune spacing systematically before reaching for kerning pairs.'
+		});
+	}
+
 	// Master compatibility (only matters for VF projects)
 	if ((project.masters?.length ?? 0) > 0) {
 		const compatIssues = auditCompatibility(project);
