@@ -333,6 +333,30 @@ class ProjectStore {
 		this.touch();
 	}
 
+	addDecision(entry: { decision: string; rationale: string }) {
+		if (!this.project) return;
+		const next: import('$lib/font/types').DecisionEntry = {
+			id: crypto.randomUUID(),
+			date: new Date().toISOString(),
+			decision: entry.decision.trim(),
+			rationale: entry.rationale.trim()
+		};
+		this.project = {
+			...this.project,
+			decisions: [next, ...(this.project.decisions ?? [])]
+		};
+		this.touch();
+	}
+
+	removeDecision(id: string) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			decisions: (this.project.decisions ?? []).filter((e) => e.id !== id)
+		};
+		this.touch();
+	}
+
 	removeChangelogEntry(id: string) {
 		if (!this.project) return;
 		this.project = {

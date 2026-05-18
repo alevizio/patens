@@ -85,6 +85,14 @@ export const generateDesignMd = (project: Project): string => {
 		lines.push(section('Design notes', b.designNotes.trim()));
 	}
 
+	// Decision log
+	if (project.decisions && project.decisions.length > 0) {
+		const dl = project.decisions
+			.map((d) => `### ${d.decision}\n\n_${fmtDate(d.date)}_\n\n${d.rationale.trim()}`)
+			.join('\n\n');
+		lines.push(section('Decision log', dl));
+	}
+
 	// References
 	if (b.references && b.references.length > 0) {
 		const refLines = b.references.map((r) => {

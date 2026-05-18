@@ -248,6 +248,8 @@ export type Project = {
 	releaseChecks?: Record<string, boolean>;
 	/** Versioned release notes — one entry per shipped version. */
 	changelog?: ChangelogEntry[];
+	/** Living log of design decisions and their rationale (per-decision, not per-version). */
+	decisions?: DecisionEntry[];
 	/** When true, the project is sealed read-only; the editor still views but every mutation is blocked at the store level. */
 	locked?: boolean;
 	/** When true, the project floats to the top of the home page list. */
@@ -326,6 +328,19 @@ export type ChangelogEntry = {
 	version: string;
 	date: string;
 	notes: string;
+};
+
+/**
+ * A timestamped design decision — separate from the version-scoped changelog.
+ * Captures the *why* behind a non-trivial choice as it happens, so the
+ * rationale is recorded while the context is fresh. font5.md: "foundries that
+ * explain their decisions … get studied."
+ */
+export type DecisionEntry = {
+	id: string;
+	date: string;
+	decision: string;
+	rationale: string;
 };
 
 export type BriefReference = {

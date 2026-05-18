@@ -132,6 +132,30 @@
 		const next = current ? `${current}\n\n${text}` : text;
 		projectStore.updateBrief({ designNotes: next });
 	};
+
+	// Decision log — captures non-version-scoped design decisions as they happen
+	let newDecisionTitle = $state('');
+	let newDecisionRationale = $state('');
+	const submitDecision = (e: Event) => {
+		e.preventDefault();
+		if (!newDecisionTitle.trim() || !newDecisionRationale.trim()) return;
+		projectStore.addDecision({
+			decision: newDecisionTitle,
+			rationale: newDecisionRationale
+		});
+		toast.success('Logged decision.');
+		newDecisionTitle = '';
+		newDecisionRationale = '';
+	};
+	const formatDecisionDate = (iso: string) => {
+		const d = new Date(iso);
+		if (!Number.isFinite(d.getTime())) return iso;
+		return d.toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric'
+		});
+	};
 </script>
 
 {#if !project}
@@ -293,6 +317,77 @@
 						</div>
 					</div>
 				{/if}
+		</Panel>
+
+		<Panel>
+				<h2 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Decision log ({project.decisions?.length ?? 0})
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Capture each meaningful decision while the context is fresh. Different from the
+					changelog — these are <em>per-decision</em> not per-version, and they're what makes
+					a foundry's specimens worth reading. They flow into the exported
+					<code>DESIGN.md</code>.
+				</p>
+				{#if project.decisions && project.decisions.length > 0}
+					<ul class="mb-3 grid gap-2">
+						{#each project.decisions as d (d.id)}
+							<li
+								class="grid grid-cols-[1fr_auto] items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+							>
+								<div class="min-w-0">
+									<div class="flex items-baseline gap-2">
+										<span class="text-[13px] font-semibold text-fg">{d.decision}</span>
+										<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
+											{formatDecisionDate(d.date)}
+										</span>
+									</div>
+									<div class="mt-0.5 whitespace-pre-line text-[12px] text-fg-muted">
+										{d.rationale}
+									</div>
+								</div>
+								<button
+									type="button"
+									onclick={() => projectStore.removeDecision(d.id)}
+									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									aria-label="Remove decision"
+								>
+									<Trash2 class="size-3.5" />
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<form
+					onsubmit={submitDecision}
+					class="rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 p-3"
+				>
+					<div class="grid gap-2">
+						<Field label="What did you decide?">
+							<Input
+								density="sm"
+								bind:value={newDecisionTitle}
+								placeholder="e.g. tighten default sidebearing from 50 to 40 units"
+							/>
+						</Field>
+						<Field label="Why?">
+							<textarea
+								bind:value={newDecisionRationale}
+								placeholder="What problem did this solve? What's the trade-off you accepted?"
+								rows="3"
+								class="block w-full resize-y rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+							></textarea>
+						</Field>
+						<Button
+							density="sm"
+							type="submit"
+							disabled={!newDecisionTitle.trim() || !newDecisionRationale.trim()}
+						>
+							{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+							Log decision
+						</Button>
+					</div>
+				</form>
 		</Panel>
 
 		<Panel>
