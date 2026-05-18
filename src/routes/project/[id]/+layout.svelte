@@ -25,7 +25,9 @@
 	import UnlockIcon from '@lucide/svelte/icons/unlock';
 	import { auditProject, preflightProject, auditCompatibility } from '$lib/font/audit';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
+	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
+	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
 	import Check from '@lucide/svelte/icons/check';
@@ -57,6 +59,7 @@
 
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
+	let shortcutsOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
 	// Tick every 30s so the "Saved Xs ago" string stays fresh
 	let nowTick = $state(Date.now());
@@ -114,6 +117,11 @@
 	const handleGlobalKey = async (e: KeyboardEvent) => {
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
 			if (!(e.metaKey || e.ctrlKey)) return;
+		}
+		if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {
+			e.preventDefault();
+			shortcutsOpen = !shortcutsOpen;
+			return;
 		}
 		if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
 			e.preventDefault();
@@ -371,6 +379,16 @@
 
 		<button
 			type="button"
+			onclick={() => (shortcutsOpen = true)}
+			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+			aria-label="Keyboard shortcuts"
+			title="Keyboard shortcuts (?)"
+		>
+			<HelpCircle class="size-4" />
+		</button>
+
+		<button
+			type="button"
 			onclick={() => (settingsOpen = true)}
 			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
 			aria-label="Settings"
@@ -381,6 +399,7 @@
 	</header>
 
 	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
+	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
 
 	{#if projectStore.project?.locked}
 		<div
