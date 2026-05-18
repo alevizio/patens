@@ -222,6 +222,8 @@ export type Project = {
 	releaseChecks?: Record<string, boolean>;
 	/** Versioned release notes — one entry per shipped version. */
 	changelog?: ChangelogEntry[];
+	/** When true, the project is sealed read-only; the editor still views but every mutation is blocked at the store level. */
+	locked?: boolean;
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
 	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */

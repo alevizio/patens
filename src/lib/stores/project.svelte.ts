@@ -182,8 +182,15 @@ class ProjectStore {
 		if (this.project.glyphs[codepoint]) this.selectedCodepoint = codepoint;
 	}
 
+	toggleLock() {
+		if (!this.project) return;
+		this.project = { ...this.project, locked: !this.project.locked };
+		this.touch();
+	}
+
 	updateGlyph(codepoint: number, mut: (g: Glyph) => Glyph) {
 		if (!this.project) return;
+		if (this.project.locked) return;
 		const drawnBefore = this.countDrawnGlyphs();
 		if (this.selectedMasterId) {
 			// Route to the additional master

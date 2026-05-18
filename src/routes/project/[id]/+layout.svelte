@@ -21,6 +21,8 @@
 	import Compass from '@lucide/svelte/icons/compass';
 	import Rocket from '@lucide/svelte/icons/rocket';
 	import ListChecks from '@lucide/svelte/icons/list-checks';
+	import LockIcon from '@lucide/svelte/icons/lock';
+	import UnlockIcon from '@lucide/svelte/icons/unlock';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
@@ -306,6 +308,24 @@
 
 		<button
 			type="button"
+			onclick={() => projectStore.toggleLock()}
+			class="inline-flex size-8 items-center justify-center rounded-md transition-colors hover:bg-surface-2 {projectStore.project?.locked
+				? 'text-warn'
+				: 'text-fg-muted hover:text-fg'}"
+			aria-label={projectStore.project?.locked ? 'Unlock project' : 'Lock project (read-only)'}
+			title={projectStore.project?.locked
+				? 'Project is locked — unlock to edit'
+				: 'Lock — seal as read-only'}
+		>
+			{#if projectStore.project?.locked}
+				<LockIcon class="size-4" />
+			{:else}
+				<UnlockIcon class="size-4" />
+			{/if}
+		</button>
+
+		<button
+			type="button"
 			onclick={() => (settingsOpen = true)}
 			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
 			aria-label="Settings"
@@ -316,6 +336,16 @@
 	</header>
 
 	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
+
+	{#if projectStore.project?.locked}
+		<div
+			class="flex items-center gap-2 border-b border-warn/40 bg-warn/10 px-4 py-1.5 text-[12px] text-warn"
+		>
+			<LockIcon class="size-3.5" />
+			<span class="font-medium">Project is locked.</span>
+			<span class="text-fg-muted">All edits are blocked until you unlock it.</span>
+		</div>
+	{/if}
 
 	<div class="flex min-h-0 flex-1">
 		<div class="w-[260px] shrink-0">
