@@ -224,6 +224,8 @@ export type Project = {
 	changelog?: ChangelogEntry[];
 	/** When true, the project is sealed read-only; the editor still views but every mutation is blocked at the store level. */
 	locked?: boolean;
+	/** When true, the project floats to the top of the home page list. */
+	pinned?: boolean;
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
 	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */

@@ -72,6 +72,8 @@ export type ProjectIndexEntry = {
 	lastSealedVersion?: string;
 	/** ISO date of the most recent changelog entry. */
 	lastSealedAt?: string;
+	/** When true, sorts to top of the home page. */
+	pinned?: boolean;
 };
 
 const newId = () => crypto.randomUUID();
@@ -242,7 +244,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		locked: p.locked,
 		kerningCount: p.kerning.length,
 		lastSealedVersion: p.changelog?.[0]?.version,
-		lastSealedAt: p.changelog?.[0]?.date
+		lastSealedAt: p.changelog?.[0]?.date,
+		pinned: p.pinned
 	};
 };
 
@@ -273,6 +276,18 @@ export const deleteProject = async (id: string): Promise<void> => {
 		idx.filter((e) => e.id !== id),
 		store
 	);
+};
+
+export const toggleProjectPin = async (id: string): Promise<boolean> => {
+	const value = await get<Project>(id, store);
+	if (!value) return false;
+	const next: Project = { ...value, pinned: !value.pinned };
+	await set(id, next, store);
+	const idx = (await get<ProjectIndexEntry[]>(INDEX_KEY, store)) ?? [];
+	const filtered = idx.filter((e) => e.id !== id);
+	filtered.push(indexEntry(next));
+	await set(INDEX_KEY, filtered, store);
+	return next.pinned === true;
 };
 
 export const duplicateProject = async (id: string, newName?: string): Promise<Project | null> => {

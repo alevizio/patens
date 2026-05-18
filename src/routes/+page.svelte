@@ -6,6 +6,7 @@
 		duplicateProject,
 		listProjects,
 		saveProject,
+		toggleProjectPin,
 		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
@@ -23,6 +24,7 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Pin from '@lucide/svelte/icons/pin';
 	import PenTool from '@lucide/svelte/icons/pen-tool';
 	import Type from '@lucide/svelte/icons/type';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
@@ -66,17 +68,26 @@
 				)
 			: [...projects];
 		if (onlyToday) filtered = filtered.filter((p) => (p.editsToday ?? 0) > 0);
+		let sorted: ProjectIndexEntry[];
 		switch (projectSort) {
 			case 'name':
-				return filtered.sort((a, b) => a.name.localeCompare(b.name));
+				sorted = filtered.sort((a, b) => a.name.localeCompare(b.name));
+				break;
 			case 'brief':
-				return filtered.sort((a, b) => (b.briefPct ?? 0) - (a.briefPct ?? 0));
+				sorted = filtered.sort((a, b) => (b.briefPct ?? 0) - (a.briefPct ?? 0));
+				break;
 			case 'glyphs':
-				return filtered.sort((a, b) => b.glyphCount - a.glyphCount);
+				sorted = filtered.sort((a, b) => b.glyphCount - a.glyphCount);
+				break;
 			case 'updated':
 			default:
-				return filtered.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+				sorted = filtered.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 		}
+		return sorted.sort((a, b) => {
+			const ap = a.pinned ? 0 : 1;
+			const bp = b.pinned ? 0 : 1;
+			return ap - bp;
+		});
 	});
 	let creating = $state(false);
 	let importing = $state(false);
@@ -94,6 +105,11 @@
 		loading = false;
 	};
 	refresh();
+
+	const handleTogglePin = async (id: string) => {
+		await toggleProjectPin(id);
+		await refresh();
+	};
 
 	const handleCreate = async (e: Event) => {
 		e.preventDefault();
@@ -526,23 +542,40 @@
 									{/if}
 								</div>
 							</a>
-							<div class="flex shrink-0 gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-								<Button
-									variant="ghost"
-									density="sm"
-									onclick={() => handleDuplicate(p.id)}
-									aria-label="Duplicate"
+							<div class="flex shrink-0 gap-1">
+								<button
+									type="button"
+									onclick={() => handleTogglePin(p.id)}
+									class="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-surface-2 {p.pinned
+										? 'text-warn opacity-100'
+										: 'text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-fg'}"
+									aria-label={p.pinned ? 'Unpin from top' : 'Pin to top'}
+									title={p.pinned ? 'Unpin from top' : 'Pin to top'}
 								>
-									{#snippet icon()}<Copy class="size-3.5" />{/snippet}
-								</Button>
-								<Button
-									variant="ghost"
-									density="sm"
-									onclick={() => handleDelete(p)}
-									aria-label="Delete"
-								>
-									{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
-								</Button>
+									{#if p.pinned}
+										<Pin class="size-3.5 fill-warn" />
+									{:else}
+										<Pin class="size-3.5" />
+									{/if}
+								</button>
+								<div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+									<Button
+										variant="ghost"
+										density="sm"
+										onclick={() => handleDuplicate(p.id)}
+										aria-label="Duplicate"
+									>
+										{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+									</Button>
+									<Button
+										variant="ghost"
+										density="sm"
+										onclick={() => handleDelete(p)}
+										aria-label="Delete"
+									>
+										{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
+									</Button>
+								</div>
 							</div>
 						</li>
 					{/each}
