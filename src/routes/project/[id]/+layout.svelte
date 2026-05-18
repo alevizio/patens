@@ -190,6 +190,9 @@
 			e.preventDefault();
 			await projectStore.flush();
 			t.success('Saved.');
+		} else if ((e.metaKey || e.ctrlKey) && e.key === ',') {
+			e.preventDefault();
+			settingsOpen = !settingsOpen;
 		} else if ((e.metaKey || e.ctrlKey) && (e.key === 'p' || e.key === 'P')) {
 			// Only steal Cmd+P on the specimen page; print there directly
 			if (currentPath.endsWith('/specimen')) {
