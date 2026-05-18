@@ -103,6 +103,23 @@
 
 	const editsByDayTotal = $derived(editsByDay.reduce((a, b) => a + b, 0));
 
+	const recentEdits = $derived.by(() => {
+		if (!project) return [];
+		const dayAgo = Date.now() - 24 * 3600 * 1000;
+		return Object.values(project.glyphs)
+			.filter((g) => {
+				const t = Date.parse(g.updatedAt);
+				return Number.isFinite(t) && t >= dayAgo;
+			})
+			.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1))
+			.slice(0, 8);
+	});
+
+	const jumpToGlyph = (cp: number) => {
+		projectStore.selectGlyph(cp);
+		onclose();
+	};
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -167,6 +184,34 @@
 					</div>
 					<div class="mt-1">
 						<Sparkline values={editsByDay} width={272} height={28} label="Edits per day, last 14 days" />
+					</div>
+				</div>
+			{/if}
+
+			{#if recentEdits.length > 0}
+				<div>
+					<div class="mb-1 text-[11px] font-medium text-fg-muted">Edited today</div>
+					<div class="flex flex-wrap gap-1">
+						{#each recentEdits as g (g.codepoint)}
+							<a
+								href="/project/{project.id}/edit"
+								onclick={() => jumpToGlyph(g.codepoint)}
+								class="inline-flex items-center gap-1 rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-surface-2"
+								data-numeric
+								title="{g.name} · U+{g.codepoint.toString(16).toUpperCase().padStart(4, '0')}"
+							>
+								<span>
+									{#if g.codepoint > 0x20 && g.codepoint < 0x10000}
+										{String.fromCodePoint(g.codepoint)}
+									{:else}
+										{g.name}
+									{/if}
+								</span>
+								<span class="text-fg-subtle">
+									{g.codepoint.toString(16).toUpperCase().padStart(4, '0')}
+								</span>
+							</a>
+						{/each}
 					</div>
 				</div>
 			{/if}
