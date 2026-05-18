@@ -129,6 +129,32 @@
 	let showReference = $state(settings.editor.showReference);
 	let showOnion = $state(settings.editor.showOnion);
 	let showAnchors = $state(settings.editor.showAnchors);
+	let showFamilyRegular = $state(false);
+	let familyRegularProject = $state<import('$lib/font/types').Project | null>(null);
+	$effect(() => {
+		const fid = projectStore.project?.familyId;
+		const ownId = projectStore.project?.id;
+		if (!fid) {
+			familyRegularProject = null;
+			return;
+		}
+		(async () => {
+			const { findRegularSibling } = await import('$lib/font/family');
+			const { loadProject: lp } = await import('$lib/font/project');
+			const reg = await findRegularSibling(fid);
+			// Don't self-reference if this IS the Regular.
+			if (!reg || reg.id === ownId) {
+				familyRegularProject = null;
+				return;
+			}
+			familyRegularProject = await lp(reg.id);
+		})();
+	});
+	const familyReferenceGlyph = $derived.by(() => {
+		if (!showFamilyRegular || !familyRegularProject || !glyph) return null;
+		const same = familyRegularProject.glyphs[glyph.codepoint];
+		return same && same.contours.length > 0 ? same : null;
+	});
 
 	// Persist editor toggles. Single $effect with explicit untrack on the
 	// write side so the loop never bounces back through the store's $state.
@@ -1278,6 +1304,19 @@
 						{#if showReference}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 						Ref
 					</button>
+					{#if familyRegularProject}
+						<button
+							type="button"
+							onclick={() => (showFamilyRegular = !showFamilyRegular)}
+							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showFamilyRegular
+								? 'bg-accent-soft text-accent'
+								: 'text-fg-subtle hover:bg-surface-2'}"
+							title="Overlay the family Regular's same-glyph contour as a ghost"
+						>
+							{#if showFamilyRegular}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
+							Regular
+						</button>
+					{/if}
 					<button
 						type="button"
 						onclick={() => (showAnchors = !showAnchors)}
@@ -1463,6 +1502,7 @@
 						{showGrid}
 						{showAnatomy}
 						reference={referenceGlyph}
+						familyReference={familyReferenceGlyph}
 						onionPrev={onionGlyphs.prev}
 						onionNext={onionGlyphs.next}
 						{snapToMetrics}

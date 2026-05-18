@@ -23,6 +23,8 @@
 		showAnatomy?: boolean;
 		/** Optional reference glyph rendered behind the current one for proportion comparison. */
 		reference?: Glyph | null;
+		/** Family Regular sibling's same-codepoint glyph rendered as a coloured ghost. */
+		familyReference?: Glyph | null;
 		/** Optional onion-skin previous/next glyphs (rendered translucent flanking the current advance). */
 		onionPrev?: Glyph | null;
 		onionNext?: Glyph | null;
@@ -52,6 +54,7 @@
 		showGrid = false,
 		showAnatomy = false,
 		reference = null,
+		familyReference = null,
 		onionPrev = null,
 		onionNext = null,
 		snapToMetrics = true,
@@ -363,6 +366,14 @@
 		{#if reference && reference.contours.length > 0 && reference.codepoint !== glyph.codepoint}
 			<g fill="var(--color-fg)" opacity="0.08" fill-rule="evenodd" pointer-events="none">
 				<path d={contoursToSvgPath(reference.contours)} />
+			</g>
+		{/if}
+
+		<!-- Family Regular ghost: same codepoint, different sibling. Rendered in
+		     accent colour so it's visually distinct from the cross-glyph reference. -->
+		{#if familyReference && familyReference.contours.length > 0}
+			<g fill="var(--color-accent)" opacity="0.16" fill-rule="evenodd" pointer-events="none">
+				<path d={contoursToSvgPath(familyReference.contours)} />
 			</g>
 		{/if}
 
