@@ -290,6 +290,17 @@ from fontTools.designspaceLib import (
 from fontTools.ttLib import TTFont
 from fontTools.varLib import build
 from fontTools.varLib.instancer import instantiateVariableFont
+try:
+    from fontTools.varLib.varLib_build_HVAR import build as build_HVAR
+except ImportError:
+    # Newer fontTools exposes HVAR.build via a different module path. Fall back
+    # to the canonical entry point; if that's also unavailable, varLib.build
+    # already produces a usable VF without HVAR.
+    try:
+        from fontTools.varLib import HVAR as _HVAR
+        build_HVAR = _HVAR.build
+    except Exception:
+        build_HVAR = None
 
 with open('/tmp/designspace.json') as f:
     spec = json.load(f)
@@ -314,6 +325,15 @@ for m in spec['masters']:
     doc.addSource(s)
 
 vf, _, _ = build(doc)
+
+# Add HVAR (horizontal-metrics variation) so that browsers + cached pipelines
+# get stable, exact advance widths at intermediate axis positions instead of
+# wobble from interpolation. Silently skip if fontTools doesn't expose it.
+if build_HVAR is not None:
+    try:
+        build_HVAR(vf)
+    except Exception as _err:
+        print(f"HVAR build skipped: {_err}")
 
 def safe(name):
     return re.sub(r'[^A-Za-z0-9-]+', '', name) or 'Style'
@@ -392,6 +412,11 @@ from fontTools.designspaceLib import (
 from fontTools.ttLib import TTFont
 from fontTools.varLib import build
 from fontTools.otlLib.builder import buildStatTable
+try:
+    from fontTools.varLib import HVAR as _HVAR
+    build_HVAR = _HVAR.build
+except Exception:
+    build_HVAR = None
 
 with open('/tmp/designspace.json') as f:
     spec = json.load(f)
@@ -425,6 +450,14 @@ for inst in spec.get('instances') or []:
     doc.addInstance(i)
 
 vf, _, _ = build(doc)
+
+# Add HVAR — exact advance widths at intermediate axis positions for browsers
+# and cached rendering pipelines. Silently skip if unavailable.
+if build_HVAR is not None:
+    try:
+        build_HVAR(vf)
+    except Exception as _err:
+        print(f"HVAR build skipped: {_err}")
 
 # Auto-generate a STAT table from the instances. STAT tells the OS which
 # axis values correspond to which named styles ("400 = Regular", etc.).
