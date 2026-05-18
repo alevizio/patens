@@ -161,6 +161,27 @@
 	};
 	refresh();
 
+	let storage = $state<{ used: number; quota: number } | null>(null);
+	$effect(() => {
+		if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return;
+		navigator.storage
+			.estimate()
+			.then((est) => {
+				storage = {
+					used: est.usage ?? 0,
+					quota: est.quota ?? 0
+				};
+			})
+			.catch(() => {});
+	});
+
+	const formatBytes = (n: number): string => {
+		if (n < 1024) return `${n} B`;
+		if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+		if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
+		return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+	};
+
 	const handleTogglePin = async (id: string) => {
 		await toggleProjectPin(id);
 		await refresh();
@@ -986,6 +1007,30 @@
 					</div>
 				</div>
 			</Panel>
+
+			{#if storage && storage.quota > 0}
+				{@const pct = Math.min(100, Math.round((storage.used / storage.quota) * 1000) / 10)}
+				<div
+					class="rounded-lg border border-border bg-surface-2/40 px-3 py-2 text-[11px] text-fg-muted"
+				>
+					<div class="flex items-baseline justify-between">
+						<span class="font-medium">Browser storage</span>
+						<span class="font-mono text-fg-subtle" data-numeric>
+							{formatBytes(storage.used)} / {formatBytes(storage.quota)}
+						</span>
+					</div>
+					<div class="mt-1 h-1 overflow-hidden rounded-full bg-surface-2">
+						<div
+							class="h-full {pct > 80 ? 'bg-danger' : pct > 50 ? 'bg-warn' : 'bg-success'}"
+							style="width: {pct}%;"
+						></div>
+					</div>
+					<div class="mt-1 text-[10px] text-fg-subtle">
+						Projects are stored locally in your browser. Export OTF/UFO/JSON
+						periodically to keep backups.
+					</div>
+				</div>
+			{/if}
 		</div>
 	</div>
 
