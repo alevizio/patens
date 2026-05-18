@@ -280,11 +280,19 @@
 	role="application"
 >
 	<header class="mb-12 flex flex-col gap-3">
-		<div
-			class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
-		>
-			<Type class="size-3.5" />
-			Font Studio
+		<div class="flex items-center justify-between gap-2">
+			<div
+				class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
+			>
+				<Type class="size-3.5" />
+				Font Studio
+			</div>
+			<a
+				href="/learn"
+				class="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+			>
+				Learn the craft →
+			</a>
 		</div>
 		<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
 			Design your own typeface,<br />
