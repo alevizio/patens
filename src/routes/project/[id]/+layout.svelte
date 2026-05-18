@@ -212,6 +212,7 @@
 		{ href: `/project/${id}/ai`, label: 'AI', icon: Sparkles },
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/specimen`, label: 'Specimen', icon: FileText },
+		{ href: `/project/${id}/compare`, label: 'Compare', icon: Layers },
 		{ href: `/project/${id}/audit`, label: 'Audit', icon: ListChecks, badge: auditErrorCount },
 		{ href: `/project/${id}/release`, label: 'Release', icon: Rocket, shortcut: '⌘⇧R' },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
