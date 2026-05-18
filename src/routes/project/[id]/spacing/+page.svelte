@@ -3,6 +3,8 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import { isClassRef, type KerningSide } from '$lib/font/types';
+	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
+	import { detectStemWidths } from '$lib/font/stem-detect';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -164,6 +166,69 @@
 	let bulkSbCategory = $state<'all' | 'upper' | 'lower' | 'figure'>('lower');
 	let bulkSbWhich = $state<'left' | 'right' | 'both'>('both');
 	let bulkSbValue = $state(40);
+
+	// ---------- Stem rhythm strip ----------
+	type RhythmSet = 'lower-stems' | 'upper-stems';
+	const RHYTHM_SETS: Record<RhythmSet, { label: string; codepoints: number[] }> = {
+		'lower-stems': {
+			label: 'Lowercase stems',
+			codepoints: [0x006e, 0x0068, 0x006d, 0x0062, 0x0064, 0x006b, 0x006c, 0x0069, 0x0070, 0x0071, 0x0075, 0x0072]
+		},
+		'upper-stems': {
+			label: 'Uppercase stems',
+			codepoints: [0x0048, 0x004e, 0x0049, 0x004c, 0x0046, 0x0045, 0x0054, 0x004b, 0x004d, 0x0050, 0x0042, 0x0044, 0x0052]
+		}
+	};
+	let rhythmSet = $state<RhythmSet>('lower-stems');
+	let rhythmStemWidths = $state<Map<number, number>>(new Map());
+
+	const rhythmDrawn = $derived.by(() => {
+		if (!project) return [];
+		return RHYTHM_SETS[rhythmSet].codepoints
+			.map((cp) => project.glyphs[cp])
+			.filter((g) => g && g.contours.length > 0);
+	});
+
+	const measureRhythmStems = async () => {
+		if (!project) return;
+		const next = new Map<number, number>();
+		for (const g of rhythmDrawn) {
+			try {
+				const ms = await detectStemWidths(
+					g.contours,
+					glyphBounds(g.contours),
+					g.advanceWidth,
+					{ capHeight: project.metrics.capHeight, xHeight: project.metrics.xHeight }
+				);
+				// Median width across all detected runs (excluding very narrow ones)
+				const allWidths = ms.flatMap((m) => m.runs.map((r) => r.width)).filter((w) => w >= 40);
+				if (allWidths.length === 0) continue;
+				allWidths.sort((a, b) => a - b);
+				const median = allWidths[Math.floor(allWidths.length / 2)];
+				next.set(g.codepoint, median);
+			} catch {
+				/* skip glyph */
+			}
+		}
+		rhythmStemWidths = next;
+	};
+
+	// Auto-measure when the set or drawn glyphs change
+	let rhythmKey = $state('');
+	$effect(() => {
+		const k = `${rhythmSet}:${rhythmDrawn.map((g) => `${g.codepoint}:${g.updatedAt}`).join('|')}`;
+		if (k === rhythmKey) return;
+		rhythmKey = k;
+		if (rhythmDrawn.length > 0) measureRhythmStems();
+		else rhythmStemWidths = new Map();
+	});
+
+	const rhythmMedianStem = $derived.by(() => {
+		const widths = [...rhythmStemWidths.values()];
+		if (widths.length === 0) return 0;
+		widths.sort((a, b) => a - b);
+		return widths[Math.floor(widths.length / 2)];
+	});
 	const importBulkKerning = () => {
 		if (!bulkText.trim()) return;
 		const lines = bulkText
@@ -353,6 +418,83 @@
 					</li>
 				{/each}
 			</ul>
+		{/if}
+	</Panel>
+
+	<Panel>
+		<div class="mb-3 flex items-center justify-between gap-3">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Stem rhythm
+			</h2>
+			<div class="flex items-center gap-1">
+				{#each Object.entries(RHYTHM_SETS) as [id, set] (id)}
+					<button
+						type="button"
+						onclick={() => (rhythmSet = id as RhythmSet)}
+						class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {rhythmSet ===
+						id
+							? 'bg-accent-soft text-accent'
+							: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
+					>
+						{set.label}
+					</button>
+				{/each}
+			</div>
+		</div>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Scans every drawn stem-bearing glyph and reports its median vertical-stem width.
+			Stems should match within ~5 units across the set; outliers highlight in warn.
+		</p>
+		{#if rhythmDrawn.length === 0}
+			<p class="text-sm text-fg-muted">No drawn glyphs in this set yet.</p>
+		{:else}
+			<div class="flex flex-wrap gap-4 rounded-lg border border-border bg-canvas p-4">
+				{#each rhythmDrawn as g (g.codepoint)}
+					{@const stem = rhythmStemWidths.get(g.codepoint) ?? 0}
+					{@const diff = stem && rhythmMedianStem ? stem - rhythmMedianStem : 0}
+					{@const isOutlier = stem > 0 && Math.abs(diff) > 5}
+					<div class="flex flex-col items-center gap-1">
+						<svg
+							viewBox="0 0 {Math.max(g.advanceWidth, 200)} {(project?.metrics.ascender ?? 800) - (project?.metrics.descender ?? -200)}"
+							width="60"
+							height="80"
+							preserveAspectRatio="xMidYMid meet"
+							style="transform: scaleY(-1);"
+							aria-label={g.name}
+						>
+							<g transform="translate(0 {-(project?.metrics.ascender ?? 800)})">
+								<path
+									d={contoursToSvgPath(g.contours)}
+									fill="currentColor"
+									fill-rule="evenodd"
+								/>
+							</g>
+						</svg>
+						<div class="flex flex-col items-center text-[10px]">
+							<span class="font-mono text-fg">{String.fromCodePoint(g.codepoint)}</span>
+							{#if stem > 0}
+								<span
+									class="font-mono {isOutlier ? 'text-warn' : 'text-fg-subtle'}"
+									data-numeric
+								>
+									{stem}
+									{#if isOutlier}({diff > 0 ? '+' : ''}{diff}){/if}
+								</span>
+							{/if}
+						</div>
+					</div>
+				{/each}
+			</div>
+			{#if rhythmMedianStem > 0}
+				<p class="mt-2 text-[11px] text-fg-subtle">
+					Median stem width:
+					<span class="font-mono text-fg" data-numeric>{rhythmMedianStem}</span> ·
+					Outliers marked in warn ({rhythmDrawn.filter((g) => {
+						const s = rhythmStemWidths.get(g.codepoint);
+						return s && Math.abs(s - rhythmMedianStem) > 5;
+					}).length} of {rhythmDrawn.length})
+				</p>
+			{/if}
 		{/if}
 	</Panel>
 
