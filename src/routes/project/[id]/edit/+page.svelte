@@ -34,7 +34,6 @@
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
-	import Keyboard from '@lucide/svelte/icons/keyboard';
 	import Pin from '@lucide/svelte/icons/pin';
 	import Flag from '@lucide/svelte/icons/flag';
 	import FileText from '@lucide/svelte/icons/file-text';
@@ -62,7 +61,6 @@
 	let cubicTrace = $state(DEFAULT_TRACE.cubic);
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let tourOpen = $state(false);
-	let shortcutsOpen = $state(false);
 	let paletteOpen = $state(false);
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
@@ -120,75 +118,6 @@
 		}));
 	};
 
-	const SHORTCUTS: Array<{ group: string; items: Array<{ keys: string; label: string }> }> = [
-		{
-			group: 'Tools',
-			items: [
-				{ keys: 'P', label: 'Pencil' },
-				{ keys: 'E', label: 'Eraser' },
-				{ keys: 'A', label: 'Edit points' },
-				{ keys: 'T', label: 'Trace sketch to vector' }
-			]
-		},
-		{
-			group: 'Navigation',
-			items: [
-				{ keys: '[', label: 'Previous glyph' },
-				{ keys: ']', label: 'Next glyph' },
-				{ keys: '/', label: 'Open glyph palette' },
-				{ keys: '⌘K / Ctrl+K', label: 'Open glyph palette' }
-			]
-		},
-		{
-			group: 'Layers',
-			items: [
-				{ keys: 'S', label: 'Toggle sketch layer' },
-				{ keys: 'V', label: 'Toggle vector layer' },
-				{ keys: 'G', label: 'Toggle grid' },
-				{ keys: 'R', label: 'Toggle reference glyph' },
-				{ keys: 'O', label: 'Toggle onion-skin neighbours' },
-				{ keys: 'X', label: 'Toggle anchors' }
-			]
-		},
-		{
-			group: 'History',
-			items: [
-				{ keys: '⌘Z / Ctrl+Z', label: 'Undo' },
-				{ keys: '⌘⇧Z / Ctrl+Y', label: 'Redo' }
-			]
-		},
-		{
-			group: 'Clipboard',
-			items: [
-				{ keys: '⌘⇧C', label: 'Copy glyph' },
-				{ keys: '⌘⇧V', label: 'Paste glyph' }
-			]
-		},
-		{
-			group: 'Status',
-			items: [
-				{ keys: '1', label: 'Mark empty' },
-				{ keys: '2', label: 'Mark sketch' },
-				{ keys: '3', label: 'Mark draft' },
-				{ keys: '4', label: 'Mark final' },
-				{ keys: '`', label: 'Toggle pin' },
-				{ keys: '⇧F', label: 'Toggle flag for review' }
-			]
-		},
-		{
-			group: 'File',
-			items: [
-				{ keys: '⌘S / Ctrl+S', label: 'Save now (explicit)' },
-				{ keys: '⌘P', label: 'Print specimen (on /specimen)' }
-			]
-		},
-		{
-			group: 'Help',
-			items: [
-				{ keys: '?', label: 'Show this cheat sheet' }
-			]
-		}
-	];
 
 	$effect(() => {
 		// Auto-open the tour the first time someone visits the editor.
@@ -1200,9 +1129,6 @@
 		} else if ((ev.key === 'v' || ev.key === 'V') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
 			ev.preventDefault();
 			pasteGlyph();
-		} else if (ev.key === '?' || (ev.key === '/' && ev.shiftKey)) {
-			ev.preventDefault();
-			shortcutsOpen = !shortcutsOpen;
 		} else if (ev.key === '/' && !ev.shiftKey && !ev.metaKey && !ev.ctrlKey) {
 			ev.preventDefault();
 			paletteOpen = true;
@@ -1210,7 +1136,6 @@
 			ev.preventDefault();
 			paletteOpen = true;
 		} else if (ev.key === 'Escape') {
-			if (shortcutsOpen) shortcutsOpen = false;
 			if (paletteOpen) paletteOpen = false;
 		}
 	};
@@ -1333,15 +1258,6 @@
 						title="[ ] navigation skips empty glyphs"
 					>
 						Skip empty
-					</button>
-					<button
-						type="button"
-						onclick={() => (shortcutsOpen = true)}
-						class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-						title="Keyboard shortcuts (?)"
-						aria-label="Keyboard shortcuts"
-					>
-						<Keyboard class="size-3.5" />
 					</button>
 					<button
 						type="button"
@@ -2529,53 +2445,4 @@
 	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
 	<CommandPalette open={paletteOpen} onclose={() => (paletteOpen = false)} />
 
-	{#if shortcutsOpen}
-		<button
-			type="button"
-			class="fixed inset-0 z-40 cursor-default bg-canvas/60 backdrop-blur-sm"
-			onclick={() => (shortcutsOpen = false)}
-			aria-label="Close shortcuts"
-			tabindex="-1"
-		></button>
-		<div
-			role="dialog"
-			aria-modal="true"
-			aria-label="Keyboard shortcuts"
-			class="fixed left-1/2 top-1/2 z-50 max-h-[80vh] w-[min(640px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface p-6 shadow-2xl"
-		>
-			<div class="mb-4 flex items-center justify-between gap-3">
-				<div class="flex items-center gap-2">
-					<Keyboard class="size-4 text-fg-muted" />
-					<h2 class="text-base font-semibold tracking-tight">Keyboard shortcuts</h2>
-				</div>
-				<button
-					type="button"
-					onclick={() => (shortcutsOpen = false)}
-					class="rounded-md px-2 py-1 text-[11px] font-medium text-fg-muted hover:bg-surface-2 hover:text-fg"
-				>
-					Close · Esc
-				</button>
-			</div>
-			<div class="grid gap-5 sm:grid-cols-2">
-				{#each SHORTCUTS as section (section.group)}
-					<div>
-						<h3 class="mb-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-							{section.group}
-						</h3>
-						<ul class="grid gap-1">
-							{#each section.items as item (item.keys)}
-								<li class="flex items-center justify-between gap-3 text-[12px]">
-									<span class="text-fg-muted">{item.label}</span>
-									<kbd
-										class="rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg"
-										data-numeric>{item.keys}</kbd
-									>
-								</li>
-							{/each}
-						</ul>
-					</div>
-				{/each}
-			</div>
-		</div>
-	{/if}
 {/if}

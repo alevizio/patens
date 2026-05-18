@@ -1,5 +1,6 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
+	import Keyboard from '@lucide/svelte/icons/keyboard';
 
 	type Props = { open: boolean; onclose: () => void };
 	let { open, onclose }: Props = $props();
@@ -19,12 +20,52 @@
 			]
 		},
 		{
-			title: 'Editor',
+			title: 'Editor — tools',
 			rows: [
-				{ keys: '[ / ]', label: 'Previous / next glyph' },
+				{ keys: 'P', label: 'Pencil' },
+				{ keys: 'E', label: 'Eraser' },
+				{ keys: 'A', label: 'Edit points' },
+				{ keys: 'T', label: 'Trace sketch to vector' }
+			]
+		},
+		{
+			title: 'Editor — navigation',
+			rows: [
+				{ keys: '[', label: 'Previous glyph' },
+				{ keys: ']', label: 'Next glyph' },
+				{ keys: '/', label: 'Open glyph palette' },
+				{ keys: '⌘K', label: 'Open glyph palette' }
+			]
+		},
+		{
+			title: 'Editor — layers',
+			rows: [
 				{ keys: 'S', label: 'Toggle sketch layer' },
 				{ keys: 'V', label: 'Toggle vector layer' },
-				{ keys: '⇧F', label: 'Flag glyph for review' }
+				{ keys: 'G', label: 'Toggle grid' },
+				{ keys: 'R', label: 'Toggle reference glyph' },
+				{ keys: 'O', label: 'Toggle onion-skin neighbours' },
+				{ keys: 'X', label: 'Toggle anchors' }
+			]
+		},
+		{
+			title: 'Editor — history & clipboard',
+			rows: [
+				{ keys: '⌘Z', label: 'Undo' },
+				{ keys: '⌘⇧Z', label: 'Redo' },
+				{ keys: '⌘⇧C', label: 'Copy glyph' },
+				{ keys: '⌘⇧V', label: 'Paste glyph' }
+			]
+		},
+		{
+			title: 'Editor — status',
+			rows: [
+				{ keys: '1', label: 'Mark empty' },
+				{ keys: '2', label: 'Mark sketch' },
+				{ keys: '3', label: 'Mark draft' },
+				{ keys: '4', label: 'Mark final' },
+				{ keys: '`', label: 'Toggle pin' },
+				{ keys: '⇧F', label: 'Toggle flag for review' }
 			]
 		},
 		{
@@ -59,14 +100,17 @@
 			role="dialog"
 			aria-modal="true"
 			aria-label="Keyboard shortcuts"
-			class="relative w-[480px] max-w-[90vw] rounded-lg border border-border bg-surface shadow-xl"
+			class="relative max-h-[80vh] w-[640px] max-w-[90vw] overflow-y-auto rounded-lg border border-border bg-surface shadow-xl"
 		>
 			<div
-				class="flex items-center justify-between border-b border-border px-4 py-2.5"
+				class="sticky top-0 flex items-center justify-between border-b border-border bg-surface px-4 py-2.5"
 			>
-				<h2 class="text-[12px] font-semibold tracking-wide text-fg">
-					Keyboard shortcuts
-				</h2>
+				<div class="flex items-center gap-2">
+					<Keyboard class="size-4 text-fg-muted" />
+					<h2 class="text-[12px] font-semibold tracking-wide text-fg">
+						Keyboard shortcuts
+					</h2>
+				</div>
 				<button
 					type="button"
 					onclick={onclose}
@@ -76,7 +120,7 @@
 					<X class="size-3.5" />
 				</button>
 			</div>
-			<div class="grid gap-4 p-4">
+			<div class="grid gap-5 p-5 sm:grid-cols-2">
 				{#each groups as g (g.title)}
 					<div>
 						<div
