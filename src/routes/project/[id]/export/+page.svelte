@@ -277,7 +277,11 @@ body {
 			await exportTestPage();
 			await new Promise((r) => setTimeout(r, 350));
 			exportProjectJson();
-			toast.success('Release bundle: 4 files downloaded.');
+			await new Promise((r) => setTimeout(r, 350));
+			exportFeaSource();
+			await new Promise((r) => setTimeout(r, 350));
+			exportDesignMd();
+			toast.success('Release bundle: 6 files downloaded.');
 		} catch (err) {
 			toast.error('Bundle export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
@@ -915,10 +919,10 @@ document.querySelectorAll('.controls button').forEach((b) => {
 			<div class="mb-3 flex items-center gap-3 rounded-md border border-accent/30 bg-accent-soft/30 px-3 py-2">
 				<Button onclick={exportAll} disabled={!validation.ok || bundleBusy} loading={bundleBusy}>
 					{#snippet icon()}<Download class="size-4" />{/snippet}
-					{bundleBusy ? 'Bundling…' : 'Export release bundle'}
+					{bundleBusy ? 'Bundling…' : 'Export release bundle (6 files)'}
 				</Button>
 				<span class="text-[12px] text-fg-muted">
-					4 downloads in sequence: OTF + WOFF2 + HTML test page + .font.json
+					6 downloads in sequence: OTF + WOFF2 + HTML test page + .font.json + .fea + DESIGN.md
 				</span>
 			</div>
 			<div class="grid gap-2">
