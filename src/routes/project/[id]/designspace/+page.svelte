@@ -36,6 +36,19 @@
 
 	const handleAddAxis = (tag: string) => projectStore.addAxis(tag);
 
+	const setupOpticalSizes = () => {
+		// Add the axis (no-op if already there) then add the 4 canonical optical-size instances.
+		if (!(project?.axes ?? []).some((a) => a.tag === 'opsz')) {
+			projectStore.addAxis('opsz');
+		}
+		for (const preset of OPSZ_INSTANCES) {
+			const exists = (projectStore.project?.instances ?? []).some(
+				(i) => i.styleName === preset.styleName
+			);
+			if (!exists) handleAddInstance(preset.styleName, { opsz: preset.opsz });
+		}
+	};
+
 	const handleAddMaster = async () => {
 		const trimmed = newMasterName.trim();
 		if (!trimmed || (project?.axes ?? []).length === 0) return;
@@ -107,6 +120,23 @@
 					<p class="mb-3 text-sm text-fg-muted">
 						No axes yet. Start with Weight or Width — the most widely supported axes.
 					</p>
+					<div class="mb-3 rounded-md border border-dashed border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px]">
+						<div class="flex items-center justify-between gap-3">
+							<span class="text-fg-muted">
+								Want optical sizing like Source Serif 4 or Helvetica Now?
+							</span>
+							<button
+								type="button"
+								onclick={setupOpticalSizes}
+								class="rounded border border-accent bg-accent text-accent-fg px-2.5 py-1 text-[11px] font-medium hover:bg-accent/90"
+							>
+								Set up opsz axis + 4 cuts
+							</button>
+						</div>
+						<div class="mt-1 text-[10px] text-fg-subtle">
+							Adds an Optical Size axis and four named instances: Caption · Text · Subhead · Display.
+						</div>
+					</div>
 				{:else}
 					<div class="mb-3 grid gap-2">
 						{#each project.axes as axis (axis.tag)}
