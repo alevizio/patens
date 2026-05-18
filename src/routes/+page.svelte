@@ -10,10 +10,12 @@
 		toggleProjectArchive,
 		backupAllProjects,
 		restoreFromBackup,
+		addScriptPack,
 		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
 	} from '$lib/font/project';
+	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -290,17 +292,24 @@
 		menuOpen ? projects.find((p) => p.id === menuOpen!.id) : undefined
 	);
 
+	let newScriptPacks = $state<Set<string>>(new Set());
 	const handleCreate = async (e: Event) => {
 		e.preventDefault();
 		const trimmed = newName.trim();
 		if (!trimmed || creating) return;
 		creating = true;
 		try {
-			const project = createProject({
+			let project = createProject({
 				name: trimmed,
 				familyName: newFamily.trim() || trimmed,
 				kind: newKind
 			});
+			// Apply any selected non-Latin script packs at creation time.
+			for (const pack of SCRIPT_PACKS) {
+				if (newScriptPacks.has(pack.id)) {
+					project = addScriptPack(project, pack);
+				}
+			}
 			await saveProject(project);
 			await goto(`/project/${project.id}/edit`);
 		} finally {
@@ -1032,6 +1041,34 @@
 								{KIND_PRESETS[newKind].description}
 							</div>
 						{/if}
+					</div>
+					<div>
+						<div class="mb-1.5 text-[13px] font-medium text-fg-muted">
+							Scripts
+							<span class="ml-1 text-[11px] font-normal text-fg-subtle">
+								Latin Basic always included. Add others.
+							</span>
+						</div>
+						<div class="flex flex-wrap gap-1.5">
+							{#each SCRIPT_PACKS as pack (pack.id)}
+								{@const selected = newScriptPacks.has(pack.id)}
+								<button
+									type="button"
+									onclick={() => {
+										const next = new Set(newScriptPacks);
+										if (next.has(pack.id)) next.delete(pack.id);
+										else next.add(pack.id);
+										newScriptPacks = next;
+									}}
+									class="rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors {selected
+										? 'border-accent bg-accent-soft text-accent'
+										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
+									title={pack.description}
+								>
+									+ {pack.label}
+								</button>
+							{/each}
+						</div>
 					</div>
 					<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
 						{#snippet icon()}<Plus class="size-4" />{/snippet}

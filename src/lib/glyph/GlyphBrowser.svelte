@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { CATEGORY_LABELS, CATEGORY_ORDER, type GlyphCategory } from '$lib/font/glyph-set';
+	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -444,6 +445,29 @@
 						title="Add U+{preset.cp.toString(16).toUpperCase().padStart(4, '0')}"
 					>
 						{preset.label}
+					</button>
+				{/each}
+			</div>
+			<div class="mt-1.5 flex flex-wrap gap-1 text-[10px]">
+				<span class="text-fg-subtle">Add script:</span>
+				{#each SCRIPT_PACKS as pack (pack.id)}
+					<button
+						type="button"
+						onclick={() => {
+							if (!projectStore.project) return;
+							const before = Object.keys(projectStore.project.glyphs).length;
+							projectStore.addScriptPack(pack);
+							const after = projectStore.project
+								? Object.keys(projectStore.project.glyphs).length
+								: before;
+							toast.success(
+								`Added ${after - before} ${pack.label} glyph${after - before === 1 ? '' : 's'}.`
+							);
+						}}
+						class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
+						title={pack.description}
+					>
+						+ {pack.label}
 					</button>
 				{/each}
 			</div>
