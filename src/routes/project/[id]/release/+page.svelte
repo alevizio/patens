@@ -1,13 +1,18 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { preflightProject, auditCompatibility, auditProject } from '$lib/font/audit';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import Field from '$lib/ui/Field.svelte';
+	import Input from '$lib/ui/Input.svelte';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Info from '@lucide/svelte/icons/info';
 	import Rocket from '@lucide/svelte/icons/rocket';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import Plus from '@lucide/svelte/icons/plus';
 	import { goto } from '$app/navigation';
 
 	const project = $derived(projectStore.project);
@@ -117,6 +122,31 @@
 
 	const autoPasses = $derived(errors === 0 && drawn >= 26);
 	const readyToShip = $derived(autoPasses && manualPct === 100);
+
+	let newChangelogVersion = $state('');
+	let newChangelogNotes = $state('');
+	$effect(() => {
+		// Pre-fill version from metadata when empty
+		if (!newChangelogVersion && project?.metadata.version) {
+			newChangelogVersion = project.metadata.version;
+		}
+	});
+	const submitChangelog = (e: Event) => {
+		e.preventDefault();
+		if (!newChangelogNotes.trim()) return;
+		projectStore.addChangelogEntry({
+			version: newChangelogVersion,
+			notes: newChangelogNotes
+		});
+		toast.success(`Logged v${newChangelogVersion}`);
+		newChangelogNotes = '';
+	};
+	const formatDate = (iso: string) =>
+		new Date(iso).toLocaleDateString(undefined, {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric'
+		});
 </script>
 
 {#if !project}
@@ -269,6 +299,65 @@
 					</ul>
 				</Panel>
 			{/each}
+
+			<Panel>
+				<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Changelog ({project.changelog?.length ?? 0})
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Versioned release notes. Add one per shipped version — what changed, what
+					was fixed, what's still open. Appears in the Specimen colophon.
+				</p>
+				{#if project.changelog && project.changelog.length > 0}
+					<ul class="mb-4 grid gap-2">
+						{#each project.changelog as e (e.id)}
+							<li
+								class="grid grid-cols-[auto_1fr_auto] items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+							>
+								<span class="rounded bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-accent" data-numeric>
+									v{e.version}
+								</span>
+								<div class="min-w-0">
+									<div class="text-[11px] text-fg-subtle" data-numeric>{formatDate(e.date)}</div>
+									<div class="mt-0.5 whitespace-pre-wrap text-[12px] text-fg">{e.notes}</div>
+								</div>
+								<button
+									type="button"
+									onclick={() => projectStore.removeChangelogEntry(e.id)}
+									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									aria-label="Remove changelog entry v{e.version}"
+								>
+									<Trash2 class="size-3.5" />
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{/if}
+				<form
+					onsubmit={submitChangelog}
+					class="rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 p-3"
+				>
+					<div class="grid grid-cols-[100px_1fr] gap-2">
+						<Field label="Version">
+							<Input density="sm" bind:value={newChangelogVersion} placeholder="1.000" />
+						</Field>
+						<Field label="Notes">
+							<textarea
+								bind:value={newChangelogNotes}
+								placeholder={`- Added X\n- Fixed Y kerning\n- Bumped UPM`}
+								rows="3"
+								class="block w-full resize-y rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+							></textarea>
+						</Field>
+					</div>
+					<div class="mt-2 flex justify-end">
+						<Button type="submit" density="sm" disabled={!newChangelogNotes.trim()}>
+							{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+							Log this version
+						</Button>
+					</div>
+				</form>
+			</Panel>
 
 			<Panel>
 				<div class="flex items-center justify-between gap-3">

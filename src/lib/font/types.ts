@@ -218,6 +218,8 @@ export type Project = {
 	brief?: ProjectBrief;
 	/** Release readiness checklist — manual sign-offs for cross-platform tests. */
 	releaseChecks?: Record<string, boolean>;
+	/** Versioned release notes — one entry per shipped version. */
+	changelog?: ChangelogEntry[];
 	metadata: FontMetadata;
 	metrics: FontMetrics;
 	/** Default master's glyphs, keyed by Unicode codepoint. */
@@ -268,6 +270,13 @@ export const USE_CASE_LABELS: Record<UseCase, string> = {
 	editorial: 'Editorial',
 	branding: 'Branding identity',
 	multiscript: 'Multiscript / multilingual'
+};
+
+export type ChangelogEntry = {
+	id: string;
+	version: string;
+	date: string;
+	notes: string;
 };
 
 export type BriefReference = {

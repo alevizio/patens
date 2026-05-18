@@ -227,6 +227,30 @@ class ProjectStore {
 		this.touch();
 	}
 
+	addChangelogEntry(entry: { version: string; notes: string }) {
+		if (!this.project) return;
+		const next: import('$lib/font/types').ChangelogEntry = {
+			id: crypto.randomUUID(),
+			version: entry.version.trim() || this.project.metadata.version,
+			date: new Date().toISOString(),
+			notes: entry.notes.trim()
+		};
+		this.project = {
+			...this.project,
+			changelog: [next, ...(this.project.changelog ?? [])]
+		};
+		this.touch();
+	}
+
+	removeChangelogEntry(id: string) {
+		if (!this.project) return;
+		this.project = {
+			...this.project,
+			changelog: (this.project.changelog ?? []).filter((e) => e.id !== id)
+		};
+		this.touch();
+	}
+
 	toggleReleaseCheck(id: string) {
 		if (!this.project) return;
 		const next = { ...(this.project.releaseChecks ?? {}) };

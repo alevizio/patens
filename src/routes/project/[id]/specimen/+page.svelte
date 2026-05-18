@@ -194,6 +194,27 @@
 						<dd>{project.instances?.map((i) => i.styleName).join(', ')}</dd>
 					{/if}
 				</dl>
+
+				{#if project.changelog && project.changelog.length > 0}
+					<h2 class="mt-12 mb-6 text-[10px] uppercase tracking-[0.2em] text-neutral-500">
+						Changelog
+					</h2>
+					<dl class="grid grid-cols-[120px_1fr] gap-y-3 text-[13px]">
+						{#each project.changelog as e (e.id)}
+							<dt class="font-mono text-neutral-500" data-numeric>
+								v{e.version}
+								<span class="block text-[10px]">
+									{new Date(e.date).toLocaleDateString(undefined, {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric'
+									})}
+								</span>
+							</dt>
+							<dd class="whitespace-pre-line">{e.notes}</dd>
+						{/each}
+					</dl>
+				{/if}
 			</section>
 		</div>
 	</div>
