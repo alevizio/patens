@@ -262,6 +262,17 @@
 		await refresh();
 	};
 
+	const handleDeleteAllArchived = async () => {
+		const archived = projects.filter((p) => p.archived);
+		if (archived.length === 0) return;
+		const ok = confirm(
+			`Permanently delete ${archived.length} archived project${archived.length === 1 ? '' : 's'}? This cannot be undone.`
+		);
+		if (!ok) return;
+		for (const a of archived) await deleteProject(a.id);
+		await refresh();
+	};
+
 	let menuOpen = $state<{ id: string; x: number; y: number } | null>(null);
 	const openMenu = (p: ProjectIndexEntry, ev: MouseEvent) => {
 		ev.preventDefault();
@@ -670,6 +681,16 @@
 							<Archive class="inline size-3 align-[-2px]" />
 							{showArchived ? 'Hide' : 'Show'} archived <span data-numeric>({archivedCount})</span>
 						</button>
+						{#if showArchived}
+							<button
+								type="button"
+								onclick={handleDeleteAllArchived}
+								class="rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger hover:border-danger hover:bg-danger/15"
+								title="Permanently delete every archived project"
+							>
+								Delete {archivedCount} archived…
+							</button>
+						{/if}
 					{/if}
 					<select
 						bind:value={projectSort}
