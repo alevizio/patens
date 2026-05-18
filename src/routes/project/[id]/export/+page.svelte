@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { buildFont } from '$lib/font/export';
 	import {
 		ensurePython,
@@ -147,6 +148,52 @@ body {
 			new Blob([buffer], { type: 'font/otf' }),
 			`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.otf`
 		);
+	};
+
+	// ---------- Trial / restricted subset export ----------
+	let trialChars = $state('HELO WORLD');
+	let trialBusy = $state(false);
+	const exportTrialOtf = async () => {
+		if (!project || trialBusy) return;
+		trialBusy = true;
+		try {
+			const allowed = new Set<number>();
+			for (const ch of trialChars) {
+				const cp = ch.codePointAt(0);
+				if (cp && project.glyphs[cp]) allowed.add(cp);
+			}
+			if (allowed.size === 0) {
+				toast.warn('No characters in the trial subset match drawn glyphs.');
+				return;
+			}
+			// Build a stripped-down project clone
+			const subsetGlyphs: typeof project.glyphs = {};
+			for (const cp of allowed) subsetGlyphs[cp] = project.glyphs[cp];
+			const trialProject: typeof project = {
+				...project,
+				glyphs: subsetGlyphs,
+				kerning: project.kerning.filter(
+					(p) =>
+						(typeof p.left !== 'number' || allowed.has(p.left)) &&
+						(typeof p.right !== 'number' || allowed.has(p.right))
+				),
+				metadata: {
+					...project.metadata,
+					familyName: `${project.metadata.familyName} Trial`
+				}
+			};
+			const { font } = buildFont(trialProject);
+			const buffer = font.toArrayBuffer();
+			downloadBlob(
+				new Blob([buffer], { type: 'font/otf' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-Trial-${allowed.size}gl.otf`
+			);
+			toast.success(`Trial OTF exported (${allowed.size} glyphs).`);
+		} catch (err) {
+			toast.error('Trial export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			trialBusy = false;
+		}
 	};
 
 	const exportWoff2 = async () => {
@@ -854,6 +901,41 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					</span>
 				</div>
 			</div>
+		</Panel>
+
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Trial / restricted subset
+			</h2>
+			<p class="mb-3 text-[12px] text-fg-subtle">
+				Build a marketing trial: only the characters you list are kept, the family name
+				gets a "Trial" suffix, and kerning pairs that reference dropped glyphs are
+				removed. Useful for previewing without giving away the full set.
+			</p>
+			<div class="flex flex-col gap-2 sm:flex-row sm:items-end">
+				<div class="flex-1">
+					<label
+						for="trial-chars"
+						class="mb-1 block text-[11px] font-medium text-fg-muted"
+					>
+						Characters to include
+					</label>
+					<input
+						id="trial-chars"
+						bind:value={trialChars}
+						placeholder="e.g., HELO WORLD"
+						class="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+					/>
+				</div>
+				<Button variant="secondary" onclick={exportTrialOtf} loading={trialBusy}>
+					{#snippet icon()}<Download class="size-4" />{/snippet}
+					{trialBusy ? 'Building…' : 'Export trial OTF'}
+				</Button>
+			</div>
+			<p class="mt-2 text-[11px] text-fg-subtle">
+				Each character in the field maps to a glyph. Spaces, line breaks, and
+				duplicates are ignored. Family becomes <code>{project.metadata.familyName} Trial</code>.
+			</p>
 		</Panel>
 
 		<Panel>
