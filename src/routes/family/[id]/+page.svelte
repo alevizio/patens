@@ -430,6 +430,22 @@
 								{#if chips.length === 0}
 									<span class="text-[10px] text-fg-subtle">no familyAxes set</span>
 								{/if}
+								<span
+									class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-subtle"
+									data-numeric
+									title="Drawn glyphs · last sealed version"
+								>
+									{s.glyphCount} drawn{s.lastSealedVersion ? ` · v${s.lastSealedVersion}` : ''}
+								</span>
+								{#if (s.editsToday ?? 0) > 0}
+									<span
+										class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent"
+										data-numeric
+										title="Glyphs edited in last 24h"
+									>
+										{s.editsToday} today
+									</span>
+								{/if}
 							</div>
 						</div>
 						<button
@@ -566,6 +582,19 @@
 				rebuild a sibling and re-open this panel.
 			</p>
 			{#if compareOpen}
+				<div class="mb-2 flex flex-wrap items-center gap-1 text-[10px]">
+					<span class="text-fg-subtle">Quick proofs:</span>
+					{#each ['Hamburgefonstiv', 'HOHOHO nonono', 'AVAVAV ToToTo', 'The quick brown fox', 'abcdefghijklmnopqrstuvwxyz', 'Wafer pillow kerning blot'] as preset (preset)}
+						<button
+							type="button"
+							onclick={() => (compareText = preset)}
+							class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
+							title="Replace text with this proof string"
+						>
+							{preset.length > 24 ? preset.slice(0, 24) + '…' : preset}
+						</button>
+					{/each}
+				</div>
 				<div class="mb-3 grid grid-cols-[1fr_auto] items-center gap-2">
 					<input
 						bind:value={compareText}
