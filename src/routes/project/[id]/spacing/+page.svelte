@@ -702,6 +702,21 @@
 								class="w-full rounded-md border border-border bg-surface px-2 py-1 font-mono text-[11px] text-fg outline-none focus:border-accent"
 							/>
 						</div>
+						{#if cls.members.length > 0}
+							{@const rhythm = cls.members
+								.map((cp) =>
+									cp > 0x20 && cp < 0x10000 ? String.fromCodePoint(cp) : ''
+								)
+								.filter(Boolean)
+								.flatMap((ch) => ['n', ch, 'o', ch])
+								.join('')}
+							<div
+								class="preview-font mt-2 overflow-hidden rounded bg-canvas px-2 py-1.5 text-2xl leading-none text-fg"
+								title="Rhythm proof — letters drawn from this class interleaved with n and o so you can eyeball whether spacing produces stable text color"
+							>
+								{rhythm}
+							</div>
+						{/if}
 					</li>
 				{/each}
 			</ul>
