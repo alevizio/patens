@@ -78,6 +78,8 @@ export type ProjectIndexEntry = {
 	archived?: boolean;
 	/** Freeform organisational tags for the home page chips/filter. */
 	tags?: string[];
+	/** Codepoint + name of the most recently edited glyph (deep-linked from "Continue"). */
+	lastEditedGlyph?: { codepoint: number; name: string };
 };
 
 const newId = () => crypto.randomUUID();
@@ -219,6 +221,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 	todayMid.setHours(0, 0, 0, 0);
 	const todayMidMs = todayMid.getTime();
 	const editsByDay = new Array<number>(14).fill(0);
+	let lastEditedGlyphEntry: ProjectIndexEntry['lastEditedGlyph'];
+	let lastEditedAt = 0;
 	for (const g of Object.values(p.glyphs)) {
 		const t = Date.parse(g.updatedAt);
 		if (!Number.isFinite(t)) continue;
@@ -227,6 +231,13 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		const dayOffset = Math.floor((todayMidMs - t) / DAY_MS);
 		if (dayOffset >= 0 && dayOffset < 14) {
 			editsByDay[13 - dayOffset]++;
+		}
+		// Track the single most-recently edited glyph that has actual content.
+		const hasContent =
+			g.contours.length > 0 || (g.components?.length ?? 0) > 0 || (g.sketch?.length ?? 0) > 0;
+		if (hasContent && t > lastEditedAt) {
+			lastEditedAt = t;
+			lastEditedGlyphEntry = { codepoint: g.codepoint, name: g.name };
 		}
 	}
 	return {
@@ -251,7 +262,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		lastSealedAt: p.changelog?.[0]?.date,
 		pinned: p.pinned,
 		archived: p.archived,
-		tags: p.tags
+		tags: p.tags,
+		lastEditedGlyph: lastEditedGlyphEntry
 	};
 };
 
