@@ -64,6 +64,8 @@ export type ProjectIndexEntry = {
 	editsThisWeek?: number;
 	/** Mirror of project.locked — surfaces a lock icon in lists. */
 	locked?: boolean;
+	/** Count of kerning pairs at index time — surfaces in stats popover / switcher. */
+	kerningCount?: number;
 };
 
 const newId = () => crypto.randomUUID();
@@ -221,7 +223,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		briefMissing,
 		editsToday,
 		editsThisWeek,
-		locked: p.locked
+		locked: p.locked,
+		kerningCount: p.kerning.length
 	};
 };
 
