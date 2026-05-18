@@ -56,6 +56,15 @@
 	const flaggedCount = $derived(
 		project ? Object.values(project.glyphs).filter((g) => g.flagged).length : 0
 	);
+	const firstFlaggedCp = $derived(
+		project
+			? Object.values(project.glyphs).find((g) => g.flagged)?.codepoint
+			: undefined
+	);
+	const jumpToFirstFlagged = () => {
+		if (firstFlaggedCp) projectStore.selectGlyph(firstFlaggedCp);
+		onclose();
+	};
 
 	const editsToday = $derived.by(() => {
 		if (!project) return 0;
@@ -161,7 +170,20 @@
 				<dt class="text-fg-muted">Edited today</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{editsToday}</dd>
 				<dt class="text-fg-muted">Flagged</dt>
-				<dd class="text-right font-mono text-fg" data-numeric>{flaggedCount}</dd>
+				<dd class="text-right font-mono text-fg" data-numeric>
+					{#if flaggedCount > 0}
+						<a
+							href="/project/{project.id}/edit"
+							onclick={jumpToFirstFlagged}
+							class="text-warn hover:underline"
+							title="Jump to the first flagged glyph"
+						>
+							{flaggedCount} →
+						</a>
+					{:else}
+						{flaggedCount}
+					{/if}
+				</dd>
 				<dt class="text-fg-muted">Last build</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>
 					{previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(0)}ms
