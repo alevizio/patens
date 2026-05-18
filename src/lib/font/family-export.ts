@@ -19,11 +19,14 @@ import type { Project, FamilyAxes } from './types';
 /** Convert family axes into the OS/2 patches needed to identify a static style. */
 const os2PatchFromAxes = (axes?: FamilyAxes) => {
 	if (!axes) return null;
+	// OS/2 usWidthClass: 1=50%, 2=62.5%, 3=75%, 4=87.5%, 5=100%, 6=112.5%, 7=125%,
+	// 8=150%, 9=200%. Each step is 12.5% except 8→9 which jumps 50%.
+	// `(wdth / 12.5) - 3` maps 50→1, 100→5, 150→9, then clamp.
+	const wdthPct = axes.wdth ?? 100;
+	const widthClass = Math.max(1, Math.min(9, Math.round(wdthPct / 12.5 - 3)));
 	return {
 		usWeightClass: axes.wght ?? 400,
-		// OS/2 width class is 1..9 (1=ultra-condensed ... 9=ultra-expanded), centered at 5.
-		// Map % to 1..9 via the standard table; for simplicity, linear approx.
-		usWidthClass: Math.max(1, Math.min(9, Math.round(((axes.wdth ?? 100) / 100) * 5))),
+		usWidthClass: widthClass,
 		italic: axes.ital === 1
 	};
 };
@@ -69,6 +72,8 @@ export type FamilyBundle = {
 	zip: Uint8Array;
 	familyName: string;
 	siblingCount: number;
+	/** Names of siblings that had VF axes but were exported as static OTFs. */
+	flattenedVfSiblings: string[];
 };
 
 /**
@@ -87,10 +92,17 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 	designLines.push('\n## Styles in this family\n');
 
 	const familySafe = safe(family.name);
+	const flattenedVfSiblings: string[] = [];
 	for (const entry of siblings) {
 		const project = await loadProject(entry.id);
 		if (!project) continue;
 		const styleName = project.metadata.styleName || 'Regular';
+		// Family ZIP bundles are always static-style files. If a sibling has VF
+		// axes defined, we flatten to the default master here and warn the user;
+		// the per-project export route still produces a real VF binary.
+		if ((project.axes?.length ?? 0) > 0) {
+			flattenedVfSiblings.push(styleName);
+		}
 		const { font } = buildFont(project, {
 			styleSuffix: undefined
 		});
@@ -99,7 +111,7 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 		const filename = `${familySafe}-${safe(styleName)}.otf`;
 		files[filename] = new Uint8Array(buffer);
 		designLines.push(
-			`- **${styleName}** · ${(buffer.byteLength / 1024).toFixed(1)} KB · \`${filename}\``
+			`- **${styleName}** · ${(buffer.byteLength / 1024).toFixed(1)} KB · \`${filename}\`${(project.axes?.length ?? 0) > 0 ? ' _(VF flattened to default master)_' : ''}`
 		);
 	}
 
@@ -120,13 +132,21 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 	}
 
 	const zip = zipSync(files, { level: 6 });
-	return { zip, familyName: family.name, siblingCount: siblings.length };
+	return {
+		zip,
+		familyName: family.name,
+		siblingCount: siblings.length,
+		flattenedVfSiblings
+	};
 };
 
-/** Convenience helper for the UI: build + download. */
-export const downloadFamilyBundle = async (familyId: string): Promise<boolean> => {
+/** Convenience helper for the UI: build + download. Returns the bundle so the
+ *  caller can surface warnings (e.g. flattened VF siblings) in a toast. */
+export const downloadFamilyBundle = async (
+	familyId: string
+): Promise<FamilyBundle | null> => {
 	const bundle = await buildFamilyBundle(familyId);
-	if (!bundle) return false;
+	if (!bundle) return null;
 	const blob = new Blob([bundle.zip], { type: 'application/zip' });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
@@ -136,5 +156,5 @@ export const downloadFamilyBundle = async (familyId: string): Promise<boolean> =
 	a.click();
 	a.remove();
 	setTimeout(() => URL.revokeObjectURL(url), 1000);
-	return true;
+	return bundle;
 };

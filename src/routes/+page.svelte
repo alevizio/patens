@@ -277,10 +277,11 @@
 		const family = await createFamily({
 			name: p.familyName || p.name
 		});
-		// Link the originating project as the "Regular" sibling.
+		// Link the originating project as the "Regular" sibling. Both writes must
+		// complete before navigating so the family hub sees a populated sibling.
 		await linkProjectToFamily(p.id, family.id, { wght: 400, ital: 0, wdth: 100 });
 		await refresh();
-		goto(`/family/${family.id}`);
+		await goto(`/family/${family.id}`);
 	};
 
 	const handleDeleteAllArchived = async () => {

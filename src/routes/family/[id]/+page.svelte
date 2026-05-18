@@ -45,8 +45,10 @@
 		issues = await auditFamily(data.family.id);
 	};
 	$effect(() => {
-		// Re-audit whenever siblings change
+		// Re-audit when sibling count *or* the data prop updates (navigation back
+		// from a sibling editor reloads `data`, refreshing the audit).
 		void siblings.length;
+		void data.siblings;
 		refreshAudit();
 	});
 
@@ -177,9 +179,19 @@
 		if (exporting) return;
 		exporting = true;
 		try {
-			const ok = await downloadFamilyBundle(data.family.id);
-			if (ok) toast.success('Family bundle exported.');
-			else toast.error('Family bundle failed.');
+			const bundle = await downloadFamilyBundle(data.family.id);
+			if (!bundle) {
+				toast.error('Family bundle failed.');
+				return;
+			}
+			toast.success(
+				`Family bundle exported (${(bundle.zip.byteLength / 1024).toFixed(1)} KB).`
+			);
+			if (bundle.flattenedVfSiblings.length > 0) {
+				toast.warn(
+					`Flattened to static: ${bundle.flattenedVfSiblings.join(', ')}. Export those siblings via their project /export route for true VF.`
+				);
+			}
 		} catch (err) {
 			toast.error('Export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {

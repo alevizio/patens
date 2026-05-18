@@ -78,13 +78,17 @@ export const listFamilies = async (): Promise<FamilyIndexEntry[]> => {
 };
 
 export const deleteFamily = async (id: string): Promise<void> => {
-	// Unlink siblings (they keep existing as standalone projects)
+	// Unlink siblings (they keep existing as standalone projects). We rebuild the
+	// project record without the family fields rather than spreading + destructure,
+	// to guarantee no `familyId: undefined` survives the IndexedDB round-trip.
 	const siblings = await listSiblings(id);
 	for (const s of siblings) {
 		const p = await loadProject(s.id);
 		if (!p) continue;
-		const { familyId: _f, familyAxes: _a, ...rest } = p;
-		await saveProject(rest as Project);
+		const cleaned: Project = { ...p };
+		delete cleaned.familyId;
+		delete cleaned.familyAxes;
+		await saveProject(cleaned);
 	}
 	await del(id, familyStore);
 	const idx = (await get<FamilyIndexEntry[]>(FAMILY_INDEX_KEY, familyStore)) ?? [];
@@ -128,8 +132,10 @@ export const unlinkProjectFromFamily = async (projectId: string): Promise<void> 
 	const p = await loadProject(projectId);
 	if (!p?.familyId) return;
 	const familyId = p.familyId;
-	const { familyId: _f, familyAxes: _a, ...rest } = p;
-	await saveProject(rest as Project);
+	const cleaned: Project = { ...p };
+	delete cleaned.familyId;
+	delete cleaned.familyAxes;
+	await saveProject(cleaned);
 	const f = await loadFamily(familyId);
 	if (f) await saveFamily(f);
 };
@@ -148,12 +154,16 @@ export const propagateFamilyMetadata = async (familyId: string): Promise<number>
 	for (const s of siblings) {
 		const p = await loadProject(s.id);
 		if (!p) continue;
+		// Treat empty strings as unset so the family hub can "clear" a propagated
+		// field (UI sets the value to "" on blank input).
+		const present = (v: string | undefined) =>
+			v !== undefined && v.trim().length > 0;
 		const nextMeta = {
 			...p.metadata,
 			familyName: family.name,
-			...(family.designer !== undefined ? { designer: family.designer } : {}),
-			...(family.copyright !== undefined ? { copyright: family.copyright } : {}),
-			...(family.license !== undefined ? { license: family.license } : {})
+			...(present(family.designer) ? { designer: family.designer } : {}),
+			...(present(family.copyright) ? { copyright: family.copyright } : {}),
+			...(present(family.license) ? { license: family.license } : {})
 		};
 		await saveProject({ ...p, metadata: nextMeta });
 		count++;
@@ -222,10 +232,15 @@ export const createSibling = async (
 	const ts = now();
 	const blankGlyphs: Project['glyphs'] = {};
 	for (const [cpStr, g] of Object.entries(template.glyphs)) {
+		// Drop contours, sketch, and components — composites would otherwise still
+		// resolve through the template's outlines until the designer re-draws the
+		// bases, producing silent visual inconsistency.
+		// Keep anchors (used by family kerning + mkmk) and the glyph's name/codepoint.
 		blankGlyphs[Number(cpStr)] = {
 			...g,
 			contours: [],
 			sketch: undefined,
+			components: undefined,
 			status: 'empty',
 			updatedAt: ts
 		};
