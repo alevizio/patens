@@ -26,6 +26,15 @@
 
 	let leftChar = $state('A');
 	let rightChar = $state('V');
+	let pairsOnlyDrawn = $state(true);
+	const visiblePairs = $derived.by(() => {
+		if (!pairsOnlyDrawn || !project) return COMMON_PAIRS;
+		return COMMON_PAIRS.filter(([l, r]) => {
+			const left = project.glyphs[l.codePointAt(0) ?? 0];
+			const right = project.glyphs[r.codePointAt(0) ?? 0];
+			return left?.contours.length && right?.contours.length;
+		});
+	});
 	let pendingValue = $state(0);
 	let newClassName = $state('@A_left');
 	let newClassMembers = $state('A Á Â Ä À Å Ã');
@@ -736,22 +745,39 @@
 	</Panel>
 
 	<Panel>
-		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			Common pair suggestions
-		</h2>
+		<div class="mb-3 flex items-center justify-between gap-3">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Common pair suggestions
+			</h2>
+			<label class="flex items-center gap-1.5 text-[11px] text-fg-muted">
+				<input type="checkbox" bind:checked={pairsOnlyDrawn} class="accent-accent" />
+				Only pairs both drawn
+			</label>
+		</div>
 		<div class="flex flex-wrap gap-1.5">
-			{#each COMMON_PAIRS as [l, r] (l + r)}
+			{#each visiblePairs as [l, r] (l + r)}
+				{@const existing = projectStore.getKerningValue(cpOf(l), cpOf(r))}
+				{@const hasKern = existing !== 0}
 				<button
 					type="button"
-					class="rounded-md border border-border bg-surface-2 px-2 py-1 font-mono text-[12px] hover:border-accent hover:bg-accent-soft"
+					class="rounded-md border px-2 py-1 font-mono text-[12px] {hasKern
+						? 'border-accent/40 bg-accent-soft text-accent'
+						: 'border-border bg-surface-2 hover:border-accent hover:bg-accent-soft'}"
 					onclick={() => {
 						leftChar = l;
 						rightChar = r;
 					}}
+					title={hasKern ? `Current kern: ${existing}` : 'Click to load this pair'}
 				>
 					{l}{r}
+					{#if hasKern}<span class="ml-1 text-[10px] text-fg-subtle" data-numeric>{existing}</span>{/if}
 				</button>
 			{/each}
+			{#if visiblePairs.length === 0}
+				<p class="text-[11px] text-fg-subtle">
+					No common pairs match — draw a couple uppercase letters first, then come back.
+				</p>
+			{/if}
 		</div>
 	</Panel>
 
