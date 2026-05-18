@@ -106,6 +106,26 @@
 				starter library on the right.
 			</div>
 
+			<div class="mb-4 grid gap-2 sm:grid-cols-2">
+				<a
+					href="/learn"
+					onclick={onclose}
+					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px] hover:border-accent hover:bg-accent-soft/30"
+				>
+					<div class="font-medium text-fg">New to type design?</div>
+					<div class="mt-0.5 text-fg-muted">
+						Read the 8-12 week beginner path, exercises, and tools →
+					</div>
+				</a>
+				<div class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px]">
+					<div class="font-medium text-fg">Already drawing?</div>
+					<div class="mt-0.5 text-fg-muted">
+						Start with the Brief tab — define intent, audience, use cases before
+						the first stroke.
+					</div>
+				</div>
+			</div>
+
 			<div class="flex items-center justify-end gap-2">
 				<Button density="sm" onclick={onclose}>Got it — let's go</Button>
 			</div>

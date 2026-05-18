@@ -428,6 +428,20 @@
 	);
 	const showControlHint = $derived(totalDrawn < 13 && controlMissing.length > 0);
 
+	const briefIsEmpty = $derived.by(() => {
+		const b = projectStore.project?.brief;
+		if (!b) return true;
+		return !(
+			b.intent?.trim() ||
+			b.audience?.trim() ||
+			(b.useCases?.length ?? 0) > 0 ||
+			b.differentiation?.trim() ||
+			(b.references?.length ?? 0) > 0
+		);
+	});
+
+	const showBriefFirstHint = $derived(totalDrawn === 0 && briefIsEmpty);
+
 	const referenceGlyph = $derived.by(() => {
 		if (!showReference || !glyph || !projectStore.project) return null;
 		const cp = glyph.codepoint;
@@ -1284,6 +1298,24 @@
 					{/if}
 				</div>
 			</div>
+
+			{#if showBriefFirstHint && projectStore.project}
+				<div
+					class="flex items-center gap-3 border-b border-border bg-warn-soft/30 bg-warn/5 px-4 py-2 text-[12px] text-fg-muted"
+				>
+					<span class="font-medium text-warn">Before you draw →</span>
+					<span>
+						Type design is system design. Write a one-line intent and pick a use case
+						or two — it'll guide every decision below.
+					</span>
+					<a
+						href="/project/{projectStore.project.id}/brief"
+						class="ml-auto rounded border border-warn/40 bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn hover:bg-warn/15"
+					>
+						Open Brief →
+					</a>
+				</div>
+			{/if}
 
 			<!-- Onboarding control-glyph hint -->
 			{#if showControlHint}
