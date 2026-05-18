@@ -702,6 +702,22 @@
 						<option value="brief">Brief %</option>
 						<option value="glyphs">Glyphs</option>
 					</select>
+					{#if projectQuery || onlyToday || showArchived || activeTag || projectSort !== 'updated'}
+						<button
+							type="button"
+							onclick={() => {
+								projectQuery = '';
+								onlyToday = false;
+								showArchived = false;
+								activeTag = null;
+								projectSort = 'updated';
+							}}
+							class="rounded-md border border-border bg-surface px-2 py-1.5 text-[11px] font-medium text-fg-muted hover:border-danger hover:text-danger"
+							title="Reset every filter and sort"
+						>
+							Reset
+						</button>
+					{/if}
 				</div>
 				{#if allTags.length > 0}
 					<div class="mb-2 flex flex-wrap items-center gap-1.5">
