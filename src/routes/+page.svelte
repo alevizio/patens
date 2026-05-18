@@ -9,6 +9,7 @@
 		toggleProjectPin,
 		toggleProjectArchive,
 		backupAllProjects,
+		restoreFromBackup,
 		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
@@ -194,6 +195,31 @@
 		if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
 		if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
 		return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+	};
+
+	let restoring = $state(false);
+	let restoreMessage = $state<string | null>(null);
+	const handleRestoreFromFile = async (file: File) => {
+		if (restoring) return;
+		restoring = true;
+		restoreMessage = null;
+		try {
+			const text = await file.text();
+			const parsed = JSON.parse(text);
+			if (!parsed?.projects || !Array.isArray(parsed.projects)) {
+				throw new Error('Not a Font Studio backup file.');
+			}
+			const overwrite = confirm(
+				`Restore ${parsed.projects.length} projects from "${file.name}"?\n\nClick OK to OVERWRITE existing ones with the same ID, or Cancel to skip duplicates.`
+			);
+			const result = await restoreFromBackup(parsed, { overwrite });
+			restoreMessage = `Added ${result.added}${result.skipped ? `, skipped ${result.skipped}` : ''}.`;
+			await refresh();
+		} catch (err) {
+			restoreMessage = `Restore failed: ${(err as Error).message}`;
+		} finally {
+			restoring = false;
+		}
 	};
 
 	let backingUp = $state(false);
@@ -1069,15 +1095,36 @@
 						Projects are stored locally in your browser. Export OTF/UFO/JSON
 						periodically to keep backups.
 					</div>
-					{#if projects.length > 0}
-						<button
-							type="button"
-							onclick={handleBackupAll}
-							disabled={backingUp}
-							class="mt-2 w-full rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
+					<div class="mt-2 flex gap-2">
+						{#if projects.length > 0}
+							<button
+								type="button"
+								onclick={handleBackupAll}
+								disabled={backingUp}
+								class="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
+							>
+								{backingUp ? 'Bundling…' : `Backup ${projects.length} → JSON`}
+							</button>
+						{/if}
+						<label
+							class="flex-1 cursor-pointer rounded-md border border-border bg-surface px-2 py-1 text-center text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
 						>
-							{backingUp ? 'Bundling…' : `Backup all (${projects.length}) → JSON`}
-						</button>
+							{restoring ? 'Restoring…' : 'Restore JSON…'}
+							<input
+								type="file"
+								accept="application/json,.json"
+								class="hidden"
+								disabled={restoring}
+								onchange={(e) => {
+									const f = e.currentTarget.files?.[0];
+									if (f) handleRestoreFromFile(f);
+									e.currentTarget.value = '';
+								}}
+							/>
+						</label>
+					</div>
+					{#if restoreMessage}
+						<div class="mt-1 text-[10px] text-fg-subtle">{restoreMessage}</div>
 					{/if}
 				</div>
 			{/if}

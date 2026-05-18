@@ -310,6 +310,30 @@ export const backupAllProjects = async (): Promise<{
 	return { exportedAt: new Date().toISOString(), version: 1, projects };
 };
 
+export const restoreFromBackup = async (
+	data: { projects: Project[] },
+	opts: { overwrite?: boolean } = {}
+): Promise<{ added: number; skipped: number }> => {
+	let added = 0;
+	let skipped = 0;
+	for (const project of data.projects) {
+		if (!project?.id) {
+			skipped++;
+			continue;
+		}
+		if (!opts.overwrite) {
+			const existing = await get<Project>(project.id, store);
+			if (existing) {
+				skipped++;
+				continue;
+			}
+		}
+		await saveProject(project);
+		added++;
+	}
+	return { added, skipped };
+};
+
 export const toggleProjectArchive = async (id: string): Promise<boolean> => {
 	const value = await get<Project>(id, store);
 	if (!value) return false;
