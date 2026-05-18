@@ -125,6 +125,16 @@
 				e.preventDefault();
 				window.print();
 			}
+		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'l' || e.key === 'L')) {
+			e.preventDefault();
+			projectStore.toggleLock();
+			t.success(projectStore.project?.locked ? 'Project locked.' : 'Project unlocked.');
+		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'b' || e.key === 'B')) {
+			e.preventDefault();
+			if (projectStore.project) goto(`/project/${projectStore.project.id}/brief`);
+		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'r' || e.key === 'R')) {
+			e.preventDefault();
+			if (projectStore.project) goto(`/project/${projectStore.project.id}/release`);
 		}
 	};
 </script>
@@ -348,8 +358,8 @@
 				: 'text-fg-muted hover:text-fg'}"
 			aria-label={projectStore.project?.locked ? 'Unlock project' : 'Lock project (read-only)'}
 			title={projectStore.project?.locked
-				? 'Project is locked — unlock to edit'
-				: 'Lock — seal as read-only'}
+				? 'Project is locked — unlock to edit (⌘⇧L)'
+				: 'Lock — seal as read-only (⌘⇧L)'}
 		>
 			{#if projectStore.project?.locked}
 				<LockIcon class="size-4" />
