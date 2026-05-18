@@ -33,6 +33,8 @@ class ProjectStore {
 	selectedMasterId = $state<string | undefined>(undefined);
 	dirty = $state(false);
 	saving = $state(false);
+	/** Timestamp (ms) of the last successful flush() — drives "Saved Xs ago" UI. */
+	lastSavedAt = $state<number | null>(null);
 	canUndo = $state(false);
 	canRedo = $state(false);
 
@@ -133,6 +135,7 @@ class ProjectStore {
 			const snapshot = $state.snapshot(this.project) as typeof this.project;
 			if (snapshot) await saveProject(snapshot);
 			this.dirty = false;
+			this.lastSavedAt = Date.now();
 		} catch (err) {
 			console.error('Project save failed:', err);
 		} finally {

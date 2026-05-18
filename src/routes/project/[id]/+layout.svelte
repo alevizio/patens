@@ -55,6 +55,23 @@
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
+	// Tick every 30s so the "Saved Xs ago" string stays fresh
+	let nowTick = $state(Date.now());
+	$effect(() => {
+		const id = setInterval(() => (nowTick = Date.now()), 30_000);
+		return () => clearInterval(id);
+	});
+	const savedAgoLabel = $derived.by(() => {
+		const ts = projectStore.lastSavedAt;
+		if (!ts) return 'Saved';
+		const sec = Math.max(0, Math.floor((nowTick - ts) / 1000));
+		if (sec < 5) return 'Saved just now';
+		if (sec < 60) return `Saved ${sec}s ago`;
+		const min = Math.floor(sec / 60);
+		if (min < 60) return `Saved ${min}m ago`;
+		const hr = Math.floor(min / 60);
+		return `Saved ${hr}h ago`;
+	});
 	let allProjects = $state<ProjectIndexEntry[]>([]);
 
 	$effect(() => {
@@ -248,7 +265,7 @@
 				<span>Unsaved</span>
 			{:else}
 				<Check class="size-3.5 text-success" />
-				<span>Saved</span>
+				<span>{savedAgoLabel}</span>
 			{/if}
 		</div>
 
