@@ -449,7 +449,9 @@
 										{#if (p.editsToday ?? 0) > 0}
 											<span
 												class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent"
-												title="Glyphs edited in the last 24h"
+												title="Glyphs edited in last 24h{(p.editsThisWeek ?? 0) > (p.editsToday ?? 0)
+													? ` · ${p.editsThisWeek} this week`
+													: ''}"
 												data-numeric
 											>
 												{p.editsToday} today

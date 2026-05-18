@@ -60,6 +60,8 @@ export type ProjectIndexEntry = {
 	briefMissing?: string[];
 	/** Glyphs whose updatedAt is within the last 24 hours. */
 	editsToday?: number;
+	/** Glyphs whose updatedAt is within the last 7 days. */
+	editsThisWeek?: number;
 };
 
 const newId = () => crypto.randomUUID();
@@ -193,10 +195,15 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 	const briefPct = Math.round((filled / briefFieldChecks.length) * 100);
 	const briefMissing = briefFieldChecks.filter(([, ok]) => !ok).map(([name]) => name);
 	const dayAgo = Date.now() - 24 * 3600 * 1000;
-	const editsToday = Object.values(p.glyphs).filter((g) => {
+	const weekAgo = Date.now() - 7 * 24 * 3600 * 1000;
+	let editsToday = 0;
+	let editsThisWeek = 0;
+	for (const g of Object.values(p.glyphs)) {
 		const t = Date.parse(g.updatedAt);
-		return Number.isFinite(t) && t >= dayAgo;
-	}).length;
+		if (!Number.isFinite(t)) continue;
+		if (t >= dayAgo) editsToday++;
+		if (t >= weekAgo) editsThisWeek++;
+	}
 	return {
 		id: p.id,
 		name: p.name,
@@ -210,7 +217,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		thumbnail,
 		briefPct,
 		briefMissing,
-		editsToday
+		editsToday,
+		editsThisWeek
 	};
 };
 
