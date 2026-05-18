@@ -89,6 +89,44 @@
 			.filter((n) => n.length > 0)
 	);
 
+	// ---------- Kerning class auto-suggest ----------
+	// Find every base glyph (Latin A-Z or a-z that's drawn) and group its
+	// composite descendants. One @Base_left class per base means a single
+	// kerning rule covers every accented variant. Saves dozens of pairs.
+	type ClassSuggestion = { name: string; members: number[]; basis: string };
+	const classSuggestions = $derived.by(() => {
+		if (!project) return [] as ClassSuggestion[];
+		const out: ClassSuggestion[] = [];
+		const existingNames = new Set((project.classes ?? []).map((c) => c.name));
+		for (let cp = 0x0041; cp <= 0x007a; cp++) {
+			// Latin only; skip [ \ ] ^ _ ` between Z and a
+			if (cp > 0x005a && cp < 0x0061) continue;
+			const base = project.glyphs[cp];
+			if (!base) continue;
+			const descendants = Object.values(project.glyphs).filter((g) =>
+				(g.components ?? []).some((c) => c.baseCodepoint === cp)
+			);
+			// Suggest when there's at least one composite descendant — the class
+			// is useful even before the base glyph is drawn.
+			if (descendants.length === 0) continue;
+			const members = [cp, ...descendants.map((d) => d.codepoint)];
+			const char = String.fromCodePoint(cp);
+			const className = `@${char === char.toUpperCase() ? char : char + '_lc'}_left`;
+			if (existingNames.has(className)) continue;
+			out.push({
+				name: className,
+				members,
+				basis: `${char} + ${descendants.length} composite variant${descendants.length === 1 ? '' : 's'}`
+			});
+		}
+		return out.slice(0, 12);
+	});
+
+	const acceptClassSuggestion = (sug: ClassSuggestion) => {
+		projectStore.upsertKerningClass({ name: sug.name, members: sug.members });
+		toast.success(`Added ${sug.name} (${sug.members.length} members)`);
+	};
+
 	/** Parse a "side" input — leading @ → class ref, else first char → codepoint */
 	const parseSide = (s: string): KerningSide => {
 		const trimmed = s.trim();
@@ -725,6 +763,30 @@
 			Then use the class name (with <code>@</code>) as either side of a kerning pair —
 			one rule covers all members.
 		</p>
+		{#if classSuggestions.length > 0}
+			<div class="mb-4 rounded-md border border-accent/30 bg-accent-soft/20 p-3">
+				<div class="mb-2 text-[11px] font-semibold text-accent">
+					Suggested from composites ({classSuggestions.length})
+				</div>
+				<p class="mb-2 text-[11px] text-fg-muted">
+					Each base letter with composite variants becomes one class — kerning the
+					base then automatically covers every accented form.
+				</p>
+				<div class="flex flex-wrap gap-1.5">
+					{#each classSuggestions as s (s.name)}
+						<button
+							type="button"
+							onclick={() => acceptClassSuggestion(s)}
+							class="rounded-md border border-accent/40 bg-surface px-2 py-1 text-[11px] font-medium text-accent hover:bg-accent-soft"
+							title={s.basis}
+						>
+							+ <span class="font-mono">{s.name}</span>
+							<span class="ml-1 text-fg-muted">({s.members.length})</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
 		{#if project && (project.classes ?? []).length > 0}
 			<ul class="mb-3 grid gap-1">
 				{#each project.classes ?? [] as cls (cls.name)}
