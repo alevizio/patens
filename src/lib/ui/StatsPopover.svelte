@@ -121,6 +121,26 @@
 		onclose();
 	};
 
+	const currentTags = $derived(project?.tags ?? []);
+	const suggestedTags = $derived.by(() => {
+		if (!project) return [];
+		const set = new Set<string>();
+		const useCases = project.brief?.useCases ?? [];
+		if (useCases.includes('body-text')) set.add('body');
+		if (useCases.includes('display')) set.add('display');
+		if (useCases.includes('code')) set.add('mono');
+		if (useCases.includes('web-ui')) set.add('ui');
+		if (useCases.includes('editorial')) set.add('editorial');
+		if (useCases.includes('branding')) set.add('branding');
+		if (useCases.includes('print')) set.add('print');
+		const family = project.metadata.familyName.toLowerCase();
+		if (/serif/.test(family)) set.add('serif');
+		if (/sans/.test(family)) set.add('sans');
+		if (/mono/.test(family)) set.add('mono');
+		if (/script/.test(family)) set.add('script');
+		return [...set].filter((t) => !currentTags.includes(t));
+	});
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -254,7 +274,7 @@
 					Tags
 				</label>
 				<div class="mt-1 flex flex-wrap items-center gap-1">
-					{#each project.tags ?? [] as t (t)}
+					{#each currentTags as t (t)}
 						<span
 							class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent"
 						>
@@ -262,8 +282,7 @@
 							<button
 								type="button"
 								onclick={() => {
-									if (!project.tags) return;
-									projectStore.updateTags(project.tags.filter((x) => x !== t));
+									projectStore.updateTags(currentTags.filter((x) => x !== t));
 								}}
 								class="rounded-full p-0.5 hover:bg-accent/15"
 								aria-label="Remove tag {t}"
@@ -282,11 +301,25 @@
 							e.preventDefault();
 							const val = e.currentTarget.value.trim();
 							if (!val) return;
-							projectStore.updateTags([...(project.tags ?? []), val]);
+							projectStore.updateTags([...currentTags, val]);
 							e.currentTarget.value = '';
 						}}
 					/>
 				</div>
+				{#if suggestedTags.length > 0}
+					<div class="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
+						<span class="text-fg-subtle">Suggested:</span>
+						{#each suggestedTags as s (s)}
+							<button
+								type="button"
+								onclick={() => projectStore.updateTags([...currentTags, s])}
+								class="rounded-full border border-dashed border-border px-1.5 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
+							>
+								+ {s}
+							</button>
+						{/each}
+					</div>
+				{/if}
 			</div>
 
 			<div>
