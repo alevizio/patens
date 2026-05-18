@@ -316,6 +316,15 @@
 				<Check class="size-3.5 text-success" />
 				<span>{savedAgoLabel}</span>
 			{/if}
+			{#if projectStore.project?.changelog?.[0]}
+				<a
+					href="/project/{projectStore.project.id}/release"
+					class="hidden rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"
+					title="Last sealed version (jump to Release)"
+				>
+					v{projectStore.project.changelog[0].version}
+				</a>
+			{/if}
 		</div>
 
 		<div class="relative">

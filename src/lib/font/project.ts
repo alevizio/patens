@@ -68,6 +68,10 @@ export type ProjectIndexEntry = {
 	kerningCount?: number;
 	/** Edits per day for the last 14 days (index 0 = 14 days ago, index 13 = today). */
 	editsByDay?: number[];
+	/** Most recent changelog entry's version, when any has been sealed. */
+	lastSealedVersion?: string;
+	/** ISO date of the most recent changelog entry. */
+	lastSealedAt?: string;
 };
 
 const newId = () => crypto.randomUUID();
@@ -236,7 +240,9 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		editsThisWeek,
 		editsByDay,
 		locked: p.locked,
-		kerningCount: p.kerning.length
+		kerningCount: p.kerning.length,
+		lastSealedVersion: p.changelog?.[0]?.version,
+		lastSealedAt: p.changelog?.[0]?.date
 	};
 };
 

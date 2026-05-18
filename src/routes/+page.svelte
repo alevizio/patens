@@ -515,7 +515,9 @@
 									<div class="truncate text-[12px] text-fg-muted" data-numeric>
 										{p.familyName} · {p.glyphCount} drawn · updated {formatRelative(
 											p.updatedAt
-										)}
+										)}{p.lastSealedVersion
+											? ` · sealed v${p.lastSealedVersion} ${formatRelative(p.lastSealedAt ?? p.updatedAt)}`
+											: ''}
 									</div>
 									{#if p.tagline}
 										<div class="mt-0.5 truncate text-[11px] italic text-fg-subtle">
