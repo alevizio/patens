@@ -36,6 +36,19 @@
 		const drawnChars = drawn
 			.map((g) => String.fromCodePoint(g.codepoint))
 			.filter((s) => s.length === 1 && s.codePointAt(0)! > 0x20);
+		const b = project.brief ?? {};
+		const briefLines: string[] = [];
+		if (b.intent?.trim()) briefLines.push(`- Intent: ${b.intent.trim()}`);
+		if (b.audience?.trim()) briefLines.push(`- Audience: ${b.audience.trim()}`);
+		if (b.useCases?.length) briefLines.push(`- Use cases: ${b.useCases.join(', ')}`);
+		if (b.readingConditions?.trim())
+			briefLines.push(`- Reading conditions: ${b.readingConditions.trim()}`);
+		if (b.differentiation?.trim())
+			briefLines.push(`- Differentiation: ${b.differentiation.trim()}`);
+		if (b.references?.length)
+			briefLines.push(
+				`- References studied: ${b.references.map((r) => `${r.kind ?? 'ref'}: ${r.name}`).join('; ')}`
+			);
 		return [
 			`Project: "${project.metadata.familyName}" / ${project.metadata.styleName}`,
 			`Designer: ${project.metadata.designer || 'unspecified'}`,
@@ -47,7 +60,8 @@
 				: 'Single-master (static).',
 			project.masters && project.masters.length > 0
 				? `Additional masters: ${project.masters.map((m) => `${m.name} at ${JSON.stringify(m.location)}`).join('; ')}`
-				: ''
+				: '',
+			briefLines.length > 0 ? `Brief:\n${briefLines.join('\n')}` : ''
 		]
 			.filter(Boolean)
 			.join('\n');
