@@ -295,10 +295,14 @@ class ProjectStore {
 			if (drawnBefore < m && drawnAfter >= m && !celebrated.includes(m)) {
 				celebrated.push(m);
 				localStorage.setItem(this.milestoneKey(), JSON.stringify(celebrated));
-				// Lazy-import the toast to avoid a circular dep through types-only modules
-				import('./toast.svelte').then(({ toast }) => {
-					toast.success(`${m} glyphs drawn — keep going.`);
-				});
+				// Lazy-import the toast + delight to avoid cycles and keep
+				// canvas-confetti out of the initial bundle.
+				Promise.all([import('./toast.svelte'), import('$lib/delight')]).then(
+					([{ toast }, { milestoneMessage, celebrate }]) => {
+						toast.success(milestoneMessage(m));
+						celebrate(m >= 100 ? 'large' : m >= 25 ? 'medium' : 'small');
+					}
+				);
 				break;
 			}
 		}

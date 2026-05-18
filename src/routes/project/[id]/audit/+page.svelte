@@ -65,6 +65,20 @@
 		info: allIssues.filter((i) => i.severity === 'info').length
 	});
 
+	// Celebrate the first time the audit hits 0 issues in a session.
+	// Stored per-project so the celebration recurs after new issues appear + clear.
+	let lastSeenAllPass = $state(false);
+	$effect(() => {
+		const allPass = counts.all === 0 && projectStore.project !== null;
+		if (allPass && !lastSeenAllPass) {
+			(async () => {
+				const { celebrate } = await import('$lib/delight');
+				celebrate('medium');
+			})();
+		}
+		lastSeenAllPass = allPass;
+	});
+
 	const grouped = $derived.by(() => {
 		const map = new Map<string, AuditIssue[]>();
 		for (const i of filtered) {

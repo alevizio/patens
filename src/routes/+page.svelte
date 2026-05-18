@@ -30,6 +30,9 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import { homeTagline, continueGreeting } from '$lib/delight';
+
+	const taglineParts = $derived(homeTagline().split('\n'));
 	import Pin from '@lucide/svelte/icons/pin';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
@@ -311,6 +314,7 @@
 		const trimmed = newName.trim();
 		if (!trimmed || creating) return;
 		creating = true;
+		const isFirstProject = projects.length === 0;
 		try {
 			let project = createProject({
 				name: trimmed,
@@ -324,6 +328,13 @@
 				}
 			}
 			await saveProject(project);
+			if (isFirstProject) {
+				// Welcome the user into their own foundry on first create
+				const { toast } = await import('$lib/stores/toast.svelte');
+				const { celebrate } = await import('$lib/delight');
+				toast.success(`Welcome to your foundry. Start with the letter H — it sets the proportion for everything else.`);
+				celebrate('small');
+			}
 			await goto(`/project/${project.id}/edit`);
 		} finally {
 			creating = false;
@@ -599,8 +610,8 @@
 			</div>
 		</div>
 		<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-			Design your own typeface,<br />
-			<span class="text-fg-muted">one glyph at a time.</span>
+			{taglineParts[0]}<br />
+			<span class="text-fg-muted">{taglineParts[1]}</span>
 		</h1>
 		<p class="max-w-xl text-base text-fg-muted">
 			Sketch with a pen or trackpad, vectorize, space, kern, and export a real OTF — all in
@@ -649,7 +660,7 @@
 					<span
 						class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 					>
-						Continue working
+						{continueGreeting(continueCandidate.updatedAt)}
 					</span>
 					<span class="text-[11px] text-fg-subtle" data-numeric>
 						{continueCandidate.slug} · updated {formatRelative(continueCandidate.updatedAt)}
@@ -797,7 +808,16 @@
 				</div>
 			{:else if projects.length === 0}
 				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
-					<PenTool class="mx-auto mb-3 size-8 text-fg-subtle" />
+					<pre
+						class="mx-auto mb-3 inline-block whitespace-pre text-left font-mono text-[10px] leading-[1.1] text-fg-subtle"
+						aria-hidden="true">
+{`     ╱ ╲
+    ╱   ╲      H  O  n  o
+   ╱     ╲     ──────────
+  ╱───────╲    your control set
+ ╱         ╲   draws this whole
+╱           ╲  family.`}
+					</pre>
 					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin.</p>
 				</div>
 			{:else if filteredProjects.length === 0}

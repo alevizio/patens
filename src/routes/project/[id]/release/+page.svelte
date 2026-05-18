@@ -561,7 +561,7 @@
 						{#if readyToShip}
 							<button
 								type="button"
-								onclick={() => {
+								onclick={async () => {
 									if (
 										confirm(
 											`Seal release v${project.metadata.version}? Locks the project read-only. Unlock from the header.`
@@ -572,7 +572,9 @@
 											notes: '(Sealed release — see above for change set.)'
 										});
 										if (!project.locked) projectStore.toggleLock();
-										toast.success(`v${project.metadata.version} sealed.`);
+										toast.success(`v${project.metadata.version} sealed. Ship it.`);
+										const { celebrateSeal } = await import('$lib/delight');
+										celebrateSeal();
 									}
 								}}
 								class="inline-flex items-center gap-1.5 rounded-md border border-warn bg-warn/15 px-3 py-1.5 text-[12px] font-medium text-warn hover:bg-warn/25"
