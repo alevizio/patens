@@ -107,6 +107,31 @@
 		projectStore.addBriefReference(preset);
 		toast.success(`Added "${preset.name}"`);
 	};
+
+	// Foundry-style essay opening templates (KLIM / Hoefler / Commercial Type cadence).
+	const ESSAY_OPENINGS = $derived.by<Array<{ label: string; text: string }>>(() => {
+		const family = project?.metadata.familyName ?? 'This typeface';
+		const familyAlt = project?.metadata.familyName ?? 'This family';
+		return [
+			{
+				label: 'Reference-as-argument (KLIM cadence)',
+				text: `${family} began as a memory of [reference], framed through the practical reality of [adjacent reference]. Where [reference] is [observation], we wanted [intentional departure]. The result reads as [intended tone] without losing [intended craft quality].`
+			},
+			{
+				label: 'Optical-size logic (Hoefler cadence)',
+				text: `${familyAlt} exists because one outline does not survive both small-text reading and large-display setting. At caption sizes the counters open and the joins soften; at display sizes the proportions tighten and the terminals sharpen. The middle weights are tuned for the sizes most copy actually runs at.`
+			},
+			{
+				label: 'Editorial workhorse (Commercial Type cadence)',
+				text: `${family} is deliberately plain. Its goal is to carry [editorial context] without calling attention to itself — the kind of face you stop noticing on the second page. Every choice was made in service of [reading condition]; the personality lives in [specific micro-detail], not in any single dramatic gesture.`
+			}
+		];
+	});
+	const insertEssayOpening = (text: string) => {
+		const current = (brief.designNotes ?? '').trim();
+		const next = current ? `${current}\n\n${text}` : text;
+		projectStore.updateBrief({ designNotes: next });
+	};
 </script>
 
 {#if !project}
@@ -248,6 +273,26 @@
 						{countWords(brief.designNotes)} words · {(brief.designNotes ?? '').length} chars
 					</span>
 				</div>
+				{#if !brief.designNotes?.trim()}
+					<div class="mt-3 rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 p-3">
+						<div class="mb-2 text-[11px] font-medium text-fg-muted">
+							Stuck on the opening? Drop in a foundry-style template and rewrite over
+							it:
+						</div>
+						<div class="flex flex-wrap gap-1.5">
+							{#each ESSAY_OPENINGS as opening (opening.label)}
+								<button
+									type="button"
+									onclick={() => insertEssayOpening(opening.text)}
+									class="rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+									title="Insert {opening.label} into design notes"
+								>
+									+ {opening.label}
+								</button>
+							{/each}
+						</div>
+					</div>
+				{/if}
 		</Panel>
 
 		<Panel>
