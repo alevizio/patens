@@ -296,6 +296,20 @@ export const toggleProjectPin = async (id: string): Promise<boolean> => {
 	return next.pinned === true;
 };
 
+export const backupAllProjects = async (): Promise<{
+	exportedAt: string;
+	version: 1;
+	projects: Project[];
+}> => {
+	const idx = (await get<ProjectIndexEntry[]>(INDEX_KEY, store)) ?? [];
+	const projects: Project[] = [];
+	for (const entry of idx) {
+		const p = await get<Project>(entry.id, store);
+		if (p) projects.push(p);
+	}
+	return { exportedAt: new Date().toISOString(), version: 1, projects };
+};
+
 export const toggleProjectArchive = async (id: string): Promise<boolean> => {
 	const value = await get<Project>(id, store);
 	if (!value) return false;

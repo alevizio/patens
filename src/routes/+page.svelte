@@ -8,6 +8,7 @@
 		saveProject,
 		toggleProjectPin,
 		toggleProjectArchive,
+		backupAllProjects,
 		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
@@ -193,6 +194,29 @@
 		if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
 		if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
 		return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
+	};
+
+	let backingUp = $state(false);
+	const handleBackupAll = async () => {
+		if (backingUp) return;
+		backingUp = true;
+		try {
+			const data = await backupAllProjects();
+			const blob = new Blob([JSON.stringify(data, null, 2)], {
+				type: 'application/json'
+			});
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			const stamp = new Date().toISOString().slice(0, 10);
+			a.download = `font-studio-backup-${stamp}.json`;
+			document.body.appendChild(a);
+			a.click();
+			a.remove();
+			setTimeout(() => URL.revokeObjectURL(url), 1000);
+		} finally {
+			backingUp = false;
+		}
 	};
 
 	const handleTogglePin = async (id: string) => {
@@ -1045,6 +1069,16 @@
 						Projects are stored locally in your browser. Export OTF/UFO/JSON
 						periodically to keep backups.
 					</div>
+					{#if projects.length > 0}
+						<button
+							type="button"
+							onclick={handleBackupAll}
+							disabled={backingUp}
+							class="mt-2 w-full rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
+						>
+							{backingUp ? 'Bundling…' : `Backup all (${projects.length}) → JSON`}
+						</button>
+					{/if}
 				</div>
 			{/if}
 		</div>
