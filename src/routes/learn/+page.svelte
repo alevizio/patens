@@ -132,6 +132,78 @@
 			by: 'Google Fonts team',
 			why: 'Strongest public model of open-source workflow, QA, and web deployment.',
 			href: 'https://googlefonts.github.io/gf-guide/'
+		},
+		{
+			title: 'AFDKO Feature File Specification',
+			by: 'Adobe Type Tools',
+			why: 'The grammar for .fea — what every modern build pipeline ingests.',
+			href: 'https://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html'
+		},
+		{
+			title: 'WOFF2 (W3C Recommendation)',
+			by: 'W3C',
+			why: 'The web baseline. Why @font-face works the way it does.',
+			href: 'https://www.w3.org/TR/WOFF2/'
+		},
+		{
+			title: 'HarfBuzz Manual',
+			by: 'HarfBuzz authors',
+			why: 'The shaping engine inside Chrome/Firefox/Android. Read it before debugging OT layout.',
+			href: 'https://harfbuzz.github.io/'
+		}
+	];
+
+	const FOUNDRIES: Array<{ name: string; focus: string; why: string; href: string }> = [
+		{
+			name: 'KLIM Type Foundry',
+			focus: 'Historically informed contemporary families',
+			why: 'Their design notes (Söhne, The Future) model how to turn references into a concept.',
+			href: 'https://klim.co.nz/'
+		},
+		{
+			name: 'Hoefler&Co',
+			focus: 'Editorial + institutional systems',
+			why: 'Strongest public writing on optical sizes, feature depth, and family architecture.',
+			href: 'https://www.typography.com/'
+		},
+		{
+			name: 'Commercial Type',
+			focus: 'Editorial workhorses',
+			why: 'Graphik essay explains "deliberately plain" as a design position.',
+			href: 'https://commercialtype.com/'
+		},
+		{
+			name: 'TypeTogether',
+			focus: 'Editorial reading + multiscript',
+			why: 'Adelle Sans Multiscript: best model for thinking across writing systems.',
+			href: 'https://www.type-together.com/'
+		},
+		{
+			name: 'Dalton Maag',
+			focus: 'Variable + multiscript systems',
+			why: 'Aktiv Grotesk: typeface as system with 10 scripts, axes, and product surface.',
+			href: 'https://www.daltonmaag.com/'
+		},
+		{
+			name: 'Adobe Originals',
+			focus: 'Publishing-grade families',
+			why: 'Source Serif 4: clearest public story on optical sizes.',
+			href: 'https://fonts.adobe.com/foundries/adobe'
+		}
+	];
+
+	const RESEARCH: Array<{ title: string; by: string; why: string; href: string }> = [
+		{
+			title: 'Does Print Size Matter for Reading?',
+			by: 'Gordon E. Legge & Charles A. Bigelow (2011)',
+			why: 'Why print size remains a dominant readability variable — proof at use sizes.',
+			href: 'https://jov.arvojournals.org/article.aspx?articleid=2191864'
+		},
+		{
+			title: 'Crowding is unlike ordinary masking',
+			by: 'Pelli, Palomares & Majaj (2004)',
+			why: 'Why local density and neighboring forms constrain reading rate.',
+			href: 'https://jov.arvojournals.org/article.aspx?articleid=2192859'
 		}
 	];
 </script>
@@ -229,6 +301,60 @@
 		</h2>
 		<div class="grid gap-2">
 			{#each READING as r (r.title)}
+				<a
+					href={r.href}
+					target="_blank"
+					rel="noopener"
+					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+				>
+					<div class="flex items-baseline gap-2">
+						<span class="text-[13px] font-semibold text-fg">{r.title}</span>
+						<span class="text-[11px] text-fg-subtle">— {r.by}</span>
+					</div>
+					<div class="text-[12px] text-fg-muted">{r.why}</div>
+				</a>
+			{/each}
+		</div>
+	</Panel>
+
+	<Panel class="mt-6">
+		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			<Compass class="size-3" /> Foundries worth studying
+		</h2>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			The strongest type-design education isn't in books — it's reading how foundries
+			argue for their decisions. These public pages model the rhetoric, the system, and
+			the production craft.
+		</p>
+		<div class="grid gap-2 sm:grid-cols-2">
+			{#each FOUNDRIES as f (f.name)}
+				<a
+					href={f.href}
+					target="_blank"
+					rel="noopener"
+					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+				>
+					<div class="flex items-baseline justify-between gap-2">
+						<span class="text-[13px] font-semibold text-fg">{f.name}</span>
+						<span class="text-[10px] text-fg-subtle">↗</span>
+					</div>
+					<div class="text-[11px] font-medium text-fg-muted">{f.focus}</div>
+					<div class="mt-0.5 text-[11px] text-fg-subtle">{f.why}</div>
+				</a>
+			{/each}
+		</div>
+	</Panel>
+
+	<Panel class="mt-6">
+		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			<BookOpen class="size-3" /> Legibility research
+		</h2>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Two foundational papers — the empirical reason proof paragraphs matter more than
+			polished hero glyphs.
+		</p>
+		<div class="grid gap-2">
+			{#each RESEARCH as r (r.title)}
 				<a
 					href={r.href}
 					target="_blank"
