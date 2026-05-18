@@ -409,6 +409,10 @@
 				<dd class="text-right font-mono text-fg" data-numeric>{pinnedCount}</dd>
 				<dt class="text-fg-muted">With notes</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{notesCount}</dd>
+				<dt class="text-fg-muted">Decisions logged</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>
+					{project.decisions?.length ?? 0}
+				</dd>
 				<dt class="text-fg-muted">Edited today</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{editsToday}</dd>
 				<dt class="text-fg-muted">Edited this week</dt>
