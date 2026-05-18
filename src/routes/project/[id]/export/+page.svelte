@@ -196,6 +196,52 @@ body {
 		}
 	};
 
+	let trialWoff2Busy = $state(false);
+	const exportTrialWoff2 = async () => {
+		if (!project || trialWoff2Busy) return;
+		trialWoff2Busy = true;
+		try {
+			const allowed = new Set<number>();
+			for (const ch of trialChars) {
+				const cp = ch.codePointAt(0);
+				if (cp && project.glyphs[cp]) allowed.add(cp);
+			}
+			if (allowed.size === 0) {
+				toast.warn('No characters in the trial subset match drawn glyphs.');
+				return;
+			}
+			const subsetGlyphs: typeof project.glyphs = {};
+			for (const cp of allowed) subsetGlyphs[cp] = project.glyphs[cp];
+			const trialProject: typeof project = {
+				...project,
+				glyphs: subsetGlyphs,
+				kerning: project.kerning.filter(
+					(p) =>
+						(typeof p.left !== 'number' || allowed.has(p.left)) &&
+						(typeof p.right !== 'number' || allowed.has(p.right))
+				),
+				metadata: {
+					...project.metadata,
+					familyName: `${project.metadata.familyName} Trial`
+				}
+			};
+			const { font } = buildFont(trialProject);
+			const otf = font.toArrayBuffer();
+			const woff2 = await otfToWoff2(otf);
+			downloadBlob(
+				new Blob([woff2], { type: 'font/woff2' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-Trial-${allowed.size}gl.woff2`
+			);
+			toast.success(
+				`Trial WOFF2 exported (${allowed.size} glyphs, ${(woff2.byteLength / 1024).toFixed(1)} KB).`
+			);
+		} catch (err) {
+			toast.error('Trial WOFF2 export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			trialWoff2Busy = false;
+		}
+	};
+
 	const exportWoff2 = async () => {
 		if (!project) return;
 		woff2Busy = true;
@@ -982,14 +1028,25 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						class="w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-sm text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					/>
 				</div>
-				<Button variant="secondary" onclick={exportTrialOtf} loading={trialBusy}>
-					{#snippet icon()}<Download class="size-4" />{/snippet}
-					{trialBusy ? 'Building…' : 'Export trial OTF'}
-				</Button>
+				<div class="flex flex-col gap-1.5">
+					<Button variant="secondary" onclick={exportTrialOtf} loading={trialBusy}>
+						{#snippet icon()}<Download class="size-4" />{/snippet}
+						{trialBusy ? 'Building…' : 'Export trial OTF'}
+					</Button>
+					<Button
+						variant="secondary"
+						onclick={exportTrialWoff2}
+						loading={trialWoff2Busy}
+					>
+						{#snippet icon()}<Globe class="size-4" />{/snippet}
+						{trialWoff2Busy ? 'Building…' : 'Export trial WOFF2'}
+					</Button>
+				</div>
 			</div>
 			<p class="mt-2 text-[11px] text-fg-subtle">
 				Each character in the field maps to a glyph. Spaces, line breaks, and
 				duplicates are ignored. Family becomes <code>{project.metadata.familyName} Trial</code>.
+				WOFF2 is the web baseline — share it for online evaluation.
 			</p>
 		</Panel>
 
