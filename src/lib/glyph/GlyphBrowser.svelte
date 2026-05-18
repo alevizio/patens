@@ -54,7 +54,7 @@
 		clearSelection();
 	};
 
-	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final';
+	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final' | 'flagged';
 	let statusFilter = $state<StatusFilter>('all');
 	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
 		{ id: 'all', label: 'All', title: 'Show every glyph' },
@@ -62,7 +62,8 @@
 		{ id: 'undrawn', label: 'Empty', title: 'Glyphs with no contours yet' },
 		{ id: 'sketch', label: 'Sketch', title: 'Status = sketch' },
 		{ id: 'draft', label: 'Draft', title: 'Status = draft' },
-		{ id: 'final', label: 'Final', title: 'Status = final' }
+		{ id: 'final', label: 'Final', title: 'Status = final' },
+		{ id: 'flagged', label: 'Flagged', title: 'Flagged for review (Shift+F)' }
 	];
 
 	const parseCodepoint = (s: string): number | null => {
@@ -114,6 +115,8 @@
 				return g.contours.length > 0 || (g.components?.length ?? 0) > 0;
 			case 'undrawn':
 				return g.contours.length === 0 && (g.components?.length ?? 0) === 0;
+			case 'flagged':
+				return !!g.flagged;
 			default:
 				return g.status === statusFilter;
 		}

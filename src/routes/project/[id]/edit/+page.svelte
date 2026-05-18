@@ -170,7 +170,15 @@
 				{ keys: '2', label: 'Mark sketch' },
 				{ keys: '3', label: 'Mark draft' },
 				{ keys: '4', label: 'Mark final' },
-				{ keys: '`', label: 'Toggle pin' }
+				{ keys: '`', label: 'Toggle pin' },
+				{ keys: '⇧F', label: 'Toggle flag for review' }
+			]
+		},
+		{
+			group: 'File',
+			items: [
+				{ keys: '⌘S / Ctrl+S', label: 'Save now (explicit)' },
+				{ keys: '⌘P', label: 'Print specimen (on /specimen)' }
 			]
 		},
 		{
