@@ -54,6 +54,15 @@
 		clearSelection();
 	};
 
+	const bulkFlag = (on: boolean) => {
+		for (const cp of selectedCodepoints) {
+			const g = projectStore.activeGlyphs[cp];
+			if (g && !!g.flagged !== on) projectStore.toggleGlyphFlag(cp);
+		}
+		toast.success(on ? `Flagged ${selectedCodepoints.size}` : `Unflagged ${selectedCodepoints.size}`);
+		clearSelection();
+	};
+
 	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final' | 'flagged';
 	let statusFilter = $state<StatusFilter>('all');
 	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
@@ -470,6 +479,22 @@
 					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
 				>
 					Unpin
+				</button>
+				<button
+					type="button"
+					onclick={() => bulkFlag(true)}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
+				>
+					Flag
+				</button>
+				<button
+					type="button"
+					onclick={() => bulkFlag(false)}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
+				>
+					Unflag
 				</button>
 			</div>
 		</div>
