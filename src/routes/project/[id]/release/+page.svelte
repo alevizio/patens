@@ -6,6 +6,7 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
+	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -344,29 +345,28 @@
 						to seed the next changelog entry.
 					</p>
 					<div class="flex flex-wrap gap-1">
-						{#each changedSinceLastSeal.slice(0, 80) as g (g.codepoint)}
+						{#each changedSinceLastSeal.slice(0, 60) as g (g.codepoint)}
 							<a
 								href="/project/{project.id}/edit"
 								onclick={() => projectStore.selectGlyph(g.codepoint)}
-								class="inline-flex items-center gap-1 rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-surface-2"
-								data-numeric
+								class="block"
 								title="{g.name} · U+{g.codepoint.toString(16).toUpperCase().padStart(4, '0')} · edited {formatDate(g.updatedAt)}"
 							>
-								<span>
-									{#if g.codepoint > 0x20 && g.codepoint < 0x10000}
-										{String.fromCodePoint(g.codepoint)}
-									{:else}
-										{g.name}
-									{/if}
-								</span>
-								<span class="text-fg-subtle">
-									{g.codepoint.toString(16).toUpperCase().padStart(4, '0')}
-								</span>
+								<GlyphTile
+									glyph={g}
+									size={36}
+									showLabel={false}
+									ascender={project.metrics.ascender}
+									descender={project.metrics.descender}
+								/>
 							</a>
 						{/each}
-						{#if changedSinceLastSeal.length > 80}
-							<span class="rounded bg-surface-2/40 px-1.5 py-0.5 text-[10px] text-fg-subtle" data-numeric>
-								+{changedSinceLastSeal.length - 80} more
+						{#if changedSinceLastSeal.length > 60}
+							<span
+								class="self-center rounded bg-surface-2/40 px-2 py-1 text-[11px] text-fg-subtle"
+								data-numeric
+							>
+								+{changedSinceLastSeal.length - 60} more
 							</span>
 						{/if}
 					</div>
