@@ -250,7 +250,41 @@ export type VariableInstance = {
  * shape of `Project` or any of its nested types. Pair the bump with a step in
  * `migrate()` in `project.ts` that transforms the prior shape forward.
  */
-export const CURRENT_SCHEMA_VERSION = 1;
+export const CURRENT_SCHEMA_VERSION = 2;
+
+/**
+ * A multi-style font family. Each Project that opts in stores a `familyId`
+ * pointing to a Family record; the Family hub then renders all siblings
+ * together and supports family-wide operations (name, designer, license).
+ * Per-style fields (`metadata.familyName` etc.) remain authoritative inside
+ * each Project; the Family record is the canonical owner that fans changes
+ * out to its siblings.
+ */
+export type Family = {
+	id: string;
+	name: string;
+	/** Optional family-wide designer/copyright/license — siblings inherit unless overridden */
+	designer?: string;
+	copyright?: string;
+	license?: string;
+	createdAt: string;
+	updatedAt: string;
+};
+
+/**
+ * A Project's position in its Family's static design space. Used to drive STAT
+ * generation in the family bundle export.
+ */
+export type FamilyAxes = {
+	/** OS/2 weight class, 100..900. Regular=400, Bold=700. */
+	wght?: number;
+	/** OS/2 width class, 50..200 (percentage of normal). */
+	wdth?: number;
+	/** 0 = upright, 1 = italic. */
+	ital?: 0 | 1;
+	/** Slant in degrees, -15..0. */
+	slnt?: number;
+};
 
 export type Project = {
 	/** Schema version of this Project record. Pinned via `CURRENT_SCHEMA_VERSION`
@@ -295,6 +329,10 @@ export type Project = {
 	masters?: Master[];
 	/** Named instances baked into the VF's fvar table. */
 	instances?: VariableInstance[];
+	/** Optional Family link — siblings sharing this id render together in /family/[id]. */
+	familyId?: string;
+	/** This sibling's position in the family's design space (drives STAT records). */
+	familyAxes?: FamilyAxes;
 	createdAt: string;
 	updatedAt: string;
 };

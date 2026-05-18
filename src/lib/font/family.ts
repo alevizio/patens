@@ -1,0 +1,208 @@
+/**
+ * Family CRUD — sibling-project linking for multi-style families.
+ *
+ * Each Family record represents a font family that spans multiple Project
+ * records (one per style). The Family record is the canonical owner of
+ * family-wide metadata (designer, copyright, license); siblings denormalize
+ * `metadata.familyName` and inherit those fields unless overridden.
+ *
+ * See the v3 section of the plan file for the full design.
+ */
+
+import { get, set, del, createStore } from 'idb-keyval';
+import type { Family, Project } from './types';
+import { listProjects, loadProject, saveProject } from './project';
+
+const familyStore = createStore('font-studio', 'families');
+const FAMILY_INDEX_KEY = '__family_index__';
+
+const newId = () => crypto.randomUUID();
+const now = () => new Date().toISOString();
+
+export type FamilyIndexEntry = {
+	id: string;
+	name: string;
+	updatedAt: string;
+	/** Cached count of sibling projects in this family. */
+	siblingCount?: number;
+};
+
+const indexEntry = (f: Family, siblingCount: number): FamilyIndexEntry => ({
+	id: f.id,
+	name: f.name,
+	updatedAt: f.updatedAt,
+	siblingCount
+});
+
+export const createFamily = async (input: {
+	name: string;
+	designer?: string;
+	copyright?: string;
+	license?: string;
+}): Promise<Family> => {
+	const ts = now();
+	const family: Family = {
+		id: newId(),
+		name: input.name.trim() || 'Untitled family',
+		designer: input.designer?.trim() || undefined,
+		copyright: input.copyright?.trim() || undefined,
+		license: input.license?.trim() || undefined,
+		createdAt: ts,
+		updatedAt: ts
+	};
+	await set(family.id, family, familyStore);
+	const idx = (await get<FamilyIndexEntry[]>(FAMILY_INDEX_KEY, familyStore)) ?? [];
+	idx.push(indexEntry(family, 0));
+	await set(FAMILY_INDEX_KEY, idx, familyStore);
+	return family;
+};
+
+export const loadFamily = async (id: string): Promise<Family | null> => {
+	const value = await get<Family>(id, familyStore);
+	return value ?? null;
+};
+
+export const saveFamily = async (family: Family): Promise<void> => {
+	const stamped: Family = { ...family, updatedAt: now() };
+	await set(stamped.id, stamped, familyStore);
+	const idx = (await get<FamilyIndexEntry[]>(FAMILY_INDEX_KEY, familyStore)) ?? [];
+	const siblings = await listSiblings(stamped.id);
+	const filtered = idx.filter((e) => e.id !== stamped.id);
+	filtered.push(indexEntry(stamped, siblings.length));
+	await set(FAMILY_INDEX_KEY, filtered, familyStore);
+};
+
+export const listFamilies = async (): Promise<FamilyIndexEntry[]> => {
+	const idx = (await get<FamilyIndexEntry[]>(FAMILY_INDEX_KEY, familyStore)) ?? [];
+	return [...idx].sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+};
+
+export const deleteFamily = async (id: string): Promise<void> => {
+	// Unlink siblings (they keep existing as standalone projects)
+	const siblings = await listSiblings(id);
+	for (const s of siblings) {
+		const p = await loadProject(s.id);
+		if (!p) continue;
+		const { familyId: _f, familyAxes: _a, ...rest } = p;
+		await saveProject(rest as Project);
+	}
+	await del(id, familyStore);
+	const idx = (await get<FamilyIndexEntry[]>(FAMILY_INDEX_KEY, familyStore)) ?? [];
+	await set(
+		FAMILY_INDEX_KEY,
+		idx.filter((e) => e.id !== id),
+		familyStore
+	);
+};
+
+/** Projects whose `familyId` matches this family, ordered by their family axes. */
+export const listSiblings = async (familyId: string) => {
+	const idx = await listProjects();
+	const siblings = idx.filter((p) => p.familyId === familyId);
+	// Sort by ital first (upright before italic), then by wght (light → bold)
+	return siblings.sort((a, b) => {
+		const ai = a.familyAxes?.ital ?? 0;
+		const bi = b.familyAxes?.ital ?? 0;
+		if (ai !== bi) return ai - bi;
+		const aw = a.familyAxes?.wght ?? 400;
+		const bw = b.familyAxes?.wght ?? 400;
+		return aw - bw;
+	});
+};
+
+export const linkProjectToFamily = async (
+	projectId: string,
+	familyId: string,
+	familyAxes?: Project['familyAxes']
+): Promise<void> => {
+	const p = await loadProject(projectId);
+	if (!p) return;
+	const next: Project = { ...p, familyId, familyAxes: familyAxes ?? p.familyAxes };
+	await saveProject(next);
+	// Refresh the family index sibling count
+	const f = await loadFamily(familyId);
+	if (f) await saveFamily(f);
+};
+
+export const unlinkProjectFromFamily = async (projectId: string): Promise<void> => {
+	const p = await loadProject(projectId);
+	if (!p?.familyId) return;
+	const familyId = p.familyId;
+	const { familyId: _f, familyAxes: _a, ...rest } = p;
+	await saveProject(rest as Project);
+	const f = await loadFamily(familyId);
+	if (f) await saveFamily(f);
+};
+
+/**
+ * Propagate family-level designer/copyright/license to every sibling. Called
+ * when the user edits these on the family hub. Per-sibling overrides are
+ * intentional, so this overwrites — the family is the canonical owner of these
+ * fields.
+ */
+export const propagateFamilyMetadata = async (familyId: string): Promise<number> => {
+	const family = await loadFamily(familyId);
+	if (!family) return 0;
+	const siblings = await listSiblings(familyId);
+	let count = 0;
+	for (const s of siblings) {
+		const p = await loadProject(s.id);
+		if (!p) continue;
+		const nextMeta = {
+			...p.metadata,
+			familyName: family.name,
+			...(family.designer !== undefined ? { designer: family.designer } : {}),
+			...(family.copyright !== undefined ? { copyright: family.copyright } : {}),
+			...(family.license !== undefined ? { license: family.license } : {})
+		};
+		await saveProject({ ...p, metadata: nextMeta });
+		count++;
+	}
+	return count;
+};
+
+/**
+ * Create a new sibling style by cloning an existing project. The clone keeps
+ * the family's structure (UPM, metrics, kerning classes, anchors) but starts
+ * with empty glyphs so the designer can draw the new style from scratch.
+ */
+export const createSibling = async (
+	templateProjectId: string,
+	input: {
+		styleName: string;
+		familyAxes: Project['familyAxes'];
+	}
+): Promise<Project | null> => {
+	const template = await loadProject(templateProjectId);
+	if (!template) return null;
+	const ts = now();
+	const blankGlyphs: Project['glyphs'] = {};
+	for (const [cpStr, g] of Object.entries(template.glyphs)) {
+		blankGlyphs[Number(cpStr)] = {
+			...g,
+			contours: [],
+			sketch: undefined,
+			status: 'empty',
+			updatedAt: ts
+		};
+	}
+	const sibling: Project = {
+		...template,
+		id: newId(),
+		name: `${template.metadata.familyName} ${input.styleName}`,
+		metadata: { ...template.metadata, styleName: input.styleName },
+		glyphs: blankGlyphs,
+		// Preserve kerning class structure but drop pair values (sibling re-tunes)
+		kerning: [],
+		// Drop instances; siblings start fresh
+		instances: [],
+		// Drop revisions and decisions; they're style-specific
+		decisions: [],
+		changelog: [],
+		familyAxes: input.familyAxes,
+		createdAt: ts,
+		updatedAt: ts
+	};
+	await saveProject(sibling);
+	return sibling;
+};

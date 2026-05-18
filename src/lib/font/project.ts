@@ -80,6 +80,10 @@ export type ProjectIndexEntry = {
 	tags?: string[];
 	/** Codepoint + name of the most recently edited glyph (deep-linked from "Continue"). */
 	lastEditedGlyph?: { codepoint: number; name: string };
+	/** Optional family link — populated on the home page to surface the family chip. */
+	familyId?: string;
+	/** This sibling's position in the family's design space (rendered as compact chips). */
+	familyAxes?: import('./types').FamilyAxes;
 };
 
 const newId = () => crypto.randomUUID();
@@ -310,7 +314,9 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		pinned: p.pinned,
 		archived: p.archived,
 		tags: p.tags,
-		lastEditedGlyph: lastEditedGlyphEntry
+		lastEditedGlyph: lastEditedGlyphEntry,
+		familyId: p.familyId,
+		familyAxes: p.familyAxes
 	};
 };
 
