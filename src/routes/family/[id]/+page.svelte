@@ -207,14 +207,17 @@
 	};
 
 	let regularClassCount = $state(0);
+	let regularId = $state<string | null>(null);
 	$effect(() => {
 		void siblings.length;
 		(async () => {
 			const reg = await findRegularSibling(data.family.id);
 			if (!reg) {
 				regularClassCount = 0;
+				regularId = null;
 				return;
 			}
+			regularId = reg.id;
 			const { loadProject: lp } = await import('$lib/font/project');
 			const p = await lp(reg.id);
 			regularClassCount = p?.classes?.length ?? 0;
@@ -547,17 +550,27 @@
 				groups stay aligned. Push the Regular sibling's class structure to every other
 				sibling — pair values stay per-style.
 			</p>
-			<Button
-				density="sm"
-				variant="secondary"
-				onclick={handlePropagateClasses}
-				disabled={propagating || regularClassCount === 0}
-				loading={propagating}
-			>
-				{propagating
-					? 'Pushing…'
-					: `Push ${regularClassCount} class${regularClassCount === 1 ? '' : 'es'} to ${siblings.length - 1} sibling${siblings.length - 1 === 1 ? '' : 's'}`}
-			</Button>
+			<div class="flex flex-wrap items-center gap-2">
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={handlePropagateClasses}
+					disabled={propagating || regularClassCount === 0}
+					loading={propagating}
+				>
+					{propagating
+						? 'Pushing…'
+						: `Push ${regularClassCount} class${regularClassCount === 1 ? '' : 'es'} to ${siblings.length - 1} sibling${siblings.length - 1 === 1 ? '' : 's'}`}
+				</Button>
+				{#if regularId}
+					<a
+						href="/project/{regularId}/spacing"
+						class="text-[12px] text-fg-muted hover:text-accent"
+					>
+						Edit Regular's kerning classes →
+					</a>
+				{/if}
+			</div>
 		</Panel>
 	{/if}
 

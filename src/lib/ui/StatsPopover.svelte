@@ -440,6 +440,18 @@
 				<dd class="text-right font-mono text-fg" data-numeric>
 					{projectFileSizeKb.toFixed(1)} KB JSON
 				</dd>
+				{#if project.familyId}
+					<dt class="text-fg-muted">Family</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>
+						<a
+							href="/family/{project.familyId}"
+							onclick={onclose}
+							class="text-accent hover:underline"
+						>
+							{project.familyAxes?.wght ?? 400}{project.familyAxes?.ital ? 'i' : ''} →
+						</a>
+					</dd>
+				{/if}
 			</dl>
 
 			<div class="border-t border-border pt-3">
