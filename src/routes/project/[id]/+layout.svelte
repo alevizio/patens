@@ -75,15 +75,28 @@
 
 	// Resizable sidebar — persisted globally (not per project).
 	let sidebarWidth = $state(260);
+	let sidebarCollapsed = $state(false);
 	$effect(() => {
 		try {
 			const stored = localStorage.getItem('font-studio:sidebar-width');
 			const n = stored ? parseInt(stored, 10) : NaN;
 			if (Number.isFinite(n) && n >= 200 && n <= 500) sidebarWidth = n;
+			sidebarCollapsed = localStorage.getItem('font-studio:sidebar-collapsed') === '1';
 		} catch {
 			// ignore
 		}
 	});
+	const toggleSidebar = () => {
+		sidebarCollapsed = !sidebarCollapsed;
+		try {
+			localStorage.setItem(
+				'font-studio:sidebar-collapsed',
+				sidebarCollapsed ? '1' : '0'
+			);
+		} catch {
+			// ignore
+		}
+	};
 	let dragging = $state(false);
 	const startDrag = (ev: PointerEvent) => {
 		ev.preventDefault();
@@ -212,6 +225,9 @@
 		} else if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === 'e' || e.key === 'E')) {
 			e.preventDefault();
 			await quickExportOtf();
+		} else if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+			e.preventDefault();
+			toggleSidebar();
 		} else if (
 			(e.metaKey || e.ctrlKey) &&
 			!e.shiftKey &&
@@ -524,20 +540,32 @@
 	{/if}
 
 	<div class="flex min-h-0 flex-1">
-		<div class="shrink-0" style="width: {sidebarWidth}px;">
-			<GlyphBrowser />
-		</div>
-		<div
-			role="separator"
-			aria-orientation="vertical"
-			aria-label="Resize sidebar"
-			onpointerdown={startDrag}
-			class="group flex w-1 shrink-0 cursor-col-resize items-center justify-center bg-border transition-colors hover:bg-accent {dragging
-				? 'bg-accent'
-				: ''}"
-		>
-			<span class="h-8 w-px bg-border-strong group-hover:bg-accent"></span>
-		</div>
+		{#if !sidebarCollapsed}
+			<div class="shrink-0" style="width: {sidebarWidth}px;">
+				<GlyphBrowser />
+			</div>
+			<div
+				role="separator"
+				aria-orientation="vertical"
+				aria-label="Resize sidebar"
+				onpointerdown={startDrag}
+				class="group flex w-1 shrink-0 cursor-col-resize items-center justify-center bg-border transition-colors hover:bg-accent {dragging
+					? 'bg-accent'
+					: ''}"
+			>
+				<span class="h-8 w-px bg-border-strong group-hover:bg-accent"></span>
+			</div>
+		{:else}
+			<button
+				type="button"
+				onclick={toggleSidebar}
+				class="flex h-full w-3 shrink-0 items-center justify-center bg-border text-fg-subtle transition-colors hover:bg-accent hover:text-canvas"
+				aria-label="Show glyph browser (⌘\\)"
+				title="Show glyph browser (⌘\)"
+			>
+				›
+			</button>
+		{/if}
 		<main class="min-h-0 min-w-0 flex-1 overflow-hidden bg-canvas">
 			{@render children()}
 		</main>
