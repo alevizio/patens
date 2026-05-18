@@ -21,7 +21,8 @@
 				{ keys: '⌘P', label: 'Print specimen (on Specimen page)' },
 				{ keys: '⌘K', label: 'Open command palette' },
 				{ keys: '/', label: 'Open command palette' },
-				{ keys: '⌘1..9', label: 'Jump to nth tab' }
+				{ keys: '⌘1..9', label: 'Jump to nth tab' },
+				{ keys: '⌘\\', label: 'Toggle glyph browser sidebar' }
 			]
 		},
 		{
