@@ -92,7 +92,7 @@
 	});
 
 	const tabs = $derived([
-		{ href: `/project/${id}/brief`, label: 'Brief', icon: Compass },
+		{ href: `/project/${id}/brief`, label: 'Brief', icon: Compass, shortcut: '⌘⇧B' },
 		{ href: `/project/${id}/edit`, label: 'Edit', icon: Pen },
 		{ href: `/project/${id}/spacing`, label: 'Spacing', icon: Ruler },
 		{ href: `/project/${id}/designspace`, label: 'Designspace', icon: Sliders },
@@ -101,7 +101,7 @@
 		{ href: `/project/${id}/preview`, label: 'Preview', icon: EyeIcon },
 		{ href: `/project/${id}/specimen`, label: 'Specimen', icon: FileText },
 		{ href: `/project/${id}/audit`, label: 'Audit', icon: ListChecks, badge: auditErrorCount },
-		{ href: `/project/${id}/release`, label: 'Release', icon: Rocket },
+		{ href: `/project/${id}/release`, label: 'Release', icon: Rocket, shortcut: '⌘⇧R' },
 		{ href: `/project/${id}/export`, label: 'Export', icon: Download }
 	]);
 
@@ -271,6 +271,7 @@
 				<button
 					type="button"
 					onclick={() => goto(tab.href)}
+					title={'shortcut' in tab ? `${tab.label} (${tab.shortcut})` : tab.label}
 					class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors {isActive(
 						tab.href
 					)
