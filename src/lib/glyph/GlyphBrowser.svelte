@@ -63,7 +63,15 @@
 		clearSelection();
 	};
 
-	type StatusFilter = 'all' | 'drawn' | 'undrawn' | 'sketch' | 'draft' | 'final' | 'flagged';
+	type StatusFilter =
+		| 'all'
+		| 'drawn'
+		| 'undrawn'
+		| 'sketch'
+		| 'draft'
+		| 'final'
+		| 'flagged'
+		| 'recent';
 	let statusFilter = $state<StatusFilter>('all');
 	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
 		{ id: 'all', label: 'All', title: 'Show every glyph' },
@@ -72,7 +80,8 @@
 		{ id: 'sketch', label: 'Sketch', title: 'Status = sketch' },
 		{ id: 'draft', label: 'Draft', title: 'Status = draft' },
 		{ id: 'final', label: 'Final', title: 'Status = final' },
-		{ id: 'flagged', label: 'Flagged', title: 'Flagged for review (Shift+F)' }
+		{ id: 'flagged', label: 'Flagged', title: 'Flagged for review (Shift+F)' },
+		{ id: 'recent', label: 'Recent', title: 'Edited in the last 24 hours' }
 	];
 
 	const parseCodepoint = (s: string): number | null => {
@@ -126,6 +135,10 @@
 				return g.contours.length === 0 && (g.components?.length ?? 0) === 0;
 			case 'flagged':
 				return !!g.flagged;
+			case 'recent': {
+				const t = Date.parse(g.updatedAt);
+				return Number.isFinite(t) && t >= Date.now() - 24 * 3600 * 1000;
+			}
 			default:
 				return g.status === statusFilter;
 		}
