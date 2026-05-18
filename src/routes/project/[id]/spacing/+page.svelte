@@ -127,6 +127,35 @@
 		toast.success(`Added ${sug.name} (${sug.members.length} members)`);
 	};
 
+	// Expand class refs on either side of the current kerning pair into a
+	// grid of all member-pair renderings — so the designer can see at a glance
+	// whether the class kern looks right for every member.
+	const classExpansionPairs = $derived.by(() => {
+		if (!project) return [] as Array<{ l: string; r: string }>;
+		const left = parseSide(leftChar);
+		const right = parseSide(rightChar);
+		const leftIsClass = isClassRef(left);
+		const rightIsClass = isClassRef(right);
+		if (!leftIsClass && !rightIsClass) return [];
+		const resolve = (side: KerningSide): string[] => {
+			if (isClassRef(side)) {
+				const cls = (project.classes ?? []).find((c) => c.name === side);
+				return (cls?.members ?? []).map((cp) => String.fromCodePoint(cp));
+			}
+			return [String.fromCodePoint(side)];
+		};
+		const lefts = resolve(left);
+		const rights = resolve(right);
+		const out: Array<{ l: string; r: string }> = [];
+		for (const l of lefts) {
+			for (const r of rights) {
+				out.push({ l, r });
+				if (out.length >= 48) return out; // sanity cap
+			}
+		}
+		return out;
+	});
+
 	/** Parse a "side" input — leading @ → class ref, else first char → codepoint */
 	const parseSide = (s: string): KerningSide => {
 		const trimmed = s.trim();
@@ -624,6 +653,25 @@
 				kern({leftChar}, {rightChar}) = {currentValue}
 			</div>
 		</div>
+		{#if classExpansionPairs.length > 0}
+			<div class="mt-3 rounded-lg border border-accent/30 bg-accent-soft/15 px-4 py-3">
+				<div class="mb-2 text-[10px] font-semibold tracking-wider text-accent uppercase">
+					Class expansion ({classExpansionPairs.length} pair{classExpansionPairs.length === 1 ? '' : 's'})
+				</div>
+				<div
+					class="preview-font flex flex-wrap gap-x-4 gap-y-1 leading-snug"
+					style="font-size: 32px;"
+				>
+					{#each classExpansionPairs as p (p.l + p.r)}
+						<span>{p.l}{p.r}</span>
+					{/each}
+				</div>
+				<p class="mt-2 text-[10px] text-fg-subtle">
+					The kerning value above applies to every pair shown. Scan for outliers — some
+					members may need their own pair override.
+				</p>
+			</div>
+		{/if}
 		{#if !isClassRef(parseSide(leftChar)) && !isClassRef(parseSide(rightChar)) && leftChar.length === 1 && rightChar.length === 1}
 			<div class="mt-3 rounded-lg border border-border bg-canvas px-6 py-4">
 				<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
