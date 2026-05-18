@@ -11,6 +11,40 @@
 	let query = $state('');
 	let showAddForm = $state(false);
 	let newCpInput = $state('');
+	let addMode = $state<'single' | 'bulk'>('single');
+	let bulkInput = $state('');
+
+	const handleBulkAdd = () => {
+		const text = bulkInput;
+		if (!text) return;
+		const codepoints = new Set<number>();
+		for (const ch of text) {
+			const cp = ch.codePointAt(0);
+			if (cp && cp > 0x20) codepoints.add(cp);
+		}
+		let added = 0;
+		let skipped = 0;
+		let firstNew: number | null = null;
+		for (const cp of codepoints) {
+			const ok = projectStore.addCustomGlyph(cp);
+			if (ok) {
+				added++;
+				if (firstNew === null) firstNew = cp;
+			} else {
+				skipped++;
+			}
+		}
+		bulkInput = '';
+		if (added > 0) {
+			toast.success(
+				`Added ${added}${skipped ? `, skipped ${skipped}` : ''} glyph${added === 1 ? '' : 's'}.`
+			);
+			if (firstNew !== null) projectStore.selectGlyph(firstNew);
+			showAddForm = false;
+		} else if (skipped > 0) {
+			toast.warn(`All ${skipped} codepoint${skipped === 1 ? '' : 's'} already in project.`);
+		}
+	};
 
 	let bulkMode = $state(false);
 	let selectedCodepoints = $state<Set<number>>(new Set());
@@ -335,24 +369,63 @@
 			</button>
 		</div>
 		{#if showAddForm}
-			<form
-				onsubmit={handleAddGlyph}
-				use:focusFirstInput
-				class="mt-2 flex items-center gap-1.5"
-			>
-				<Input
-					density="sm"
-					bind:value={newCpInput}
-					placeholder="U+1F60A or 😊"
-					class="font-mono text-[11px]"
-				/>
+			<div class="mt-2 inline-flex rounded-md border border-border bg-surface p-0.5 text-[10px]">
 				<button
-					type="submit"
-					class="rounded-md bg-fg px-2 py-1 text-[11px] font-medium text-canvas hover:bg-fg/90"
+					type="button"
+					onclick={() => (addMode = 'single')}
+					class="rounded px-2 py-0.5 {addMode === 'single'
+						? 'bg-accent-soft text-accent'
+						: 'text-fg-muted hover:text-fg'}"
 				>
-					Add
+					Single
 				</button>
-			</form>
+				<button
+					type="button"
+					onclick={() => (addMode = 'bulk')}
+					class="rounded px-2 py-0.5 {addMode === 'bulk'
+						? 'bg-accent-soft text-accent'
+						: 'text-fg-muted hover:text-fg'}"
+				>
+					Paste text
+				</button>
+			</div>
+			{#if addMode === 'single'}
+				<form
+					onsubmit={handleAddGlyph}
+					use:focusFirstInput
+					class="mt-2 flex items-center gap-1.5"
+				>
+					<Input
+						density="sm"
+						bind:value={newCpInput}
+						placeholder="U+1F60A or 😊"
+						class="font-mono text-[11px]"
+					/>
+					<button
+						type="submit"
+						class="rounded-md bg-fg px-2 py-1 text-[11px] font-medium text-canvas hover:bg-fg/90"
+					>
+						Add
+					</button>
+				</form>
+			{:else}
+				<div class="mt-2 grid gap-1.5">
+					<textarea
+						bind:value={bulkInput}
+						placeholder="Paste text — every unique character becomes a glyph"
+						rows="2"
+						class="block w-full resize-y rounded-md border border-border bg-surface px-2 py-1 text-[11px] text-fg outline-none focus:border-accent"
+					></textarea>
+					<button
+						type="button"
+						onclick={handleBulkAdd}
+						disabled={!bulkInput.trim()}
+						class="rounded-md bg-fg px-2 py-1 text-[11px] font-medium text-canvas hover:bg-fg/90 disabled:opacity-40"
+					>
+						Add unique characters
+					</button>
+				</div>
+			{/if}
 			<div class="mt-1.5 flex flex-wrap gap-1 text-[10px]">
 				<span class="text-fg-subtle">Quick:</span>
 				{#each [{ cp: 0x2026, label: '…' }, { cp: 0x2014, label: '—' }, { cp: 0x2013, label: '–' }, { cp: 0x2018, label: '‘' }, { cp: 0x2019, label: '’' }, { cp: 0x201c, label: '“' }, { cp: 0x201d, label: '”' }, { cp: 0x00a0, label: 'nbsp' }, { cp: 0x00d7, label: '×' }, { cp: 0x2022, label: '•' }] as preset (preset.cp)}
