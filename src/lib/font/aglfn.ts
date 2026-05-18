@@ -9,6 +9,16 @@
 
 const AGLFN: Record<number, string> = {
 	0x0020: 'space',
+	0x0030: 'zero',
+	0x0031: 'one',
+	0x0032: 'two',
+	0x0033: 'three',
+	0x0034: 'four',
+	0x0035: 'five',
+	0x0036: 'six',
+	0x0037: 'seven',
+	0x0038: 'eight',
+	0x0039: 'nine',
 	0x0021: 'exclam',
 	0x0022: 'quotedbl',
 	0x0023: 'numbersign',
@@ -133,9 +143,9 @@ const AGLFN: Record<number, string> = {
 /** Return the AGLFN name for a codepoint, or a derived name as a fallback. */
 export const aglfnName = (codepoint: number): string => {
 	if (AGLFN[codepoint]) return AGLFN[codepoint];
-	// Basic Latin letters and digits use their character directly
+	// Basic Latin letters use their character directly (already valid PS names);
+	// digits are handled by the AGLFN map above (zero, one, …) so they don't fall through here
 	if (
-		(codepoint >= 0x0030 && codepoint <= 0x0039) ||
 		(codepoint >= 0x0041 && codepoint <= 0x005a) ||
 		(codepoint >= 0x0061 && codepoint <= 0x007a)
 	) {

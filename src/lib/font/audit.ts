@@ -95,6 +95,33 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Glyph name validation per Adobe glyph-list naming rules + OpenType
+	// post table constraints: must start with letter or period, then
+	// letters/digits/period/underscore/hyphen; max 63 chars; not reserved.
+	const NAME_RE = /^[A-Za-z._][A-Za-z0-9._-]*$/;
+	if (!glyph.name.trim()) {
+		issues.push({
+			codepoint: cp,
+			severity: 'error',
+			code: 'glyph-name-empty',
+			message: 'Glyph name is empty'
+		});
+	} else if (!NAME_RE.test(glyph.name)) {
+		issues.push({
+			codepoint: cp,
+			severity: 'warn',
+			code: 'glyph-name-invalid',
+			message: `Name "${glyph.name}" contains characters disallowed in OpenType post table (allowed: A-Z a-z 0-9 . _ -, must start with letter or .)`
+		});
+	} else if (glyph.name.length > 63) {
+		issues.push({
+			codepoint: cp,
+			severity: 'warn',
+			code: 'glyph-name-too-long',
+			message: `Name "${glyph.name.slice(0, 30)}…" exceeds 63 chars (OpenType post table limit)`
+		});
+	}
+
 	return issues;
 };
 

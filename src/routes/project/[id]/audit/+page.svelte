@@ -11,6 +11,7 @@
 		type AuditSeverity
 	} from '$lib/font/audit';
 	import { glyphBounds } from '$lib/font/path';
+	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -87,7 +88,10 @@
 		'metrics-asc-mismatch',
 		'metrics-desc-mismatch',
 		'metrics-gap-mismatch',
-		'metrics-use-typo-off'
+		'metrics-use-typo-off',
+		'glyph-name-invalid',
+		'glyph-name-empty',
+		'glyph-name-too-long'
 	]);
 
 	const fixableInList = $derived(filtered.filter((i) => FIXABLE_CODES.has(i.code)));
@@ -146,6 +150,27 @@
 			case 'metrics-use-typo-off': {
 				projectStore.updateMetrics({ useTypoMetrics: true });
 				toast.success('USE_TYPO_METRICS enabled');
+				return;
+			}
+			case 'glyph-name-invalid':
+			case 'glyph-name-empty':
+			case 'glyph-name-too-long': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				// Prefer the AGLFN name for this codepoint — gives "zero" instead of
+				// "_0", "ampersand" instead of "_&_", etc.
+				const aglfn = aglfnName(issue.codepoint);
+				const aglfnValid = /^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(aglfn);
+				let cleaned = aglfnValid
+					? aglfn
+					: g.name.replace(/[^A-Za-z0-9._-]/g, '_');
+				if (!/^[A-Za-z._]/.test(cleaned)) cleaned = '_' + cleaned;
+				if (cleaned.length > 63) cleaned = cleaned.slice(0, 63);
+				if (!cleaned.trim() || /^_+$/.test(cleaned)) {
+					cleaned = `uni${issue.codepoint.toString(16).toUpperCase().padStart(4, '0')}`;
+				}
+				projectStore.renameGlyph(issue.codepoint, cleaned);
+				toast.success(`Renamed to "${cleaned}"`);
 				return;
 			}
 		}
