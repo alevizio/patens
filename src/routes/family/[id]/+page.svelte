@@ -12,6 +12,7 @@
 		type FamilyIndexEntry
 	} from '$lib/font/family';
 	import { loadProject } from '$lib/font/project';
+	import { downloadFamilyBundle } from '$lib/font/family-export';
 	import type { Family, FamilyAxes } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -20,6 +21,7 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Download from '@lucide/svelte/icons/download';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Unlink from '@lucide/svelte/icons/unlink';
 
@@ -122,6 +124,21 @@
 		await refresh();
 	};
 
+	let exporting = $state(false);
+	const handleExportBundle = async () => {
+		if (exporting) return;
+		exporting = true;
+		try {
+			const ok = await downloadFamilyBundle(data.family.id);
+			if (ok) toast.success('Family bundle exported.');
+			else toast.error('Family bundle failed.');
+		} catch (err) {
+			toast.error('Export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			exporting = false;
+		}
+	};
+
 	const handleDeleteFamily = async () => {
 		const ok = confirm(
 			`Delete the family "${family.name}"? Sibling projects are kept (just unlinked).`
@@ -167,13 +184,19 @@
 				designer / license edits fan out to every sibling.
 			</p>
 		</div>
-		<button
-			type="button"
-			onclick={handleDeleteFamily}
-			class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted hover:border-danger hover:text-danger"
-		>
-			Delete family
-		</button>
+		<div class="flex flex-col items-end gap-1.5">
+			<Button onclick={handleExportBundle} disabled={exporting || siblings.length === 0}>
+				{#snippet icon()}<Download class="size-3.5" />{/snippet}
+				{exporting ? 'Bundling…' : `Export family ZIP (${siblings.length})`}
+			</Button>
+			<button
+				type="button"
+				onclick={handleDeleteFamily}
+				class="text-[11px] text-fg-subtle hover:text-danger"
+			>
+				Delete family
+			</button>
+		</div>
 	</header>
 
 	<Panel>
