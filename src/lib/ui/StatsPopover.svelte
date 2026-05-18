@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import { preflightProject } from '$lib/font/audit';
+	import Sparkline from '$lib/ui/Sparkline.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -84,6 +85,24 @@
 		}).length;
 	});
 
+	const editsByDay = $derived.by(() => {
+		if (!project) return new Array<number>(14).fill(0);
+		const DAY_MS = 24 * 3600 * 1000;
+		const todayMid = new Date();
+		todayMid.setHours(0, 0, 0, 0);
+		const todayMidMs = todayMid.getTime();
+		const buckets = new Array<number>(14).fill(0);
+		for (const g of Object.values(project.glyphs)) {
+			const t = Date.parse(g.updatedAt);
+			if (!Number.isFinite(t)) continue;
+			const dayOffset = Math.floor((todayMidMs - t) / DAY_MS);
+			if (dayOffset >= 0 && dayOffset < 14) buckets[13 - dayOffset]++;
+		}
+		return buckets;
+	});
+
+	const editsByDayTotal = $derived(editsByDay.reduce((a, b) => a + b, 0));
+
 	const briefCompleteness = $derived.by(() => {
 		if (!project) return { filled: 0, total: 6, pct: 0 };
 		const b = project.brief ?? {};
@@ -139,6 +158,18 @@
 					></div>
 				</div>
 			</div>
+
+			{#if editsByDayTotal > 0}
+				<div>
+					<div class="flex items-baseline justify-between text-[11px]" data-numeric>
+						<span class="font-medium text-fg-muted">Edits, last 14 days</span>
+						<span class="font-mono text-fg">{editsByDayTotal} total</span>
+					</div>
+					<div class="mt-1">
+						<Sparkline values={editsByDay} width={272} height={28} label="Edits per day, last 14 days" />
+					</div>
+				</div>
+			{/if}
 
 			<div>
 				<label
