@@ -35,6 +35,7 @@
 	$effect(() => {
 		if (projectStore.project?.id !== data.project.id) {
 			projectStore.load(data.project);
+			projectStore.loadAllReferenceFonts();
 		}
 	});
 

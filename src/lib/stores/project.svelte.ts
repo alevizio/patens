@@ -268,6 +268,25 @@ class ProjectStore {
 		this.touch();
 	}
 
+	/**
+	 * Inject a Google Fonts <link> for the family name so it can be used in
+	 * any font-family CSS rule (e.g., the spacing playground's "Compare with"
+	 * dropdown). No-op if the family is already loaded or if we're not in
+	 * a browser context.
+	 */
+	private loadGoogleFontIfNeeded(family: string) {
+		if (typeof document === 'undefined') return;
+		const name = family.trim();
+		if (!name) return;
+		const id = 'gf-' + name.replace(/[^A-Za-z0-9]+/g, '-');
+		if (document.getElementById(id)) return;
+		const link = document.createElement('link');
+		link.id = id;
+		link.rel = 'stylesheet';
+		link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}&display=swap`;
+		document.head.appendChild(link);
+	}
+
 	addBriefReference(ref: Omit<import('$lib/font/types').BriefReference, 'id'>) {
 		if (!this.project) return;
 		const brief = this.project.brief ?? {};
@@ -279,6 +298,17 @@ class ProjectStore {
 			}
 		};
 		this.touch();
+		// Try to load the family from Google Fonts so it becomes usable wherever
+		// font-family rules look it up (silently 404s if not on GF).
+		this.loadGoogleFontIfNeeded(ref.name);
+	}
+
+	/** Re-inject all references' Google Fonts at boot / project load. */
+	loadAllReferenceFonts() {
+		if (!this.project) return;
+		for (const r of this.project.brief?.references ?? []) {
+			this.loadGoogleFontIfNeeded(r.name);
+		}
 	}
 
 	removeBriefReference(id: string) {

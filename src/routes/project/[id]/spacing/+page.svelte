@@ -44,6 +44,8 @@
 		{ id: 'ui-monospace, Menlo, monospace', label: 'Mono' },
 		{ id: '-apple-system, system-ui, sans-serif', label: 'System UI' }
 	];
+	// briefReferenceFamilies declared below alongside the rest of the
+	// $deriveds — moved out of the playground block to fix declaration order.
 	const playgroundFeatures = $derived(
 		`'kern' ${playgroundKern ? 1 : 0}, 'liga' ${playgroundLiga ? 1 : 0}`
 	);
@@ -78,6 +80,14 @@
 
 	const cpOf = (s: string) => s.codePointAt(0) ?? 0;
 	const project = $derived(projectStore.project);
+
+	// Pull the family names the user added in the Brief — they're auto-loaded
+	// from Google Fonts at project load, so they're available here for free.
+	const briefReferenceFamilies = $derived(
+		(project?.brief?.references ?? [])
+			.map((r) => r.name.trim())
+			.filter((n) => n.length > 0)
+	);
 
 	/** Parse a "side" input — leading @ → class ref, else first char → codepoint */
 	const parseSide = (s: string): KerningSide => {
@@ -371,6 +381,19 @@
 						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 				>
 					{opt.label}
+				</button>
+			{/each}
+			{#each briefReferenceFamilies as name (name)}
+				<button
+					type="button"
+					onclick={() => (referenceFont = name)}
+					class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {referenceFont ===
+					name
+						? 'bg-accent-soft text-accent'
+						: 'border border-accent/30 text-accent/80 hover:bg-accent-soft/40'}"
+					title="From Brief — auto-loaded from Google Fonts"
+				>
+					{name}
 				</button>
 			{/each}
 			<input
