@@ -166,6 +166,38 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 			}
 		},
 		{
+			id: 'design-notes',
+			label: 'Draft design-notes essay',
+			icon: Tag,
+			run: async () => {
+				if (!project) return null;
+				const b = project.brief ?? {};
+				const drawnCount = Object.values(project.glyphs).filter(
+					(g) => g.contours.length > 0
+				).length;
+				const useCaseLabels = (b.useCases ?? []).join(', ');
+				const refs = (b.references ?? [])
+					.map((r) => `${r.kind ?? 'ref'}: ${r.name}`)
+					.join('; ');
+				const system = `You are a senior type designer writing the editorial "design notes" essay that opens a foundry specimen. Tone: confident, plain, no marketing fluff. 180–260 words. Cover (1) the brief in one line, (2) the typographic decision you most want to defend, (3) one observation about a specific glyph or feature, (4) when to use the family. Return plain prose only, no markdown headings.`;
+				const prompt = `Family: ${project.metadata.familyName}
+Style: ${project.metadata.styleName}
+Glyphs drawn: ${drawnCount}
+UPM: ${project.metrics.unitsPerEm}; cap ${project.metrics.capHeight}; x-height ${project.metrics.xHeight}
+
+Brief:
+- Intent: ${b.intent || '(not stated)'}
+- Audience: ${b.audience || '(not stated)'}
+- Use cases: ${useCaseLabels || '(not stated)'}
+- Reading conditions: ${b.readingConditions || '(not stated)'}
+- Differentiation: ${b.differentiation || '(not stated)'}
+- References studied: ${refs || '(none listed)'}
+
+Write the design-notes essay.`;
+				return { system, text: prompt };
+			}
+		},
+		{
 			id: 'teststring',
 			label: 'Generate test string',
 			icon: Type,
@@ -259,6 +291,11 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 		const prefix = `[${lastTitle ?? 'AI'}]`;
 		const next = g.notes?.trim() ? `${g.notes.trim()}\n\n${prefix}\n${response}` : `${prefix}\n${response}`;
 		projectStore.updateGlyph(g.codepoint, (gg) => ({ ...gg, notes: next }));
+	};
+
+	const saveToBriefDesignNotes = () => {
+		if (!response) return;
+		projectStore.updateBrief({ designNotes: response });
 	};
 </script>
 
@@ -378,6 +415,12 @@ Draft an .fea source for these features. Skip any feature that needs glyphs not 
 							<Sparkles class="size-3" /> {lastTitle ?? 'Response'}
 						</h2>
 						<div class="flex items-center gap-1">
+							{#if lastTitle === 'Draft design-notes essay'}
+								<Button density="sm" variant="ghost" onclick={saveToBriefDesignNotes}>
+									{#snippet icon()}<Copy class="size-3.5" />{/snippet}
+									Save to Brief design notes
+								</Button>
+							{/if}
 							<Button density="sm" variant="ghost" onclick={saveToCurrentGlyphNotes}>
 								{#snippet icon()}<Copy class="size-3.5" />{/snippet}
 								Save to glyph notes
