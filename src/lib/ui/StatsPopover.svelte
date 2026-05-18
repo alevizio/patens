@@ -3,6 +3,7 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import { preflightProject } from '$lib/font/audit';
 	import Sparkline from '$lib/ui/Sparkline.svelte';
+	import GlyphStatusHeatmap from '$lib/ui/GlyphStatusHeatmap.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -187,6 +188,35 @@
 					</div>
 				</div>
 			{/if}
+
+			<div>
+				<div class="mb-1 flex items-baseline justify-between text-[11px]">
+					<span class="font-medium text-fg-muted">Status map</span>
+					<span
+						class="flex items-center gap-2 font-mono text-[10px] text-fg-subtle"
+						data-numeric
+					>
+						<span class="inline-flex items-center gap-1">
+							<span class="size-1.5 rounded-full bg-success"></span>final
+						</span>
+						<span class="inline-flex items-center gap-1">
+							<span class="size-1.5 rounded-full bg-accent"></span>draft
+						</span>
+						<span class="inline-flex items-center gap-1">
+							<span class="size-1.5 rounded-full bg-warn"></span>sketch
+						</span>
+					</span>
+				</div>
+				<GlyphStatusHeatmap
+					glyphs={Object.values(project.glyphs)}
+					cols={32}
+					cellSize={8}
+					onpick={(cp) => {
+						projectStore.selectGlyph(cp);
+						onclose();
+					}}
+				/>
+			</div>
 
 			{#if recentEdits.length > 0}
 				<div>
