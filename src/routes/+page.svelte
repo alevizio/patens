@@ -96,6 +96,65 @@
 		}
 	};
 
+	type QuickPreset = {
+		id: string;
+		label: string;
+		kind: ProjectKind;
+		intent: string;
+		useCases: import('$lib/font/types').UseCase[];
+	};
+	const QUICK_PRESETS: QuickPreset[] = [
+		{
+			id: 'web-ui',
+			label: 'Web UI sans',
+			kind: 'ui',
+			intent:
+				'A neutral geometric sans for product UI at 12–28px, with strong digit + punctuation legibility.',
+			useCases: ['web-ui', 'body-text']
+		},
+		{
+			id: 'display',
+			label: 'Display',
+			kind: 'display',
+			intent: 'A high-contrast display face for headlines, posters, and brand moments.',
+			useCases: ['display', 'branding']
+		},
+		{
+			id: 'mono',
+			label: 'Code monospace',
+			kind: 'mono',
+			intent:
+				'A monospaced face for editors and terminals; equal advance widths, disambiguated 0/O and 1/l/I.',
+			useCases: ['code', 'data-tables']
+		},
+		{
+			id: 'editorial',
+			label: 'Editorial serif',
+			kind: 'text',
+			intent:
+				'A reading-first serif for long-form editorial — balanced contrast, comfortable rhythm at 14–18px.',
+			useCases: ['body-text', 'editorial']
+		}
+	];
+
+	let presetBusy = $state<string | null>(null);
+	const createFromPreset = async (p: QuickPreset) => {
+		if (presetBusy) return;
+		presetBusy = p.id;
+		try {
+			const project = createProject({
+				name: p.label,
+				familyName: p.label,
+				kind: p.kind
+			});
+			project.brief = { intent: p.intent, useCases: p.useCases };
+			await saveProject(project);
+			await goto(`/project/${project.id}/brief`);
+		} finally {
+			presetBusy = null;
+		}
+	};
+
 	const handleDuplicate = async (id: string) => {
 		await duplicateProject(id);
 		await refresh();
@@ -408,6 +467,31 @@
 		</Panel>
 
 		<div class="grid gap-4">
+			<Panel padding="md">
+				<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+					Quick start
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Pick a use case and skip straight to the Brief tab with intent + use cases
+					pre-filled.
+				</p>
+				<div class="grid grid-cols-2 gap-1.5">
+					{#each QUICK_PRESETS as p (p.id)}
+						<button
+							type="button"
+							onclick={() => createFromPreset(p)}
+							disabled={presetBusy !== null}
+							class="rounded-md border border-border bg-surface-2/40 px-2.5 py-2 text-left transition-colors hover:border-accent hover:bg-accent-soft/40 disabled:opacity-60"
+						>
+							<div class="text-[12px] font-medium text-fg">{p.label}</div>
+							<div class="mt-0.5 line-clamp-2 text-[10px] text-fg-subtle">
+								{p.intent}
+							</div>
+						</button>
+					{/each}
+				</div>
+			</Panel>
+
 			<Panel padding="md">
 				<h2 class="mb-4 text-sm font-semibold tracking-wide text-fg-muted uppercase">
 					New font
