@@ -249,6 +249,49 @@
 			<div>
 				<label
 					class="block text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+					for="proj-tags"
+				>
+					Tags
+				</label>
+				<div class="mt-1 flex flex-wrap items-center gap-1">
+					{#each project.tags ?? [] as t (t)}
+						<span
+							class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent"
+						>
+							{t}
+							<button
+								type="button"
+								onclick={() => {
+									if (!project.tags) return;
+									projectStore.updateTags(project.tags.filter((x) => x !== t));
+								}}
+								class="rounded-full p-0.5 hover:bg-accent/15"
+								aria-label="Remove tag {t}"
+							>
+								<X class="size-2.5" />
+							</button>
+						</span>
+					{/each}
+					<input
+						id="proj-tags"
+						type="text"
+						placeholder="Add tag…"
+						class="min-w-[80px] flex-1 border-0 bg-transparent text-[11px] text-fg outline-none placeholder:text-fg-subtle"
+						onkeydown={(e) => {
+							if (e.key !== 'Enter' && e.key !== ',') return;
+							e.preventDefault();
+							const val = e.currentTarget.value.trim();
+							if (!val) return;
+							projectStore.updateTags([...(project.tags ?? []), val]);
+							e.currentTarget.value = '';
+						}}
+					/>
+				</div>
+			</div>
+
+			<div>
+				<label
+					class="block text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 					for="proj-desc"
 				>
 					Description

@@ -225,6 +225,15 @@ class ProjectStore {
 		this.touch();
 	}
 
+	updateTags(tags: string[]) {
+		if (!this.project) return;
+		const cleaned = Array.from(
+			new Set(tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0))
+		);
+		this.project = { ...this.project, tags: cleaned };
+		this.touch();
+	}
+
 	updateGlyph(codepoint: number, mut: (g: Glyph) => Glyph) {
 		if (!this.project) return;
 		if (this.project.locked) return;

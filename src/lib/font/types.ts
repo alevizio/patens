@@ -228,6 +228,8 @@ export type Project = {
 	pinned?: boolean;
 	/** When true, the project is hidden from the default home list (toggle "Show archived"). */
 	archived?: boolean;
+	/** Freeform tags for organising the home list (lowercased, deduped). */
+	tags?: string[];
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
 	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */
