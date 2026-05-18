@@ -76,6 +76,8 @@ export type ProjectIndexEntry = {
 	pinned?: boolean;
 	/** When true, hidden from home list unless "Show archived" is enabled. */
 	archived?: boolean;
+	/** Freeform organisational tags for the home page chips/filter. */
+	tags?: string[];
 };
 
 const newId = () => crypto.randomUUID();
@@ -248,7 +250,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		lastSealedVersion: p.changelog?.[0]?.version,
 		lastSealedAt: p.changelog?.[0]?.date,
 		pinned: p.pinned,
-		archived: p.archived
+		archived: p.archived,
+		tags: p.tags
 	};
 };
 

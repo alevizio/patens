@@ -61,9 +61,19 @@
 	let projectSort = $state<'updated' | 'name' | 'brief' | 'glyphs'>('updated');
 	let onlyToday = $state(false);
 	let showArchived = $state(false);
+	let activeTag = $state<string | null>(null);
 	let loading = $state(true);
 
 	const archivedCount = $derived(projects.filter((p) => p.archived).length);
+
+	const allTags = $derived.by(() => {
+		const counts = new Map<string, number>();
+		for (const p of projects) {
+			if (!p.tags) continue;
+			for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1);
+		}
+		return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+	});
 
 	const recentReleases = $derived(
 		projects
@@ -112,6 +122,7 @@
 			: [...projects];
 		if (!showArchived) filtered = filtered.filter((p) => !p.archived);
 		if (onlyToday) filtered = filtered.filter((p) => (p.editsToday ?? 0) > 0);
+		if (activeTag) filtered = filtered.filter((p) => p.tags?.includes(activeTag!));
 		let sorted: ProjectIndexEntry[];
 		switch (projectSort) {
 			case 'name':
@@ -565,6 +576,36 @@
 						<option value="glyphs">Glyphs</option>
 					</select>
 				</div>
+				{#if allTags.length > 0}
+					<div class="mb-2 flex flex-wrap items-center gap-1.5">
+						<span class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							Tags
+						</span>
+						{#each allTags as [t, n] (t)}
+							<button
+								type="button"
+								onclick={() => (activeTag = activeTag === t ? null : t)}
+								class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors {activeTag ===
+								t
+									? 'border-accent bg-accent text-accent-fg'
+									: 'border-border bg-surface text-fg-muted hover:border-accent hover:text-accent'}"
+								title={activeTag === t ? `Clear ${t} filter` : `Show only ${t}`}
+							>
+								{t}
+								<span class="font-mono text-[9px] opacity-70" data-numeric>{n}</span>
+							</button>
+						{/each}
+						{#if activeTag}
+							<button
+								type="button"
+								onclick={() => (activeTag = null)}
+								class="text-[10px] text-fg-subtle hover:text-fg"
+							>
+								Clear
+							</button>
+						{/if}
+					</div>
+				{/if}
 			{/if}
 
 			{#if loading}
@@ -673,6 +714,24 @@
 									{#if p.tagline}
 										<div class="mt-0.5 truncate text-[11px] italic text-fg-subtle">
 											{p.tagline}
+										</div>
+									{/if}
+									{#if p.tags && p.tags.length > 0}
+										<div class="mt-1 flex flex-wrap gap-1">
+											{#each p.tags as t (t)}
+												<button
+													type="button"
+													onclick={(ev) => {
+														ev.preventDefault();
+														ev.stopPropagation();
+														activeTag = activeTag === t ? null : t;
+													}}
+													class="rounded-full bg-surface-2/80 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:bg-accent-soft hover:text-accent"
+													title={activeTag === t ? `Clear ${t} filter` : `Show only ${t}`}
+												>
+													{t}
+												</button>
+											{/each}
 										</div>
 									{/if}
 								</div>
