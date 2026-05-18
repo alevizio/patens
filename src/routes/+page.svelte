@@ -28,6 +28,7 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Link from '@lucide/svelte/icons/link';
 	import Library from '@lucide/svelte/icons/library';
+	import LockIcon from '@lucide/svelte/icons/lock';
 
 	// Well-known OFL families whose Reserved Font Names must be changed in derivative work.
 	const OFL_RESERVED_FAMILIES = [
@@ -431,6 +432,9 @@
 								<div class="min-w-0 flex-1">
 									<div class="flex items-center gap-2">
 										<div class="truncate text-sm font-medium text-fg">{p.name}</div>
+										{#if p.locked}
+											<LockIcon class="size-3 text-warn" aria-label="Locked" />
+										{/if}
 										{#if (p.briefPct ?? 0) > 0}
 											<span
 												class="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium {(p.briefPct ?? 0) >= 67

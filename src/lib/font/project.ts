@@ -62,6 +62,8 @@ export type ProjectIndexEntry = {
 	editsToday?: number;
 	/** Glyphs whose updatedAt is within the last 7 days. */
 	editsThisWeek?: number;
+	/** Mirror of project.locked — surfaces a lock icon in lists. */
+	locked?: boolean;
 };
 
 const newId = () => crypto.randomUUID();
@@ -218,7 +220,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		briefPct,
 		briefMissing,
 		editsToday,
-		editsThisWeek
+		editsThisWeek,
+		locked: p.locked
 	};
 };
 

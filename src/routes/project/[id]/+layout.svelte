@@ -188,7 +188,12 @@
 								{/if}
 							</div>
 							<div class="min-w-0 flex-1">
-								<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
+								<div class="flex items-center gap-1.5">
+									<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
+									{#if p.locked}
+										<LockIcon class="size-2.5 text-warn" aria-label="Locked" />
+									{/if}
+								</div>
 								<div class="truncate text-[11px] text-fg-subtle" data-numeric>
 									{p.familyName} · {p.glyphCount} drawn{(p.editsToday ?? 0) > 0
 										? ` · ${p.editsToday} today`
