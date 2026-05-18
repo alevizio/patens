@@ -5,11 +5,19 @@
 
 export type GlyphStatus = 'empty' | 'sketch' | 'draft' | 'final';
 
+/**
+ * Whether an on-curve point is a "smooth" tangent or a "corner". Smooth points
+ * constrain incoming/outgoing handles to be colinear when one handle is dragged
+ * (G1 continuity). Corner points have independent handles. Defaults to corner
+ * when unset (preserves existing behavior on older glyph data).
+ */
+export type PointType = 'smooth' | 'corner';
+
 export type PathCommand =
-	| { type: 'M'; x: number; y: number }
-	| { type: 'L'; x: number; y: number }
-	| { type: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number }
-	| { type: 'Q'; x1: number; y1: number; x: number; y: number }
+	| { type: 'M'; x: number; y: number; pointType?: PointType }
+	| { type: 'L'; x: number; y: number; pointType?: PointType }
+	| { type: 'C'; x1: number; y1: number; x2: number; y2: number; x: number; y: number; pointType?: PointType }
+	| { type: 'Q'; x1: number; y1: number; x: number; y: number; pointType?: PointType }
 	| { type: 'Z' };
 
 export type BezierContour = {

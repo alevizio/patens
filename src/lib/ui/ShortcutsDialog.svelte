@@ -46,6 +46,15 @@
 			]
 		},
 		{
+			title: 'Editor — points',
+			rows: [
+				{ keys: 'Alt-click', label: 'Toggle point: smooth (●) ↔ corner (◆)' },
+				{ keys: 'Shift-click', label: 'Add point to selection' },
+				{ keys: '↑ ↓ ← →', label: 'Nudge selected points (Shift = 10 units)' },
+				{ keys: 'Delete', label: 'Remove selected points' }
+			]
+		},
+		{
 			title: 'Editor — layers',
 			rows: [
 				{ keys: 'S', label: 'Toggle sketch layer' },

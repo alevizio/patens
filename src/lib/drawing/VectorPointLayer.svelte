@@ -11,6 +11,8 @@
 		moveHandle,
 		pointsInRect,
 		projectOntoSegment,
+		rebalanceSmoothHandles,
+		togglePointType,
 		type HandleRef,
 		type PointRef
 	} from '$lib/font/path-edit';
@@ -83,6 +85,13 @@
 		}
 		activePointer = ev.pointerId;
 
+		// Alt-click: toggle smooth/corner on this point. Don't start a drag.
+		if (ev.altKey) {
+			onChange(togglePointType(contours, ref));
+			setSelectionOne(ref);
+			return;
+		}
+
 		if (ev.shiftKey) {
 			toggleSelection(ref);
 		} else if (!isSelected(ref)) {
@@ -137,7 +146,20 @@
 			}
 		} else if (dragging.kind === 'handle') {
 			const ref = dragging.ref as HandleRef;
-			onChange(moveHandle(contours, ref, Math.round(fp.x), Math.round(fp.y)));
+			let next = moveHandle(contours, ref, Math.round(fp.x), Math.round(fp.y));
+			// If the anchor point owning this handle is smooth, mirror the opposite
+			// handle so they stay colinear through the anchor (G1 continuity).
+			if (primarySelected) {
+				const anchorCmd = next[primarySelected.contour]?.commands[primarySelected.index];
+				if (
+					anchorCmd &&
+					'pointType' in anchorCmd &&
+					anchorCmd.pointType === 'smooth'
+				) {
+					next = rebalanceSmoothHandles(next, primarySelected, ref);
+				}
+			}
+			onChange(next);
 		}
 	};
 
@@ -356,26 +378,56 @@
 		/>
 	{/each}
 
-	<!-- On-curve point handles -->
+	<!-- On-curve point handles. Smooth = green circle; corner = square (rotated 45° = diamond). -->
 	{#each points as p (p.contourIndex + ':' + p.pointIndex)}
 		{@const ref = { contour: p.contourIndex, index: p.pointIndex }}
-		<circle
-			cx={p.x}
-			cy={-p.y}
-			r={handleR}
-			fill={isSelected(ref) ? 'var(--color-accent)' : 'var(--color-surface)'}
-			stroke="var(--color-accent)"
-			stroke-width="1.5"
-			vector-effect="non-scaling-stroke"
-			class="cursor-grab transition-[fill]"
-			onpointerdown={(ev) => onPointPointerDown(ev, ref)}
-			onpointermove={onPointerMove}
-			onpointerup={onPointerUp}
-			onpointercancel={onPointerUp}
-			role="button"
-			aria-label="Point {p.pointIndex} of contour {p.contourIndex}"
-			tabindex="0"
-		/>
+		{@const sel = isSelected(ref)}
+		{@const smooth = p.pointType === 'smooth'}
+		{@const fillColor = sel
+			? smooth
+				? 'var(--color-success)'
+				: 'var(--color-accent)'
+			: 'var(--color-surface)'}
+		{@const strokeColor = smooth ? 'var(--color-success)' : 'var(--color-accent)'}
+		{#if smooth}
+			<circle
+				cx={p.x}
+				cy={-p.y}
+				r={handleR}
+				fill={fillColor}
+				stroke={strokeColor}
+				stroke-width="1.5"
+				vector-effect="non-scaling-stroke"
+				class="cursor-grab transition-[fill]"
+				onpointerdown={(ev) => onPointPointerDown(ev, ref)}
+				onpointermove={onPointerMove}
+				onpointerup={onPointerUp}
+				onpointercancel={onPointerUp}
+				role="button"
+				aria-label="Smooth point {p.pointIndex} of contour {p.contourIndex} (Alt-click to make corner)"
+				tabindex="0"
+			/>
+		{:else}
+			<rect
+				x={p.x - handleR}
+				y={-p.y - handleR}
+				width={handleR * 2}
+				height={handleR * 2}
+				transform="rotate(45 {p.x} {-p.y})"
+				fill={fillColor}
+				stroke={strokeColor}
+				stroke-width="1.5"
+				vector-effect="non-scaling-stroke"
+				class="cursor-grab transition-[fill]"
+				onpointerdown={(ev) => onPointPointerDown(ev, ref)}
+				onpointermove={onPointerMove}
+				onpointerup={onPointerUp}
+				onpointercancel={onPointerUp}
+				role="button"
+				aria-label="Corner point {p.pointIndex} of contour {p.contourIndex} (Alt-click to make smooth)"
+				tabindex="0"
+			/>
+		{/if}
 	{/each}
 
 	<!-- Marquee selection rectangle (only while dragging) -->

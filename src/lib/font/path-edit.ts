@@ -4,7 +4,7 @@
  */
 
 import polygonClipping from 'polygon-clipping';
-import type { BezierContour, PathCommand } from './types';
+import type { BezierContour, PathCommand, PointType } from './types';
 
 export type PointRef = { contour: number; index: number };
 
@@ -23,6 +23,7 @@ export type OnCurvePoint = {
 	x: number;
 	y: number;
 	cmdType: 'M' | 'L' | 'C' | 'Q';
+	pointType?: PointType;
 };
 
 export type Handle = {
@@ -162,6 +163,89 @@ export const moveHandle = (
 		};
 	});
 
+/**
+ * Toggle the `pointType` of an on-curve point between smooth and corner. When a
+ * point becomes smooth, its handles are immediately rebalanced so they're
+ * colinear through the anchor (the longer side stays put, the shorter mirrors).
+ */
+export const togglePointType = (
+	contours: BezierContour[],
+	ref: PointRef
+): BezierContour[] => {
+	const contour = contours[ref.contour];
+	if (!contour) return contours;
+	const cmd = contour.commands[ref.index];
+	if (!cmd || cmd.type === 'Z') return contours;
+	const current = (cmd as PathCommand & { pointType?: PointType }).pointType ?? 'corner';
+	const next: PointType = current === 'smooth' ? 'corner' : 'smooth';
+	const updated = contours.map((c, ci) => {
+		if (ci !== ref.contour) return c;
+		return {
+			...c,
+			commands: c.commands.map((c2, i) =>
+				i === ref.index ? ({ ...c2, pointType: next } as PathCommand) : c2
+			)
+		};
+	});
+	if (next === 'smooth') {
+		// Rebalance handles immediately so they're colinear through the anchor.
+		return rebalanceSmoothHandles(updated, ref);
+	}
+	return updated;
+};
+
+/**
+ * If the point at `ref` is smooth, mirror its handles so they're colinear
+ * through the anchor. The handle on the side opposite to `driverWhich` (the one
+ * the user just moved) is moved to keep both handles on a straight line through
+ * the anchor, preserving the driver's distance.
+ *
+ * If `driverWhich` is omitted, both handles average their distances and align
+ * to the bisector of their current angles.
+ */
+export const rebalanceSmoothHandles = (
+	contours: BezierContour[],
+	ref: PointRef,
+	driver?: HandleRef
+): BezierContour[] => {
+	const contour = contours[ref.contour];
+	if (!contour) return contours;
+	const handles = collectHandlesForPoint(contours, ref);
+	if (handles.length < 2) return contours;
+	const anchor = pointXY(contours, ref);
+	if (!anchor) return contours;
+
+	const inH = handles[0];
+	const outH = handles[1];
+	if (!inH || !outH) return contours;
+
+	// Pick which handle is the driver — the one the user just moved.
+	let driverH: typeof inH;
+	let followerH: typeof inH;
+	if (
+		driver &&
+		driver.contour === outH.ref.contour &&
+		driver.cmdIndex === outH.ref.cmdIndex &&
+		driver.which === outH.ref.which
+	) {
+		driverH = outH;
+		followerH = inH;
+	} else {
+		driverH = inH;
+		followerH = outH;
+	}
+	const dx = driverH.x - anchor.x;
+	const dy = driverH.y - anchor.y;
+	const driverLen = Math.hypot(dx, dy);
+	if (driverLen < 0.0001) return contours; // degenerate; nothing to do
+	const followerLen = Math.hypot(followerH.x - anchor.x, followerH.y - anchor.y);
+	// Keep follower's existing distance from the anchor, but point it opposite
+	// to the driver.
+	const nx = anchor.x - (dx / driverLen) * followerLen;
+	const ny = anchor.y - (dy / driverLen) * followerLen;
+	return moveHandle(contours, followerH.ref, Math.round(nx), Math.round(ny));
+};
+
 /** All on-curve points across all contours, with their command indices. */
 export const collectOnCurvePoints = (contours: BezierContour[]): OnCurvePoint[] => {
 	const out: OnCurvePoint[] = [];
@@ -170,7 +254,14 @@ export const collectOnCurvePoints = (contours: BezierContour[]): OnCurvePoint[] 
 		for (let pi = 0; pi < cmds.length; pi++) {
 			const c = cmds[pi];
 			if (c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q') {
-				out.push({ contourIndex: ci, pointIndex: pi, x: c.x, y: c.y, cmdType: c.type });
+				out.push({
+					contourIndex: ci,
+					pointIndex: pi,
+					x: c.x,
+					y: c.y,
+					cmdType: c.type,
+					pointType: c.pointType
+				});
 			}
 		}
 	}
