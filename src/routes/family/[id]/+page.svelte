@@ -13,6 +13,7 @@
 	} from '$lib/font/family';
 	import { loadProject } from '$lib/font/project';
 	import { downloadFamilyBundle } from '$lib/font/family-export';
+	import { auditFamily, type FamilyIssue } from '$lib/font/family-audit';
 	import type { Family, FamilyAxes } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -24,6 +25,10 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Unlink from '@lucide/svelte/icons/unlink';
+	import AlertCircle from '@lucide/svelte/icons/alert-circle';
+	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
+	import Info from '@lucide/svelte/icons/info';
+	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
 	type SiblingEntry = Awaited<ReturnType<typeof listSiblings>>[number];
 	let { data }: { data: { family: Family; siblings: SiblingEntry[] } } = $props();
@@ -34,10 +39,21 @@
 	let siblings = $state<SiblingEntry[]>([...data.siblings]);
 	let saving = $state(false);
 
+	let issues = $state<FamilyIssue[]>([]);
+	const refreshAudit = async () => {
+		issues = await auditFamily(data.family.id);
+	};
+	$effect(() => {
+		// Re-audit whenever siblings change
+		void siblings.length;
+		refreshAudit();
+	});
+
 	const refresh = async () => {
 		const f = await loadFamily(data.family.id);
 		if (f) family = f;
 		siblings = await listSiblings(data.family.id);
+		await refreshAudit();
 	};
 
 	const saveFamilyEdits = async () => {
@@ -294,6 +310,65 @@
 						</button>
 					</li>
 				{/each}
+			</ul>
+		{/if}
+	</Panel>
+
+	<Panel class="mt-6">
+		<div class="mb-3 flex items-baseline justify-between gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Family audit
+			</h2>
+			{#if issues.length === 0 && siblings.length > 0}
+				<span class="inline-flex items-center gap-1 text-[11px] text-success">
+					<CheckCircle2 class="size-3" /> All consistent
+				</span>
+			{:else}
+				<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
+					{issues.filter((i) => i.severity === 'error').length} err ·
+					{issues.filter((i) => i.severity === 'warn').length} warn ·
+					{issues.filter((i) => i.severity === 'info').length} info
+				</span>
+			{/if}
+		</div>
+		<p class="mb-3 text-[12px] text-fg-subtle">
+			Cross-style consistency checks: UPM, vertical metrics, kerning class structure, anchor
+			naming, duplicate familyAxes positions.
+		</p>
+		{#if issues.length > 0}
+			<ul class="grid gap-1">
+				{#each issues.slice(0, 20) as i, idx (idx)}
+					<li
+						class="flex items-start gap-2 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+					>
+						<span class="mt-0.5">
+							{#if i.severity === 'error'}
+								<AlertCircle class="size-3.5 text-danger" />
+							{:else if i.severity === 'warn'}
+								<AlertTriangle class="size-3.5 text-warn" />
+							{:else}
+								<Info class="size-3.5 text-accent" />
+							{/if}
+						</span>
+						<div class="min-w-0 flex-1">
+							<div class="text-[12px] text-fg">{i.message}</div>
+							<div class="mt-0.5 font-mono text-[10px] text-fg-subtle">{i.code}</div>
+						</div>
+						{#if i.siblingId}
+							<a
+								href="/project/{i.siblingId}/edit"
+								class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+							>
+								Open →
+							</a>
+						{/if}
+					</li>
+				{/each}
+				{#if issues.length > 20}
+					<li class="text-[11px] text-fg-subtle">
+						+{issues.length - 20} more issues — fix these first.
+					</li>
+				{/if}
 			</ul>
 		{/if}
 	</Panel>
