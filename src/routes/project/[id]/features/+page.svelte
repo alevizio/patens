@@ -47,6 +47,91 @@
 		dirty = false;
 	};
 
+	type Snippet = { tag: string; label: string; body: string };
+	const SNIPPETS: Snippet[] = [
+		{
+			tag: 'smcp',
+			label: 'Small caps',
+			body: `feature smcp {\n    sub [a b c d e f g h i j k l m n o p q r s t u v w x y z] by [A.sc B.sc C.sc D.sc E.sc F.sc G.sc H.sc I.sc J.sc K.sc L.sc M.sc N.sc O.sc P.sc Q.sc R.sc S.sc T.sc U.sc V.sc W.sc X.sc Y.sc Z.sc];\n} smcp;`
+		},
+		{
+			tag: 'c2sc',
+			label: 'Caps to small caps',
+			body: `feature c2sc {\n    sub [A B C D E F G H I J K L M N O P Q R S T U V W X Y Z] by [A.sc B.sc C.sc D.sc E.sc F.sc G.sc H.sc I.sc J.sc K.sc L.sc M.sc N.sc O.sc P.sc Q.sc R.sc S.sc T.sc U.sc V.sc W.sc X.sc Y.sc Z.sc];\n} c2sc;`
+		},
+		{
+			tag: 'onum',
+			label: 'Old-style figures',
+			body: `feature onum {\n    sub [zero one two three four five six seven eight nine] by [zero.osf one.osf two.osf three.osf four.osf five.osf six.osf seven.osf eight.osf nine.osf];\n} onum;`
+		},
+		{
+			tag: 'lnum',
+			label: 'Lining figures',
+			body: `feature lnum {\n    sub [zero.osf one.osf two.osf three.osf four.osf five.osf six.osf seven.osf eight.osf nine.osf] by [zero one two three four five six seven eight nine];\n} lnum;`
+		},
+		{
+			tag: 'tnum',
+			label: 'Tabular figures',
+			body: `feature tnum {\n    sub [zero one two three four five six seven eight nine] by [zero.tab one.tab two.tab three.tab four.tab five.tab six.tab seven.tab eight.tab nine.tab];\n} tnum;`
+		},
+		{
+			tag: 'pnum',
+			label: 'Proportional figures',
+			body: `feature pnum {\n    sub [zero.tab one.tab two.tab three.tab four.tab five.tab six.tab seven.tab eight.tab nine.tab] by [zero one two three four five six seven eight nine];\n} pnum;`
+		},
+		{
+			tag: 'frac',
+			label: 'Fractions',
+			body: `feature frac {\n    sub [one two three four] slash [two three four] by onehalf;\n    # Custom mapping per fraction. Replace with your fraction glyph names.\n} frac;`
+		},
+		{
+			tag: 'ordn',
+			label: 'Ordinals (1st, 2nd)',
+			body: `feature ordn {\n    sub [a o]' [s t] by [ordfeminine ordmasculine];\n} ordn;`
+		},
+		{
+			tag: 'case',
+			label: 'Case-sensitive forms',
+			body: `feature case {\n    sub [hyphen endash emdash parenleft parenright] by [hyphen.case endash.case emdash.case parenleft.case parenright.case];\n} case;`
+		},
+		{
+			tag: 'salt',
+			label: 'Stylistic alternates',
+			body: `feature salt {\n    sub a by a.alt;\n    sub g by g.alt;\n} salt;`
+		},
+		{
+			tag: 'sups',
+			label: 'Superscript',
+			body: `feature sups {\n    sub [zero one two three four five six seven eight nine] by [zero.sups one.sups two.sups three.sups four.sups five.sups six.sups seven.sups eight.sups nine.sups];\n} sups;`
+		},
+		{
+			tag: 'sinf',
+			label: 'Subscript / scientific inferior',
+			body: `feature sinf {\n    sub [zero one two three four five six seven eight nine] by [zero.sinf one.sinf two.sinf three.sinf four.sinf five.sinf six.sinf seven.sinf eight.sinf nine.sinf];\n} sinf;`
+		},
+		{
+			tag: 'numr',
+			label: 'Numerator',
+			body: `feature numr {\n    sub [zero one two three four five six seven eight nine] by [zero.numr one.numr two.numr three.numr four.numr five.numr six.numr seven.numr eight.numr nine.numr];\n} numr;`
+		},
+		{
+			tag: 'dnom',
+			label: 'Denominator',
+			body: `feature dnom {\n    sub [zero one two three four five six seven eight nine] by [zero.dnom one.dnom two.dnom three.dnom four.dnom five.dnom six.dnom seven.dnom eight.dnom nine.dnom];\n} dnom;`
+		},
+		{
+			tag: 'locl',
+			label: 'Localized forms (Catalan ŀ·l)',
+			body: `feature locl {\n    script latn;\n        language CAT;\n            sub l periodcentered l by l_l.locl_cat;\n} locl;`
+		}
+	];
+
+	const insertSnippet = (s: Snippet) => {
+		const sep = buffer.endsWith('\n') ? '\n' : '\n\n';
+		buffer = `${buffer}${sep}${s.body}\n`;
+		dirty = true;
+	};
+
 	const testCompile = async () => {
 		if (!project) return;
 		testing = true;
@@ -151,6 +236,28 @@
 					</div>
 				</Panel>
 			{/if}
+
+			<Panel>
+				<h2 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Snippet library
+				</h2>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Click to append a starter block. Edit the glyph names afterwards to match your project.
+				</p>
+				<div class="flex flex-wrap gap-1.5">
+					{#each SNIPPETS as s (s.tag)}
+						<button
+							type="button"
+							onclick={() => insertSnippet(s)}
+							class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+							title="Append {s.tag} starter to features.fea"
+						>
+							<span class="font-mono text-accent">{s.tag}</span>
+							<span class="text-fg-subtle">{s.label}</span>
+						</button>
+					{/each}
+				</div>
+			</Panel>
 
 			<Panel>
 				<h2 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
