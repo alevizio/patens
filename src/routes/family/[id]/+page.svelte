@@ -11,6 +11,8 @@
 		propagateFamilyMetadata,
 		propagateKerningClasses,
 		saveFamily,
+		syncAnchorsFromRegular,
+		syncMetricsFromRegular,
 		unlinkProjectFromFamily
 	} from '$lib/font/family';
 	import { loadProject } from '$lib/font/project';
@@ -152,6 +154,42 @@
 		if (!ok) return;
 		await unlinkProjectFromFamily(id);
 		await refresh();
+	};
+
+	const fixableCodes = new Set([
+		'family-upm-mismatch',
+		'family-metrics-mismatch-ascender',
+		'family-metrics-mismatch-descender',
+		'family-metrics-mismatch-capHeight',
+		'family-metrics-mismatch-xHeight',
+		'family-anchor-missing'
+	]);
+	const fixLabel = (code: string): string => {
+		if (code === 'family-upm-mismatch') return 'Sync UPM';
+		if (code.startsWith('family-metrics-mismatch-')) return 'Sync metrics';
+		if (code === 'family-anchor-missing') return 'Copy anchors';
+		return 'Fix';
+	};
+	const handleFixIssue = async (issue: FamilyIssue) => {
+		if (!issue.siblingId) return;
+		if (
+			issue.code === 'family-upm-mismatch' ||
+			issue.code.startsWith('family-metrics-mismatch-')
+		) {
+			const ok = await syncMetricsFromRegular(data.family.id, issue.siblingId);
+			if (ok) {
+				toast.success('Metrics synced from Regular.');
+				await refresh();
+			}
+		} else if (issue.code === 'family-anchor-missing') {
+			const added = await syncAnchorsFromRegular(data.family.id, issue.siblingId);
+			if (added > 0) {
+				toast.success(`Copied ${added} missing anchor${added === 1 ? '' : 's'}.`);
+				await refresh();
+			} else {
+				toast.warn('Nothing to copy.');
+			}
+		}
 	};
 
 	let regularClassCount = $state(0);
@@ -409,6 +447,16 @@
 							<div class="text-[12px] text-fg">{i.message}</div>
 							<div class="mt-0.5 font-mono text-[10px] text-fg-subtle">{i.code}</div>
 						</div>
+						{#if i.siblingId && fixableCodes.has(i.code)}
+							<button
+								type="button"
+								onclick={() => handleFixIssue(i)}
+								class="rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+								title="Sync the offending field from the Regular sibling"
+							>
+								{fixLabel(i.code)}
+							</button>
+						{/if}
 						{#if i.siblingId}
 							<a
 								href="/project/{i.siblingId}/edit"

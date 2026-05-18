@@ -172,6 +172,68 @@ export const propagateFamilyMetadata = async (familyId: string): Promise<number>
 };
 
 /**
+ * Sync structural metrics (UPM + ascender/descender/capHeight/xHeight) from
+ * the Regular sibling to one specific other sibling. Used by the family audit
+ * auto-fix actions.
+ */
+export const syncMetricsFromRegular = async (
+	familyId: string,
+	targetProjectId: string
+): Promise<boolean> => {
+	const regular = await findRegularSibling(familyId);
+	if (!regular || regular.id === targetProjectId) return false;
+	const [regularProject, target] = await Promise.all([
+		loadProject(regular.id),
+		loadProject(targetProjectId)
+	]);
+	if (!regularProject || !target) return false;
+	const next: Project = {
+		...target,
+		metrics: { ...target.metrics, ...regularProject.metrics }
+	};
+	await saveProject(next);
+	return true;
+};
+
+/**
+ * Copy missing anchors from the Regular sibling into one specific other
+ * sibling. Existing anchors on the target are preserved; only missing-by-name
+ * anchors are added at the Regular's coordinates.
+ */
+export const syncAnchorsFromRegular = async (
+	familyId: string,
+	targetProjectId: string
+): Promise<number> => {
+	const regular = await findRegularSibling(familyId);
+	if (!regular || regular.id === targetProjectId) return 0;
+	const [regularProject, target] = await Promise.all([
+		loadProject(regular.id),
+		loadProject(targetProjectId)
+	]);
+	if (!regularProject || !target) return 0;
+	const nextGlyphs = { ...target.glyphs };
+	let added = 0;
+	for (const [cpStr, regGlyph] of Object.entries(regularProject.glyphs)) {
+		const cp = Number(cpStr);
+		const t = nextGlyphs[cp];
+		if (!t) continue;
+		const tAnchorNames = new Set((t.anchors ?? []).map((a) => a.name));
+		const missing = (regGlyph.anchors ?? []).filter((a) => !tAnchorNames.has(a.name));
+		if (missing.length === 0) continue;
+		nextGlyphs[cp] = {
+			...t,
+			anchors: [...(t.anchors ?? []), ...missing.map((a) => ({ ...a }))],
+			updatedAt: new Date().toISOString()
+		};
+		added += missing.length;
+	}
+	if (added > 0) {
+		await saveProject({ ...target, glyphs: nextGlyphs });
+	}
+	return added;
+};
+
+/**
  * Find the canonical "Regular" sibling — `wght=400 ital=0`. Falls back to the
  * first sibling when no exact match exists. Used as the source of truth for
  * family-wide structural decisions (kerning classes, anchors).
