@@ -28,6 +28,7 @@
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
 	import CommandPalette from '$lib/ui/CommandPalette.svelte';
+	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
@@ -254,6 +255,21 @@
 		</a>
 
 		<div class="relative flex min-w-0 flex-1 items-center gap-1">
+			{#if projectStore.selectedGlyph && projectStore.project}
+				<a
+					href="/project/{projectStore.project.id}/edit"
+					class="shrink-0"
+					title="Open {projectStore.selectedGlyph.name} in editor"
+				>
+					<GlyphTile
+						glyph={projectStore.selectedGlyph}
+						size={24}
+						showLabel={false}
+						ascender={projectStore.project.metrics.ascender}
+						descender={projectStore.project.metrics.descender}
+					/>
+				</a>
+			{/if}
 			<input
 				type="text"
 				value={nameInput}
