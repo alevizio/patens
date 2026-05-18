@@ -52,15 +52,28 @@
 
 	let projects = $state<ProjectIndexEntry[]>([]);
 	let projectQuery = $state('');
+	let projectSort = $state<'updated' | 'name' | 'brief' | 'glyphs'>('updated');
 	let loading = $state(true);
 
 	const filteredProjects = $derived.by(() => {
 		const q = projectQuery.trim().toLowerCase();
-		if (!q) return projects;
-		return projects.filter(
-			(p) =>
-				p.name.toLowerCase().includes(q) || p.familyName.toLowerCase().includes(q)
-		);
+		const filtered = q
+			? projects.filter(
+					(p) =>
+						p.name.toLowerCase().includes(q) || p.familyName.toLowerCase().includes(q)
+				)
+			: [...projects];
+		switch (projectSort) {
+			case 'name':
+				return filtered.sort((a, b) => a.name.localeCompare(b.name));
+			case 'brief':
+				return filtered.sort((a, b) => (b.briefPct ?? 0) - (a.briefPct ?? 0));
+			case 'glyphs':
+				return filtered.sort((a, b) => b.glyphCount - a.glyphCount);
+			case 'updated':
+			default:
+				return filtered.sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
+		}
 	});
 	let creating = $state(false);
 	let importing = $state(false);
@@ -375,11 +388,23 @@
 				{/if}
 			</div>
 			{#if projects.length > 6}
-				<input
-					bind:value={projectQuery}
-					placeholder="Filter by name or family…"
-					class="mb-3 block w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
-				/>
+				<div class="mb-3 flex gap-2">
+					<input
+						bind:value={projectQuery}
+						placeholder="Filter by name or family…"
+						class="flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+					/>
+					<select
+						bind:value={projectSort}
+						class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted outline-none focus:border-accent"
+						title="Sort by"
+					>
+						<option value="updated">Recent</option>
+						<option value="name">Name</option>
+						<option value="brief">Brief %</option>
+						<option value="glyphs">Glyphs</option>
+					</select>
+				</div>
 			{/if}
 
 			{#if loading}
