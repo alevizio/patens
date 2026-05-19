@@ -45,7 +45,7 @@
 		--border-strong: 240 6% 78%;
 		--fg: 240 10% 10%;
 		--fg-muted: 240 5% 38%;
-		--fg-subtle: 240 5% 60%;
+		--fg-subtle: 240 5% 45%; /* WCAG-AA contrast >= 4.5:1 against off-white canvas (#f7f7f8) */
 		--accent: 222 88% 55%;
 		--accent-fg: 0 0% 100%;
 		--accent-soft: 222 88% 95%;

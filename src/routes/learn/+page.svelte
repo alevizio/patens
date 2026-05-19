@@ -209,6 +209,11 @@
 	];
 </script>
 
+<svelte:head>
+	<title>Learn — Font Studio</title>
+	<meta name="description" content="A 8–12 week beginner path for type design — research, control set, vectorizing, spacing, hinting, and shipping your first font." />
+</svelte:head>
+
 <div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
 	<!-- Slim top bar — matches home + families pages -->
 	<header
@@ -372,7 +377,7 @@
 						{t.role}
 					</div>
 					<ExternalLink
-						class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+						class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
 						aria-hidden="true"
 					/>
 				</a>
@@ -398,7 +403,7 @@
 							{r.title}
 						</span>
 						<ExternalLink
-							class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+							class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
 							aria-hidden="true"
 						/>
 					</div>
@@ -461,7 +466,7 @@
 							{f.name}
 						</span>
 						<ExternalLink
-							class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+							class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
 							aria-hidden="true"
 						/>
 					</div>
@@ -510,7 +515,7 @@
 						<p class="mt-1.5 text-[12px] leading-snug text-fg-muted">{r.why}</p>
 					</div>
 					<ExternalLink
-						class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+						class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
 						aria-hidden="true"
 					/>
 				</a>

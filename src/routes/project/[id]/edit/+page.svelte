@@ -1679,7 +1679,7 @@
 						<ChevronUp class="size-3.5" />
 						<span>Live preview · actions</span>
 					</span>
-					<span class="font-mono text-[10px] text-fg-subtle/70" data-numeric>
+					<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
 						Show ↑
 					</span>
 				</button>
@@ -2070,7 +2070,7 @@
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					<span>Anchors</span>
-					<span class="text-fg-subtle/70" data-numeric>{glyph.anchors?.length ?? 0}</span>
+					<span class="text-fg-subtle" data-numeric>{glyph.anchors?.length ?? 0}</span>
 				</h3>
 				{#if glyph.anchors && glyph.anchors.length > 0}
 					<ul class="mb-2 grid gap-1">
@@ -2412,7 +2412,7 @@
 					     Render the codepoint in the system stack at low opacity
 					     so the panel still tells you which letter you're on. -->
 					<div
-						class="rounded-md border border-dashed border-border bg-canvas p-4 text-center text-6xl leading-none text-fg-subtle/60"
+						class="rounded-md border border-dashed border-border bg-canvas p-4 text-center text-6xl leading-none text-fg-subtle"
 						style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 						title="Draw contours to see the live preview"
 					>

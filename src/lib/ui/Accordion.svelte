@@ -76,9 +76,9 @@
 		title={open ? `Collapse ${label}` : `Expand ${label}`}
 	>
 		{#if open}
-			<ChevronDown class="size-3 shrink-0 text-fg-subtle/70" aria-hidden="true" />
+			<ChevronDown class="size-3 shrink-0 text-fg-subtle" aria-hidden="true" />
 		{:else}
-			<ChevronRight class="size-3 shrink-0 text-fg-subtle/70" aria-hidden="true" />
+			<ChevronRight class="size-3 shrink-0 text-fg-subtle" aria-hidden="true" />
 		{/if}
 		{#if icon}
 			{@render icon()}

@@ -552,7 +552,7 @@ function rgb(hex) {
 			<div class="mb-3 flex flex-wrap items-baseline justify-between gap-2">
 				<h2 class="inline-flex items-baseline gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Paragraph (16/24)
-					<span class="text-fg-subtle/70 normal-case tracking-normal">· {proofLabel}</span>
+					<span class="text-fg-subtle normal-case tracking-normal">· {proofLabel}</span>
 				</h2>
 				<div class="flex items-center gap-3">
 					<button

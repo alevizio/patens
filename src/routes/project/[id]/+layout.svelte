@@ -483,7 +483,7 @@
 			>
 				<div class="font-mono text-[11px] text-fg-subtle" data-numeric>
 					{projectStore.project?.metadata.familyName}
-					<span class="mx-1 text-fg-subtle/50">·</span>
+					<span class="mx-1 text-fg-subtle">·</span>
 					<span class="text-fg-muted">v{projectStore.project?.metadata.version}</span>
 				</div>
 				{#if projectStore.project && (projectStore.project.masters?.length ?? 0) > 0}

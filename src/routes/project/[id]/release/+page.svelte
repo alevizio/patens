@@ -371,7 +371,7 @@
 					{@const passedInGroup = group.items.filter((it) => checks[it.id]).length}
 					<h2 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 						<span>{group.title}</span>
-						<span class="font-mono normal-case text-fg-subtle/60" data-numeric>
+						<span class="font-mono normal-case text-fg-subtle" data-numeric>
 							{passedInGroup}/{group.items.length}
 						</span>
 					</h2>

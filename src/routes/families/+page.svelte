@@ -8,6 +8,11 @@
 	let { data }: { data: { families: FamilyIndexEntry[] } } = $props();
 </script>
 
+<svelte:head>
+	<title>Families — Font Studio</title>
+	<meta name="description" content="Every type family in your foundry — siblings, axes, and family-wide audits." />
+</svelte:head>
+
 <div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
 	<!-- Slim top bar — matches the home page chrome -->
 	<header

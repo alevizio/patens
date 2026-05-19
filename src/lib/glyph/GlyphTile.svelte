@@ -114,7 +114,7 @@
 				{char}
 			</span>
 		{:else}
-			<span class="text-[10px] font-mono text-fg-subtle/60" data-numeric>
+			<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 				{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}
 			</span>
 		{/if}

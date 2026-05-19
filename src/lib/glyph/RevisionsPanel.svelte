@@ -44,7 +44,7 @@
 		<h3 class="mb-2 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 			<span class="inline-flex items-center gap-1.5">
 				<Camera class="size-3" /> Snapshots
-				<span class="text-fg-subtle/70" data-numeric>{revisions.length}/8</span>
+				<span class="text-fg-subtle" data-numeric>{revisions.length}/8</span>
 			</span>
 			<button
 				type="button"

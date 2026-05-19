@@ -333,7 +333,7 @@
 						{/if}
 					</span>
 					{#if statusFilter === 'all' && totalGlyphs > 0}
-						<span class="text-fg-subtle/70">{drawnPct}%</span>
+						<span class="text-fg-subtle">{drawnPct}%</span>
 					{/if}
 				</div>
 				{#if statusFilter === 'all' && totalGlyphs > 0}
@@ -478,7 +478,7 @@
 			<section class="mb-3">
 				<h3 class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Pinned
-					<span class="ml-1 text-fg-subtle/70" data-numeric>{pinnedGlyphs.length}</span>
+					<span class="ml-1 text-fg-subtle" data-numeric>{pinnedGlyphs.length}</span>
 				</h3>
 				<div class="grid grid-cols-4 gap-0.5">
 					{#each pinnedGlyphs as g (g.codepoint)}
@@ -504,7 +504,7 @@
 			<section class="mb-3">
 				<h3 class="mb-1.5 px-1.5 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Recently edited
-					<span class="ml-1 text-fg-subtle/70" data-numeric>{recents.length}</span>
+					<span class="ml-1 text-fg-subtle" data-numeric>{recents.length}</span>
 				</h3>
 				<div class="grid grid-cols-4 gap-0.5">
 					{#each recents as g (g.codepoint)}
@@ -541,9 +541,9 @@
 					>
 						<span>
 							{CATEGORY_LABELS[cat]}
-							<span class="ml-1 text-fg-subtle/70" data-numeric>{list.length}</span>
+							<span class="ml-1 text-fg-subtle" data-numeric>{list.length}</span>
 						</span>
-						<span class="font-mono normal-case text-fg-subtle/60" data-numeric>
+						<span class="font-mono normal-case text-fg-subtle" data-numeric>
 							{stats.drawn}/{stats.total}
 						</span>
 					</h3>
