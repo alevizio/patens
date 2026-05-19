@@ -1,7 +1,15 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { askClaude, glyphsToPng, AnthropicError, type AnthropicMessage } from '$lib/ai/anthropic';
+	import {
+		requestGlyphProposal,
+		proposalToContours,
+		type GlyphProposal
+	} from '$lib/ai/glyph-suggest';
+	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
+	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -13,6 +21,9 @@
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Loader from '@lucide/svelte/icons/loader-2';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
+	import Check from '@lucide/svelte/icons/check';
+	import X from '@lucide/svelte/icons/x';
 
 	const project = $derived(projectStore.project);
 
@@ -30,6 +41,89 @@
 	let customPrompt = $state('');
 	let vibe = $state('');
 	let featureBrief = $state('Standard ligatures + tabular figures + small caps');
+
+	// Glyph-suggest spike state. Pure transforms + parsing are unit-tested in
+	// src/lib/ai/glyph-suggest-core.test.ts; this section drives the UI loop.
+	let suggestTargetCp = $state<number | null>(null);
+	let suggestGenerating = $state(false);
+	let suggestProposal = $state<GlyphProposal | null>(null);
+	let suggestError = $state<string | null>(null);
+
+	const undrawnGlyphs = $derived.by(() => {
+		if (!project) return [];
+		return Object.values(project.glyphs)
+			.filter((g) => g.contours.length === 0 && (!g.components || g.components.length === 0))
+			.filter((g) => g.codepoint > 0x20)
+			.sort((a, b) => a.codepoint - b.codepoint);
+	});
+
+	const drawnGlyphsList = $derived.by(() => {
+		if (!project) return [];
+		return Object.values(project.glyphs).filter((g) => g.contours.length > 0);
+	});
+
+	const previewContours = $derived(
+		suggestProposal ? proposalToContours(suggestProposal) : []
+	);
+
+	const previewViewBox = $derived.by(() => {
+		if (previewContours.length === 0 || !project) return '0 0 1000 1000';
+		const b = glyphBounds(previewContours);
+		const m = project.metrics;
+		// Use the full em-square as the viewport so proportion reads correctly.
+		// SVG Y axis flips: place ascender at top, descender at bottom.
+		const w = Math.max(b.maxX, suggestProposal?.advanceWidth ?? 600) + 100;
+		const h = m.ascender - m.descender;
+		return `-50 ${-m.ascender} ${w} ${h}`;
+	});
+
+	const previewPath = $derived(contoursToSvgPath(previewContours));
+
+	const generateSuggestion = async () => {
+		if (!project || !suggestTargetCp || suggestGenerating) return;
+		suggestGenerating = true;
+		suggestError = null;
+		suggestProposal = null;
+		try {
+			const proposal = await requestGlyphProposal(
+				suggestTargetCp,
+				drawnGlyphsList,
+				project.metrics
+			);
+			suggestProposal = proposal;
+		} catch (e) {
+			suggestError =
+				e instanceof AnthropicError
+					? e.message
+					: e instanceof Error
+						? e.message
+						: 'Failed to generate.';
+		} finally {
+			suggestGenerating = false;
+		}
+	};
+
+	const applySuggestion = async () => {
+		if (!project || !suggestProposal) return;
+		const cp = suggestProposal.codepoint;
+		const contours = proposalToContours(suggestProposal);
+		const advance = suggestProposal.advanceWidth;
+		projectStore.updateGlyph(cp, (g) => ({
+			...g,
+			contours,
+			advanceWidth: advance,
+			status: 'sketch'
+		}));
+		projectStore.selectGlyph(cp);
+		suggestProposal = null;
+		suggestTargetCp = null;
+		await goto(`/project/${project.id}/edit`);
+	};
+
+	const discardSuggestion = () => {
+		suggestProposal = null;
+		suggestError = null;
+	};
 
 	const projectContext = (): string => {
 		if (!project) return '';
@@ -393,6 +487,100 @@ Write the design-notes essay.`;
 						</button>
 					{/each}
 				</div>
+			</Panel>
+
+			<Panel>
+				<div class="mb-3 flex items-center gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Generate a glyph
+					</h2>
+					<span
+						class="rounded-full bg-warn/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-warn uppercase"
+					>
+						Experimental
+					</span>
+				</div>
+				<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+					Propose vector contours for an undrawn glyph using your existing
+					{drawnGlyphsList.length} drawn glyph{drawnGlyphsList.length === 1 ? '' : 's'} as
+					style reference. Best on letters built from stems, bars, diagonals, and
+					ellipses (E, H, I, L, T, O, A, V, etc.).
+				</p>
+
+				<div class="flex flex-wrap gap-2">
+					<select
+						bind:value={suggestTargetCp}
+						disabled={suggestGenerating || !settings.hasKey || drawnGlyphsList.length === 0}
+						class="h-9 min-w-[14rem] flex-1 rounded-md border border-border bg-surface px-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft disabled:opacity-50"
+					>
+						<option value={null}>Pick a target glyph…</option>
+						{#each undrawnGlyphs as g (g.codepoint)}
+							<option value={g.codepoint}>
+								{String.fromCodePoint(g.codepoint)} — {aglfnName(g.codepoint)}
+							</option>
+						{/each}
+					</select>
+					<Button
+						density="sm"
+						onclick={generateSuggestion}
+						disabled={!suggestTargetCp || drawnGlyphsList.length === 0}
+						loading={suggestGenerating}
+					>
+						{#snippet icon()}<Wand class="size-3.5" />{/snippet}
+						Generate
+					</Button>
+				</div>
+
+				{#if drawnGlyphsList.length === 0}
+					<p class="mt-2 text-[12px] text-fg-subtle">
+						Draw at least one glyph first so Claude has a style reference.
+					</p>
+				{/if}
+
+				{#if suggestError}
+					<div
+						class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger"
+					>
+						{suggestError}
+					</div>
+				{/if}
+
+				{#if suggestProposal}
+					<div class="mt-4 grid gap-3 sm:grid-cols-[180px_1fr]">
+						<div
+							class="flex items-center justify-center rounded-md border border-border bg-surface-2/40 p-3"
+						>
+							<svg
+								viewBox={previewViewBox}
+								width="160"
+								height="160"
+								style="transform: scaleY(-1);"
+								aria-label="Proposed glyph preview"
+							>
+								<path d={previewPath} fill="currentColor" fill-rule="evenodd" />
+							</svg>
+						</div>
+						<div class="flex flex-col gap-2">
+							<p class="text-[13px] leading-snug text-fg">
+								{suggestProposal.reasoning}
+							</p>
+							<div class="font-mono text-[10px] text-fg-subtle" data-numeric>
+								{suggestProposal.strokes.length} primitives · advance
+								{suggestProposal.advanceWidth}u
+							</div>
+							<div class="mt-1 flex gap-2">
+								<Button density="sm" onclick={applySuggestion}>
+									{#snippet icon()}<Check class="size-3.5" />{/snippet}
+									Apply to glyph
+								</Button>
+								<Button density="sm" variant="ghost" onclick={discardSuggestion}>
+									{#snippet icon()}<X class="size-3.5" />{/snippet}
+									Discard
+								</Button>
+							</div>
+						</div>
+					</div>
+				{/if}
 			</Panel>
 
 			<Panel>
