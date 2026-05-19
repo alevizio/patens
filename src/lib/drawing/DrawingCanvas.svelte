@@ -412,6 +412,26 @@
 			</g>
 		{/if}
 
+		<!-- Character ghost — fades in only when the glyph has nothing drawn yet
+		     and there's no reference image to trace. Gives the designer a faint
+		     letterform to aim at so the canvas isn't a blank slate. -->
+		{#if glyph.codepoint > 0x20 && glyph.codepoint < 0x10000 && glyph.contours.length === 0 && (!glyph.sketch || glyph.sketch.length === 0) && !glyph.referenceImage}
+			<g transform="scale(1, -1)" pointer-events="none" aria-hidden="true">
+				<text
+					x={advance / 2}
+					y={0}
+					text-anchor="middle"
+					dominant-baseline="alphabetic"
+					font-size={metrics.capHeight}
+					fill="var(--color-fg)"
+					opacity="0.07"
+					style="font-family: var(--preview-family);"
+				>
+					{String.fromCodePoint(glyph.codepoint)}
+				</text>
+			</g>
+		{/if}
+
 		<!-- Vector layer (final) -->
 		{#if showVector && glyph.contours.length > 0}
 			<g fill="var(--color-fg)" fill-rule="evenodd">
