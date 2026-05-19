@@ -35,9 +35,18 @@
 
 	<Panel>
 		{#if data.families.length === 0}
-			<div class="py-10 text-center text-[12px] text-fg-subtle">
-				No families yet. Right-click any project on the home page and choose <strong
-					class="text-fg-muted">Start family from this project…</strong> to begin.
+			<div class="flex flex-col items-center gap-3 py-12 text-center">
+				<pre
+					class="inline-block whitespace-pre text-left font-mono text-[10px] leading-[1.15] text-fg-subtle"
+					aria-hidden="true">{`  Roman      Italic      Bold
+  ──────     ──────     ──────
+   H  O       H  O       H  O
+   n  o       n  o       n  o`}</pre>
+				<p class="max-w-sm text-[12px] text-fg-subtle">
+					No families yet. Right-click any project on the home page and choose <strong
+						class="text-fg-muted">Start family from this project…</strong> to link
+					siblings under one canonical name.
+				</p>
 			</div>
 		{:else}
 			<ul class="grid gap-2">

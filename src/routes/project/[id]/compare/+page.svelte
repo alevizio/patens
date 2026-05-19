@@ -408,19 +408,24 @@
 							</p>
 						{/if}
 						{#each layers as layer (layer.id)}
-							<div class="rounded-md border border-border bg-surface-2/40 p-2">
-								<div class="mb-1 flex items-start gap-2">
+							<div
+								class="rounded-md border border-border bg-surface-2/40 transition-colors {layer.visible
+									? ''
+									: 'opacity-50'}"
+							>
+								<!-- Row 1: title + actions. Primary attention. -->
+								<div class="flex items-start gap-2 px-2.5 pt-2">
 									<button
 										type="button"
 										onclick={() => cycleMode(layer.id)}
-										class="size-3 shrink-0 rounded-sm border"
+										class="mt-1 size-3 shrink-0 rounded-sm border transition-transform hover:scale-110"
 										style="background-color: {layer.mode !== 'stroke'
 											? layer.color
 											: 'transparent'}; border-color: {layer.color};"
-										title="Click: cycle fill / stroke / both"
+										title="Rendering: {layer.mode}. Click to cycle fill / stroke / both."
 										aria-label="Toggle layer rendering mode"
 									></button>
-									<div class="min-w-0 flex-1">
+									<div class="min-w-0 flex-1 leading-tight">
 										<div class="truncate text-[12px] font-medium text-fg">
 											{layer.label}
 										</div>
@@ -431,24 +436,39 @@
 									<button
 										type="button"
 										onclick={() => toggleLayer(layer.id)}
-										class="rounded p-0.5 text-fg-subtle hover:text-fg"
+										class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
 										aria-label="Toggle visibility"
 									>
-										{#if layer.visible}<Eye class="size-3" />{:else}<EyeOff class="size-3" />{/if}
+										{#if layer.visible}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 									</button>
 									{#if layer.id.startsWith('ref-')}
 										<button
 											type="button"
 											onclick={() => removeLayer(layer.id)}
-											class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+											class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger"
 											aria-label="Remove reference layer"
 										>
-											<Trash2 class="size-3" />
+											<Trash2 class="size-3.5" />
 										</button>
 									{/if}
 								</div>
-								<label class="flex items-center gap-2 text-[10px] text-fg-subtle">
-									<span class="w-12">opacity</span>
+								<!-- Row 2: metrics inline (advance · UPM). Secondary. -->
+								<div
+									class="flex items-baseline gap-3 px-2.5 pt-1 font-mono text-[10px] text-fg-subtle"
+									data-numeric
+								>
+									<span>
+										adv <span class="text-fg">{layer.advanceWidth}</span>
+									</span>
+									<span>
+										UPM <span class="text-fg">{layer.upm}</span>
+									</span>
+								</div>
+								<!-- Row 3: opacity band — visually subordinate but always reachable. -->
+								<label
+									class="mt-2 flex items-center gap-2 border-t border-border/60 px-2.5 py-1.5 text-[10px] text-fg-subtle"
+								>
+									<span class="w-10">opacity</span>
 									<input
 										type="range"
 										min="0.1"
@@ -463,15 +483,6 @@
 										{Math.round(layer.opacity * 100)}
 									</span>
 								</label>
-								<dl
-									class="mt-1 grid grid-cols-[auto_1fr] gap-x-2 font-mono text-[10px] text-fg-subtle"
-									data-numeric
-								>
-									<dt>advance</dt>
-									<dd class="text-right text-fg">{layer.advanceWidth}</dd>
-									<dt>UPM</dt>
-									<dd class="text-right text-fg">{layer.upm}</dd>
-								</dl>
 							</div>
 						{/each}
 					</div>

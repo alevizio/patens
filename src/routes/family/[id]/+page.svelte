@@ -386,6 +386,8 @@
 		</div>
 	</header>
 
+	<div class="flex flex-col gap-6">
+
 	<Panel>
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 			Family-level metadata
@@ -415,7 +417,7 @@
 		</p>
 	</Panel>
 
-	<Panel class="mt-6">
+	<Panel>
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 			Siblings
 		</h2>
@@ -501,7 +503,7 @@
 		{/if}
 	</Panel>
 
-	<Panel class="mt-6">
+	<Panel>
 		<div class="mb-3 flex items-baseline justify-between gap-2">
 			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 				Family audit
@@ -571,7 +573,7 @@
 	</Panel>
 
 	{#if siblings.length > 1}
-		<Panel class="mt-6">
+		<Panel>
 			<div class="mb-2 flex items-baseline justify-between gap-2">
 				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Kerning class structure
@@ -610,7 +612,7 @@
 	{/if}
 
 	{#if siblings.length > 1}
-		<Panel class="mt-6">
+		<Panel>
 			<div class="mb-2 flex items-baseline justify-between gap-2">
 				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Side-by-side proof
@@ -688,7 +690,7 @@
 		</Panel>
 	{/if}
 
-	<Panel class="mt-6">
+	<Panel>
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 			Add sibling style
 		</h2>
@@ -771,39 +773,45 @@
 				Light
 			</button>
 		</div>
-		<form onsubmit={handleCreateSibling} class="grid gap-2 md:grid-cols-[1fr_1fr_auto_auto_auto]">
-			<Field label="Template (clone from)">
-				<select
-					bind:value={templateId}
-					class="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
-				>
-					{#each siblings as s (s.id)}
-						<option value={s.id}>{s.name}</option>
-					{/each}
-					{#if siblings.length === 0}
-						<option value="">No siblings — link an existing project first</option>
-					{/if}
-				</select>
-			</Field>
-			<Field label="Style name">
-				<Input bind:value={newStyleName} placeholder="Italic" />
-			</Field>
-			<Field label="wght">
-				<Input type="number" bind:value={newWght as number} />
-			</Field>
-			<Field label="wdth">
-				<Input type="number" bind:value={newWdth as number} />
-			</Field>
-			<Field label="ital">
-				<select
-					bind:value={newItal}
-					class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
-				>
-					<option value={0}>0 (upright)</option>
-					<option value={1}>1 (italic)</option>
-				</select>
-			</Field>
-			<div class="md:col-span-5">
+		<form onsubmit={handleCreateSibling} class="grid gap-3">
+			<!-- Identity row: template + style name. Each takes half. -->
+			<div class="grid gap-2 md:grid-cols-2">
+				<Field label="Template (clone from)">
+					<select
+						bind:value={templateId}
+						class="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+					>
+						{#each siblings as s (s.id)}
+							<option value={s.id}>{s.name}</option>
+						{/each}
+						{#if siblings.length === 0}
+							<option value="">No siblings — link an existing project first</option>
+						{/if}
+					</select>
+				</Field>
+				<Field label="Style name">
+					<Input bind:value={newStyleName} placeholder="Italic" />
+				</Field>
+			</div>
+			<!-- Position row: the three axis values, tight horizontal group. -->
+			<div class="grid gap-2 md:grid-cols-[1fr_1fr_1fr]">
+				<Field label="wght (100–900)">
+					<Input type="number" bind:value={newWght as number} />
+				</Field>
+				<Field label="wdth (% normal)">
+					<Input type="number" bind:value={newWdth as number} />
+				</Field>
+				<Field label="ital">
+					<select
+						bind:value={newItal}
+						class="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+					>
+						<option value={0}>0 — upright</option>
+						<option value={1}>1 — italic</option>
+					</select>
+				</Field>
+			</div>
+			<div>
 				<Button type="submit" density="sm" disabled={!templateId}>
 					{#snippet icon()}<Plus class="size-3.5" />{/snippet}
 					Create sibling
@@ -811,4 +819,6 @@
 			</div>
 		</form>
 	</Panel>
+
+	</div>
 </div>
