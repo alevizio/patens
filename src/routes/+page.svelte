@@ -48,6 +48,7 @@
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import HardDrive from '@lucide/svelte/icons/hard-drive';
 	import StorageDialog from '$lib/ui/StorageDialog.svelte';
+	import { createDemoProject } from '$lib/font/demo-project';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -191,6 +192,19 @@
 	let importError = $state<string | null>(null);
 	let createDialogOpen = $state(false);
 	let storageDialogOpen = $state(false);
+	let openingDemo = $state(false);
+
+	const handleOpenDemo = async () => {
+		if (openingDemo) return;
+		openingDemo = true;
+		try {
+			const project = createDemoProject();
+			await saveProject(project);
+			await goto(`/project/${project.id}/edit`);
+		} finally {
+			openingDemo = false;
+		}
+	};
 	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
@@ -1216,94 +1230,127 @@
 		</section>
 	</div>
 
-	<!-- Made-in-this-app examples — asymmetric composition: section-intro
-	     column on the left, two example cards stacked on the right. Breaks
-	     the page's symmetric rhythm so this content reads as "an aside",
-	     not "another full-width grid". -->
+	<!-- See it in action — asymmetric: section intro on the left, the
+	     "open the example project" hero CTA on the right with the two
+	     download OTFs as smaller tertiary actions below it. -->
 	<section class="mt-24 grid gap-8 md:grid-cols-[5fr_7fr] md:gap-10">
 		<div>
 			<h2
 				class="text-[22px] leading-tight tracking-tight text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
-				Made with Font Studio
+				See it in action
 			</h2>
 			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
-				Both were generated end-to-end by this app — drawn shapes, advance
-				widths, OS/2 metadata, the whole envelope. Download, double-click to
-				install on macOS, then type <span class="font-medium text-fg">HOTEL NINE</span>
-				or <span class="font-medium text-fg">noon</span> in any app to see them
-				at work.
+				Open the example project to explore a font mid-design — eight drawn
+				glyphs across uppercase + lowercase, with the Brief, metrics, and
+				release notes already set. Edit any point, run a boolean op, ship
+				the OTF.
 			</p>
 			<p class="mt-3 font-mono text-[10px] tracking-wide text-fg-subtle uppercase">
-				Two example .otf files
+				Example project + two demo .otf files
 			</p>
 		</div>
 		<div class="grid gap-3">
-			<a
-				href="/demo-fonts/StudioGeometric-Regular.otf"
-				download
-				class="group flex items-center gap-5 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
-				title="Download Studio Geometric Regular (.otf)"
+			<!-- Primary: open the example in the editor. -->
+			<button
+				type="button"
+				onclick={handleOpenDemo}
+				disabled={openingDemo}
+				class="group flex items-center gap-5 overflow-hidden rounded-2xl border border-accent/60 bg-accent-soft/40 p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent-soft/60 hover:shadow-md disabled:opacity-70"
 			>
 				<div
-					class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[34px] leading-none text-fg group-hover:text-accent"
-					style="font-family: ui-sans-serif, system-ui, sans-serif;"
+					class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
-					Hn
+					<span class="text-[28px] leading-none">Hn</span>
 				</div>
 				<div class="min-w-0 flex-1">
-					<div
-						class="text-[16px] leading-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
-					>
-						Studio Geometric
+					<div class="flex items-center gap-2">
+						<div
+							class="text-[16px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{openingDemo ? 'Opening…' : 'Open the example project'}
+						</div>
+						<span
+							class="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-accent uppercase"
+						>
+							Try it
+						</span>
 					</div>
-					<div class="mt-1 text-[11px] text-fg-subtle">Monolinear sans · Regular</div>
+					<div class="mt-1 text-[12px] leading-snug text-fg-muted">
+						A font mid-design — opens in the editor, fully wired
+					</div>
 					<div
 						class="mt-1.5 font-mono text-[10px] tracking-wide text-fg-subtle"
 						data-numeric
 					>
-						8 glyphs · 2.3 KB · .otf
+						8 glyphs drawn · Brief filled · v0.1.0-demo
 					</div>
 				</div>
-				<Download
-					class="size-4 shrink-0 text-fg-subtle group-hover:text-accent"
-					aria-hidden="true"
-				/>
-			</a>
-			<a
-				href="/demo-fonts/StudioSlab-Regular.otf"
-				download
-				class="group flex items-center gap-5 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
-				title="Download Studio Slab Regular (.otf)"
-			>
-				<div
-					class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[34px] leading-none text-fg group-hover:text-accent"
-					style="font-family: ui-serif, Georgia, serif;"
+				<span
+					class="text-accent transition-transform group-hover:translate-x-0.5"
 				>
-					Tn
-				</div>
-				<div class="min-w-0 flex-1">
+					→
+				</span>
+			</button>
+
+			<!-- Tertiary downloads, compact -->
+			<div class="grid gap-2 sm:grid-cols-2">
+				<a
+					href="/demo-fonts/StudioGeometric-Regular.otf"
+					download
+					class="group flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent"
+					title="Download Studio Geometric Regular (.otf)"
+				>
 					<div
-						class="text-[16px] leading-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-fg/5 text-[18px] leading-none text-fg group-hover:text-accent"
+						style="font-family: ui-sans-serif, system-ui, sans-serif;"
 					>
-						Studio Slab
+						Hn
 					</div>
-					<div class="mt-1 text-[11px] text-fg-subtle">Slab serif · Regular</div>
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-[12px] font-medium text-fg">Studio Geometric</div>
+						<div
+							class="truncate font-mono text-[10px] text-fg-subtle"
+							data-numeric
+						>
+							2.3 KB · .otf
+						</div>
+					</div>
+					<Download
+						class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
+						aria-hidden="true"
+					/>
+				</a>
+				<a
+					href="/demo-fonts/StudioSlab-Regular.otf"
+					download
+					class="group flex items-center gap-3 rounded-xl border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent"
+					title="Download Studio Slab Regular (.otf)"
+				>
 					<div
-						class="mt-1.5 font-mono text-[10px] tracking-wide text-fg-subtle"
-						data-numeric
+						class="flex size-9 shrink-0 items-center justify-center rounded-lg bg-fg/5 text-[18px] leading-none text-fg group-hover:text-accent"
+						style="font-family: ui-serif, Georgia, serif;"
 					>
-						8 glyphs · 2.4 KB · .otf
+						Tn
 					</div>
-				</div>
-				<Download
-					class="size-4 shrink-0 text-fg-subtle group-hover:text-accent"
-					aria-hidden="true"
-				/>
-			</a>
+					<div class="min-w-0 flex-1">
+						<div class="truncate text-[12px] font-medium text-fg">Studio Slab</div>
+						<div
+							class="truncate font-mono text-[10px] text-fg-subtle"
+							data-numeric
+						>
+							2.4 KB · .otf
+						</div>
+					</div>
+					<Download
+						class="size-3.5 shrink-0 text-fg-subtle group-hover:text-accent"
+						aria-hidden="true"
+					/>
+				</a>
+			</div>
 		</div>
 	</section>
 
