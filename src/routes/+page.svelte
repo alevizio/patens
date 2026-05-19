@@ -27,6 +27,7 @@
 	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
 	import { settings } from '$lib/stores/settings.svelte';
 	import WelcomeDialog from '$lib/ui/WelcomeDialog.svelte';
+	import CreateFontDialog from '$lib/ui/CreateFontDialog.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -185,6 +186,7 @@
 	let ufoImporting = $state(false);
 	let urlImporting = $state(false);
 	let importError = $state<string | null>(null);
+	let createDialogOpen = $state(false);
 	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
@@ -311,25 +313,30 @@
 	);
 
 	let newScriptPacks = $state<Set<string>>(new Set());
-	const handleCreate = async (e: Event) => {
-		e.preventDefault();
-		const trimmed = newName.trim();
+	const handleCreate = async (input: {
+		name: string;
+		familyName: string;
+		kind: ProjectKind | undefined;
+		scriptPacks: Set<string>;
+	}) => {
+		const trimmed = input.name.trim();
 		if (!trimmed || creating) return;
 		creating = true;
 		const isFirstProject = projects.length === 0;
 		try {
 			let project = createProject({
 				name: trimmed,
-				familyName: newFamily.trim() || trimmed,
-				kind: newKind
+				familyName: input.familyName.trim() || trimmed,
+				kind: input.kind
 			});
 			// Apply any selected non-Latin script packs at creation time.
 			for (const pack of SCRIPT_PACKS) {
-				if (newScriptPacks.has(pack.id)) {
+				if (input.scriptPacks.has(pack.id)) {
 					project = addScriptPack(project, pack);
 				}
 			}
 			await saveProject(project);
+			createDialogOpen = false;
 			if (isFirstProject) {
 				// Welcome the user into their own foundry on first create
 				const { toast } = await import('$lib/stores/toast.svelte');
@@ -575,10 +582,11 @@
 	ondrop={onDrop}
 	role="application"
 >
-	<header class="mb-12 flex flex-col gap-3">
+	<header class="mb-10 flex flex-col gap-4">
 		<div class="flex items-center justify-between gap-2">
 			<div
 				class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
+				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
 			>
 				<Type class="size-3.5" />
 				Font Studio
@@ -599,11 +607,25 @@
 				</a>
 			</div>
 		</div>
-		<h1 class="text-4xl font-semibold tracking-tight sm:text-5xl">
-			{taglineParts[0]}<br />
-			<span class="text-fg-muted">{taglineParts[1]}</span>
+		<!-- Mixed typography: serif italic top line for editorial voice, sans
+		     bottom line for system-tool grounding. The contrast says "this app
+		     deals in type" before you read a word. -->
+		<!-- Capped at text-4xl on wide screens so the longest tagline
+		     ("long after everyone else has logged off.") wraps to exactly
+		     two lines on a 1280px+ viewport. Tighter line-height keeps the
+		     two-line block compact. -->
+		<h1 class="max-w-3xl text-3xl leading-[1.1] tracking-tight text-balance sm:text-4xl lg:text-[40px]">
+			<span
+				class="block text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif; font-weight: 600;"
+			>
+				{taglineParts[0]}
+			</span>
+			<span class="mt-0.5 block font-sans font-semibold text-fg-muted">
+				{taglineParts[1]}
+			</span>
 		</h1>
-		<p class="max-w-xl text-base text-fg-muted">
+		<p class="max-w-xl text-[15px] leading-relaxed text-fg-muted">
 			Sketch with a pen or trackpad, vectorize, space, kern, and export a real OTF — all in
 			your browser. Every project is saved locally.
 		</p>
@@ -681,10 +703,68 @@
 		</a>
 	{/if}
 
-	<div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+	{#if projects.length > 0 || !loading}
+		<!-- Quick Start: lives ABOVE the main grid as a wide row so the four
+		     starting kinds get one full panel of breathing room instead of
+		     being squished into the narrow right column. Each preset's label
+		     is set in a typeface representative of its kind — Display in big
+		     serif, Code in mono, Editorial in serif italic, UI in sans — so
+		     the cards read as actual samples, not labels. -->
+		<section class="mb-6">
+			<div class="mb-2 flex items-baseline justify-between gap-2">
+				<h2
+					class="text-[11px] font-semibold tracking-[0.18em] text-fg-subtle uppercase"
+					style="font-family: ui-serif, Georgia, serif;"
+				>
+					Quick start
+				</h2>
+				<span class="text-[11px] text-fg-subtle">
+					Pre-fills the Brief with intent + use cases.
+				</span>
+			</div>
+			<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+				{#each QUICK_PRESETS as p (p.id)}
+					{@const previewStyle = p.kind === 'display'
+						? 'font-family: \'Hoefler Text\', \'Times New Roman\', serif; font-weight: 900; font-style: normal;'
+						: p.kind === 'mono'
+							? 'font-family: ui-monospace, Menlo, \'Courier New\', monospace; font-weight: 500;'
+							: p.kind === 'text'
+								? 'font-family: ui-serif, Georgia, \'Times New Roman\', serif; font-weight: 600;'
+								: 'font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 600;'}
+					<button
+						type="button"
+						onclick={() => createFromPreset(p)}
+						disabled={presetBusy !== null}
+						class="group flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent-soft/20 hover:shadow-sm disabled:translate-y-0 disabled:opacity-60 disabled:hover:bg-surface"
+						title={p.intent}
+					>
+						<div
+							class="text-2xl leading-none text-fg transition-colors group-hover:text-accent"
+							style={previewStyle}
+						>
+							Aa
+						</div>
+						<div>
+							<div class="text-[13px] font-medium text-fg">{p.label}</div>
+							<div class="mt-0.5 line-clamp-2 text-[11px] leading-snug text-fg-subtle">
+								{p.intent}
+							</div>
+						</div>
+					</button>
+				{/each}
+			</div>
+		</section>
+	{/if}
+
+	<div class="grid gap-6 lg:grid-cols-[1fr_340px]">
 		<Panel padding="md">
 			<div class="mb-3 flex items-center justify-between gap-3">
-				<h2 class="text-sm font-semibold tracking-wide text-fg-muted uppercase">Your fonts</h2>
+				<h2
+					class="text-[14px] font-semibold tracking-tight text-fg"
+					style="font-family: ui-serif, Georgia, serif;"
+				>
+					Your fonts
+				</h2>
 				{#if !loading}
 					<span class="text-[12px] text-fg-subtle" data-numeric>
 						{filteredProjects.length} of {projects.length}
@@ -1090,204 +1170,24 @@
 				</Panel>
 			{/if}
 
-			<Panel padding="md">
-				<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
-					Quick start
+			<!-- Single CTA card replaces the old stacked "New font" + "Start
+			     from a font" panels. The full creation flow (blank / import /
+			     URL + starter library) lives in CreateFontDialog now, so the
+			     right column stays scannable. -->
+			<Panel padding="md" class="border-accent/30 bg-accent-soft/20">
+				<h2
+					class="mb-1 text-[14px] font-semibold tracking-tight text-fg"
+					style="font-family: ui-serif, Georgia, serif;"
+				>
+					Start a font
 				</h2>
-				<p class="mb-3 text-[12px] text-fg-subtle">
-					Pick a use case and skip straight to the Brief tab with intent + use cases
-					pre-filled.
+				<p class="mb-3 text-[11px] text-fg-subtle">
+					Blank canvas, an existing OTF/UFO, or a public URL — pick one.
 				</p>
-				<div class="grid grid-cols-2 gap-1.5">
-					{#each QUICK_PRESETS as p (p.id)}
-						<button
-							type="button"
-							onclick={() => createFromPreset(p)}
-							disabled={presetBusy !== null}
-							class="rounded-md border border-border bg-surface-2/40 px-2.5 py-2 text-left transition-colors hover:border-accent hover:bg-accent-soft/40 disabled:opacity-60"
-						>
-							<div class="text-[12px] font-medium text-fg">{p.label}</div>
-							<div class="mt-0.5 line-clamp-2 text-[10px] text-fg-subtle">
-								{p.intent}
-							</div>
-						</button>
-					{/each}
-				</div>
-			</Panel>
-
-			<Panel padding="md">
-				<h2 class="mb-4 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+				<Button onclick={() => (createDialogOpen = true)} fullWidth>
+					{#snippet icon()}<Plus class="size-4" />{/snippet}
 					New font
-				</h2>
-				<form onsubmit={handleCreate} class="grid gap-4">
-					<Field label="Project name" required>
-						<Input
-							bind:value={newName}
-							placeholder="e.g. Personal Sans"
-							required
-							maxlength={60}
-						/>
-					</Field>
-					<Field label="Font family name" hint="Defaults to project name">
-						<Input
-							bind:value={newFamily}
-							placeholder="e.g. Personal Sans"
-							maxlength={60}
-						/>
-					</Field>
-					<div>
-						<div class="mb-1.5 text-[13px] font-medium text-fg-muted">Kind</div>
-						<div class="grid grid-cols-4 gap-1.5">
-							{#each Object.entries(KIND_PRESETS) as [id, preset] (id)}
-								<button
-									type="button"
-									onclick={() => (newKind = newKind === id ? undefined : (id as ProjectKind))}
-									class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {newKind ===
-									id
-										? 'border-accent bg-accent-soft text-accent'
-										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
-									title={preset.description}
-								>
-									{preset.label}
-								</button>
-							{/each}
-						</div>
-						{#if newKind}
-							<div class="mt-1.5 text-[11px] text-fg-subtle">
-								{KIND_PRESETS[newKind].description}
-							</div>
-						{/if}
-					</div>
-					<div>
-						<div class="mb-1.5 text-[13px] font-medium text-fg-muted">
-							Scripts
-							<span class="ml-1 text-[11px] font-normal text-fg-subtle">
-								Latin Basic always included. Add others.
-							</span>
-						</div>
-						<div class="flex flex-wrap gap-1.5">
-							{#each SCRIPT_PACKS as pack (pack.id)}
-								{@const selected = newScriptPacks.has(pack.id)}
-								<button
-									type="button"
-									onclick={() => {
-										const next = new Set(newScriptPacks);
-										if (next.has(pack.id)) next.delete(pack.id);
-										else next.add(pack.id);
-										newScriptPacks = next;
-									}}
-									class="rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors {selected
-										? 'border-accent bg-accent-soft text-accent'
-										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
-									title={pack.description}
-								>
-									+ {pack.label}
-								</button>
-							{/each}
-						</div>
-					</div>
-					<Button type="submit" loading={creating} disabled={!newName.trim()} fullWidth>
-						{#snippet icon()}<Plus class="size-4" />{/snippet}
-						{creating ? 'Creating…' : 'Create font'}
-					</Button>
-				</form>
-			</Panel>
-
-			<Panel padding="md">
-				<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
-					Start from a font
-				</h2>
-				<p class="mb-3 text-[12px] text-fg-subtle">
-					Import an OTF/TTF to remix, or a UFO 3 archive to round-trip with Glyphs /
-					RoboFont / FontLab.
-				</p>
-				<label
-					class="mb-2 flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
-				>
-					<UploadCloud class="size-4" />
-					{importing ? 'Importing…' : 'Choose .otf / .ttf'}
-					<input
-						type="file"
-						accept=".otf,.ttf,font/otf,font/ttf,application/font-sfnt"
-						class="sr-only"
-						onchange={handleImport}
-						disabled={importing}
-					/>
-				</label>
-				<label
-					class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-3 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
-				>
-					<FileText class="size-4" />
-					{ufoImporting ? 'Loading Python…' : 'Choose .ufo.zip'}
-					<input
-						type="file"
-						accept=".zip,application/zip"
-						class="sr-only"
-						onchange={handleUfoImport}
-						disabled={ufoImporting}
-					/>
-				</label>
-				{#if importError}
-					<div class="mt-2 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger">
-						{importError}
-					</div>
-				{/if}
-
-				<div class="mt-4 grid gap-2">
-					<div class="text-[11px] font-medium tracking-wider text-fg-subtle uppercase">
-						Or from a URL
-					</div>
-					<form
-						class="flex items-center gap-2"
-						onsubmit={(e) => {
-							e.preventDefault();
-							handleUrlImport(urlInput);
-						}}
-					>
-						<div class="relative flex-1">
-							<Link
-								class="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-fg-subtle"
-							/>
-							<Input
-								bind:value={urlInput}
-								placeholder="GitHub URL or direct .otf/.ttf/.woff2/.ufo.zip"
-								density="sm"
-								class="pl-8"
-								disabled={urlImporting}
-							/>
-						</div>
-						<Button
-							type="submit"
-							density="sm"
-							loading={urlImporting}
-							disabled={!urlInput.trim() || urlImporting}
-						>
-							{urlImporting ? 'Fetching…' : 'Fetch'}
-						</Button>
-					</form>
-				</div>
-
-				<div class="mt-4 grid gap-2">
-					<div
-						class="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wider text-fg-subtle uppercase"
-					>
-						<Library class="size-3" /> Starter library
-					</div>
-					<div class="grid grid-cols-2 gap-1.5">
-						{#each STARTER_FONTS as starter (starter.id)}
-							<button
-								type="button"
-								class="group rounded-md border border-border bg-surface-2/40 px-2.5 py-2 text-left transition-colors hover:border-accent hover:bg-accent-soft/40 disabled:opacity-60"
-								disabled={urlImporting}
-								onclick={() => handleUrlImport(starter.url)}
-								title={starter.url}
-							>
-								<div class="text-[12px] font-medium text-fg">{starter.label}</div>
-								<div class="truncate text-[10px] text-fg-subtle">{starter.description}</div>
-							</button>
-						{/each}
-					</div>
-				</div>
+				</Button>
 			</Panel>
 
 			{#if storage && storage.quota > 0}
@@ -1366,6 +1266,19 @@
 		onclose={() => settings.dismissWelcome()}
 	/>
 	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
+	<CreateFontDialog
+		open={createDialogOpen}
+		onclose={() => (createDialogOpen = false)}
+		{creating}
+		{importing}
+		{ufoImporting}
+		{urlImporting}
+		{importError}
+		oncreate={(input) => handleCreate(input)}
+		onfile={(file) => importFile(file)}
+		onufo={(file) => importFile(file)}
+		onurl={(url) => handleUrlImport(url)}
+	/>
 
 	{#if menuOpen && menuTarget}
 		<button
