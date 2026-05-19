@@ -4,11 +4,12 @@
  * initial bundle.
  */
 
-let confettiImpl: typeof import('canvas-confetti').default | null = null;
-const loadConfetti = async () => {
+type ConfettiFn = (options?: import('canvas-confetti').Options) => Promise<undefined> | null;
+let confettiImpl: ConfettiFn | null = null;
+const loadConfetti = async (): Promise<ConfettiFn> => {
 	if (confettiImpl) return confettiImpl;
 	const mod = await import('canvas-confetti');
-	confettiImpl = mod.default;
+	confettiImpl = mod.default as ConfettiFn;
 	return confettiImpl;
 };
 

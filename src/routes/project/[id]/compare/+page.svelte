@@ -28,6 +28,11 @@
 		visible: boolean;
 		opacity: number;
 		mode: 'stroke' | 'fill' | 'both';
+		// Source coord system. Project contours store Y-UP (font convention);
+		// opentype.js getPath returns Y-DOWN (SVG convention). The canvas is
+		// pre-flipped via scaleY(-1) for Y-UP, so Y-DOWN layers need an extra
+		// inversion to render right-side up.
+		yDir: 'up' | 'down';
 	};
 
 	// Layer palette — reuses the metrics-overlay tokens defined in app.css
@@ -87,7 +92,8 @@
 				descender: metrics.descender,
 				visible: true,
 				opacity: 1,
-				mode: 'fill'
+				mode: 'fill',
+				yDir: 'up'
 			});
 		}
 		// 2. Sibling glyphs (if family)
@@ -112,7 +118,8 @@
 					descender: sp.metrics.descender,
 					visible: true,
 					opacity: 0.45,
-					mode: 'stroke'
+					mode: 'stroke',
+					yDir: 'up'
 				});
 				colorIdx++;
 			}
@@ -168,8 +175,6 @@
 				toast.warn(`Reference font has no glyph for ${codepointHex}.`);
 				return;
 			}
-			// opentype.js's getPath gives PDF-style coords (Y down); we render with
-			// scaleY(-1) so just pass through.
 			const pathObj = ot.getPath(0, 0, font.unitsPerEm);
 			const pathD = pathObj.toPathData(2);
 			const refLabel =
@@ -189,7 +194,8 @@
 					descender: font.descender,
 					visible: true,
 					opacity: 0.45,
-					mode: 'stroke'
+					mode: 'stroke',
+					yDir: 'down'
 				}
 			];
 			toast.success(`Loaded ${refLabel} as reference layer.`);
@@ -231,6 +237,9 @@
 		const pad = Math.round(width * 0.1);
 		return `${-pad} ${-top} ${width + pad * 2} ${top - bottom}`;
 	});
+	// Project metrics → viewBox (targetUpm) scale so guide lines stay glued to
+	// project glyph cap/x-height when a higher-UPM reference font joins.
+	const guideScale = $derived(metrics ? targetUpm / metrics.unitsPerEm : 1);
 
 	// Quick-pick codepoints from drawn glyphs in the current project
 	const drawnGlyphs = $derived.by(() => {
@@ -330,7 +339,9 @@
 								preserveAspectRatio="xMidYMid meet"
 								aria-label="Glyph overlay comparison"
 							>
-								<!-- Baseline + cap/x-height guide -->
+								<!-- Guides live in viewBox (targetUpm) space — scale project
+								     metrics so they stay aligned with project glyph when a
+								     reference font bumps targetUpm above project UPM. -->
 								<line
 									x1={-100000}
 									x2={100000}
@@ -344,8 +355,8 @@
 								<line
 									x1={-100000}
 									x2={100000}
-									y1={metrics.capHeight}
-									y2={metrics.capHeight}
+									y1={metrics.capHeight * guideScale}
+									y2={metrics.capHeight * guideScale}
 									stroke="currentColor"
 									stroke-opacity="0.08"
 									stroke-width="1"
@@ -354,8 +365,8 @@
 								<line
 									x1={-100000}
 									x2={100000}
-									y1={metrics.xHeight}
-									y2={metrics.xHeight}
+									y1={metrics.xHeight * guideScale}
+									y2={metrics.xHeight * guideScale}
 									stroke="currentColor"
 									stroke-opacity="0.08"
 									stroke-width="1"
@@ -363,8 +374,9 @@
 								/>
 								{#each layers as layer (layer.id)}
 									{#if layer.visible}
-										{@const scale = targetUpm / layer.upm}
-										<g transform="scale({scale} {scale})" opacity={layer.opacity}>
+										{@const s = targetUpm / layer.upm}
+										{@const ys = layer.yDir === 'down' ? -s : s}
+										<g transform="scale({s} {ys})" opacity={layer.opacity}>
 											<path
 												d={layer.pathD}
 												fill={layer.mode === 'stroke' ? 'none' : layer.color}

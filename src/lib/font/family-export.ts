@@ -159,7 +159,9 @@ export const downloadFamilyBundle = async (
 ): Promise<FamilyBundle | null> => {
 	const bundle = await buildFamilyBundle(familyId);
 	if (!bundle) return null;
-	const blob = new Blob([bundle.zip], { type: 'application/zip' });
+	// fflate returns Uint8Array<ArrayBufferLike>; copy into a fresh ArrayBuffer
+	// so the Blob constructor accepts it under strict TS lib.dom typings.
+	const blob = new Blob([bundle.zip.slice().buffer], { type: 'application/zip' });
 	const url = URL.createObjectURL(blob);
 	const a = document.createElement('a');
 	a.href = url;

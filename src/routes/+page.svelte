@@ -32,8 +32,6 @@
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { homeTagline, continueGreeting } from '$lib/delight';
 	import { formatRelative } from '$lib/util/format';
-
-	const taglineParts = $derived(homeTagline().split('\n'));
 	import Pin from '@lucide/svelte/icons/pin';
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
@@ -45,6 +43,8 @@
 	import Link from '@lucide/svelte/icons/link';
 	import Library from '@lucide/svelte/icons/library';
 	import LockIcon from '@lucide/svelte/icons/lock';
+
+	const taglineParts = $derived(homeTagline().split('\n'));
 
 	// Well-known OFL families whose Reserved Font Names must be changed in derivative work.
 	const OFL_RESERVED_FAMILIES = [

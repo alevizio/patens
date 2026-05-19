@@ -61,6 +61,13 @@ declare module 'opentype.js' {
 		descender: number;
 		glyphs: GlyphSet;
 		kerningPairs: Record<string, number>;
+		// Loose typing for OpenType tables — opentype.js exposes many tables
+		// (os2, head, hhea, post, gpos, gsub…) with table-specific shapes. We
+		// narrow at the call site via `as { ... }` casts.
+		tables: Record<string, unknown>;
+		// Per-language name records keyed by name-table entry (e.g. fontFamily,
+		// fontSubfamily, fullName, postScriptName, designer, copyright, license).
+		names: Record<string, { en?: string } & Record<string, string | undefined>>;
 		toArrayBuffer(): ArrayBuffer;
 		download(filename?: string): void;
 		getKerningValue(leftGlyph: Glyph, rightGlyph: Glyph): number;
