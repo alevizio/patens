@@ -104,9 +104,12 @@
 				<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
 			</svg>
 		{:else if char}
+			<!-- System font: this branch only renders when the glyph has zero
+			     contours, so the project's own preview font has an empty slot
+			     for this codepoint and would paint blank if we used it. -->
 			<span
 				class="text-2xl font-light text-fg-muted/80"
-				style="font-family: var(--preview-family);"
+				style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 			>
 				{char}
 			</span>

@@ -2345,11 +2345,24 @@
 				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					Live preview
 				</h3>
-				<div
-					class="rounded-md border border-border bg-canvas p-4 text-center text-6xl preview-font leading-none"
-				>
-					{charLabel === 'space' ? '·' : charLabel}
-				</div>
+				{#if glyph.contours.length > 0}
+					<div
+						class="rounded-md border border-border bg-canvas p-4 text-center text-6xl preview-font leading-none"
+					>
+						{charLabel === 'space' ? '·' : charLabel}
+					</div>
+				{:else}
+					<!-- No contours yet — the project font would paint blank.
+					     Render the codepoint in the system stack at low opacity
+					     so the panel still tells you which letter you're on. -->
+					<div
+						class="rounded-md border border-dashed border-border bg-canvas p-4 text-center text-6xl leading-none text-fg-subtle/60"
+						style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
+						title="Draw contours to see the live preview"
+					>
+						{charLabel === 'space' ? '·' : charLabel}
+					</div>
+				{/if}
 				<div class="mt-2 text-[11px] text-fg-subtle" data-numeric>
 					{previewStore.glyphCount} glyphs · {previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(
 						0
