@@ -6,6 +6,7 @@
 	import { listSiblings } from '$lib/font/family';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Eye from '@lucide/svelte/icons/eye';
@@ -260,7 +261,7 @@
 </script>
 
 {#if !project || !metrics}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading compare" />
 {:else}
 	<div
 		class="relative h-full overflow-auto"

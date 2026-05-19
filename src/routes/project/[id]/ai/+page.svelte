@@ -4,6 +4,7 @@
 	import { askClaude, glyphsToPng, AnthropicError, type AnthropicMessage } from '$lib/ai/anthropic';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Tag from '@lucide/svelte/icons/tag';
 	import Code from '@lucide/svelte/icons/code-2';
@@ -314,7 +315,7 @@ Write the design-notes essay.`;
 </script>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading AI presets" />
 {:else}
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">

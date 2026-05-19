@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import type { HTMLButtonAttributes } from 'svelte/elements';
+	import Loader from '@lucide/svelte/icons/loader-2';
 
 	type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 	type Density = 'sm' | 'md' | 'lg';
@@ -38,15 +39,27 @@
 		md: 'h-10 px-4 text-sm gap-2 rounded-lg',
 		lg: 'h-12 px-5 text-[15px] gap-2 rounded-xl'
 	};
+
+	const spinnerSize: Record<Density, string> = {
+		sm: 'size-3.5',
+		md: 'size-4',
+		lg: 'size-[18px]'
+	};
 </script>
 
 <button
 	{...rest}
 	disabled={disabled || loading}
+	aria-busy={loading || undefined}
 	class="inline-flex items-center justify-center font-medium transition-[background-color,color,border-color,opacity] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {variantClass[
 		variant
 	]} {densityClass[density]} {fullWidth ? 'w-full' : ''} {extraClass}"
 >
-	{#if icon}{@render icon()}{/if}
+	{#if loading}
+		<!-- Spinner replaces the icon slot so the button width stays stable. -->
+		<Loader class="{spinnerSize[density]} animate-spin" aria-hidden="true" />
+	{:else if icon}
+		{@render icon()}
+	{/if}
 	{#if children}{@render children()}{/if}
 </button>

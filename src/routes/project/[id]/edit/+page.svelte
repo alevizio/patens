@@ -20,6 +20,7 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Eraser from '@lucide/svelte/icons/eraser';
 	import MousePointer from '@lucide/svelte/icons/mouse-pointer-2';
@@ -1165,7 +1166,7 @@
 <svelte:window onkeydown={handleKeyDown} />
 
 {#if !glyph || !metrics}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading glyph…</div>
+	<LoadingPanel label="Loading glyph" />
 {:else}
 	<div class="grid h-full grid-cols-[1fr_280px]">
 		<div class="flex min-h-0 flex-col">

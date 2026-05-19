@@ -790,11 +790,24 @@
 			{/if}
 
 			{#if loading}
-				<div class="grid gap-2">
-					{#each [1, 2, 3] as i (i)}
-						<div class="h-16 animate-pulse rounded-lg bg-surface-2"></div>
+				<!-- Card-shaped skeletons that match the real row geometry:
+				     square thumbnail on the left, two text bars, a meta strip.
+				     Staggered shimmer pulses so it doesn't read as broken. -->
+				<ul class="grid gap-2" aria-busy="true" aria-label="Loading projects">
+					{#each [0, 1, 2, 3] as i (i)}
+						<li
+							class="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 motion-safe:animate-[skel-shimmer_1.4s_ease-in-out_infinite]"
+							style="animation-delay: {i * 120}ms"
+						>
+							<div class="size-12 shrink-0 rounded-md bg-surface-2"></div>
+							<div class="flex-1 space-y-1.5">
+								<div class="h-3 w-2/5 rounded bg-surface-2"></div>
+								<div class="h-2 w-3/5 rounded bg-surface-2/70"></div>
+							</div>
+							<div class="h-2 w-16 rounded bg-surface-2/60"></div>
+						</li>
 					{/each}
-				</div>
+				</ul>
 			{:else if projects.length === 0}
 				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
 					<pre

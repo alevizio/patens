@@ -10,6 +10,7 @@
 	} from '$lib/font/python';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
@@ -159,7 +160,7 @@
 </script>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading features" />
 {:else}
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
@@ -304,9 +305,21 @@
 			</Panel>
 
 			{#if pythonProgress.stage !== 'ready' && pythonProgress.stage !== 'idle' && pythonProgress.stage !== 'error'}
-				<div class="flex items-center gap-2 rounded-md bg-surface-2 px-3 py-2 text-[12px] text-fg-muted">
-					<Loader class="size-3.5 animate-spin" />
-					{pythonProgress.message}
+				{@const pct = pythonProgress.stage === 'loading-script' ? 25 : pythonProgress.stage === 'starting-runtime' ? 55 : 85}
+				<div class="rounded-md bg-surface-2 px-3 py-2.5">
+					<div class="mb-1.5 flex items-center justify-between gap-2 text-[12px] text-fg-muted">
+						<span class="flex items-center gap-2">
+							<Loader class="size-3.5 animate-spin" />
+							{pythonProgress.message}
+						</span>
+						<span class="font-mono text-[10px] text-fg-subtle" data-numeric>{pct}%</span>
+					</div>
+					<div class="h-1 overflow-hidden rounded-full bg-surface" role="progressbar" aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100">
+						<div
+							class="h-full rounded-full bg-accent transition-[width] duration-500 ease-out"
+							style="width: {pct}%"
+						></div>
+					</div>
 				</div>
 			{/if}
 		</div>

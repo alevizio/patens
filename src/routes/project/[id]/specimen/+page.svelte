@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 
 	const project = $derived(projectStore.project);
 
@@ -50,7 +51,7 @@
 </svelte:head>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading specimen" />
 {:else}
 	<div class="h-full overflow-auto bg-canvas">
 		<div class="screen-toolbar sticky top-0 z-10 flex flex-col gap-2 border-b border-border bg-surface px-6 py-2.5">

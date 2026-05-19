@@ -13,6 +13,7 @@
 	import { glyphBounds } from '$lib/font/path';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Info from '@lucide/svelte/icons/info';
@@ -232,7 +233,7 @@
 </script>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Running audit" />
 {:else}
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">

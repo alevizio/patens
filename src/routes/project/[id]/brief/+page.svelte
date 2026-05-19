@@ -4,6 +4,7 @@
 	import { USE_CASE_LABELS, type UseCase } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Field from '$lib/ui/Field.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -159,7 +160,7 @@
 </script>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading brief" />
 {:else}
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">

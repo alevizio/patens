@@ -4,6 +4,7 @@
 	import { STANDARD_AXES } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
@@ -124,7 +125,7 @@
 </script>
 
 {#if !project}
-	<div class="flex h-full items-center justify-center text-fg-muted">Loading…</div>
+	<LoadingPanel label="Loading designspace" />
 {:else}
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
