@@ -43,6 +43,7 @@
 		"idb-keyval": "^6.2.2",
 		"opentype.js": "^2.0.0",
 		"perfect-freehand": "^1.2.3",
-		"polygon-clipping": "^0.15.7"
+		"polygon-clipping": "^0.15.7",
+		"woff2-encoder": "^2.0.0"
 	}
 }

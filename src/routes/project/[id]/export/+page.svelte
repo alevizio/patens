@@ -4,7 +4,6 @@
 	import { buildFont } from '$lib/font/export';
 	import {
 		ensurePython,
-		otfToWoff2,
 		projectToUfoZip,
 		finalizeFont,
 		buildVariableFont,
@@ -12,6 +11,7 @@
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
+	import { otfToWoff2 } from '$lib/font/woff2';
 	import { autoFeaSource } from '$lib/font/fea';
 	import { generateDesignMd } from '$lib/font/design-md';
 	import { zipSync, strToU8 } from 'fflate';
@@ -1066,18 +1066,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						{woff2Busy ? 'Compressing…' : 'Export WOFF2'}
 					</Button>
 					<span class="text-[12px] text-fg-subtle">
-						{#if pythonProgress.stage === 'ready'}
-							Brotli-compressed web font (~30% of OTF size).
-						{:else if pythonProgress.stage === 'idle'}
-							Brotli-compressed web font. First click downloads Python (~10MB, cached).
-						{:else if pythonProgress.stage === 'error'}
-							<span class="text-danger">Python: {pythonProgress.message}</span>
-						{:else}
-							<span class="inline-flex items-center gap-1">
-								<Loader class="size-3 animate-spin" />
-								{pythonProgress.message}
-							</span>
-						{/if}
+						Brotli-compressed web font (~30% of OTF size).
 					</span>
 				</div>
 				<div class="flex items-center gap-3">
