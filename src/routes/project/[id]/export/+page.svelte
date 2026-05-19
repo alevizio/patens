@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { buildFont, hasMarkAnchors } from '$lib/font/export';
+	import { applyMarkPositioning } from '$lib/font/mark-feature';
 	import {
 		ensurePython,
 		finalizeFont,
@@ -126,25 +127,33 @@ body {
 	const buildOtfBuffer = async (): Promise<ArrayBuffer> => {
 		if (!project) throw new Error('No project');
 		// buildFont() now handles vertical metrics + standard ligatures via
-		// opentype.js. Pyodide is only needed for:
-		//   - a user-edited custom .fea source (advanced features)
-		//   - anchor-based GPOS mark positioning (still no JS alternative)
-		// The common case (auto-fea projects with only kern + liga) exports
-		// without loading Pyodide at all.
-		const { font } = buildFont(project);
+		// opentype.js. Anchor-based mark positioning is spliced in via
+		// applyMarkPositioning (native binary writer + SFNT splice — no
+		// Pyodide). Pyodide is only needed for a user-edited custom .fea
+		// with features beyond the auto-generated set.
+		const { font, indexByCodepoint } = buildFont(project);
 		let buffer = font.toArrayBuffer();
+
+		// Native GPOS mark feature — splice anchor positioning straight into
+		// the binary if the project has matched base+mark anchor pairs.
+		if (hasMarkAnchors(project)) {
+			const original = new Uint8Array(buffer);
+			const spliced = applyMarkPositioning(original, project, indexByCodepoint);
+			buffer = spliced.buffer.slice(
+				spliced.byteOffset,
+				spliced.byteOffset + spliced.byteLength
+			) as ArrayBuffer;
+		}
 
 		const customFea = project.features.feaSource?.trim();
 		const hasCustomFea = !!customFea && customFea.length > 0;
-		const needsAnchors = hasMarkAnchors(project);
 
-		if (hasCustomFea || needsAnchors) {
-			// Build the full .fea (custom takes precedence, else use autogen for
-			// the anchor / mark feature path) and run it through Pyodide.
-			const fea = customFea || autoFeaSource(project);
+		if (hasCustomFea) {
+			// User-authored custom .fea — full feaLib compilation path. Pyodide
+			// is unavoidable here without a JS .fea parser (a future Phase B).
 			try {
 				await ensurePython();
-				buffer = await finalizeFont(buffer, { feaSource: fea });
+				buffer = await finalizeFont(buffer, { feaSource: customFea! });
 			} catch (err) {
 				const msg = err instanceof Error ? err.message : String(err);
 				toast.warn(`Features didn't compile — exporting without them. (${msg})`);
