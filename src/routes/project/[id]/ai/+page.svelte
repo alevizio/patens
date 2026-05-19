@@ -495,7 +495,7 @@ Write the design-notes essay.`;
 						Generate a glyph
 					</h2>
 					<span
-						class="rounded-full bg-warn/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-warn uppercase"
+						class="rounded-full bg-warn/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-warn-strong uppercase"
 					>
 						Experimental
 					</span>
@@ -539,7 +539,7 @@ Write the design-notes essay.`;
 
 				{#if suggestError}
 					<div
-						class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger"
+						class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong"
 					>
 						{suggestError}
 					</div>
@@ -607,7 +607,7 @@ Write the design-notes essay.`;
 
 			{#if error}
 				<Panel>
-					<div class="rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger">{error}</div>
+					<div class="rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong">{error}</div>
 				</Panel>
 			{/if}
 

@@ -247,7 +247,7 @@
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
 			<header class="flex items-start gap-3">
-				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 					<Rocket class="size-4" />
 				</div>
 				<div>
@@ -348,17 +348,17 @@
 					</div>
 					<div class="flex flex-wrap gap-1.5">
 						{#if errors > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2 py-1 text-[11px] font-medium text-danger">
+							<span class="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2 py-1 text-[11px] font-medium text-danger-strong">
 								<AlertCircle class="size-3" /> {errors} error{errors === 1 ? '' : 's'}
 							</span>
 						{/if}
 						{#if warnings > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-warn/10 px-2 py-1 text-[11px] font-medium text-warn">
+							<span class="inline-flex items-center gap-1 rounded-md bg-warn/10 px-2 py-1 text-[11px] font-medium text-warn-strong">
 								<AlertTriangle class="size-3" /> {warnings} warning{warnings === 1 ? '' : 's'}
 							</span>
 						{/if}
 						{#if infos > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-accent/10 px-2 py-1 text-[11px] font-medium text-accent">
+							<span class="inline-flex items-center gap-1 rounded-md bg-accent/10 px-2 py-1 text-[11px] font-medium text-accent-strong">
 								<Info class="size-3" /> {infos} hint{infos === 1 ? '' : 's'}
 							</span>
 						{/if}
@@ -458,7 +458,7 @@
 					</h2>
 					<span
 						class="rounded-full px-1.5 py-0.5 text-[10px] font-medium {gfReady
-							? 'bg-success/15 text-success'
+							? 'bg-success/15 text-success-strong'
 							: 'bg-fg-subtle/10 text-fg-subtle'}"
 						data-numeric
 					>
@@ -503,7 +503,7 @@
 							<li
 								class="grid grid-cols-[auto_1fr_auto] items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
 							>
-								<span class="rounded bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-accent" data-numeric>
+								<span class="rounded bg-accent/15 px-2 py-0.5 font-mono text-[11px] font-semibold text-accent-strong" data-numeric>
 									v{e.version}
 								</span>
 								<div class="min-w-0">
@@ -513,7 +513,7 @@
 								<button
 									type="button"
 									onclick={() => projectStore.removeChangelogEntry(e.id)}
-									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 									aria-label="Remove changelog entry v{e.version}"
 									title="Remove v{e.version}"
 								>
@@ -579,7 +579,7 @@
 										celebrateSeal();
 									}
 								}}
-								class="inline-flex items-center gap-1.5 rounded-md border border-warn bg-warn/15 px-3 py-1.5 text-[12px] font-medium text-warn hover:bg-warn/25"
+								class="inline-flex items-center gap-1.5 rounded-md border border-warn bg-warn/15 px-3 py-1.5 text-[12px] font-medium text-warn-strong hover:bg-warn/25"
 							>
 								Seal v{project.metadata.version}
 							</button>

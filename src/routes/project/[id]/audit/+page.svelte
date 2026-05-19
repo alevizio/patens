@@ -240,7 +240,7 @@
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
 			<header class="flex items-start gap-3">
-				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 					<ListChecks class="size-4" />
 				</div>
 				<div>
@@ -289,7 +289,7 @@
 									<button
 										type="button"
 										onclick={() => fixIssue(i)}
-										class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+										class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
 										title="Apply automatic fix"
 									>
 										<Wand class="size-2.5" /> Fix
@@ -313,13 +313,13 @@
 
 			<Panel>
 				<div class="mb-3 flex flex-wrap items-center gap-2">
-					{#each [{ id: 'all', label: 'All', n: counts.all, color: 'text-fg' }, { id: 'error', label: 'Errors', n: counts.error, color: 'text-danger' }, { id: 'warn', label: 'Warnings', n: counts.warn, color: 'text-warn' }, { id: 'info', label: 'Hints', n: counts.info, color: 'text-accent' }] as opt (opt.id)}
+					{#each [{ id: 'all', label: 'All', n: counts.all, color: 'text-fg' }, { id: 'error', label: 'Errors', n: counts.error, color: 'text-danger-strong' }, { id: 'warn', label: 'Warnings', n: counts.warn, color: 'text-warn-strong' }, { id: 'info', label: 'Hints', n: counts.info, color: 'text-accent-strong' }] as opt (opt.id)}
 						<button
 							type="button"
 							onclick={() => (severityFilter = opt.id as AuditSeverity | 'all')}
 							class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors {severityFilter ===
 							opt.id
-								? 'border-accent bg-accent-soft text-accent'
+								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-surface-2/40 hover:border-border-strong'}"
 						>
 							{opt.label}
@@ -342,7 +342,7 @@
 								type="button"
 								onclick={() => (groupMode = 'code')}
 								class="rounded px-2 py-0.5 text-[11px] {groupMode === 'code'
-									? 'bg-accent-soft text-accent'
+									? 'bg-accent-soft text-accent-strong'
 									: 'text-fg-muted hover:text-fg'}"
 								title="Group issues by check"
 							>
@@ -352,7 +352,7 @@
 								type="button"
 								onclick={() => (groupMode = 'glyph')}
 								class="rounded px-2 py-0.5 text-[11px] {groupMode === 'glyph'
-									? 'bg-accent-soft text-accent'
+									? 'bg-accent-soft text-accent-strong'
 									: 'text-fg-muted hover:text-fg'}"
 								title="Group issues by glyph"
 							>
@@ -417,7 +417,7 @@
 												<button
 													type="button"
 													onclick={() => fixIssue(i)}
-													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
 													title="Apply automatic fix"
 												>
 													<Wand class="size-2.5" /> Fix
@@ -493,7 +493,7 @@
 												<button
 													type="button"
 													onclick={() => fixIssue(i)}
-													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+													class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
 													title="Apply automatic fix"
 												>
 													<Wand class="size-2.5" /> Fix

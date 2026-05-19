@@ -81,7 +81,7 @@
 								onclick={() => settings.setTheme(opt.id as 'system' | 'light' | 'dark')}
 								class="inline-flex items-center justify-center gap-1.5 rounded-md border px-2 py-2 text-[12px] font-medium transition-colors {settings.theme ===
 								opt.id
-									? 'border-accent bg-accent-soft text-accent'
+									? 'border-accent bg-accent-soft text-accent-strong'
 									: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
 							>
 								<Icon class="size-3.5" />

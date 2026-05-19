@@ -939,7 +939,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 			</h2>
 			{#if validation.ok && preflightIssues.length === 0}
 				<div
-					class="flex items-center gap-2 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
+					class="flex items-center gap-2 rounded-md border border-success/30 bg-success/10 px-3 py-2 text-sm text-success-strong"
 				>
 					<Sparkles class="size-4" />
 					All checks pass — {validation.drawnCount} glyph{validation.drawnCount === 1 ? '' : 's'}{validation.compositeCount ? ` + ${validation.compositeCount} composite${validation.compositeCount === 1 ? '' : 's'}` : ''}.
@@ -948,7 +948,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				<div class="grid gap-1.5">
 					{#if !validation.ok}
 						{#each validation.issues as issue (issue)}
-							<li class="flex items-start gap-2 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger">
+							<li class="flex items-start gap-2 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong">
 								<AlertCircle class="mt-0.5 size-3.5 shrink-0" />
 								<span>{issue}</span>
 							</li>
@@ -958,9 +958,9 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						<div
 							class="flex items-start gap-2 rounded-md px-3 py-2 text-[12px] {issue.severity ===
 							'error'
-								? 'bg-danger/10 text-danger'
+								? 'bg-danger/10 text-danger-strong'
 								: issue.severity === 'warn'
-									? 'bg-warn/10 text-warn'
+									? 'bg-warn/10 text-warn-strong'
 									: 'bg-surface-2 text-fg-muted'}"
 						>
 							{#if issue.severity === 'info'}

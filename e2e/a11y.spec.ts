@@ -9,15 +9,12 @@ import AxeBuilder from '@axe-core/playwright';
 // to be worth running on every push.
 //
 // Severity policy:
-//   - critical impact → FAIL the test (regression)
-//   - serious impact  → log but don't fail (current backlog includes the
-//     `bg-X-soft text-X` soft-pill pattern that needs a design-system
-//     decision: introduce `--color-accent-strong` for use on tinted bgs,
-//     then migrate all pills. Doing that piecemeal floods the log without
-//     blocking CI.)
+//   - critical + serious impact → FAIL the test (regression)
 //   - moderate / minor → log only
 //
-// When the soft-pill backlog clears, flip the threshold to 'serious'.
+// The pill-token migration (introducing --color-accent-strong etc. for use on
+// tinted bgs) has cleared the previous serious backlog; the bar is now
+// "any serious violation introduced is a regression that blocks CI."
 
 const dismissWelcomeIfPresent = async (page: Page) => {
 	const dialog = page.getByRole('dialog');
@@ -47,48 +44,49 @@ const auditPage = async (page: Page) => {
 	const minor = results.violations.filter(
 		(v) => v.impact !== 'serious' && v.impact !== 'critical'
 	);
-	if (serious.length > 0) {
-		console.log(
-			`[a11y serious — advisory] ${serious.length} on ${page.url()}:\n` +
-				serious
-					.map((v) => `  - ${v.id}: ${v.help} (${v.nodes.length} nodes)`)
-					.join('\n')
-		);
-	}
+	const blocking = [...critical, ...serious];
 	if (minor.length > 0) {
 		console.log(
 			`[a11y minor/moderate] ${minor.length} on ${page.url()}: ` +
 				minor.map((v) => `${v.id} (${v.impact})`).join(', ')
 		);
 	}
-	if (critical.length > 0) {
+	if (blocking.length > 0) {
 		console.log(
-			`[a11y CRITICAL] ${critical.length} on ${page.url()}:\n` +
-				critical
-					.map((v) => `  - ${v.id}: ${v.help} (${v.nodes.length} nodes)`)
+			`[a11y BLOCKING] ${blocking.length} serious/critical on ${page.url()}:\n` +
+				blocking
+					.map((v) => {
+						const sampleNode = v.nodes[0];
+						const sample = sampleNode
+							? `\n      ${sampleNode.html.slice(0, 180)}${sampleNode.html.length > 180 ? '…' : ''}`
+							: '';
+						return `  - ${v.id} (${v.impact}): ${v.help} — ${v.nodes.length} node${
+							v.nodes.length === 1 ? '' : 's'
+						}${sample}`;
+					})
 					.join('\n')
 		);
 	}
-	expect(critical, `critical a11y violations on ${page.url()}`).toEqual([]);
+	expect(blocking, `serious/critical a11y violations on ${page.url()}`).toEqual([]);
 };
 
-test('home has no critical a11y violations', async ({ page }) => {
+test('home has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/');
 	await dismissWelcomeIfPresent(page);
 	await auditPage(page);
 });
 
-test('/learn has no critical a11y violations', async ({ page }) => {
+test('/learn has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/learn');
 	await auditPage(page);
 });
 
-test('/families has no critical a11y violations', async ({ page }) => {
+test('/families has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/families');
 	await auditPage(page);
 });
 
-test('/edit (demo project) has no critical a11y violations', async ({
+test('/edit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {
 	await page.goto('/');
@@ -98,7 +96,7 @@ test('/edit (demo project) has no critical a11y violations', async ({
 	await auditPage(page);
 });
 
-test('/audit (demo project) has no critical a11y violations', async ({
+test('/audit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {
 	await page.goto('/');

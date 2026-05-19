@@ -349,7 +349,7 @@
 				<div class="mt-1 flex flex-wrap items-center gap-1">
 					{#each currentTags as t (t)}
 						<span
-							class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent"
+							class="inline-flex items-center gap-0.5 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong"
 						>
 							{t}
 							<button
@@ -502,23 +502,23 @@
 					Pre-flight
 				</div>
 				{#if auditCounts.error === 0 && auditCounts.warn === 0 && auditCounts.info === 0}
-					<div class="inline-flex items-center gap-1.5 rounded-md bg-success/10 px-2 py-1 text-[11px] font-medium text-success">
+					<div class="inline-flex items-center gap-1.5 rounded-md bg-success/10 px-2 py-1 text-[11px] font-medium text-success-strong">
 						<CheckCircle2 class="size-3" /> All checks pass
 					</div>
 				{:else}
 					<div class="flex flex-wrap gap-1.5">
 						{#if auditCounts.error > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2 py-1 text-[11px] font-medium text-danger">
+							<span class="inline-flex items-center gap-1 rounded-md bg-danger/10 px-2 py-1 text-[11px] font-medium text-danger-strong">
 								<AlertCircle class="size-3" /> {auditCounts.error} error{auditCounts.error === 1 ? '' : 's'}
 							</span>
 						{/if}
 						{#if auditCounts.warn > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-warn/10 px-2 py-1 text-[11px] font-medium text-warn">
+							<span class="inline-flex items-center gap-1 rounded-md bg-warn/10 px-2 py-1 text-[11px] font-medium text-warn-strong">
 								<AlertTriangle class="size-3" /> {auditCounts.warn} warning{auditCounts.warn === 1 ? '' : 's'}
 							</span>
 						{/if}
 						{#if auditCounts.info > 0}
-							<span class="inline-flex items-center gap-1 rounded-md bg-accent/10 px-2 py-1 text-[11px] font-medium text-accent">
+							<span class="inline-flex items-center gap-1 rounded-md bg-accent/10 px-2 py-1 text-[11px] font-medium text-accent-strong">
 								<Info class="size-3" /> {auditCounts.info} hint{auditCounts.info === 1 ? '' : 's'}
 							</span>
 						{/if}

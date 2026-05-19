@@ -202,7 +202,7 @@
 								<button
 									type="button"
 									onclick={() => projectStore.removeAxis(axis.tag)}
-									class="self-end rounded p-1.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									class="self-end rounded p-1.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 									aria-label="Remove axis {axis.tag}"
 									title="Remove axis {axis.tag}"
 								>
@@ -246,7 +246,7 @@
 									: (project.axes ?? []).map((a) => `${a.tag}=${a.default}`).join(' · ')}
 							</div>
 						</div>
-						<span class="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-accent">
+						<span class="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-accent-strong">
 							{Object.keys(project.glyphs).filter((cp) => project.glyphs[Number(cp)].contours.length > 0).length} drawn
 						</span>
 					</div>
@@ -290,7 +290,7 @@
 									if (confirm(`Remove master "${m.name}"? This deletes its glyph data.`))
 										projectStore.removeMaster(m.id);
 								}}
-								class="rounded p-1.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+								class="rounded p-1.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 								aria-label="Remove master {m.name}"
 							>
 								<Trash2 class="size-3.5" />
@@ -399,7 +399,7 @@
 									<button
 										type="button"
 										onclick={() => projectStore.removeInstance(inst.id)}
-										class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+										class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 										aria-label="Remove instance {inst.styleName}"
 										title="Remove instance {inst.styleName}"
 									>

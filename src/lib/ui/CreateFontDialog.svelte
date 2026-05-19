@@ -154,7 +154,7 @@
 									onclick={() => (kind = kind === id ? undefined : (id as ProjectKind))}
 									class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {kind ===
 									id
-										? 'border-accent bg-accent-soft text-accent'
+										? 'border-accent bg-accent-soft text-accent-strong'
 										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
 									title={preset.description}
 								>
@@ -187,7 +187,7 @@
 										scriptPacks = next;
 									}}
 									class="rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors {selected
-										? 'border-accent bg-accent-soft text-accent'
+										? 'border-accent bg-accent-soft text-accent-strong'
 										: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
 									title={pack.description}
 								>
@@ -207,7 +207,7 @@
 			{:else if mode === 'file'}
 				<div class="grid gap-3">
 					<label
-						class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-4 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
+						class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-4 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent-strong"
 					>
 						<UploadCloud class="size-4" />
 						{importing ? 'Importing…' : 'Choose .otf / .ttf'}
@@ -224,7 +224,7 @@
 						/>
 					</label>
 					<label
-						class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-4 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent"
+						class="flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-dashed border-border-strong/50 bg-surface-2/40 px-3 py-4 text-sm font-medium text-fg-muted transition-colors hover:border-accent hover:bg-accent-soft/40 hover:text-accent-strong"
 					>
 						<FileText class="size-4" />
 						{ufoImporting ? 'Loading Python…' : 'Choose .ufo.zip'}
@@ -245,7 +245,7 @@
 						Pyodide so you can round-trip with Glyphs / RoboFont / FontLab.
 					</p>
 					{#if importError}
-						<div class="rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger">
+						<div class="rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong">
 							{importError}
 						</div>
 					{/if}
@@ -302,7 +302,7 @@
 					</div>
 
 					{#if importError}
-						<div class="rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger">
+						<div class="rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong">
 							{importError}
 						</div>
 					{/if}

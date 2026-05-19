@@ -619,7 +619,7 @@
 			</span>
 			{#if todayTotals.editedToday > 0}
 				<span
-					class="ml-2 hidden items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[10px] font-medium text-accent sm:inline-flex"
+					class="ml-2 hidden items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[10px] font-medium text-accent-strong sm:inline-flex"
 					data-numeric
 					title="Glyphs edited today across all projects"
 				>
@@ -729,7 +729,7 @@
 					class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 				>
 					<div
-						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
+						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent-strong"
 					>
 						<PenTool class="size-4" />
 					</div>
@@ -754,7 +754,7 @@
 					class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 				>
 					<div
-						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
+						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent-strong"
 					>
 						<Sparkles class="size-4" />
 					</div>
@@ -780,7 +780,7 @@
 				class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 			>
 				<div
-					class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
+					class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent-strong"
 				>
 					<UploadCloud class="size-4" />
 				</div>
@@ -883,7 +883,7 @@
 						type="button"
 						onclick={() => (onlyToday = !onlyToday)}
 						class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {onlyToday
-							? 'border-accent bg-accent-soft text-accent'
+							? 'border-accent bg-accent-soft text-accent-strong'
 							: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
 					>
 						Today
@@ -893,7 +893,7 @@
 							type="button"
 							onclick={() => (showArchived = !showArchived)}
 							class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {showArchived
-								? 'border-accent bg-accent-soft text-accent'
+								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
 							title={showArchived ? 'Hide archived projects' : 'Show archived projects'}
 						>
@@ -904,7 +904,7 @@
 							<button
 								type="button"
 								onclick={handleDeleteAllArchived}
-								class="rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger hover:border-danger hover:bg-danger/15"
+								class="rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger-strong hover:border-danger hover:bg-danger/15"
 								title="Permanently delete every archived project"
 							>
 								Delete {archivedCount} archived…
@@ -1049,9 +1049,9 @@
 										{#if (p.briefPct ?? 0) > 0}
 											<span
 												class="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium {(p.briefPct ?? 0) >= 67
-													? 'bg-success/15 text-success'
+													? 'bg-success/15 text-success-strong'
 													: (p.briefPct ?? 0) >= 33
-														? 'bg-warn/15 text-warn'
+														? 'bg-warn/15 text-warn-strong'
 														: 'bg-fg/10 text-fg-subtle'}"
 												title={(p.briefMissing ?? []).length === 0
 													? 'Brief complete'
@@ -1063,7 +1063,7 @@
 										{/if}
 										{#if (p.editsToday ?? 0) > 0}
 											<span
-												class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent"
+												class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent-strong"
 												title="Glyphs edited in last 24h{(p.editsThisWeek ?? 0) > (p.editsToday ?? 0)
 													? ` · ${p.editsThisWeek} this week`
 													: ''}"
@@ -1108,7 +1108,7 @@
 														ev.stopPropagation();
 														activeTag = activeTag === t ? null : t;
 													}}
-													class="rounded-full bg-surface-2/80 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:bg-accent-soft hover:text-accent"
+													class="rounded-full bg-surface-2/80 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
 													title={activeTag === t ? `Clear ${t} filter` : `Show only ${t}`}
 												>
 													{t}
@@ -1125,7 +1125,7 @@
 													ev.stopPropagation();
 													goto(`/family/${p.familyId}`);
 												}}
-												class="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg"
+												class="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:bg-accent hover:text-accent-fg"
 												title="Open family hub"
 											>
 												<Layers class="size-2.5" />
@@ -1274,7 +1274,7 @@
 							{openingDemo ? 'Opening…' : 'Open the example project'}
 						</div>
 						<span
-							class="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-accent uppercase"
+							class="rounded-full bg-accent/15 px-2 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-accent-strong uppercase"
 						>
 							Try it
 						</span>
@@ -1504,7 +1504,7 @@
 					handleDelete(menuTarget!);
 					closeMenu();
 				}}
-				class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-danger hover:bg-danger/10"
+				class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-danger-strong hover:bg-danger/10"
 			>
 				<Trash2 class="size-3.5" />
 				Delete…

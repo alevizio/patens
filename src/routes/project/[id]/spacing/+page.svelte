@@ -484,7 +484,7 @@
 					type="button"
 					onclick={() => (playgroundKern = !playgroundKern)}
 					class="rounded-md border px-2 py-1 font-mono text-[11px] {playgroundKern
-						? 'border-accent bg-accent-soft text-accent'
+						? 'border-accent bg-accent-soft text-accent-strong'
 						: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
 					title="Toggle kerning"
 				>
@@ -494,7 +494,7 @@
 					type="button"
 					onclick={() => (playgroundLiga = !playgroundLiga)}
 					class="rounded-md border px-2 py-1 font-mono text-[11px] {playgroundLiga
-						? 'border-accent bg-accent-soft text-accent'
+						? 'border-accent bg-accent-soft text-accent-strong'
 						: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
 					title="Toggle ligatures"
 				>
@@ -546,7 +546,7 @@
 					onclick={() => (referenceFont = opt.id)}
 					class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {referenceFont ===
 					opt.id
-						? 'bg-accent-soft text-accent'
+						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 				>
 					{opt.label}
@@ -558,8 +558,8 @@
 					onclick={() => (referenceFont = name)}
 					class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {referenceFont ===
 					name
-						? 'bg-accent-soft text-accent'
-						: 'border border-accent/30 text-accent/80 hover:bg-accent-soft/40'}"
+						? 'bg-accent-soft text-accent-strong'
+						: 'border border-accent/30 text-accent-strong/80 hover:bg-accent-soft/40'}"
 					title="From Brief — auto-loaded from Google Fonts"
 				>
 					{name}
@@ -593,7 +593,7 @@
 						onclick={() => (analyzerCategory = opt.id as AnalyzerCategory)}
 						class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {analyzerCategory ===
 						opt.id
-							? 'bg-accent-soft text-accent'
+							? 'bg-accent-soft text-accent-strong'
 							: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 					>
 						{opt.label}
@@ -674,7 +674,7 @@
 							<button
 								type="button"
 								onclick={() => projectStore.removeSidebearingClass(cls.id)}
-								class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+								class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 								aria-label="Delete class"
 								title="Delete sidebearing class"
 							>
@@ -691,7 +691,7 @@
 											cls.id,
 											cls.members.filter((m) => m !== cp)
 										)}
-									class="inline-flex items-center gap-0.5 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-danger/10 hover:text-danger"
+									class="inline-flex items-center gap-0.5 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg hover:bg-danger/10 hover:text-danger-strong"
 									title="Remove {g?.name ?? cp.toString(16)}"
 								>
 									{#if cp > 0x20 && cp < 0x10000}
@@ -786,7 +786,7 @@
 						onclick={() => (rhythmSet = id as RhythmSet)}
 						class="rounded-md px-2 py-1 text-[11px] font-medium transition-colors {rhythmSet ===
 						id
-							? 'bg-accent-soft text-accent'
+							? 'bg-accent-soft text-accent-strong'
 							: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 					>
 						{set.label}
@@ -946,7 +946,7 @@
 				<button
 					type="button"
 					class="rounded-md border px-2 py-1 font-mono text-[12px] {hasKern
-						? 'border-accent/40 bg-accent-soft text-accent'
+						? 'border-accent/40 bg-accent-soft text-accent-strong'
 						: 'border-border bg-surface-2 hover:border-accent hover:bg-accent-soft'}"
 					onclick={() => {
 						leftChar = l;
@@ -1068,7 +1068,7 @@
 						<button
 							type="button"
 							onclick={() => acceptClassSuggestion(s)}
-							class="rounded-md border border-accent/40 bg-surface px-2 py-1 text-[11px] font-medium text-accent hover:bg-accent-soft"
+							class="rounded-md border border-accent/40 bg-surface px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent-soft"
 							title={s.basis}
 						>
 							+ <span class="font-mono">{s.name}</span>
@@ -1109,7 +1109,7 @@
 						<button
 							type="button"
 							onclick={() => projectStore.removeKerningClass(cls.name)}
-							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 							aria-label="Remove class {cls.name}"
 							title="Remove class {cls.name}"
 						>
@@ -1166,7 +1166,7 @@
 						<button
 							type="button"
 							onclick={() => removeKerning(pair.left, pair.right)}
-							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 							aria-label="Remove pair"
 							title="Remove kerning pair"
 						>

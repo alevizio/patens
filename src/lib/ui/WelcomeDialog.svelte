@@ -52,7 +52,7 @@
 
 			<ol class="mb-4 grid gap-2.5">
 				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-warn/15 text-warn">
+					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-warn/15 text-warn-strong">
 						<Pencil class="size-3.5" />
 					</div>
 					<div>
@@ -64,7 +64,7 @@
 					</div>
 				</li>
 				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent">
+					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent-strong">
 						<Wand class="size-3.5" />
 					</div>
 					<div>
@@ -76,7 +76,7 @@
 					</div>
 				</li>
 				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-success/15 text-success">
+					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-success/15 text-success-strong">
 						<Eye class="size-3.5" />
 					</div>
 					<div>

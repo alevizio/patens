@@ -54,9 +54,9 @@
 		competitive: 'Competitive'
 	};
 	const KIND_COLORS = {
-		functional: 'bg-success/15 text-success',
-		historical: 'bg-warn/15 text-warn',
-		competitive: 'bg-accent/15 text-accent'
+		functional: 'bg-success/15 text-success-strong',
+		historical: 'bg-warn/15 text-warn-strong',
+		competitive: 'bg-accent/15 text-accent-strong'
 	};
 
 	const COMMON_REFS: Array<{
@@ -165,7 +165,7 @@
 	<div class="h-full overflow-auto">
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
 			<header class="flex items-start gap-3">
-				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 					<FileText class="size-4" />
 				</div>
 				<div>
@@ -246,7 +246,7 @@
 							type="button"
 							onclick={() => toggleUseCase(uc as UseCase)}
 							class="rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors {active
-								? 'border-accent bg-accent-soft text-accent'
+								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-surface-2/40 text-fg-muted hover:border-border-strong hover:text-fg'}"
 						>
 							{label}
@@ -350,7 +350,7 @@
 								<button
 									type="button"
 									onclick={() => projectStore.removeDecision(d.id)}
-									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 									aria-label="Remove decision"
 									title="Remove decision"
 								>
@@ -437,7 +437,7 @@
 								<button
 									type="button"
 									onclick={() => projectStore.removeBriefReference(r.id)}
-									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 									aria-label="Remove reference {r.name}"
 									title="Remove reference {r.name}"
 								>

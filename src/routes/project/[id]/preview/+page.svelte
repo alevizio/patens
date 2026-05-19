@@ -719,7 +719,7 @@ function rgb(hex) {
 						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors {featureState[
 							f.tag
 						]
-							? 'border-accent bg-accent-soft text-accent'
+							? 'border-accent bg-accent-soft text-accent-strong'
 							: 'border-border bg-surface-2 text-fg-muted hover:border-fg-subtle'}"
 						title={f.desc}
 					>

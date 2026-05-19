@@ -467,7 +467,7 @@
 						<div class="mt-1 border-t border-border pt-1">
 							<a
 								href="/"
-								class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent hover:bg-accent-soft/40"
+								class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent-strong hover:bg-accent-soft/40"
 							>
 								All projects · New font →
 							</a>
@@ -508,7 +508,7 @@
 				{#if projectStore.project?.familyId}
 					<a
 						href="/family/{projectStore.project.familyId}"
-						class="inline-flex items-center gap-1 rounded bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg"
+						class="inline-flex items-center gap-1 rounded bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent-strong hover:bg-accent hover:text-accent-fg"
 						title="Open family hub"
 					>
 						<Layers class="size-2.5" />
@@ -724,7 +724,7 @@
 
 	{#if projectStore.project?.locked}
 		<div
-			class="flex items-center gap-2 border-b border-warn/40 bg-warn/10 px-4 py-1.5 text-[12px] text-warn"
+			class="flex items-center gap-2 border-b border-warn/40 bg-warn/10 px-4 py-1.5 text-[12px] text-warn-strong"
 		>
 			<LockIcon class="size-3.5" />
 			<span class="font-medium">Project is locked.</span>

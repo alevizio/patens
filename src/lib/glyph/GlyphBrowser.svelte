@@ -314,7 +314,7 @@
 					onclick={() => (statusFilter = opt.id)}
 					class="rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
 					opt.id
-						? 'bg-accent-soft text-accent'
+						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 					title={opt.title}
 				>
@@ -352,7 +352,7 @@
 					if (!bulkMode) clearSelection();
 				}}
 				class="inline-flex h-6 items-center gap-1 rounded-md border px-1.5 text-[11px] font-medium transition-colors {bulkMode
-					? 'border-accent bg-accent-soft text-accent'
+					? 'border-accent bg-accent-soft text-accent-strong'
 					: 'border-border bg-surface text-fg-muted hover:border-accent hover:text-accent'}"
 				aria-label="Toggle bulk-select mode"
 				title="Toggle bulk-select mode"
@@ -375,7 +375,7 @@
 					type="button"
 					onclick={() => (addMode = 'single')}
 					class="rounded px-2 py-0.5 {addMode === 'single'
-						? 'bg-accent-soft text-accent'
+						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-muted hover:text-fg'}"
 				>
 					Single
@@ -384,7 +384,7 @@
 					type="button"
 					onclick={() => (addMode = 'bulk')}
 					class="rounded px-2 py-0.5 {addMode === 'bulk'
-						? 'bg-accent-soft text-accent'
+						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-muted hover:text-fg'}"
 				>
 					Paste text

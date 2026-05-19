@@ -276,7 +276,7 @@
 	>
 		<div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
 			<header class="flex items-start gap-3">
-				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 					<Layers class="size-4" />
 				</div>
 				<div>
@@ -306,7 +306,7 @@
 							onclick={() => (cp = g.codepoint)}
 							class="size-8 rounded border text-center font-mono text-[12px] transition-colors {cp ===
 							g.codepoint
-								? 'border-accent bg-accent-soft text-accent'
+								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-surface text-fg-muted hover:border-accent'}"
 							title="{g.name} · {`U+${g.codepoint.toString(16).toUpperCase().padStart(4, '0')}`}"
 						>
@@ -462,7 +462,7 @@
 										<button
 											type="button"
 											onclick={() => removeLayer(layer.id)}
-											class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger"
+											class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger-strong"
 											aria-label="Remove reference layer"
 											title="Remove this reference layer"
 										>

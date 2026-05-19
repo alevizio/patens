@@ -21,9 +21,13 @@
 	--color-accent: hsl(var(--accent));
 	--color-accent-fg: hsl(var(--accent-fg));
 	--color-accent-soft: hsl(var(--accent-soft));
+	--color-accent-strong: hsl(var(--accent-strong));
 	--color-success: hsl(var(--success));
+	--color-success-strong: hsl(var(--success-strong));
 	--color-warn: hsl(var(--warn));
+	--color-warn-strong: hsl(var(--warn-strong));
 	--color-danger: hsl(var(--danger));
+	--color-danger-strong: hsl(var(--danger-strong));
 	--color-grid: hsl(var(--grid));
 	--color-baseline: hsl(var(--baseline));
 	--color-x-height: hsl(var(--x-height));
@@ -49,9 +53,13 @@
 		--accent: 222 88% 55%;
 		--accent-fg: 0 0% 100%;
 		--accent-soft: 222 88% 95%;
+		--accent-strong: 222 88% 38%; /* for text on tinted bg — passes 4.5:1 on accent-soft */
 		--success: 145 60% 38%;
+		--success-strong: 145 60% 28%;
 		--warn: 35 90% 50%;
+		--warn-strong: 35 90% 28%; /* dark enough for body text on warn/10 + on white */
 		--danger: 358 75% 52%;
+		--danger-strong: 358 75% 38%;
 
 		/* metrics (used in editor overlays) */
 		--grid: 240 6% 90%;
@@ -79,9 +87,13 @@
 			--accent: 222 88% 62%;
 			--accent-fg: 240 8% 6%;
 			--accent-soft: 222 60% 18%;
+			--accent-strong: 222 88% 75%;
 			--success: 145 60% 50%;
+			--success-strong: 145 60% 60%;
 			--warn: 35 90% 55%;
+			--warn-strong: 35 90% 65%;
 			--danger: 358 75% 60%;
+			--danger-strong: 358 75% 68%;
 			--grid: 240 6% 16%;
 			--baseline: 222 88% 62%;
 			--x-height: 145 60% 50%;
@@ -105,9 +117,13 @@
 		--accent: 222 88% 62%;
 		--accent-fg: 240 8% 6%;
 		--accent-soft: 222 60% 18%;
+		--accent-strong: 222 88% 75%;
 		--success: 145 60% 50%;
+		--success-strong: 145 60% 60%;
 		--warn: 35 90% 55%;
+		--warn-strong: 35 90% 65%;
 		--danger: 358 75% 60%;
+		--danger-strong: 358 75% 68%;
 		--grid: 240 6% 16%;
 		--baseline: 222 88% 62%;
 		--x-height: 145 60% 50%;

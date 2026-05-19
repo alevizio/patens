@@ -179,15 +179,15 @@
 							features.fea
 						</span>
 						{#if dirty}
-							<span class="rounded-full bg-warn/20 px-2 py-0.5 text-[10px] font-medium text-warn">
+							<span class="rounded-full bg-warn/20 px-2 py-0.5 text-[10px] font-medium text-warn-strong">
 								Unsaved
 							</span>
 						{:else if project.features.feaSource}
-							<span class="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-accent">
+							<span class="rounded-full bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-accent-strong">
 								Custom
 							</span>
 						{:else}
-							<span class="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success">
+							<span class="rounded-full bg-success/15 px-2 py-0.5 text-[10px] font-medium text-success-strong">
 								Auto-generated
 							</span>
 						{/if}

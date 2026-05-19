@@ -356,7 +356,7 @@
 	</a>
 
 	<header class="mb-8 flex items-start gap-3">
-		<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
+		<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 			<Layers class="size-4" />
 		</div>
 		<div class="flex-1">
@@ -479,7 +479,7 @@
 								</span>
 								{#if (s.editsToday ?? 0) > 0}
 									<span
-										class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent"
+										class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent-strong"
 										data-numeric
 										title="Glyphs edited in last 24h"
 									>
@@ -491,7 +491,7 @@
 						<button
 							type="button"
 							onclick={() => handleUnlinkSibling(s.id)}
-							class="rounded p-1 text-fg-subtle hover:bg-warn/10 hover:text-warn"
+							class="rounded p-1 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
 							aria-label="Unlink from family"
 							title="Unlink from family"
 						>
@@ -547,7 +547,7 @@
 							<button
 								type="button"
 								onclick={() => handleFixIssue(i)}
-								class="rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:border-accent hover:bg-accent/15"
+								class="rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
 								title="Sync the offending field from the Regular sibling"
 							>
 								{fixLabel(i.code)}
@@ -704,7 +704,7 @@
 				type="button"
 				onclick={() => (newSlantMode = 'blank')}
 				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'blank'
-					? 'bg-accent-soft text-accent'
+					? 'bg-accent-soft text-accent-strong'
 					: 'text-fg-muted hover:text-fg'}"
 				title="Start from empty glyph contours"
 			>
@@ -714,7 +714,7 @@
 				type="button"
 				onclick={() => (newSlantMode = 'slant')}
 				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'slant'
-					? 'bg-accent-soft text-accent'
+					? 'bg-accent-soft text-accent-strong'
 					: 'text-fg-muted hover:text-fg'}"
 				title="Pre-fill outlines by slanting the template — useful for italic siblings"
 			>

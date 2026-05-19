@@ -67,7 +67,7 @@
 						type="button"
 						onclick={() => projectStore.toggleSpecimenSection(s.id)}
 						class="rounded-md border px-2 py-0.5 text-[11px] font-medium transition-colors {on
-							? 'border-accent/40 bg-accent-soft text-accent'
+							? 'border-accent/40 bg-accent-soft text-accent-strong'
 							: 'border-border bg-surface-2/40 text-fg-subtle hover:border-border-strong hover:text-fg'}"
 					>
 						{s.label}

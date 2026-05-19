@@ -17,12 +17,12 @@
 
 	const colorFor = (kind: 'info' | 'success' | 'warn' | 'error') =>
 		kind === 'success'
-			? 'border-success/40 bg-success/10 text-success'
+			? 'border-success/40 bg-success/10 text-success-strong'
 			: kind === 'error'
-				? 'border-danger/40 bg-danger/10 text-danger'
+				? 'border-danger/40 bg-danger/10 text-danger-strong'
 				: kind === 'warn'
-					? 'border-warn/40 bg-warn/10 text-warn'
-					: 'border-accent/40 bg-accent/10 text-accent';
+					? 'border-warn/40 bg-warn/10 text-warn-strong'
+					: 'border-accent/40 bg-accent/10 text-accent-strong';
 </script>
 
 <div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2">

@@ -332,7 +332,7 @@
 	onpointerup={handlePointerUp}
 	onpointercancel={handlePointerUp}
 	onwheel={handleWheel}
-	role="img"
+	role="application"
 	aria-label="Drawing canvas for glyph {glyph.name}"
 >
 	<!-- Inner group flips Y so we can think in font space (Y+ up) -->

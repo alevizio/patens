@@ -1308,7 +1308,7 @@
 						type="button"
 						onclick={() => (skipEmptyNav = !skipEmptyNav)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors {skipEmptyNav
-							? 'bg-accent-soft text-accent'
+							? 'bg-accent-soft text-accent-strong'
 							: 'text-fg-muted hover:bg-surface-2 hover:text-fg'}"
 						title="[ ] navigation skips empty glyphs"
 					>
@@ -1348,7 +1348,7 @@
 							type="button"
 							onclick={() => (showFamilyRegular = !showFamilyRegular)}
 							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showFamilyRegular
-								? 'bg-accent-soft text-accent'
+								? 'bg-accent-soft text-accent-strong'
 								: 'text-fg-subtle hover:bg-surface-2'}"
 							title="Overlay the family Regular's same-glyph contour as a ghost (⇧R)"
 						>
@@ -1360,7 +1360,7 @@
 						type="button"
 						onclick={() => (showAnchors = !showAnchors)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnchors
-							? 'bg-warn/10 text-warn'
+							? 'bg-warn/10 text-warn-strong'
 							: 'text-fg-subtle hover:bg-surface-2'}"
 						title="Toggle anchors (X)"
 					>
@@ -1392,7 +1392,7 @@
 						type="button"
 						onclick={() => (showSketch = !showSketch)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showSketch
-							? 'bg-warn/10 text-warn'
+							? 'bg-warn/10 text-warn-strong'
 							: 'text-fg-subtle hover:bg-surface-2'}"
 						title="Toggle sketch layer (S)"
 					>
@@ -1403,7 +1403,7 @@
 						type="button"
 						onclick={() => (showVector = !showVector)}
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showVector
-							? 'bg-accent/10 text-accent'
+							? 'bg-accent/10 text-accent-strong'
 							: 'text-fg-subtle hover:bg-surface-2'}"
 						title="Toggle vector layer (V)"
 					>
@@ -1459,7 +1459,7 @@
 					</span>
 					<a
 						href="/project/{projectStore.project.id}/brief"
-						class="ml-auto rounded border border-warn/40 bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn hover:bg-warn/15"
+						class="ml-auto rounded border border-warn/40 bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn-strong hover:bg-warn/15"
 					>
 						Open Brief →
 					</a>
@@ -1525,7 +1525,7 @@
 			>
 				{#if canvasDragActive}
 					<div
-						class="pointer-events-none absolute inset-6 z-10 flex items-center justify-center rounded-lg bg-accent/10 text-[14px] font-medium text-accent"
+						class="pointer-events-none absolute inset-6 z-10 flex items-center justify-center rounded-lg bg-accent/10 text-[14px] font-medium text-accent-strong"
 					>
 						Drop image to use as tracing reference
 					</div>
@@ -2022,7 +2022,7 @@
 									toast.warn(`Reset "${name}" — ⌘Z to undo`, 4000);
 								}
 							}}
-							class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn"
+							class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
 							aria-label="Reset glyph to empty"
 							title="Reset glyph (keep its slot but wipe data)"
 						>
@@ -2042,7 +2042,7 @@
 									toast.warn(`Removed "${name}" — ⌘Z to undo`, 4000);
 								}
 							}}
-							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 							aria-label="Delete glyph"
 							title="Remove this glyph from the font"
 						>
@@ -2056,7 +2056,7 @@
 							type="button"
 							class="rounded-md border px-2 py-1.5 text-[12px] font-medium capitalize transition-colors {glyph.status ===
 							status
-								? 'border-accent bg-accent-soft text-accent'
+								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-transparent text-fg-muted hover:bg-surface-2'}"
 							onclick={() =>
 								projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, status }))}
@@ -2083,7 +2083,7 @@
 								<button
 									type="button"
 									onclick={() => removeAnchor(a.name)}
-									class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+									class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 									aria-label="Remove anchor {a.name}"
 									title="Remove anchor {a.name}"
 								>
@@ -2099,7 +2099,7 @@
 							<button
 								type="button"
 								onclick={() => addAnchor(suggested)}
-								class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 font-mono text-[11px] text-fg-muted hover:border-warn hover:bg-warn/10 hover:text-warn"
+								class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 font-mono text-[11px] text-fg-muted hover:border-warn hover:bg-warn/10 hover:text-warn-strong"
 							>
 								+ {suggested}
 							</button>
@@ -2198,7 +2198,7 @@
 				<Accordion id="edit-usedby" label="Used by" defaultOpen={true}>
 					{#snippet badge()}
 						<span
-							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent"
+							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent-strong"
 							data-numeric
 						>
 							{usedByGlyphs.length}
@@ -2425,7 +2425,7 @@
 					)} ms
 				</div>
 				{#if previewStore.error}
-					<div class="mt-2 rounded bg-danger/10 p-2 text-[11px] text-danger">
+					<div class="mt-2 rounded bg-danger/10 p-2 text-[11px] text-danger-strong">
 						{previewStore.error}
 					</div>
 				{/if}
@@ -2438,9 +2438,9 @@
 						{#if issues.length > 0}
 							<span
 								class="rounded px-1.5 py-0.5 font-mono text-[10px] {issues[0].severity === 'error'
-									? 'bg-danger/15 text-danger'
+									? 'bg-danger/15 text-danger-strong'
 									: issues[0].severity === 'warn'
-										? 'bg-warn/15 text-warn'
+										? 'bg-warn/15 text-warn-strong'
 										: 'bg-surface-2 text-fg-muted'}"
 								data-numeric
 							>
@@ -2448,14 +2448,14 @@
 							</span>
 						{:else}
 							<span
-								class="rounded bg-success/15 px-1.5 py-0.5 font-mono text-[10px] text-success"
+								class="rounded bg-success/15 px-1.5 py-0.5 font-mono text-[10px] text-success-strong"
 							>
 								ok
 							</span>
 						{/if}
 					{/snippet}
 					{#if issues.length === 0}
-						<div class="flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-2 text-[12px] text-success">
+						<div class="flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-2 text-[12px] text-success-strong">
 							<CheckCircle2 class="size-3.5" />
 							No issues
 						</div>
@@ -2465,9 +2465,9 @@
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
-										? 'bg-danger/10 text-danger'
+										? 'bg-danger/10 text-danger-strong'
 										: issue.severity === 'warn'
-											? 'bg-warn/10 text-warn'
+											? 'bg-warn/10 text-warn-strong'
 											: 'bg-surface-2 text-fg-muted'}"
 								>
 									<AlertCircle class="mt-0.5 size-3 shrink-0" />

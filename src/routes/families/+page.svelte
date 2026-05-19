@@ -110,7 +110,7 @@
 							class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
 						>
 							<div
-								class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+								class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-strong"
 							>
 								<Layers class="size-5" />
 							</div>

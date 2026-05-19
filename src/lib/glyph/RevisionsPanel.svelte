@@ -86,7 +86,7 @@
 						<button
 							type="button"
 							onclick={() => restore(r.id)}
-							class="rounded p-0.5 text-fg-subtle hover:bg-accent/10 hover:text-accent"
+							class="rounded p-0.5 text-fg-subtle hover:bg-accent/10 hover:text-accent-strong"
 							aria-label="Restore this snapshot"
 							title="Restore"
 						>
@@ -95,7 +95,7 @@
 						<button
 							type="button"
 							onclick={() => remove(r.id)}
-							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
+							class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
 							aria-label="Delete this snapshot"
 							title="Delete"
 						>
