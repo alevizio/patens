@@ -117,48 +117,6 @@ font.save('/tmp/out.woff2')
 	return buf;
 };
 
-/** Subset a font to a given character set via pyftsubset. */
-export const subsetFont = async (
-	otfBuffer: ArrayBuffer,
-	options: {
-		text?: string;
-		unicodes?: string;
-		flavor?: 'woff2' | 'woff' | null;
-		layoutFeatures?: string;
-	}
-): Promise<ArrayBuffer> => {
-	const py = await ensurePython();
-	py.FS.writeFile('/tmp/in.otf', new Uint8Array(otfBuffer));
-	const flavor = options.flavor ?? null;
-	const layoutFeatures = options.layoutFeatures ?? '*';
-	const text = JSON.stringify(options.text ?? '');
-	const unicodes = JSON.stringify(options.unicodes ?? '');
-	const flavorPy = flavor ? `'${flavor}'` : 'None';
-	await py.runPythonAsync(`
-from fontTools.subset import Subsetter, load_font, save_font, parse_unicodes, Options
-opts = Options()
-opts.layout_features = ['*']
-opts.flavor = ${flavorPy}
-font = load_font('/tmp/in.otf', opts)
-text = ${text}
-unicodes_str = ${unicodes}
-unis = list(text) if text else []
-codes = []
-for ch in unis:
-    codes.append(ord(ch))
-if unicodes_str:
-    codes.extend(parse_unicodes(unicodes_str))
-sub = Subsetter(options=opts)
-sub.populate(unicodes=codes if codes else list(range(0x0020, 0x024F)))
-sub.subset(font)
-save_font(font, '/tmp/out.bin', opts)
-	`);
-	const out = py.FS.readFile('/tmp/out.bin');
-	const buf = new ArrayBuffer(out.byteLength);
-	new Uint8Array(buf).set(out);
-	return buf;
-};
-
 /** Compile an .fea source against a font, returning a new binary with the features baked in. */
 export const compileFeaIntoFont = async (
 	otfBuffer: ArrayBuffer,
