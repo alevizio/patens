@@ -38,7 +38,12 @@
 		bodyClass = ''
 	}: Props = $props();
 
+	// id + defaultOpen are configuration set by the parent and don't change
+	// over an Accordion's lifetime — initial-value-only is the desired
+	// semantics here.
+	// svelte-ignore state_referenced_locally
 	const STORAGE_KEY = `font-studio:accordion:${id}`;
+	// svelte-ignore state_referenced_locally
 	let open = $state(defaultOpen);
 
 	$effect(() => {

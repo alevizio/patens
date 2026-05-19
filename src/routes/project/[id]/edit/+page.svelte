@@ -21,6 +21,7 @@
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
+	import Accordion from '$lib/ui/Accordion.svelte';
 	import Pencil from '@lucide/svelte/icons/pencil';
 	import Eraser from '@lucide/svelte/icons/eraser';
 	import MousePointer from '@lucide/svelte/icons/mouse-pointer-2';
@@ -2105,10 +2106,7 @@
 			<ReferenceImagePanel />
 
 			{#if glyph.contours.length === 0}
-				<div class="border-b border-border p-4">
-					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-						Templates
-					</h3>
+				<Accordion id="edit-templates" label="Templates" defaultOpen={false}>
 					<p class="mb-2 text-[11px] text-fg-subtle">
 						Start from a basic shape and refine in edit mode (A).
 					</p>
@@ -2142,14 +2140,11 @@
 							Horizontal bar
 						</button>
 					</div>
-				</div>
+				</Accordion>
 			{/if}
 
 			{#if glyph.contours.length === 0 && drawnSources.length > 0}
-				<div class="border-b border-border p-4">
-					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-						Derive from another glyph
-					</h3>
+				<Accordion id="edit-derive" label="Derive from another glyph" defaultOpen={false}>
 					<p class="mb-2 text-[11px] text-fg-subtle">
 						One-shot generate this glyph from one you've already drawn. Good for
 						<code class="font-mono">b/d</code>, <code class="font-mono">p/q</code>,
@@ -2183,7 +2178,7 @@
 					>
 						Generate
 					</button>
-				</div>
+				</Accordion>
 			{/if}
 
 			<CompositeEditor />
@@ -2195,11 +2190,15 @@
 			<StemsPanel />
 
 			{#if usedByGlyphs.length > 0}
-				<div class="border-b border-border p-4">
-					<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-						Used by
-						<span class="ml-1 text-fg-subtle/70" data-numeric>{usedByGlyphs.length}</span>
-					</h3>
+				<Accordion id="edit-usedby" label="Used by" defaultOpen={true}>
+					{#snippet badge()}
+						<span
+							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent"
+							data-numeric
+						>
+							{usedByGlyphs.length}
+						</span>
+					{/snippet}
 					<p class="mb-2 text-[11px] text-fg-subtle">
 						These composite glyphs reference this glyph. Edits here propagate.
 					</p>
@@ -2217,13 +2216,10 @@
 							</button>
 						{/each}
 					</div>
-				</div>
+				</Accordion>
 			{/if}
 
-			<div class="border-b border-border p-4">
-				<h3 class="mb-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Notes
-				</h3>
+			<Accordion id="edit-notes" label="Notes" defaultOpen={false}>
 				<textarea
 					value={glyph.notes ?? ''}
 					oninput={(e) =>
@@ -2235,12 +2231,9 @@
 					rows="3"
 					class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent focus:bg-surface"
 				></textarea>
-			</div>
+			</Accordion>
 
-			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Path operations
-				</h3>
+			<Accordion id="edit-pathops" label="Path operations" defaultOpen={false}>
 				<button
 					type="button"
 					onclick={autoCleanGlyph}
@@ -2400,12 +2393,9 @@
 						Top to x-height
 					</button>
 				</div>
-			</div>
+			</Accordion>
 
-			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Live preview
-				</h3>
+			<Accordion id="edit-live-preview" label="Live preview" defaultOpen={true}>
 				{#if glyph.contours.length > 0}
 					<div
 						class="rounded-md border border-border bg-canvas p-4 text-center text-6xl preview-font leading-none"
@@ -2434,14 +2424,31 @@
 						{previewStore.error}
 					</div>
 				{/if}
-			</div>
+			</Accordion>
 
 			{#if projectStore.project}
 				{@const issues = sortBySeverity(auditGlyph(glyph, projectStore.project))}
-				<div class="border-b border-border p-4">
-					<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-						Audit
-					</h3>
+				<Accordion id="edit-audit" label="Audit" defaultOpen={issues.length > 0}>
+					{#snippet badge()}
+						{#if issues.length > 0}
+							<span
+								class="rounded px-1.5 py-0.5 font-mono text-[10px] {issues[0].severity === 'error'
+									? 'bg-danger/15 text-danger'
+									: issues[0].severity === 'warn'
+										? 'bg-warn/15 text-warn'
+										: 'bg-surface-2 text-fg-muted'}"
+								data-numeric
+							>
+								{issues.length}
+							</span>
+						{:else}
+							<span
+								class="rounded bg-success/15 px-1.5 py-0.5 font-mono text-[10px] text-success"
+							>
+								ok
+							</span>
+						{/if}
+					{/snippet}
 					{#if issues.length === 0}
 						<div class="flex items-center gap-2 rounded-md bg-success/10 px-2.5 py-2 text-[12px] text-success">
 							<CheckCircle2 class="size-3.5" />
@@ -2464,13 +2471,10 @@
 							{/each}
 						</ul>
 					{/if}
-				</div>
+				</Accordion>
 			{/if}
 
-			<div class="border-b border-border p-4">
-				<h3 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Brush &amp; trace
-				</h3>
+			<Accordion id="edit-brush" label="Brush & trace" defaultOpen={false}>
 				<div class="grid gap-3">
 					<label class="grid gap-1.5">
 						<span class="flex items-center justify-between text-[11px] text-fg-muted">
@@ -2531,7 +2535,7 @@
 						</label>
 					{/if}
 				</div>
-			</div>
+			</Accordion>
 
 			<div class="mt-auto p-4 text-[11px] text-fg-subtle">
 				<p class="mb-1 font-medium">Shortcuts</p>
