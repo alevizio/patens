@@ -46,6 +46,8 @@
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import Download from '@lucide/svelte/icons/download';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import HardDrive from '@lucide/svelte/icons/hard-drive';
+	import StorageDialog from '$lib/ui/StorageDialog.svelte';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -188,6 +190,7 @@
 	let urlImporting = $state(false);
 	let importError = $state<string | null>(null);
 	let createDialogOpen = $state(false);
+	let storageDialogOpen = $state(false);
 	let importWarning = $state<string | null>(null);
 	let newName = $state('');
 	let newFamily = $state('');
@@ -625,6 +628,20 @@
 			>
 				Learn the craft
 			</a>
+			{#if storage && storage.quota > 0}
+				{@const pct = Math.min(100, (storage.used / storage.quota) * 100)}
+				<button
+					type="button"
+					onclick={() => (storageDialogOpen = true)}
+					class="ml-1 inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Browser storage"
+					title="Browser storage · backup & restore"
+				>
+					<HardDrive
+						class="size-3.5 {pct > 80 ? 'text-danger' : pct > 50 ? 'text-warn' : ''}"
+					/>
+				</button>
+			{/if}
 		</nav>
 	</header>
 
@@ -1163,11 +1180,9 @@
 			{/if}
 		</section>
 
-		<!-- Footer row: secondary content (recent releases, storage). Lives
-		     below the main project list. Two-col on wide screens, stacks on
-		     mobile. Generous top gap so it reads as a separate "house-keeping"
-		     band rather than tacked onto the project list. -->
-		<section class="mt-10 grid gap-4 md:grid-cols-2">
+		<!-- Footer band: Recent releases only (storage moved to a dialog in
+		     the top bar). Generous top gap so it reads as a separate band. -->
+		<section class="mt-10 grid gap-4">
 			{#if recentReleases.length > 0}
 				<div class="rounded-2xl border border-border bg-surface p-5">
 					<h2
@@ -1198,79 +1213,6 @@
 				</div>
 			{/if}
 
-			{#if storage && storage.quota > 0}
-				{@const pct = Math.min(100, Math.round((storage.used / storage.quota) * 1000) / 10)}
-				<!-- Storage is system metadata, not editorial content — keep it
-				     low-key. Compact strip: small label, mono used/quota, thin
-				     bar, link-style backup/restore. The previous serif-headed
-				     "Browser storage" card with two big buttons read way too
-				     prominent for a 0.007%-used housekeeping indicator. -->
-				<div class="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-surface px-5 py-4">
-					<div>
-						<div class="flex items-baseline justify-between gap-2">
-							<span class="text-[11px] font-medium tracking-wider text-fg-subtle uppercase">
-								Storage
-							</span>
-							<span
-								class="font-mono text-[11px] text-fg-muted"
-								data-numeric
-								title="{pct}% used"
-							>
-								{formatBytes(storage.used)}
-								<span class="text-fg-subtle">/ {formatBytes(storage.quota)}</span>
-							</span>
-						</div>
-						<div class="mt-2 h-[3px] overflow-hidden rounded-full bg-surface-2">
-							<div
-								class="h-full transition-all {pct > 80
-									? 'bg-danger'
-									: pct > 50
-										? 'bg-warn'
-										: 'bg-fg/40'}"
-								style="width: {Math.max(pct, 1)}%;"
-							></div>
-						</div>
-						<p class="mt-2.5 text-[11px] leading-snug text-fg-subtle">
-							Projects live in this browser. Back up periodically to keep a copy
-							elsewhere.
-						</p>
-					</div>
-					<div class="flex items-center gap-3 text-[11px] font-medium">
-						{#if projects.length > 0}
-							<button
-								type="button"
-								onclick={handleBackupAll}
-								disabled={backingUp}
-								class="text-fg-muted underline-offset-2 transition-colors hover:text-accent hover:underline disabled:opacity-60"
-							>
-								{backingUp ? 'Bundling…' : `Backup ${projects.length} →`}
-							</button>
-							<span class="text-fg-subtle/50">·</span>
-						{/if}
-						<label
-							class="cursor-pointer text-fg-muted underline-offset-2 transition-colors hover:text-accent hover:underline"
-						>
-							{restoring ? 'Restoring…' : 'Restore JSON…'}
-							<input
-								type="file"
-								accept="application/json,.json"
-								class="hidden"
-								disabled={restoring}
-								onchange={(e) => {
-									const f = e.currentTarget.files?.[0];
-									if (f) handleRestoreFromFile(f);
-									e.currentTarget.value = '';
-								}}
-							/>
-						</label>
-						{#if restoreMessage}
-							<span class="ml-auto truncate text-[10px] text-fg-subtle">
-								{restoreMessage}
-							</span>
-						{/if}
-					</div>
-				</div>
-			{/if}
 		</section>
 	</div>
 
@@ -1397,6 +1339,20 @@
 		onufo={(file) => importFile(file)}
 		onurl={(url) => handleUrlImport(url)}
 	/>
+	{#if storage && storage.quota > 0}
+		<StorageDialog
+			open={storageDialogOpen}
+			onclose={() => (storageDialogOpen = false)}
+			used={storage.used}
+			quota={storage.quota}
+			projectCount={projects.length}
+			{backingUp}
+			{restoring}
+			{restoreMessage}
+			onbackup={handleBackupAll}
+			onrestore={(file) => handleRestoreFromFile(file)}
+		/>
+	{/if}
 
 	{#if menuOpen && menuTarget}
 		<button

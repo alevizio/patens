@@ -1,11 +1,12 @@
 <script lang="ts">
-	import Panel from '$lib/ui/Panel.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import Compass from '@lucide/svelte/icons/compass';
 	import Pencil from '@lucide/svelte/icons/pen-tool';
 	import Wrench from '@lucide/svelte/icons/wrench';
 	import Rocket from '@lucide/svelte/icons/rocket';
+	import Type from '@lucide/svelte/icons/type';
+	import ExternalLink from '@lucide/svelte/icons/external-link';
 
 	const TIMELINE: Array<{ weeks: string; phase: string; tasks: string[] }> = [
 		{
@@ -208,50 +209,97 @@
 	];
 </script>
 
-<div class="mx-auto max-w-4xl px-6 py-12">
-	<a
-		href="/"
-		class="mb-6 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+<div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+	<!-- Slim top bar — matches home + families pages -->
+	<header
+		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
 	>
-		<ArrowLeft class="size-3.5" />
-		Back to projects
-	</a>
-
-	<header class="mb-8 flex items-start gap-3">
-		<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent">
-			<BookOpen class="size-4" />
-		</div>
-		<div>
-			<h1 class="text-2xl font-semibold tracking-tight">Learn type design</h1>
-			<p class="mt-1 text-sm text-fg-muted">
-				A pragmatic 8–12 week starter path, exercises that actually teach you to see,
-				and the tools/books a real practice runs on. Adapted from foundry essays and
-				the standards docs that govern the format.
-			</p>
-		</div>
+		<a href="/" class="group inline-flex items-center gap-2.5">
+			<span
+				class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
+			>
+				<Type class="size-3.5" />
+			</span>
+			<span
+				class="text-[13px] font-medium tracking-tight text-fg"
+				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
+			>
+				Font Studio
+			</span>
+		</a>
+		<a
+			href="/"
+			class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+		>
+			<ArrowLeft class="size-3.5" />
+			Back to projects
+		</a>
 	</header>
 
-	<Panel>
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<Compass class="size-3" /> Beginner timeline
-		</h2>
+	<!-- Hero -->
+	<section class="mb-16 max-w-3xl">
+		<h1
+			class="text-[40px] leading-[1.05] tracking-tight text-fg"
+			style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+		>
+			Learn type design
+		</h1>
+		<p class="mt-4 text-[15px] leading-relaxed text-fg-muted">
+			A pragmatic 8–12 week starter path, exercises that actually teach you to see,
+			and the tools, books, and foundries a real practice runs on. Adapted from
+			foundry essays and the standards docs that govern the format.
+		</p>
+	</section>
+
+	<!-- TIMELINE — primary section, biggest treatment -->
+	<section class="mb-16">
+		<div class="mb-6 flex items-baseline gap-3">
+			<Compass class="size-5 self-center text-accent" />
+			<h2
+				class="text-[28px] leading-none tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Beginner timeline
+			</h2>
+			<span class="text-[12px] text-fg-subtle">8–12 weeks</span>
+		</div>
 		<ol class="grid gap-3">
 			{#each TIMELINE as phase, i (phase.weeks)}
-				<li class="grid grid-cols-[100px_1fr] gap-4 rounded-md border border-border bg-surface-2/40 p-3">
-					<div>
-						<div class="font-mono text-[11px] font-semibold text-accent" data-numeric>
-							{phase.weeks}
+				<li
+					class="grid grid-cols-1 gap-5 rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/40 md:grid-cols-[180px_1fr]"
+				>
+					<!-- Big phase number + weeks on the left -->
+					<div class="flex items-baseline gap-3 md:flex-col md:items-start md:gap-1">
+						<div
+							class="text-[44px] leading-none text-accent"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							data-numeric
+						>
+							{i + 1}
 						</div>
-						<div class="mt-0.5 text-[10px] uppercase tracking-wider text-fg-subtle">
-							Phase {i + 1}
+						<div>
+							<div
+								class="font-mono text-[11px] text-fg-subtle"
+								data-numeric
+							>
+								{phase.weeks}
+							</div>
+							<div class="text-[10px] tracking-wider text-fg-subtle uppercase">
+								Phase
+							</div>
 						</div>
 					</div>
-					<div>
-						<div class="mb-1 text-[13px] font-semibold text-fg">{phase.phase}</div>
-						<ul class="grid gap-1 text-[12px] text-fg-muted">
+					<div class="min-w-0">
+						<div
+							class="text-[18px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{phase.phase}
+						</div>
+						<ul class="mt-3 grid gap-2 text-[13px] leading-relaxed text-fg-muted">
 							{#each phase.tasks as t (t)}
-								<li class="flex gap-2">
-									<span class="mt-1 size-1 shrink-0 rounded-full bg-fg-subtle"></span>
+								<li class="flex gap-2.5">
+									<span class="mt-2 size-1 shrink-0 rounded-full bg-fg-subtle"></span>
 									<span>{t}</span>
 								</li>
 							{/each}
@@ -260,71 +308,142 @@
 				</li>
 			{/each}
 		</ol>
-	</Panel>
+	</section>
 
-	<Panel class="mt-6">
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<Pencil class="size-3" /> Exercises that actually teach you to see
-		</h2>
+	<!-- EXERCISES — secondary, 2-col grid -->
+	<section class="mb-16">
+		<div class="mb-5 flex items-baseline gap-3">
+			<Pencil class="size-4 self-center text-accent" />
+			<h2
+				class="text-[22px] leading-none tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Exercises that teach you to see
+			</h2>
+		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
 			{#each EXERCISES as ex (ex.title)}
-				<div class="rounded-md border border-border bg-surface-2/40 p-3">
-					<div class="text-[13px] font-semibold text-fg">{ex.title}</div>
-					<div class="mt-1 text-[12px] leading-snug text-fg-muted">{ex.body}</div>
+				<div class="rounded-2xl border border-border bg-surface p-5">
+					<div
+						class="text-[15px] leading-tight text-fg"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					>
+						{ex.title}
+					</div>
+					<p class="mt-2 text-[13px] leading-relaxed text-fg-muted">{ex.body}</p>
 				</div>
 			{/each}
 		</div>
-	</Panel>
+	</section>
 
-	<Panel class="mt-6">
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<Wrench class="size-3" /> Tools the practice runs on
-		</h2>
+	<!-- TOOLS — asymmetric: heading column + grid column.
+	     Breaks the "stack of full-width sections" rhythm. -->
+	<section class="mb-16 grid gap-8 md:grid-cols-[4fr_8fr] md:gap-10">
+		<div>
+			<div class="flex items-baseline gap-3">
+				<Wrench class="size-4 self-center text-accent" />
+				<h2
+					class="text-[22px] leading-tight tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					Tools the practice runs on
+				</h2>
+			</div>
+			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
+				The actual editors and pipelines used in production. Most are
+				open source.
+			</p>
+		</div>
 		<div class="grid gap-2">
 			{#each TOOLS as t (t.name)}
 				<a
 					href={t.href}
 					target="_blank"
 					rel="noopener"
-					class="grid grid-cols-[140px_1fr] items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+					class="group flex items-baseline gap-4 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
 				>
-					<div class="text-[13px] font-semibold text-fg">{t.name}</div>
-					<div class="text-[12px] text-fg-muted">{t.role}</div>
+					<div
+						class="w-[130px] shrink-0 text-[14px] text-fg"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					>
+						{t.name}
+					</div>
+					<div class="min-w-0 flex-1 text-[12px] leading-snug text-fg-muted">
+						{t.role}
+					</div>
+					<ExternalLink
+						class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+						aria-hidden="true"
+					/>
 				</a>
 			{/each}
 		</div>
-	</Panel>
+	</section>
 
-	<Panel class="mt-6">
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<BookOpen class="size-3" /> Reading
-		</h2>
-		<div class="grid gap-2">
+	<!-- READING — same asymmetric pattern, mirrored to vary the rhythm -->
+	<section class="mb-16 grid gap-8 md:grid-cols-[8fr_4fr] md:gap-10">
+		<div class="grid gap-2 md:order-2-NEVER">
 			{#each READING as r (r.title)}
 				<a
 					href={r.href}
 					target="_blank"
 					rel="noopener"
-					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+					class="group rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
 				>
-					<div class="flex items-baseline gap-2">
-						<span class="text-[13px] font-semibold text-fg">{r.title}</span>
-						<span class="text-[11px] text-fg-subtle">— {r.by}</span>
+					<div class="flex items-baseline justify-between gap-3">
+						<span
+							class="text-[14px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{r.title}
+						</span>
+						<ExternalLink
+							class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+							aria-hidden="true"
+						/>
 					</div>
-					<div class="text-[12px] text-fg-muted">{r.why}</div>
+					<div
+						class="mt-0.5 font-mono text-[10px] tracking-wide text-fg-subtle"
+						data-numeric
+					>
+						{r.by}
+					</div>
+					<p class="mt-1.5 text-[12px] leading-snug text-fg-muted">{r.why}</p>
 				</a>
 			{/each}
 		</div>
-	</Panel>
+		<div>
+			<div class="flex items-baseline gap-3">
+				<BookOpen class="size-4 self-center text-accent" />
+				<h2
+					class="text-[22px] leading-tight tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					Reading
+				</h2>
+			</div>
+			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
+				Books that train the eye, plus the standards docs that govern the
+				format on the wire.
+			</p>
+		</div>
+	</section>
 
-	<Panel class="mt-6">
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<Compass class="size-3" /> Foundries worth studying
-		</h2>
-		<p class="mb-3 text-[12px] text-fg-subtle">
-			The strongest type-design education isn't in books — it's reading how foundries
-			argue for their decisions. These public pages model the rhetoric, the system, and
-			the production craft.
+	<!-- FOUNDRIES — 2-col grid of cards, slightly more typographic -->
+	<section class="mb-16">
+		<div class="mb-5 flex items-baseline gap-3">
+			<Compass class="size-4 self-center text-accent" />
+			<h2
+				class="text-[22px] leading-none tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Foundries worth studying
+			</h2>
+		</div>
+		<p class="mb-4 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
+			The strongest type-design education isn't in books — it's reading how
+			foundries argue for their decisions. These public pages model the rhetoric,
+			the system, and the production craft.
 		</p>
 		<div class="grid gap-2 sm:grid-cols-2">
 			{#each FOUNDRIES as f (f.name)}
@@ -332,60 +451,99 @@
 					href={f.href}
 					target="_blank"
 					rel="noopener"
-					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+					class="group rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
 				>
 					<div class="flex items-baseline justify-between gap-2">
-						<span class="text-[13px] font-semibold text-fg">{f.name}</span>
-						<span class="text-[10px] text-fg-subtle">↗</span>
+						<span
+							class="text-[15px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{f.name}
+						</span>
+						<ExternalLink
+							class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+							aria-hidden="true"
+						/>
 					</div>
-					<div class="text-[11px] font-medium text-fg-muted">{f.focus}</div>
-					<div class="mt-0.5 text-[11px] text-fg-subtle">{f.why}</div>
+					<div class="mt-1 text-[11px] font-medium text-fg-muted">{f.focus}</div>
+					<p class="mt-1 text-[11px] leading-snug text-fg-subtle">{f.why}</p>
 				</a>
 			{/each}
 		</div>
-	</Panel>
+	</section>
 
-	<Panel class="mt-6">
-		<h2 class="mb-4 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			<BookOpen class="size-3" /> Legibility research
-		</h2>
-		<p class="mb-3 text-[12px] text-fg-subtle">
-			Two foundational papers — the empirical reason proof paragraphs matter more than
-			polished hero glyphs.
-		</p>
+	<!-- RESEARCH — small tertiary section -->
+	<section class="mb-16">
+		<div class="mb-4 flex items-baseline gap-3">
+			<BookOpen class="size-4 self-center text-accent" />
+			<h2
+				class="text-[18px] leading-none tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Legibility research
+			</h2>
+			<span class="text-[11px] text-fg-subtle">
+				Why proof paragraphs matter more than polished hero glyphs
+			</span>
+		</div>
 		<div class="grid gap-2">
 			{#each RESEARCH as r (r.title)}
 				<a
 					href={r.href}
 					target="_blank"
 					rel="noopener"
-					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 hover:border-accent hover:bg-accent-soft/30"
+					class="group flex items-baseline gap-4 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
 				>
-					<div class="flex items-baseline gap-2">
-						<span class="text-[13px] font-semibold text-fg">{r.title}</span>
-						<span class="text-[11px] text-fg-subtle">— {r.by}</span>
+					<div class="min-w-0 flex-1">
+						<div
+							class="text-[14px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{r.title}
+						</div>
+						<div
+							class="mt-0.5 font-mono text-[10px] tracking-wide text-fg-subtle"
+							data-numeric
+						>
+							{r.by}
+						</div>
+						<p class="mt-1.5 text-[12px] leading-snug text-fg-muted">{r.why}</p>
 					</div>
-					<div class="text-[12px] text-fg-muted">{r.why}</div>
+					<ExternalLink
+						class="size-3.5 shrink-0 text-fg-subtle/60 group-hover:text-accent"
+						aria-hidden="true"
+					/>
 				</a>
 			{/each}
 		</div>
-	</Panel>
+	</section>
 
-	<Panel class="mt-6">
-		<div class="flex items-center gap-3">
-			<Rocket class="size-5 text-accent" />
-			<div class="flex-1">
-				<div class="text-[13px] font-semibold text-fg">Ready to start?</div>
-				<div class="text-[12px] text-fg-muted">
-					Create a project, fill in the Brief tab, draw your control set.
-				</div>
-			</div>
-			<a
-				href="/"
-				class="rounded-md bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90"
-			>
-				New project →
-			</a>
+	<!-- Final CTA — bigger, hero-like to close the page strongly -->
+	<section
+		class="mt-24 flex flex-col items-start gap-5 rounded-2xl border border-accent/40 bg-accent-soft/30 p-8 md:flex-row md:items-center md:gap-8"
+	>
+		<div
+			class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg"
+		>
+			<Rocket class="size-6" />
 		</div>
-	</Panel>
+		<div class="flex-1">
+			<div
+				class="text-[20px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Ready to start?
+			</div>
+			<p class="mt-1 text-[13px] leading-relaxed text-fg-muted">
+				Create a project, fill in the Brief tab, draw your control set —
+				<span class="font-mono text-fg-muted" data-numeric>n o H O a e s c p v y f g</span>.
+			</p>
+		</div>
+		<a
+			href="/"
+			class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent/90"
+		>
+			New project →
+		</a>
+	</section>
 </div>
