@@ -92,6 +92,17 @@
 		};
 	});
 
+	// Always honour Escape so an opened tour can be dismissed even if the
+	// tooltip happens to overlap a critical button.
+	$effect(() => {
+		if (!open) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') finish();
+		};
+		window.addEventListener('keydown', onKey);
+		return () => window.removeEventListener('keydown', onKey);
+	});
+
 	const next = () => {
 		if (stepIdx < STEPS.length - 1) stepIdx++;
 		else finish();

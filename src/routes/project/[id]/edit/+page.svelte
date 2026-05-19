@@ -119,12 +119,11 @@
 	};
 
 
-	$effect(() => {
-		// Auto-open the tour the first time someone visits the editor.
-		if (!settings.editorTourDismissed) {
-			setTimeout(() => (tourOpen = true), 600);
-		}
-	});
+	// Tour is now strictly user-invoked via the "?" button in the toolbar.
+	// The auto-open used to fire 600ms after first edit-page mount, but the
+	// tooltip's z-50 pointer-events-auto layer could overlap interactive
+	// elements (most notably the tab nav) and silently eat their clicks —
+	// leading to confusing "tabs don't work" / "stuck in glyph" reports.
 	let showSketch = $state(true);
 	let showVector = $state(true);
 	let showGrid = $state(settings.editor.showGrid);
