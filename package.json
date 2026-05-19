@@ -11,6 +11,8 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"build:demo-fonts": "node scripts/build-demo-fonts.mjs",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"test:e2e": "playwright test"
 	},
 	"devDependencies": {
@@ -27,7 +29,8 @@
 		"svelte-check": "^4.4.6",
 		"tailwindcss": "^4.3.0",
 		"typescript": "^6.0.2",
-		"vite": "^8.0.7"
+		"vite": "^8.0.7",
+		"vitest": "^4.1.6"
 	},
 	"dependencies": {
 		"@lucide/svelte": "^1.16.0",
