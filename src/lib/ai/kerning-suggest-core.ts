@@ -68,12 +68,16 @@ export const parseKerningProposal = (raw: string): KerningProposal => {
 				p != null &&
 				(typeof p.left === 'number' || typeof p.left === 'string') &&
 				(typeof p.right === 'number' || typeof p.right === 'string') &&
-				typeof p.value === 'number'
+				typeof p.value === 'number' &&
+				Number.isFinite(p.value)
 		)
 		.map((p) => ({
 			left: p.left,
 			right: p.right,
-			value: Math.round(p.value),
+			// Clamp to a sane font-units range. Designers occasionally use values
+			// outside ±500 but anything beyond ±1000 is almost certainly a model
+			// hallucination, not a real suggestion.
+			value: Math.max(-1000, Math.min(1000, Math.round(p.value))),
 			confidence:
 				p.confidence === 'high' || p.confidence === 'medium' || p.confidence === 'low'
 					? p.confidence

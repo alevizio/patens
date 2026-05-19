@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { parseProposal, proposalToContours, type GlyphProposal } from './glyph-suggest-core';
+import {
+	parseProposal,
+	proposalToContours,
+	validateStrokes,
+	type GlyphProposal
+} from './glyph-suggest-core';
 import { computeWinding, glyphBounds } from '$lib/font/path';
 
 describe('parseProposal', () => {
@@ -131,3 +136,94 @@ describe('proposalToContours', () => {
 		expect(out).toHaveLength(1);
 	});
 });
+
+describe('validateStrokes (AI output sanity)', () => {
+	it('accepts well-formed strokes', () => {
+		const out = validateStrokes([
+			{ type: 'stem', x: 50, y1: 0, y2: 700, weight: 80 },
+			{ type: 'bar', x1: 0, x2: 500, y: 350, weight: 70 }
+		]);
+		expect(out).toHaveLength(2);
+	});
+
+	it('rejects strokes with NaN coordinates', () => {
+		const out = validateStrokes([
+			{ type: 'stem', x: NaN, y1: 0, y2: 700, weight: 80 },
+			{ type: 'bar', x1: 0, x2: Infinity, y: 350, weight: 70 }
+		]);
+		expect(out).toHaveLength(0);
+	});
+
+	it('rejects strokes with non-positive weight', () => {
+		const out = validateStrokes([
+			{ type: 'stem', x: 50, y1: 0, y2: 700, weight: 0 },
+			{ type: 'stem', x: 50, y1: 0, y2: 700, weight: -10 }
+		]);
+		expect(out).toHaveLength(0);
+	});
+
+	it('rejects strokes with absurdly large weight (likely hallucination)', () => {
+		const out = validateStrokes([
+			{ type: 'stem', x: 50, y1: 0, y2: 700, weight: 9999 }
+		]);
+		expect(out).toHaveLength(0);
+	});
+
+	it('rejects ellipse with non-positive radius', () => {
+		const out = validateStrokes([
+			{ type: 'ellipse', cx: 100, cy: 100, rx: 0, ry: 50, weight: 80 },
+			{ type: 'ellipse', cx: 100, cy: 100, rx: -50, ry: 50, weight: 80 }
+		]);
+		expect(out).toHaveLength(0);
+	});
+
+	it('rejects unknown stroke types', () => {
+		const out = validateStrokes([{ type: 'pentagram', x: 0, weight: 80 }]);
+		expect(out).toHaveLength(0);
+	});
+
+	it('keeps valid strokes while dropping garbage in a mixed list', () => {
+		const out = validateStrokes([
+			{ type: 'stem', x: 50, y1: 0, y2: 700, weight: 80 }, // valid
+			{ type: 'bar', x1: NaN, x2: 500, y: 350, weight: 70 }, // NaN coord
+			{ type: 'diagonal', x1: 0, y1: 0, x2: 100, y2: 700, weight: 60 }, // valid
+			null, // not an object
+			{ type: 'bar', x1: 0, x2: 500, y: 350 } // missing weight
+		]);
+		expect(out).toHaveLength(2);
+		expect(out[0].type).toBe('stem');
+		expect(out[1].type).toBe('diagonal');
+	});
+});
+
+describe('parseProposal advance-width clamping', () => {
+	it('falls back to 600 on non-finite advanceWidth', () => {
+		const raw = JSON.stringify({
+			codepoint: 65,
+			reasoning: '',
+			advanceWidth: 'not a number',
+			strokes: []
+		});
+		const out = parseProposal(raw, 65);
+		expect(out.advanceWidth).toBe(600);
+	});
+
+	it('clamps negative advance to 50', () => {
+		const raw =
+			'{ "codepoint": 65, "reasoning": "", "advanceWidth": -200, "strokes": [] }';
+		expect(parseProposal(raw, 65).advanceWidth).toBe(50);
+	});
+
+	it('clamps absurdly large advance to 2500', () => {
+		const raw =
+			'{ "codepoint": 65, "reasoning": "", "advanceWidth": 99999, "strokes": [] }';
+		expect(parseProposal(raw, 65).advanceWidth).toBe(2500);
+	});
+
+	it('rounds fractional advance', () => {
+		const raw =
+			'{ "codepoint": 65, "reasoning": "", "advanceWidth": 540.6, "strokes": [] }';
+		expect(parseProposal(raw, 65).advanceWidth).toBe(541);
+	});
+});
+

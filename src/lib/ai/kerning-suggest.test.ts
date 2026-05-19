@@ -79,6 +79,33 @@ describe('parseKerningProposal', () => {
 		expect(out.pairs[0].right).toBe('@V_right');
 	});
 
+	it('clamps absurdly large values to ±1000 (hallucination guard)', () => {
+		const raw = JSON.stringify({
+			reasoning: '',
+			pairs: [
+				{ left: 65, right: 86, value: 99999, confidence: 'high' },
+				{ left: 65, right: 87, value: -99999, confidence: 'high' }
+			]
+		});
+		const out = parseKerningProposal(raw);
+		expect(out.pairs[0].value).toBe(1000);
+		expect(out.pairs[1].value).toBe(-1000);
+	});
+
+	it('drops pairs with NaN or Infinity values', () => {
+		const raw = JSON.stringify({
+			reasoning: '',
+			pairs: [
+				{ left: 65, right: 86, value: NaN, confidence: 'high' },
+				{ left: 65, right: 87, value: -50, confidence: 'high' }
+			]
+		});
+		const out = parseKerningProposal(raw);
+		// JSON.stringify turns NaN into null, which fails the typeof check
+		expect(out.pairs).toHaveLength(1);
+		expect(out.pairs[0].right).toBe(87);
+	});
+
 	it('throws on unparseable JSON', () => {
 		expect(() => parseKerningProposal('totally not json')).toThrow();
 	});

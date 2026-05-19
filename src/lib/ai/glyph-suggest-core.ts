@@ -168,7 +168,78 @@ export const parseProposal = (raw: string, expectedCodepoint: number): GlyphProp
 	return {
 		codepoint: parsed.codepoint ?? expectedCodepoint,
 		reasoning: parsed.reasoning ?? '',
-		advanceWidth: parsed.advanceWidth ?? 600,
-		strokes: parsed.strokes as Stroke[]
+		advanceWidth: clampAdvance(parsed.advanceWidth),
+		strokes: validateStrokes(parsed.strokes as unknown[])
 	};
+};
+
+const isFiniteNumber = (n: unknown): n is number =>
+	typeof n === 'number' && Number.isFinite(n);
+
+const clampAdvance = (value: unknown): number => {
+	if (!isFiniteNumber(value)) return 600;
+	// Plausible advance widths for a glyph at UPM 1000: 50–2500.
+	// Clamp anything outside this to a safe default so we don't get
+	// negative-width or page-wide glyphs.
+	return Math.max(50, Math.min(2500, Math.round(value)));
+};
+
+/**
+ * Filter out strokes that aren't structurally valid (non-finite coords,
+ * non-positive weight, wrong field types). Garbage in → empty out, never
+ * NaN-laced contours that crash the SVG renderer.
+ */
+export const validateStrokes = (raw: unknown[]): Stroke[] => {
+	const out: Stroke[] = [];
+	for (const s of raw) {
+		if (!s || typeof s !== 'object') continue;
+		const r = s as Record<string, unknown>;
+		const weight = r.weight;
+		if (!isFiniteNumber(weight) || weight <= 0 || weight > 500) continue;
+		switch (r.type) {
+			case 'stem':
+				if (isFiniteNumber(r.x) && isFiniteNumber(r.y1) && isFiniteNumber(r.y2))
+					out.push({ type: 'stem', x: r.x, y1: r.y1, y2: r.y2, weight });
+				break;
+			case 'bar':
+				if (isFiniteNumber(r.x1) && isFiniteNumber(r.x2) && isFiniteNumber(r.y))
+					out.push({ type: 'bar', x1: r.x1, x2: r.x2, y: r.y, weight });
+				break;
+			case 'diagonal':
+				if (
+					isFiniteNumber(r.x1) &&
+					isFiniteNumber(r.y1) &&
+					isFiniteNumber(r.x2) &&
+					isFiniteNumber(r.y2)
+				)
+					out.push({
+						type: 'diagonal',
+						x1: r.x1,
+						y1: r.y1,
+						x2: r.x2,
+						y2: r.y2,
+						weight
+					});
+				break;
+			case 'ellipse':
+				if (
+					isFiniteNumber(r.cx) &&
+					isFiniteNumber(r.cy) &&
+					isFiniteNumber(r.rx) &&
+					isFiniteNumber(r.ry) &&
+					r.rx > 0 &&
+					r.ry > 0
+				)
+					out.push({
+						type: 'ellipse',
+						cx: r.cx,
+						cy: r.cy,
+						rx: r.rx,
+						ry: r.ry,
+						weight
+					});
+				break;
+		}
+	}
+	return out;
 };
