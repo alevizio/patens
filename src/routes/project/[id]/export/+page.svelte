@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { buildFont } from '$lib/font/export';
+	import { buildFont, hasMarkAnchors } from '$lib/font/export';
 	import {
 		ensurePython,
 		projectToUfoZip,
@@ -125,16 +125,23 @@ body {
 
 	const buildOtfBuffer = async (): Promise<ArrayBuffer> => {
 		if (!project) throw new Error('No project');
-		// Vertical metrics are now applied inside buildFont() via opentype.js,
-		// so OTF export skips Pyodide entirely unless .fea features need
-		// compilation. (Previously this path always called finalizeFont() due
-		// to a `|| true` short-circuit bug — a ~15MB Pyodide download on every
-		// OTF export, even when no features were defined.)
+		// buildFont() now handles vertical metrics + standard ligatures via
+		// opentype.js. Pyodide is only needed for:
+		//   - a user-edited custom .fea source (advanced features)
+		//   - anchor-based GPOS mark positioning (still no JS alternative)
+		// The common case (auto-fea projects with only kern + liga) exports
+		// without loading Pyodide at all.
 		const { font } = buildFont(project);
 		let buffer = font.toArrayBuffer();
-		const fea = project.features.feaSource ?? autoFeaSource(project);
-		const hasFea = !!fea && fea.trim().length > 0;
-		if (hasFea) {
+
+		const customFea = project.features.feaSource?.trim();
+		const hasCustomFea = !!customFea && customFea.length > 0;
+		const needsAnchors = hasMarkAnchors(project);
+
+		if (hasCustomFea || needsAnchors) {
+			// Build the full .fea (custom takes precedence, else use autogen for
+			// the anchor / mark feature path) and run it through Pyodide.
+			const fea = customFea || autoFeaSource(project);
 			try {
 				await ensurePython();
 				buffer = await finalizeFont(buffer, { feaSource: fea });

@@ -253,11 +253,88 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	// features actually need compilation downstream.
 	applyVerticalMetrics(font, resolveVerticalMetrics(metrics));
 
+	// Standard liga substitutions written via opentype.js's built-in GSUB
+	// writer — another Pyodide elimination for any project whose feature
+	// surface is just liga + kern (the common case).
+	applyStandardLigatures(font, project, indexByCodepoint);
+
 	return { font, indexByCodepoint, glyphCount: glyphs.length };
 };
 
 export const fontToArrayBuffer = (font: InstanceType<typeof opentype.Font>): ArrayBuffer =>
 	font.toArrayBuffer();
+
+/** The four standard Latin ligatures the auto-fea generator emits. */
+const STANDARD_LIGATURES: Array<{ result: number; parts: number[] }> = [
+	{ result: 0xfb01, parts: [0x66, 0x69] }, // fi
+	{ result: 0xfb02, parts: [0x66, 0x6c] }, // fl
+	{ result: 0xfb03, parts: [0x66, 0x66, 0x69] }, // ffi
+	{ result: 0xfb04, parts: [0x66, 0x66, 0x6c] } // ffl
+];
+
+/**
+ * Apply the standard ligature feature (`liga`) directly to the opentype.js
+ * font in JS — no Pyodide round-trip needed. Mirrors the liga block from
+ * autoFeaSource(): for each standard ligature, if the project has both the
+ * component glyphs AND the result glyph drawn, register the substitution.
+ *
+ * Adds the feature under both DFLT/dflt and latn/dflt to match what the
+ * Pyodide-generated .fea was producing.
+ */
+export const applyStandardLigatures = (
+	font: InstanceType<typeof opentype.Font>,
+	project: Project,
+	indexByCodepoint: Map<number, number>
+): void => {
+	if (!project.features.liga) return;
+	// substitution is exposed via the opentype.js Font as a non-typed extension.
+	const sub = (font as unknown as {
+		substitution?: {
+			addLigature(
+				feature: string,
+				ligature: { sub: number[]; by: number },
+				script: string,
+				language: string
+			): void;
+		};
+	}).substitution;
+	if (!sub || typeof sub.addLigature !== 'function') return;
+	for (const lig of STANDARD_LIGATURES) {
+		const partIndices = lig.parts.map((cp) => indexByCodepoint.get(cp));
+		const resultIndex = indexByCodepoint.get(lig.result);
+		if (resultIndex === undefined) continue;
+		if (partIndices.some((i) => i === undefined)) continue;
+		const ligature = { sub: partIndices as number[], by: resultIndex };
+		try {
+			sub.addLigature('liga', ligature, 'DFLT', 'dflt');
+			sub.addLigature('liga', ligature, 'latn', 'dflt');
+		} catch {
+			// addLigature can throw on duplicates / coverage-format mismatches.
+			// Skip this lig and keep going — the worst case is the lig doesn't
+			// activate for that pair, identical to the project not having it.
+		}
+	}
+};
+
+/**
+ * Does the project have anchor data that would trigger the GPOS `mark` feature
+ * via autoFeaSource? When false (the common case), the OTF export can skip
+ * Pyodide entirely — kern is handled by font.kerningPairs, liga via
+ * applyStandardLigatures, and there are no anchor-positioned marks.
+ */
+export const hasMarkAnchors = (project: Project): boolean => {
+	const isMarkGlyph = (cp: number) => cp >= 0x0300 && cp <= 0x036f;
+	let hasMarkAnchor = false;
+	let hasBaseAnchor = false;
+	for (const g of Object.values(project.glyphs)) {
+		for (const a of g.anchors ?? []) {
+			if (a.name.startsWith('_')) hasMarkAnchor = true;
+			else if (!isMarkGlyph(g.codepoint)) hasBaseAnchor = true;
+			if (hasMarkAnchor && hasBaseAnchor) return true;
+		}
+	}
+	return false;
+};
 
 /**
  * Mutate an opentype.js Font's OS/2 + hhea vertical-metric fields in place.
