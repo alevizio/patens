@@ -273,3 +273,255 @@ export const writeMarkBasePosFormat1 = (sub: MarkBasePosSubtable): Uint8Array =>
 	buf.writeBytes(baseArray);
 	return buf.toUint8Array();
 };
+
+// OpenType tag (4 ASCII chars) -------------------------------------------
+
+/** Encode a 4-character OpenType tag as 4 bytes (padded with space if short). */
+export const writeTag = (tag: string): Uint8Array => {
+	if (typeof tag !== 'string' || tag.length === 0 || tag.length > 4)
+		throw new Error(`Tag must be 1-4 chars, got "${tag}"`);
+	const padded = (tag + '    ').slice(0, 4); // pad with spaces per spec
+	const out = new Uint8Array(4);
+	for (let i = 0; i < 4; i++) {
+		const code = padded.charCodeAt(i);
+		if (code < 0x20 || code > 0x7e) throw new Error(`Tag char out of ASCII: ${tag}`);
+		out[i] = code;
+	}
+	return out;
+};
+
+// LangSys ---------------------------------------------------------------
+
+/**
+ * LangSys Table.
+ *   Offset16 lookupOrderOffset = 0  (NULL, reserved)
+ *   uint16   requiredFeatureIndex = 0xFFFF (none)
+ *   uint16   featureIndexCount
+ *   uint16   featureIndices[featureIndexCount]
+ */
+export const writeLangSysTable = (featureIndices: number[]): Uint8Array => {
+	const buf = new ByteBuf();
+	buf.writeUint16(0); // lookupOrderOffset (null)
+	buf.writeUint16(0xffff); // requiredFeatureIndex (none)
+	buf.writeUint16(featureIndices.length);
+	for (const i of featureIndices) buf.writeUint16(i);
+	return buf.toUint8Array();
+};
+
+// Script -----------------------------------------------------------------
+
+/**
+ * Script Table.
+ *   Offset16 defaultLangSysOffset (may be 0)
+ *   uint16   langSysCount
+ *   LangSysRecord[langSysCount]:
+ *     Tag      langSysTag (4 bytes)
+ *     Offset16 langSysOffset
+ *   (then) LangSys tables
+ *
+ * For our 'mark' feature use case we only need the default LangSys —
+ * langSysCount is 0 and the default LangSys carries the feature index.
+ */
+export const writeScriptTable = (defaultLangSysFeatureIndices: number[]): Uint8Array => {
+	const langSys = writeLangSysTable(defaultLangSysFeatureIndices);
+	// Header is 4 bytes: defaultLangSysOffset + langSysCount.
+	const headerSize = 4;
+	const buf = new ByteBuf();
+	buf.writeUint16(headerSize); // defaultLangSysOffset (points right past header)
+	buf.writeUint16(0); // langSysCount (no additional named languages)
+	buf.writeBytes(langSys);
+	return buf.toUint8Array();
+};
+
+// ScriptList -------------------------------------------------------------
+
+export type ScriptRecord = {
+	tag: string; // 4-char OpenType script tag (e.g., 'DFLT', 'latn')
+	defaultLangSysFeatureIndices: number[];
+};
+
+/**
+ * ScriptList Table.
+ *   uint16 scriptCount
+ *   ScriptRecord[scriptCount]:
+ *     Tag      scriptTag (4 bytes)
+ *     Offset16 scriptOffset
+ *   (then) Script tables
+ *
+ * Records MUST be sorted ASCII-ascending by tag per spec. We sort here so
+ * callers don't have to think about it.
+ */
+export const writeScriptList = (scripts: ScriptRecord[]): Uint8Array => {
+	if (scripts.length === 0) throw new Error('ScriptList must contain at least one script');
+	const sorted = [...scripts].sort((a, b) => (a.tag < b.tag ? -1 : a.tag > b.tag ? 1 : 0));
+	const header = new ByteBuf();
+	const tables = new ByteBuf();
+	const headerSize = 2 + 6 * sorted.length; // count + 6-byte records
+	header.writeUint16(sorted.length);
+	for (const s of sorted) {
+		const scriptBytes = writeScriptTable(s.defaultLangSysFeatureIndices);
+		header.writeBytes(writeTag(s.tag));
+		header.writeUint16(headerSize + tables.length);
+		tables.writeBytes(scriptBytes);
+	}
+	const out = new ByteBuf();
+	out.writeBytes(header.toUint8Array());
+	out.writeBytes(tables.toUint8Array());
+	return out.toUint8Array();
+};
+
+// Feature ----------------------------------------------------------------
+
+/**
+ * Feature Table.
+ *   Offset16 featureParams = 0 (no params for 'mark', 'liga', 'kern')
+ *   uint16   lookupIndexCount
+ *   uint16   lookupListIndices[lookupIndexCount]
+ */
+export const writeFeatureTable = (lookupListIndices: number[]): Uint8Array => {
+	const buf = new ByteBuf();
+	buf.writeUint16(0); // featureParams (none)
+	buf.writeUint16(lookupListIndices.length);
+	for (const i of lookupListIndices) buf.writeUint16(i);
+	return buf.toUint8Array();
+};
+
+// FeatureList ------------------------------------------------------------
+
+export type FeatureRecord = {
+	tag: string; // 4-char tag like 'mark', 'liga', 'kern'
+	lookupListIndices: number[];
+};
+
+/**
+ * FeatureList Table.
+ *   uint16 featureCount
+ *   FeatureRecord[featureCount]:
+ *     Tag      featureTag (4 bytes)
+ *     Offset16 featureOffset
+ *   (then) Feature tables
+ *
+ * Records are NOT sorted by tag (feature indexes are referenced from
+ * LangSys, so ordering is meaningful). Caller controls the index space.
+ */
+export const writeFeatureList = (features: FeatureRecord[]): Uint8Array => {
+	if (features.length === 0) throw new Error('FeatureList must contain at least one feature');
+	const header = new ByteBuf();
+	const tables = new ByteBuf();
+	const headerSize = 2 + 6 * features.length;
+	header.writeUint16(features.length);
+	for (const f of features) {
+		const featureBytes = writeFeatureTable(f.lookupListIndices);
+		header.writeBytes(writeTag(f.tag));
+		header.writeUint16(headerSize + tables.length);
+		tables.writeBytes(featureBytes);
+	}
+	const out = new ByteBuf();
+	out.writeBytes(header.toUint8Array());
+	out.writeBytes(tables.toUint8Array());
+	return out.toUint8Array();
+};
+
+// Lookup -----------------------------------------------------------------
+
+/**
+ * Lookup Table.
+ *   uint16   lookupType
+ *   uint16   lookupFlag
+ *   uint16   subTableCount
+ *   Offset16 subtableOffsets[subTableCount]
+ *   (no markFilteringSet field since lookupFlag bit UseMarkFilteringSet = 0)
+ *   (then) subtable binaries
+ */
+export const writeLookupTable = (
+	lookupType: number,
+	lookupFlag: number,
+	subtables: Uint8Array[]
+): Uint8Array => {
+	if (!Number.isInteger(lookupType) || lookupType < 1 || lookupType > 9)
+		throw new Error(`lookupType must be 1-9, got ${lookupType}`);
+	if (!Number.isInteger(lookupFlag) || lookupFlag < 0 || lookupFlag > 0xffff)
+		throw new Error(`lookupFlag out of range: ${lookupFlag}`);
+	if (subtables.length === 0)
+		throw new Error('Lookup must have at least one subtable');
+	const header = new ByteBuf();
+	const body = new ByteBuf();
+	const headerSize = 6 + 2 * subtables.length;
+	header.writeUint16(lookupType);
+	header.writeUint16(lookupFlag);
+	header.writeUint16(subtables.length);
+	for (const sub of subtables) {
+		header.writeUint16(headerSize + body.length);
+		body.writeBytes(sub);
+	}
+	const out = new ByteBuf();
+	out.writeBytes(header.toUint8Array());
+	out.writeBytes(body.toUint8Array());
+	return out.toUint8Array();
+};
+
+// LookupList -------------------------------------------------------------
+
+/**
+ * LookupList Table.
+ *   uint16   lookupCount
+ *   Offset16 lookupOffsets[lookupCount]
+ *   (then) Lookup tables
+ *
+ * Each `lookups` entry is a complete already-serialized Lookup table.
+ */
+export const writeLookupList = (lookups: Uint8Array[]): Uint8Array => {
+	if (lookups.length === 0) throw new Error('LookupList must contain at least one lookup');
+	const header = new ByteBuf();
+	const body = new ByteBuf();
+	const headerSize = 2 + 2 * lookups.length;
+	header.writeUint16(lookups.length);
+	for (const l of lookups) {
+		header.writeUint16(headerSize + body.length);
+		body.writeBytes(l);
+	}
+	const out = new ByteBuf();
+	out.writeBytes(header.toUint8Array());
+	out.writeBytes(body.toUint8Array());
+	return out.toUint8Array();
+};
+
+// Top-level GPOS table ---------------------------------------------------
+
+/**
+ * GPOS Table v1.0 header + the three child tables.
+ *   uint16  majorVersion = 1
+ *   uint16  minorVersion = 0
+ *   Offset16 scriptListOffset
+ *   Offset16 featureListOffset
+ *   Offset16 lookupListOffset
+ *   (then) ScriptList, FeatureList, LookupList
+ *
+ * Order matches the spec recommendation; offsets are computed from the
+ * start of the GPOS table.
+ */
+export const writeGposTable = (input: {
+	scripts: ScriptRecord[];
+	features: FeatureRecord[];
+	lookups: Uint8Array[];
+}): Uint8Array => {
+	const scriptList = writeScriptList(input.scripts);
+	const featureList = writeFeatureList(input.features);
+	const lookupList = writeLookupList(input.lookups);
+
+	const headerSize = 10; // 5 × uint16
+	const scriptListOffset = headerSize;
+	const featureListOffset = scriptListOffset + scriptList.length;
+	const lookupListOffset = featureListOffset + featureList.length;
+
+	const buf = new ByteBuf();
+	buf.writeUint16(1); // majorVersion
+	buf.writeUint16(0); // minorVersion
+	buf.writeUint16(scriptListOffset);
+	buf.writeUint16(featureListOffset);
+	buf.writeUint16(lookupListOffset);
+	buf.writeBytes(scriptList);
+	buf.writeBytes(featureList);
+	buf.writeBytes(lookupList);
+	return buf.toUint8Array();
+};

@@ -4,8 +4,17 @@ import {
 	writeAnchorFormat1,
 	writeBaseArray,
 	writeCoverageFormat1,
+	writeFeatureList,
+	writeFeatureTable,
+	writeGposTable,
+	writeLangSysTable,
+	writeLookupList,
+	writeLookupTable,
 	writeMarkArray,
-	writeMarkBasePosFormat1
+	writeMarkBasePosFormat1,
+	writeScriptList,
+	writeScriptTable,
+	writeTag
 } from './gpos-mark';
 
 // Helpers ----------------------------------------------------------------
@@ -357,5 +366,216 @@ describe('writeMarkBasePosFormat1', () => {
 		expect(out[2] << 8 | out[3]).toBe(12); // markCoverageOffset
 		expect(out[4] << 8 | out[5]).toBe(12 + 8); // baseCoverageOffset = 20
 		expect(out[6] << 8 | out[7]).toBe(2); // markClassCount
+	});
+});
+
+// writeTag ---------------------------------------------------------------
+
+describe('writeTag', () => {
+	it("encodes a 4-char tag as ASCII bytes", () => {
+		const out = writeTag('mark');
+		// 'm' 'a' 'r' 'k' = 0x6D 0x61 0x72 0x6B
+		expect(hex(out)).toBe('6D 61 72 6B');
+	});
+
+	it('space-pads short tags to 4 bytes (per OpenType spec)', () => {
+		const out = writeTag('ss');
+		// 's' 's' ' ' ' ' = 0x73 0x73 0x20 0x20
+		expect(hex(out)).toBe('73 73 20 20');
+	});
+
+	it('throws on empty or too-long tags', () => {
+		expect(() => writeTag('')).toThrow();
+		expect(() => writeTag('toolong')).toThrow();
+	});
+
+	it('throws on non-ASCII characters', () => {
+		expect(() => writeTag('mörk')).toThrow();
+	});
+});
+
+// LangSysTable -----------------------------------------------------------
+
+describe('writeLangSysTable', () => {
+	it('emits the default 6-byte form with no features', () => {
+		const out = writeLangSysTable([]);
+		// lookupOrderOffset=0, requiredFeatureIndex=0xFFFF (none), featureIndexCount=0
+		expect(hex(out)).toBe('00 00 FF FF 00 00');
+	});
+
+	it('emits feature indices after the header', () => {
+		const out = writeLangSysTable([0, 1, 2]);
+		// header(6) + 3 × uint16 = 12 bytes
+		expect(out.length).toBe(12);
+		expect(hex(out)).toBe('00 00 FF FF 00 03 00 00 00 01 00 02');
+	});
+});
+
+// ScriptTable + ScriptList -----------------------------------------------
+
+describe('writeScriptTable', () => {
+	it('wraps a default LangSys with the standard 4-byte header', () => {
+		const out = writeScriptTable([0]);
+		// header: defaultLangSysOffset=4, langSysCount=0
+		expect(out[0] << 8 | out[1]).toBe(4);
+		expect(out[2] << 8 | out[3]).toBe(0);
+		// followed by LangSys (6 + 2 = 8 bytes for one feature index)
+		expect(out.length).toBe(4 + 8);
+	});
+});
+
+describe('writeScriptList', () => {
+	it('emits scripts sorted by tag (DFLT before latn)', () => {
+		const out = writeScriptList([
+			{ tag: 'latn', defaultLangSysFeatureIndices: [0] },
+			{ tag: 'DFLT', defaultLangSysFeatureIndices: [0] }
+		]);
+		// First script tag should be DFLT (sorts before 'latn' ASCII-wise:
+		// 'D' = 0x44, 'l' = 0x6C)
+		// Header: scriptCount(2) + 2 records × 6 bytes = 14 bytes
+		// First record starts at byte 2: tag (4 bytes) + offset (2 bytes)
+		expect(String.fromCharCode(out[2], out[3], out[4], out[5])).toBe('DFLT');
+		expect(String.fromCharCode(out[8], out[9], out[10], out[11])).toBe('latn');
+	});
+
+	it('throws on empty input', () => {
+		expect(() => writeScriptList([])).toThrow(/at least one/);
+	});
+
+	it('computes script offsets relative to ScriptList start', () => {
+		const out = writeScriptList([
+			{ tag: 'DFLT', defaultLangSysFeatureIndices: [0] }
+		]);
+		// Header is 2 + 6 = 8 bytes; first script table starts at offset 8.
+		expect(out[6] << 8 | out[7]).toBe(8);
+	});
+});
+
+// FeatureTable + FeatureList ---------------------------------------------
+
+describe('writeFeatureTable', () => {
+	it('emits featureParams=0 + lookup index list', () => {
+		const out = writeFeatureTable([0, 2]);
+		// 00 00 (featureParams) 00 02 (count) 00 00 00 02 (indices)
+		expect(hex(out)).toBe('00 00 00 02 00 00 00 02');
+	});
+
+	it('handles a feature with no lookups (degenerate but valid)', () => {
+		const out = writeFeatureTable([]);
+		expect(hex(out)).toBe('00 00 00 00');
+	});
+});
+
+describe('writeFeatureList', () => {
+	it('emits records in caller-provided order (index-meaningful)', () => {
+		const out = writeFeatureList([
+			{ tag: 'mark', lookupListIndices: [0] },
+			{ tag: 'liga', lookupListIndices: [1] }
+		]);
+		// First record tag should be the FIRST entry passed, not alphabetical.
+		expect(String.fromCharCode(out[2], out[3], out[4], out[5])).toBe('mark');
+	});
+
+	it('throws on empty list', () => {
+		expect(() => writeFeatureList([])).toThrow(/at least one/);
+	});
+});
+
+// LookupTable + LookupList -----------------------------------------------
+
+describe('writeLookupTable', () => {
+	it('emits type + flag + subtables with correct offsets', () => {
+		const subtable = new Uint8Array([0xab, 0xcd]); // dummy 2-byte subtable
+		const out = writeLookupTable(4, 0, [subtable]);
+		// Header: type(2) + flag(2) + count(2) + offset(2) = 8 bytes
+		// Subtable starts at offset 8
+		expect(out[0] << 8 | out[1]).toBe(4); // lookupType
+		expect(out[2] << 8 | out[3]).toBe(0); // lookupFlag
+		expect(out[4] << 8 | out[5]).toBe(1); // subTableCount
+		expect(out[6] << 8 | out[7]).toBe(8); // offset to first subtable
+		expect(hex(out.slice(8))).toBe('AB CD');
+	});
+
+	it('handles multiple subtables', () => {
+		const sub1 = new Uint8Array([0xaa, 0xaa]);
+		const sub2 = new Uint8Array([0xbb, 0xbb, 0xbb]);
+		const out = writeLookupTable(4, 0, [sub1, sub2]);
+		// Header: 6 + 2*2 = 10 bytes
+		expect(out[6] << 8 | out[7]).toBe(10); // first subtable at 10
+		expect(out[8] << 8 | out[9]).toBe(12); // second subtable at 10 + 2
+	});
+
+	it('throws on invalid lookupType', () => {
+		expect(() => writeLookupTable(0, 0, [new Uint8Array(1)])).toThrow();
+		expect(() => writeLookupTable(10, 0, [new Uint8Array(1)])).toThrow();
+	});
+
+	it('throws on no subtables', () => {
+		expect(() => writeLookupTable(4, 0, [])).toThrow();
+	});
+});
+
+describe('writeLookupList', () => {
+	it('emits count + offsets + lookups in order', () => {
+		const l1 = new Uint8Array([0x11, 0x11]);
+		const l2 = new Uint8Array([0x22, 0x22, 0x22]);
+		const out = writeLookupList([l1, l2]);
+		// Header: count(2) + 2*offset(2) = 6 bytes
+		expect(out[0] << 8 | out[1]).toBe(2); // lookupCount
+		expect(out[2] << 8 | out[3]).toBe(6); // first at 6
+		expect(out[4] << 8 | out[5]).toBe(8); // second at 6 + 2
+	});
+
+	it('throws on empty list', () => {
+		expect(() => writeLookupList([])).toThrow(/at least one/);
+	});
+});
+
+// Top-level GPOS table ---------------------------------------------------
+
+describe('writeGposTable', () => {
+	it('emits a 10-byte header + the three child tables in order', () => {
+		const out = writeGposTable({
+			scripts: [{ tag: 'DFLT', defaultLangSysFeatureIndices: [0] }],
+			features: [{ tag: 'mark', lookupListIndices: [0] }],
+			lookups: [writeLookupTable(4, 0, [new Uint8Array([0xab, 0xcd])])]
+		});
+		// Header layout:
+		//   00 01 (major)
+		//   00 00 (minor)
+		//   00 0A (scriptListOffset = 10)
+		//   ...   (featureListOffset, lookupListOffset)
+		expect(out[0] << 8 | out[1]).toBe(1);
+		expect(out[2] << 8 | out[3]).toBe(0);
+		expect(out[4] << 8 | out[5]).toBe(10); // scriptListOffset right after header
+		// Verify the byte at the script-list offset is the start of a
+		// ScriptList (uint16 scriptCount = 1).
+		const scriptListOffset = out[4] << 8 | out[5];
+		expect(out[scriptListOffset] << 8 | out[scriptListOffset + 1]).toBe(1);
+	});
+
+	it('produces a coherent end-to-end GPOS table for a minimal mark feature', () => {
+		// Full end-to-end: 1 base ('A'=65), 1 mark (acutecomb=200), 1 class.
+		const subtable = writeMarkBasePosFormat1({
+			markGlyphs: [200],
+			baseGlyphs: [65],
+			markRecords: [{ markClass: 0, anchor: { x: 0, y: 0 } }],
+			baseRecords: [{ anchors: [{ x: 300, y: 700 }] }],
+			markClassCount: 1
+		});
+		const lookup = writeLookupTable(4, 0, [subtable]);
+		const out = writeGposTable({
+			scripts: [
+				{ tag: 'DFLT', defaultLangSysFeatureIndices: [0] },
+				{ tag: 'latn', defaultLangSysFeatureIndices: [0] }
+			],
+			features: [{ tag: 'mark', lookupListIndices: [0] }],
+			lookups: [lookup]
+		});
+		// Sanity: file should be non-trivial in size and start with the GPOS
+		// header.
+		expect(out.length).toBeGreaterThan(60);
+		expect(out[0]).toBe(0x00);
+		expect(out[1]).toBe(0x01); // majorVersion
 	});
 });
