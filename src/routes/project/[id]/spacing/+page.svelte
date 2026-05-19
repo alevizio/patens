@@ -13,6 +13,19 @@
 	import Plus from '@lucide/svelte/icons/plus';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Group from '@lucide/svelte/icons/group';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
+	import Check from '@lucide/svelte/icons/check';
+	import X from '@lucide/svelte/icons/x';
+	import Loader from '@lucide/svelte/icons/loader-2';
+	import { settings } from '$lib/stores/settings.svelte';
+	import {
+		requestKerningProposal,
+		buildPairsToEvaluate,
+		sideLabel as kerningSideLabel,
+		type KerningProposal,
+		type KerningSuggestion
+	} from '$lib/ai/kerning-suggest';
+	import { AnthropicError } from '$lib/ai/anthropic';
 
 	// Must be declared up here, before any $state/$derived that closes over it.
 	// Previously sat at ~line 145, which put it in TDZ when the earlier
@@ -322,6 +335,81 @@
 	let bulkSbWhich = $state<'left' | 'right' | 'both'>('both');
 	let bulkSbValue = $state(40);
 
+	// ---------- AI kerning suggestion ----------
+	let kerningSuggestRunning = $state(false);
+	let kerningSuggestError = $state<string | null>(null);
+	let kerningSuggestProposal = $state<KerningProposal | null>(null);
+	// Per-pair "applied" tracking so the UI can show which suggestions have
+	// been committed without losing the original proposal list.
+	let kerningAppliedKeys = $state<Set<string>>(new Set());
+
+	const kerningPairsToEvaluate = $derived.by(() =>
+		project ? buildPairsToEvaluate(project) : []
+	);
+
+	const runKerningSuggest = async () => {
+		if (!project || kerningSuggestRunning) return;
+		if (kerningPairsToEvaluate.length === 0) {
+			kerningSuggestError =
+				'No pairs to evaluate. Draw at least the AV / To / Yo letters or add pairs manually below.';
+			return;
+		}
+		kerningSuggestRunning = true;
+		kerningSuggestError = null;
+		kerningSuggestProposal = null;
+		kerningAppliedKeys = new Set();
+		try {
+			const proposal = await requestKerningProposal(
+				kerningPairsToEvaluate,
+				project
+			);
+			kerningSuggestProposal = proposal;
+		} catch (e) {
+			kerningSuggestError =
+				e instanceof AnthropicError
+					? e.message
+					: e instanceof Error
+						? e.message
+						: 'Failed to suggest kerning.';
+		} finally {
+			kerningSuggestRunning = false;
+		}
+	};
+
+	const suggestionKey = (s: { left: KerningSide; right: KerningSide }): string =>
+		`${typeof s.left === 'number' ? `cp:${s.left}` : `cls:${s.left}`}::${
+			typeof s.right === 'number' ? `cp:${s.right}` : `cls:${s.right}`
+		}`;
+
+	const applyKerningSuggestion = (s: KerningSuggestion) => {
+		if (!project) return;
+		projectStore.upsertKerningPair({
+			left: s.left,
+			right: s.right,
+			value: s.value
+		});
+		kerningAppliedKeys = new Set([...kerningAppliedKeys, suggestionKey(s)]);
+	};
+
+	const applyAllHighConfidence = () => {
+		if (!kerningSuggestProposal) return;
+		let applied = 0;
+		for (const s of kerningSuggestProposal.pairs) {
+			if (s.confidence !== 'high') continue;
+			if (kerningAppliedKeys.has(suggestionKey(s))) continue;
+			applyKerningSuggestion(s);
+			applied++;
+		}
+		if (applied > 0)
+			toast.success(`Applied ${applied} high-confidence kerning suggestion${applied === 1 ? '' : 's'}.`);
+	};
+
+	const discardKerningSuggestion = () => {
+		kerningSuggestProposal = null;
+		kerningSuggestError = null;
+		kerningAppliedKeys = new Set();
+	};
+
 	// ---------- Stem rhythm strip ----------
 	type RhythmSet = 'lower-stems' | 'upper-stems';
 	const RHYTHM_SETS: Record<RhythmSet, { label: string; codepoints: number[] }> = {
@@ -452,6 +540,122 @@
 			Per-glyph sidebearings are edited in the glyph editor. Set kerning pairs here.
 		</p>
 	</header>
+
+	<Panel>
+		<div class="mb-3 flex items-center gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				AI kerning suggestions
+			</h2>
+			<span
+				class="rounded-full bg-warn/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-warn-strong uppercase"
+			>
+				Experimental
+			</span>
+		</div>
+		<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+			Ask Claude for kerning values across your existing pairs plus the
+			canonical problem pairs (AV/To/We/Yo/Pa/Ta/&hellip;) for any drawn
+			glyphs. Suggestions are typographic priors, not measurements — review
+			before applying.
+		</p>
+
+		<div class="flex flex-wrap items-center gap-2">
+			<Button
+				density="sm"
+				onclick={runKerningSuggest}
+				disabled={!settings.hasKey || kerningPairsToEvaluate.length === 0}
+				loading={kerningSuggestRunning}
+			>
+				{#snippet icon()}<Wand class="size-3.5" />{/snippet}
+				Suggest values for {kerningPairsToEvaluate.length} pair{kerningPairsToEvaluate.length === 1 ? '' : 's'}
+			</Button>
+			{#if !settings.hasKey}
+				<span class="text-[11px] text-fg-muted">
+					Set an Anthropic API key in Settings first.
+				</span>
+			{/if}
+		</div>
+
+		{#if kerningSuggestError}
+			<div class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong">
+				{kerningSuggestError}
+			</div>
+		{/if}
+
+		{#if kerningSuggestProposal}
+			<div class="mt-4 flex flex-col gap-3">
+				{#if kerningSuggestProposal.reasoning}
+					<p class="text-[12px] italic leading-snug text-fg-muted">
+						{kerningSuggestProposal.reasoning}
+					</p>
+				{/if}
+
+				<div class="flex flex-wrap items-center gap-2">
+					<Button density="sm" onclick={applyAllHighConfidence}>
+						{#snippet icon()}<Check class="size-3.5" />{/snippet}
+						Apply all high-confidence
+					</Button>
+					<Button density="sm" variant="ghost" onclick={discardKerningSuggestion}>
+						{#snippet icon()}<X class="size-3.5" />{/snippet}
+						Discard
+					</Button>
+				</div>
+
+				<div class="grid gap-1.5">
+					{#each kerningSuggestProposal.pairs as s (suggestionKey(s))}
+						{@const applied = kerningAppliedKeys.has(suggestionKey(s))}
+						<div
+							class="flex items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px]"
+						>
+							<div
+								class="flex w-12 items-center justify-center rounded font-mono text-[16px] tracking-tight"
+								style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							>
+								{kerningSideLabel(s.left)}{kerningSideLabel(s.right)}
+							</div>
+							<div class="flex flex-1 items-center gap-3">
+								<span
+									class="font-mono text-[13px] {s.value < 0
+										? 'text-fg'
+										: s.value > 0
+											? 'text-fg-muted'
+											: 'text-fg-subtle'}"
+									data-numeric
+								>
+									{s.value > 0 ? '+' : ''}{s.value}
+								</span>
+								<span
+									class="rounded-full px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider {s.confidence ===
+									'high'
+										? 'bg-success/15 text-success-strong'
+										: s.confidence === 'medium'
+											? 'bg-warn/15 text-warn-strong'
+											: 'bg-fg/10 text-fg-muted'}"
+								>
+									{s.confidence}
+								</span>
+							</div>
+							{#if applied}
+								<span
+									class="inline-flex items-center gap-1 text-[11px] text-success-strong"
+								>
+									<Check class="size-3" /> Applied
+								</span>
+							{:else}
+								<button
+									type="button"
+									onclick={() => applyKerningSuggestion(s)}
+									class="rounded border border-border bg-surface px-2 py-0.5 text-[11px] font-medium text-fg hover:border-accent hover:text-accent-strong"
+								>
+									Apply
+								</button>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</div>
+		{/if}
+	</Panel>
 
 	<Panel>
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
