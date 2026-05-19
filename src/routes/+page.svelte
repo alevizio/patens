@@ -213,8 +213,16 @@
 	let urlInput = $state('');
 
 	const refresh = async () => {
-		projects = await listProjects();
-		loading = false;
+		try {
+			projects = await listProjects();
+		} catch (err) {
+			console.error('Failed to list projects:', err);
+			toast.error(
+				`Couldn't load your projects: ${err instanceof Error ? err.message : String(err)}`
+			);
+		} finally {
+			loading = false;
+		}
 	};
 	refresh();
 

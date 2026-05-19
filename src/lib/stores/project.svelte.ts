@@ -151,6 +151,10 @@ class ProjectStore {
 		this.saveTimer = setTimeout(() => this.flush(), 600);
 	}
 
+	/** Track that we've already surfaced a save-error toast for the current failure
+	 *  run, so repeated debounced retries don't spam. Cleared on next successful save. */
+	private saveErrorActive = false;
+
 	async flush() {
 		if (!this.project) return;
 		// Cancel any pending debounced save so we don't fire twice
@@ -167,10 +171,28 @@ class ProjectStore {
 			if (snapshot) await saveProject(snapshot);
 			this.dirty = false;
 			this.lastSavedAt = Date.now();
+			this.saveErrorActive = false;
 		} catch (err) {
 			console.error('Project save failed:', err);
 			// Keep dirty=true so the user can see save is pending + retry
 			this.dirty = true;
+			// Surface to the user — once per failure run, not on every retry.
+			if (!this.saveErrorActive) {
+				this.saveErrorActive = true;
+				const message = err instanceof Error ? err.message : String(err);
+				const isQuota =
+					(err instanceof DOMException && err.name === 'QuotaExceededError') ||
+					/quota/i.test(message);
+				import('./toast.svelte').then(({ toast }) => {
+					if (isQuota) {
+						toast.error(
+							'Browser storage is full — your edits are not being saved. Export the project, then clear some space or remove old projects.'
+						);
+					} else {
+						toast.error(`Save failed: ${message}`);
+					}
+				});
+			}
 		} finally {
 			this.saving = false;
 		}
