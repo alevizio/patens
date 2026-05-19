@@ -540,9 +540,17 @@ Write the design-notes essay.`;
 
 				{#if suggestError}
 					<div
-						class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong"
+						class="mt-3 flex items-start gap-2 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong"
 					>
-						{suggestError}
+						<span class="flex-1">{suggestError}</span>
+						<button
+							type="button"
+							onclick={generateSuggestion}
+							disabled={!suggestTargetCp || suggestGenerating}
+							class="shrink-0 rounded border border-danger/40 px-2 py-0.5 text-[11px] font-medium hover:border-danger hover:bg-danger/15 disabled:opacity-50"
+						>
+							Retry
+						</button>
 					</div>
 				{/if}
 

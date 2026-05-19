@@ -577,8 +577,16 @@
 		</div>
 
 		{#if kerningSuggestError}
-			<div class="mt-3 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong">
-				{kerningSuggestError}
+			<div class="mt-3 flex items-start gap-2 rounded-md bg-danger/10 px-3 py-2 text-[13px] text-danger-strong">
+				<span class="flex-1">{kerningSuggestError}</span>
+				<button
+					type="button"
+					onclick={runKerningSuggest}
+					disabled={kerningSuggestRunning || kerningPairsToEvaluate.length === 0}
+					class="shrink-0 rounded border border-danger/40 px-2 py-0.5 text-[11px] font-medium hover:border-danger hover:bg-danger/15 disabled:opacity-50"
+				>
+					Retry
+				</button>
 			</div>
 		{/if}
 
