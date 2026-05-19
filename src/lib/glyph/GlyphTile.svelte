@@ -103,12 +103,16 @@
 			>
 				<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
 			</svg>
-		{:else}
+		{:else if char}
 			<span
-				class="text-xl font-light text-fg-subtle"
+				class="text-2xl font-light text-fg-muted/80"
 				style="font-family: var(--preview-family);"
 			>
 				{char}
+			</span>
+		{:else}
+			<span class="text-[10px] font-mono text-fg-subtle/60" data-numeric>
+				{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}
 			</span>
 		{/if}
 	</div>
