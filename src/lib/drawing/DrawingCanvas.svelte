@@ -414,7 +414,12 @@
 
 		<!-- Character ghost — fades in only when the glyph has nothing drawn yet
 		     and there's no reference image to trace. Gives the designer a faint
-		     letterform to aim at so the canvas isn't a blank slate. -->
+		     letterform to aim at so the canvas isn't a blank slate.
+
+		     Note: must NOT use --preview-family. The preview pipeline registers
+		     the project's own font, and an empty glyph slot inside that font
+		     paints as blank — so the ghost would flash in (system fallback)
+		     then vanish (project font wins with no contours). System stack only. -->
 		{#if glyph.codepoint > 0x20 && glyph.codepoint < 0x10000 && glyph.contours.length === 0 && (!glyph.sketch || glyph.sketch.length === 0) && !glyph.referenceImage}
 			<g transform="scale(1, -1)" pointer-events="none" aria-hidden="true">
 				<text
@@ -424,8 +429,8 @@
 					dominant-baseline="alphabetic"
 					font-size={metrics.capHeight}
 					fill="var(--color-fg)"
-					opacity="0.07"
-					style="font-family: var(--preview-family);"
+					opacity="0.08"
+					style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 				>
 					{String.fromCodePoint(glyph.codepoint)}
 				</text>
