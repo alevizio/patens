@@ -8,6 +8,7 @@
 
 import opentype from 'opentype.js';
 import type { BezierContour, Glyph as ProjectGlyph, Project, PathCommand } from './types';
+import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
 
@@ -247,11 +248,78 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		| undefined;
 	if (os2) os2.fsType = metadata.fsType ?? 0;
 
+	// Vertical metrics (OS/2 + hhea). Was a Pyodide round-trip; now native to
+	// opentype.js so OTF export skips the ~15MB Python runtime unless .fea
+	// features actually need compilation downstream.
+	applyVerticalMetrics(font, resolveVerticalMetrics(metrics));
+
 	return { font, indexByCodepoint, glyphCount: glyphs.length };
 };
 
 export const fontToArrayBuffer = (font: InstanceType<typeof opentype.Font>): ArrayBuffer =>
 	font.toArrayBuffer();
+
+/**
+ * Mutate an opentype.js Font's OS/2 + hhea vertical-metric fields in place.
+ * Equivalent to the vertical-metrics half of python.ts:finalizeFont, but
+ * skipping the Pyodide round-trip entirely. Use BEFORE font.toArrayBuffer()
+ * so the writes land in the serialized binary.
+ */
+export const applyVerticalMetrics = (
+	font: InstanceType<typeof opentype.Font>,
+	vm: {
+		typoAscender: number;
+		typoDescender: number;
+		typoLineGap: number;
+		hheaAscender: number;
+		hheaDescender: number;
+		hheaLineGap: number;
+		winAscent: number;
+		winDescent: number;
+		useTypoMetrics: boolean;
+	}
+): void => {
+	const tables = font.tables as Record<string, unknown> | undefined;
+	const os2 = tables?.os2 as
+		| {
+				sTypoAscender?: number;
+				sTypoDescender?: number;
+				sTypoLineGap?: number;
+				usWinAscent?: number;
+				usWinDescent?: number;
+				fsSelection?: number;
+		  }
+		| undefined;
+	if (os2) {
+		os2.sTypoAscender = vm.typoAscender;
+		os2.sTypoDescender = vm.typoDescender;
+		os2.sTypoLineGap = vm.typoLineGap;
+		os2.usWinAscent = vm.winAscent;
+		os2.usWinDescent = vm.winDescent;
+		// fsSelection bit 7 = USE_TYPO_METRICS (per OpenType OS/2 spec)
+		const sel = os2.fsSelection ?? 0;
+		os2.fsSelection = vm.useTypoMetrics ? sel | 0x80 : sel & ~0x80;
+	}
+	// opentype.js exposes hhea differently across versions — write both
+	// `ascender/descender` and `ascent/descent` so the binary writer picks
+	// up whichever it consumes. Harmless when only one is read.
+	const hhea = tables?.hhea as
+		| {
+				ascender?: number;
+				descender?: number;
+				lineGap?: number;
+				ascent?: number;
+				descent?: number;
+		  }
+		| undefined;
+	if (hhea) {
+		hhea.ascender = vm.hheaAscender;
+		hhea.descender = vm.hheaDescender;
+		hhea.lineGap = vm.hheaLineGap;
+		hhea.ascent = vm.hheaAscender;
+		hhea.descent = vm.hheaDescender;
+	}
+};
 
 /** Trigger a browser download of the font as OTF. */
 export const downloadFont = (

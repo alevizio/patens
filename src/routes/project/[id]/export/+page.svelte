@@ -125,20 +125,21 @@ body {
 
 	const buildOtfBuffer = async (): Promise<ArrayBuffer> => {
 		if (!project) throw new Error('No project');
+		// Vertical metrics are now applied inside buildFont() via opentype.js,
+		// so OTF export skips Pyodide entirely unless .fea features need
+		// compilation. (Previously this path always called finalizeFont() due
+		// to a `|| true` short-circuit bug — a ~15MB Pyodide download on every
+		// OTF export, even when no features were defined.)
 		const { font } = buildFont(project);
 		let buffer = font.toArrayBuffer();
 		const fea = project.features.feaSource ?? autoFeaSource(project);
-		const vm = resolveVerticalMetrics(project.metrics);
-		const needsFinalize = (fea && fea.trim().length > 0) || true;
-		if (needsFinalize) {
+		const hasFea = !!fea && fea.trim().length > 0;
+		if (hasFea) {
 			try {
 				await ensurePython();
-				buffer = await finalizeFont(buffer, {
-					feaSource: fea && fea.trim().length > 0 ? fea : undefined,
-					verticalMetrics: vm
-				});
+				buffer = await finalizeFont(buffer, { feaSource: fea });
 			} catch (err) {
-				console.warn('Finalize step failed, exporting without:', err);
+				console.warn('Feature compilation failed, exporting without:', err);
 			}
 		}
 		return buffer;
