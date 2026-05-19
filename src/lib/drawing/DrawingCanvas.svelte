@@ -429,7 +429,7 @@
 					dominant-baseline="alphabetic"
 					font-size={metrics.capHeight}
 					fill="var(--color-fg)"
-					opacity="0.08"
+					opacity="0.18"
 					style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 				>
 					{String.fromCodePoint(glyph.codepoint)}

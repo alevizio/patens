@@ -43,13 +43,19 @@
   before — visible only on empty glyphs where contours can't mask it.
 -->
 <g class="pointer-events-none" data-overlay="metrics">
-	<!-- Glyph body fill. In font space: descender at bottom, ascender at top. -->
+	<!-- Glyph body fill. In font space: descender at bottom, ascender at top.
+	     surface-2 is ~6% lighter than canvas — bg-surface was nearly invisible
+	     against the dark canvas. We also stroke the cell so the boundary is
+	     obvious even when the fill blends in. -->
 	<rect
 		x={0}
 		y={metrics.descender}
 		width={advance}
 		height={metrics.ascender - metrics.descender}
-		fill="var(--color-surface)"
+		fill="var(--color-surface-2)"
+		stroke="var(--color-border)"
+		stroke-width="1.5"
+		vector-effect="non-scaling-stroke"
 	/>
 
 	{#if showGrid}
