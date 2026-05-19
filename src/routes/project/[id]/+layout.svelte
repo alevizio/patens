@@ -125,6 +125,27 @@
 	let shortcutsOpen = $state(false);
 	let paletteOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
+	let projectSwitcherEl = $state<HTMLDivElement | null>(null);
+
+	// Close the project switcher on outside-click + Escape, without rendering
+	// a fixed-inset overlay (which used to eat every click on the page).
+	$effect(() => {
+		if (!projectSwitcherOpen) return;
+		const onDown = (e: MouseEvent) => {
+			if (!projectSwitcherEl) return;
+			if (e.target instanceof Node && projectSwitcherEl.contains(e.target)) return;
+			projectSwitcherOpen = false;
+		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') projectSwitcherOpen = false;
+		};
+		window.addEventListener('mousedown', onDown, true);
+		window.addEventListener('keydown', onKey);
+		return () => {
+			window.removeEventListener('mousedown', onDown, true);
+			window.removeEventListener('keydown', onKey);
+		};
+	});
 	// Tick every 30s so the "Saved Xs ago" string stays fresh
 	let nowTick = $state(Date.now());
 	$effect(() => {
@@ -376,14 +397,12 @@
 				<ChevronDown class="size-3.5" />
 			</button>
 			{#if projectSwitcherOpen}
-				<button
-					type="button"
-					class="fixed inset-0 z-30 cursor-default"
-					onclick={() => (projectSwitcherOpen = false)}
-					aria-label="Close project switcher"
-					tabindex="-1"
-				></button>
+				<!-- No fixed-inset click-catcher: it ate every click on the page,
+				     including tab navigation. The window-mousedown effect below
+				     closes the switcher on outside-click while still letting the
+				     real click target receive the event. -->
 				<div
+					bind:this={projectSwitcherEl}
 					class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl"
 				>
 					{#each allProjects as p (p.id)}

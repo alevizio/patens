@@ -16,6 +16,33 @@
 
 	const project = $derived(projectStore.project);
 
+	// Close on Escape + on any click outside the dialog. Critically, we do
+	// NOT render a `fixed inset-0` click-catcher — that was eating every
+	// click on the page (including tab navigation) when the popover was
+	// open. The window listener closes the popover without consuming the
+	// user's actual click, so the click also lands on its real target.
+	let dialogEl = $state<HTMLDivElement | null>(null);
+
+	$effect(() => {
+		if (!open) return;
+		const onDown = (e: MouseEvent) => {
+			if (!dialogEl) return;
+			if (e.target instanceof Node && dialogEl.contains(e.target)) return;
+			onclose();
+		};
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') onclose();
+		};
+		// Use capture so we run before SvelteKit's link interceptor — closing
+		// the popover doesn't block the navigation that the same click triggers.
+		window.addEventListener('mousedown', onDown, true);
+		window.addEventListener('keydown', onKey);
+		return () => {
+			window.removeEventListener('mousedown', onDown, true);
+			window.removeEventListener('keydown', onKey);
+		};
+	});
+
 	const drawn = $derived(
 		project
 			? Object.values(project.glyphs).filter((g) => g.contours.length > 0).length
@@ -173,14 +200,8 @@
 </script>
 
 {#if open && project}
-	<button
-		type="button"
-		class="fixed inset-0 z-30 cursor-default"
-		onclick={onclose}
-		aria-label="Close stats"
-		tabindex="-1"
-	></button>
 	<div
+		bind:this={dialogEl}
 		role="dialog"
 		aria-modal="false"
 		aria-label="Project stats"
