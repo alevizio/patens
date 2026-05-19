@@ -43,6 +43,7 @@
 	import Link from '@lucide/svelte/icons/link';
 	import Library from '@lucide/svelte/icons/library';
 	import LockIcon from '@lucide/svelte/icons/lock';
+	import Download from '@lucide/svelte/icons/download';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -1011,6 +1012,54 @@
 					{/each}
 				</ul>
 			{/if}
+
+			<!-- Demo fonts: two installable .otf files we ship so you can see
+			     what a Font Studio export looks like before drawing anything. -->
+			<div class="mt-6 rounded-lg border border-dashed border-border bg-surface-2/30 p-4">
+				<div class="mb-1 flex items-baseline justify-between gap-2">
+					<h3 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						See what ships
+					</h3>
+					<span class="text-[11px] text-fg-subtle">2 demo fonts · made in this app</span>
+				</div>
+				<p class="mb-3 text-[12px] text-fg-muted">
+					Download, double-click to install on macOS, then type in any app.
+					Each has 8 glyphs — enough to render <span class="font-medium text-fg">HOTEL NINE</span>
+					and <span class="font-medium text-fg">noon</span>.
+				</p>
+				<div class="grid gap-2 sm:grid-cols-2">
+					<a
+						href="/demo-fonts/StudioGeometric-Regular.otf"
+						download
+						class="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft/40"
+						title="Download Studio Geometric Regular (.otf)"
+					>
+						<div class="flex size-9 shrink-0 items-center justify-center rounded bg-fg/5 font-mono text-[13px] font-semibold text-fg">
+							H
+						</div>
+						<div class="min-w-0 flex-1">
+							<div class="truncate text-[13px] font-medium text-fg">Studio Geometric</div>
+							<div class="truncate text-[11px] text-fg-subtle">Monolinear sans · Regular</div>
+						</div>
+						<Download class="size-3.5 shrink-0 text-fg-subtle" aria-hidden="true" />
+					</a>
+					<a
+						href="/demo-fonts/StudioSlab-Regular.otf"
+						download
+						class="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft/40"
+						title="Download Studio Slab Regular (.otf)"
+					>
+						<div class="flex size-9 shrink-0 items-center justify-center rounded bg-fg/5 font-mono text-[13px] font-semibold text-fg">
+							T
+						</div>
+						<div class="min-w-0 flex-1">
+							<div class="truncate text-[13px] font-medium text-fg">Studio Slab</div>
+							<div class="truncate text-[11px] text-fg-subtle">Slab serif · Regular</div>
+						</div>
+						<Download class="size-3.5 shrink-0 text-fg-subtle" aria-hidden="true" />
+					</a>
+				</div>
+			</div>
 		</Panel>
 
 		<div class="grid gap-4">

@@ -493,9 +493,12 @@
 		<nav class="flex items-center gap-0.5 rounded-lg bg-surface-2 p-0.5">
 			{#each tabs as tab (tab.href)}
 				{@const Icon = tab.icon}
-				<button
-					type="button"
-					onclick={() => goto(tab.href)}
+				<!-- Real <a href> instead of <button onclick={goto}> — gives the
+				     browser proper history, middle-click-to-new-tab, and falls
+				     back even if any client-side nav handler is in a bad state.
+				     SvelteKit intercepts and runs SPA-style automatically. -->
+				<a
+					href={tab.href}
 					title={'shortcut' in tab ? `${tab.label} (${tab.shortcut})` : tab.label}
 					class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors {isActive(
 						tab.href
@@ -514,7 +517,7 @@
 							{tab.badge}
 						</span>
 					{/if}
-				</button>
+				</a>
 			{/each}
 		</nav>
 
