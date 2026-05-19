@@ -65,6 +65,14 @@
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
 
+	// Hoist `glyph` + `metrics` derivations above any other $derived/$effect
+	// that closes over them. Previously sat ~60 lines down, which put them in
+	// TDZ when Svelte 5 eagerly evaluated the dependent deriveds at component
+	// init — that crash silently aborted /edit's mount, so clicking the Edit
+	// tab from elsewhere appeared to "do nothing".
+	const glyph = $derived(projectStore.selectedGlyph);
+	const metrics = $derived(projectStore.project?.metrics);
+
 	let canvasDragActive = $state(false);
 	let canvasDragCounter = 0;
 	const onCanvasDragEnter = (e: DragEvent) => {
@@ -174,9 +182,6 @@
 		size: strokeSize,
 		thinning: strokeThinning
 	});
-
-	const glyph = $derived(projectStore.selectedGlyph);
-	const metrics = $derived(projectStore.project?.metrics);
 
 	const countPathPoints = (commands: BezierContour['commands']) =>
 		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')

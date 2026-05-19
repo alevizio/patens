@@ -14,6 +14,13 @@
 	import Globe from '@lucide/svelte/icons/globe';
 	import Group from '@lucide/svelte/icons/group';
 
+	// Must be declared up here, before any $state/$derived that closes over it.
+	// Previously sat at ~line 145, which put it in TDZ when the earlier
+	// $derived helpers tried to evaluate during component init → silently
+	// failed → /spacing route would not finish mounting, so tab clicks landing
+	// there appeared to "do nothing".
+	const project = $derived(projectStore.project);
+
 	const COMMON_PAIRS: [string, string][] = [
 		['A', 'V'], ['A', 'T'], ['A', 'W'], ['A', 'Y'],
 		['T', 'a'], ['T', 'o'], ['T', 'e'], ['T', 'r'],
@@ -142,7 +149,6 @@
 	);
 
 	const cpOf = (s: string) => s.codePointAt(0) ?? 0;
-	const project = $derived(projectStore.project);
 
 	// Pull the family names the user added in the Brief — they're auto-loaded
 	// from Google Fonts at project load, so they're available here for free.
