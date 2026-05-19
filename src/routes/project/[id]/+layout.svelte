@@ -353,321 +353,368 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div class="flex h-screen flex-col">
-	<header
-		class="flex items-center gap-4 border-b border-border bg-surface px-4 py-2.5"
-	>
-		<a
-			href="/"
-			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-			aria-label="Back to projects"
-			title="Back to projects"
-		>
-			<ArrowLeft class="size-4" />
-		</a>
-
-		<div class="relative flex min-w-0 flex-1 items-center gap-1">
-			{#if projectStore.selectedGlyph && projectStore.project}
-				<a
-					href="/project/{projectStore.project.id}/edit"
-					class="shrink-0"
-					title="Open {projectStore.selectedGlyph.name} in editor"
-				>
-					<GlyphTile
-						glyph={projectStore.selectedGlyph}
-						size={24}
-						showLabel={false}
-						ascender={projectStore.project.metrics.ascender}
-						descender={projectStore.project.metrics.descender}
-					/>
-				</a>
-			{/if}
-			<input
-				type="text"
-				value={nameInput}
-				oninput={(e) => projectStore.updateName(e.currentTarget.value)}
-				class="min-w-0 max-w-xs flex-shrink truncate border-0 bg-transparent px-1 text-sm font-medium text-fg outline-none focus:ring-1 focus:ring-accent"
-				aria-label="Project name"
-			/>
-			<button
-				type="button"
-				onclick={() => (projectSwitcherOpen = !projectSwitcherOpen)}
-				class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
-				aria-label="Switch project"
-				title="Switch project"
+	<!-- Two-row header. Row 1 (taller, ~52px) carries identity + system
+	     chrome: who/what + persistent app actions. Row 2 (slim, ~38px)
+	     carries page navigation + edit actions tied to the current project.
+	     Splits "which project is this" from "what am I doing in it" so
+	     neither competes for horizontal real estate. -->
+	<header class="border-b border-border bg-surface">
+		<!-- Row 1: identity, family/version meta, save status, system buttons. -->
+		<div class="flex h-[52px] items-center gap-3 border-b border-border/60 px-4">
+			<a
+				href="/"
+				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+				aria-label="Back to projects"
+				title="Back to projects"
 			>
-				<ChevronDown class="size-3.5" />
-			</button>
-			{#if projectSwitcherOpen}
-				<!-- No fixed-inset click-catcher: it ate every click on the page,
-				     including tab navigation. The window-mousedown effect below
-				     closes the switcher on outside-click while still letting the
-				     real click target receive the event. -->
-				<div
-					bind:this={projectSwitcherEl}
-					class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl"
+				<ArrowLeft class="size-4" />
+			</a>
+
+			<div class="h-5 w-px bg-border" aria-hidden="true"></div>
+
+			<!-- Identity zone: glyph thumb, project name (editable), switcher -->
+			<div class="relative flex min-w-0 items-center gap-2">
+				{#if projectStore.selectedGlyph && projectStore.project}
+					<a
+						href="/project/{projectStore.project.id}/edit"
+						class="shrink-0"
+						title="Open {projectStore.selectedGlyph.name} in editor"
+					>
+						<GlyphTile
+							glyph={projectStore.selectedGlyph}
+							size={28}
+							showLabel={false}
+							ascender={projectStore.project.metrics.ascender}
+							descender={projectStore.project.metrics.descender}
+						/>
+					</a>
+				{/if}
+				<input
+					type="text"
+					value={nameInput}
+					oninput={(e) => projectStore.updateName(e.currentTarget.value)}
+					class="min-w-0 max-w-[14rem] truncate border-0 bg-transparent px-1 text-[15px] text-fg outline-none focus:ring-1 focus:ring-accent"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					aria-label="Project name"
+				/>
+				<button
+					type="button"
+					onclick={() => (projectSwitcherOpen = !projectSwitcherOpen)}
+					class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
+					aria-label="Switch project"
+					title="Switch project"
 				>
-					{#each allProjects as p (p.id)}
-						<a
-							href="/project/{p.id}/edit"
-							onclick={() => (projectSwitcherOpen = false)}
-							class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
-							projectStore.project?.id
-								? 'bg-accent-soft/40'
-								: ''}"
-						>
-							<div
-								class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded bg-fg/5 text-[14px] font-semibold text-fg"
+					<ChevronDown class="size-3.5" />
+				</button>
+				{#if projectSwitcherOpen}
+					<!-- No fixed-inset click-catcher — closed by window-mousedown
+					     effect above so it doesn't eat clicks on the rest of the page. -->
+					<div
+						bind:this={projectSwitcherEl}
+						class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl"
+					>
+						{#each allProjects as p (p.id)}
+							<a
+								href="/project/{p.id}/edit"
+								onclick={() => (projectSwitcherOpen = false)}
+								class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
+								projectStore.project?.id
+									? 'bg-accent-soft/40'
+									: ''}"
 							>
-								{#if p.thumbnail}
-									<svg
-										viewBox={p.thumbnail.viewBox}
-										width="32"
-										height="32"
-										preserveAspectRatio="xMidYMid meet"
-										style="transform: scaleY(-1);"
-										aria-hidden="true"
-									>
-										<path d={p.thumbnail.path} fill="currentColor" fill-rule="evenodd" />
-									</svg>
-								{:else}
-									{(p.familyName[0] ?? 'A').toUpperCase()}
-								{/if}
-							</div>
-							<div class="min-w-0 flex-1">
-								<div class="flex items-center gap-1.5">
-									<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
-									{#if p.locked}
-										<LockIcon class="size-2.5 text-warn" aria-label="Locked" />
+								<div
+									class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded bg-fg/5 text-[14px] font-semibold text-fg"
+								>
+									{#if p.thumbnail}
+										<svg
+											viewBox={p.thumbnail.viewBox}
+											width="32"
+											height="32"
+											preserveAspectRatio="xMidYMid meet"
+											style="transform: scaleY(-1);"
+											aria-hidden="true"
+										>
+											<path d={p.thumbnail.path} fill="currentColor" fill-rule="evenodd" />
+										</svg>
+									{:else}
+										{(p.familyName[0] ?? 'A').toUpperCase()}
 									{/if}
 								</div>
-								<div class="truncate text-[11px] text-fg-subtle" data-numeric>
-									{p.familyName} · {p.glyphCount} drawn{(p.kerningCount ?? 0) > 0
-										? ` · ${p.kerningCount} kern`
-										: ''}{(p.editsToday ?? 0) > 0 ? ` · ${p.editsToday} today` : ''}
-								</div>
-								{#if p.tagline}
-									<div class="mt-0.5 truncate text-[10px] italic text-fg-subtle">
-										{p.tagline}
+								<div class="min-w-0 flex-1">
+									<div class="flex items-center gap-1.5">
+										<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
+										{#if p.locked}
+											<LockIcon class="size-2.5 text-warn" aria-label="Locked" />
+										{/if}
 									</div>
-								{/if}
-							</div>
-						</a>
-					{/each}
-					{#if allProjects.length === 0}
-						<div class="px-3 py-2 text-[12px] text-fg-subtle">No other projects.</div>
-					{/if}
-					<div class="mt-1 border-t border-border pt-1">
-						<a
-							href="/"
-							class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent hover:bg-accent-soft/40"
-						>
-							All projects · New font →
-						</a>
-					</div>
-				</div>
-			{/if}
-		</div>
-		<div class="hidden flex-1 items-center gap-3 lg:flex">
-			<div class="text-[12px] text-fg-subtle" data-numeric>
-				{projectStore.project?.metadata.familyName} · v{projectStore.project?.metadata.version}
-			</div>
-			{#if projectStore.project && (projectStore.project.masters?.length ?? 0) > 0}
-				<label class="ml-2 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1">
-					<Layers class="size-3 text-fg-muted" />
-					<select
-						value={projectStore.selectedMasterId ?? ''}
-						onchange={(e) =>
-							projectStore.selectMaster(e.currentTarget.value || undefined)}
-						class="bg-transparent text-[12px] font-medium text-fg outline-none"
-						aria-label="Master"
-					>
-						<option value="">Default</option>
-						{#each projectStore.project.masters ?? [] as m (m.id)}
-							<option value={m.id}>{m.name}</option>
+									<div class="truncate text-[11px] text-fg-subtle" data-numeric>
+										{p.familyName} · {p.glyphCount} drawn{(p.kerningCount ?? 0) > 0
+											? ` · ${p.kerningCount} kern`
+											: ''}{(p.editsToday ?? 0) > 0 ? ` · ${p.editsToday} today` : ''}
+									</div>
+									{#if p.tagline}
+										<div class="mt-0.5 truncate text-[10px] italic text-fg-subtle">
+											{p.tagline}
+										</div>
+									{/if}
+								</div>
+							</a>
 						{/each}
-					</select>
-				</label>
-			{/if}
-		</div>
-
-		<nav class="flex items-center gap-0.5 rounded-lg bg-surface-2 p-0.5">
-			{#each tabs as tab (tab.href)}
-				{@const Icon = tab.icon}
-				<!-- Real <a href> instead of <button onclick={goto}> — gives the
-				     browser proper history, middle-click-to-new-tab, and falls
-				     back even if any client-side nav handler is in a bad state.
-				     SvelteKit intercepts and runs SPA-style automatically. -->
-				<a
-					href={tab.href}
-					title={'shortcut' in tab ? `${tab.label} (${tab.shortcut})` : tab.label}
-					class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors {isActive(
-						tab.href
-					)
-						? 'bg-surface text-fg shadow-sm'
-						: 'text-fg-muted hover:text-fg'}"
-				>
-					<Icon class="size-3.5" />
-					{tab.label}
-					{#if 'badge' in tab && (tab.badge ?? 0) > 0}
-						<span
-							class="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 font-mono text-[9px] font-semibold text-canvas"
-							data-numeric
-							aria-label="{tab.badge} errors"
-						>
-							{tab.badge}
-						</span>
-					{/if}
-				</a>
-			{/each}
-		</nav>
-
-		<div class="flex items-center gap-0.5">
-			<button
-				type="button"
-				onclick={() => projectStore.undo()}
-				disabled={!projectStore.canUndo}
-				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
-				aria-label="Undo"
-				title="Undo (⌘Z)"
-			>
-				<Undo2 class="size-4" />
-			</button>
-			<button
-				type="button"
-				onclick={() => projectStore.redo()}
-				disabled={!projectStore.canRedo}
-				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
-				aria-label="Redo"
-				title="Redo (⌘⇧Z)"
-			>
-				<Redo2 class="size-4" />
-			</button>
-		</div>
-
-		{#if fourLayers.length > 0}
-			<div
-				class="hidden items-center gap-1.5 lg:flex"
-				title="font5.md's four-layer model: brief → drawing → compiled → business"
-				aria-label="Project layer progress"
-			>
-				{#each fourLayers as layer (layer.key)}
-					<a
-						href={layer.href}
-						class="group flex flex-col items-center gap-0.5"
-						title="{layer.label}: {layer.pct}%"
-					>
-						<div class="h-1 w-10 overflow-hidden rounded-full bg-surface-2">
-							<div
-								class="h-full {layer.pct === 100 ? 'bg-success' : layer.pct >= 50 ? 'bg-accent' : 'bg-warn'}"
-								style="width: {layer.pct}%;"
-							></div>
+						{#if allProjects.length === 0}
+							<div class="px-3 py-2 text-[12px] text-fg-subtle">No other projects.</div>
+						{/if}
+						<div class="mt-1 border-t border-border pt-1">
+							<a
+								href="/"
+								class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent hover:bg-accent-soft/40"
+							>
+								All projects · New font →
+							</a>
 						</div>
-						<span
-							class="text-[9px] font-medium uppercase tracking-wider text-fg-subtle group-hover:text-fg"
+					</div>
+				{/if}
+			</div>
+
+			<!-- Meta strip: family name + version + master (lg only).
+			     Visible separator from identity, mono numeric. -->
+			<div
+				class="hidden items-center gap-3 border-l border-border pl-3 lg:flex"
+			>
+				<div class="font-mono text-[11px] text-fg-subtle" data-numeric>
+					{projectStore.project?.metadata.familyName}
+					<span class="mx-1 text-fg-subtle/50">·</span>
+					<span class="text-fg-muted">v{projectStore.project?.metadata.version}</span>
+				</div>
+				{#if projectStore.project && (projectStore.project.masters?.length ?? 0) > 0}
+					<label
+						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1"
+					>
+						<Layers class="size-3 text-fg-muted" />
+						<select
+							value={projectStore.selectedMasterId ?? ''}
+							onchange={(e) =>
+								projectStore.selectMaster(e.currentTarget.value || undefined)}
+							class="bg-transparent text-[11px] font-medium text-fg outline-none"
+							aria-label="Master"
 						>
-							{layer.label}
-						</span>
+							<option value="">Default</option>
+							{#each projectStore.project.masters ?? [] as m (m.id)}
+								<option value={m.id}>{m.name}</option>
+							{/each}
+						</select>
+					</label>
+				{/if}
+				{#if projectStore.project?.familyId}
+					<a
+						href="/family/{projectStore.project.familyId}"
+						class="inline-flex items-center gap-1 rounded bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg"
+						title="Open family hub"
+					>
+						<Layers class="size-2.5" />
+						Family
+						{#if projectStore.project.familyAxes?.wght || projectStore.project.familyAxes?.ital}
+							<span class="font-mono" data-numeric>
+								{projectStore.project.familyAxes?.wght ?? 400}{projectStore.project.familyAxes?.ital ? 'i' : ''}
+							</span>
+						{/if}
+					</a>
+				{/if}
+			</div>
+
+			<div class="flex-1"></div>
+
+			<!-- Save status pill — compact, centered with the buttons -->
+			<div
+				class="hidden items-center gap-1.5 rounded-md bg-surface-2/60 px-2.5 py-1 font-mono text-[11px] text-fg-muted md:inline-flex"
+				data-numeric
+				title={projectStore.saving
+					? 'Saving project to local storage'
+					: projectStore.dirty
+						? 'Unsaved changes will autosave shortly'
+						: 'Saved to local storage'}
+			>
+				{#if projectStore.saving}
+					<Loader class="size-3 animate-spin" />
+					<span>Saving…</span>
+				{:else if projectStore.dirty}
+					<Save class="size-3" />
+					<span>Unsaved</span>
+				{:else}
+					<Check class="size-3 text-success" />
+					<span>{savedAgoLabel}</span>
+				{/if}
+			</div>
+
+			<!-- System action cluster: stats, lock, help, settings.
+			     Each is a 32px icon button, no labels — they're persistent and
+			     unchanging, so a hover tooltip carries the meaning. -->
+			<div class="flex items-center gap-0.5 rounded-md border border-border/60 bg-surface-2/30 p-0.5">
+				<div class="relative">
+					<button
+						type="button"
+						onclick={() => (statsOpen = !statsOpen)}
+						class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+						aria-label="Project stats"
+						title="Project stats"
+					>
+						<BarChart3 class="size-3.5" />
+					</button>
+					<StatsPopover open={statsOpen} onclose={() => (statsOpen = false)} />
+				</div>
+				<button
+					type="button"
+					onclick={() => projectStore.toggleLock()}
+					class="inline-flex size-7 items-center justify-center rounded transition-colors hover:bg-surface-2 {projectStore.project?.locked
+						? 'text-warn'
+						: 'text-fg-muted hover:text-fg'}"
+					aria-label={projectStore.project?.locked
+						? 'Unlock project'
+						: 'Lock project (read-only)'}
+					title={projectStore.project?.locked
+						? 'Project is locked — unlock to edit (⌘⇧L)'
+						: 'Lock — seal as read-only (⌘⇧L)'}
+				>
+					{#if projectStore.project?.locked}
+						<LockIcon class="size-3.5" />
+					{:else}
+						<UnlockIcon class="size-3.5" />
+					{/if}
+				</button>
+				<button
+					type="button"
+					onclick={() => (shortcutsOpen = true)}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Keyboard shortcuts"
+					title="Keyboard shortcuts (?)"
+				>
+					<HelpCircle class="size-3.5" />
+				</button>
+				<button
+					type="button"
+					onclick={() => (settingsOpen = true)}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Settings"
+					title="Settings (API key, etc.)"
+				>
+					<Settings class="size-3.5" />
+				</button>
+			</div>
+		</div>
+
+		<!-- Row 2: tab navigation + edit actions tied to the project (undo/redo,
+		     layer progress). Slimmer than row 1 (~38px) and visually lighter. -->
+		<div class="flex h-[38px] items-center gap-3 px-4">
+			<nav class="flex flex-1 items-center gap-0.5 overflow-x-auto">
+				{#each tabs as tab (tab.href)}
+					{@const Icon = tab.icon}
+					<a
+						href={tab.href}
+						title={'shortcut' in tab
+							? `${tab.label} (${tab.shortcut})`
+							: tab.label}
+						class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors {isActive(
+							tab.href
+						)
+							? 'bg-surface-2 text-fg'
+							: 'text-fg-muted hover:text-fg'}"
+					>
+						<Icon class="size-3.5" />
+						{tab.label}
+						{#if 'badge' in tab && (tab.badge ?? 0) > 0}
+							<span
+								class="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 font-mono text-[9px] font-semibold text-canvas"
+								data-numeric
+								aria-label="{tab.badge} errors"
+							>
+								{tab.badge}
+							</span>
+						{/if}
 					</a>
 				{/each}
+			</nav>
+
+			<!-- Undo/Redo — kept close to the tabs since they apply to whatever
+			     page you're on. -->
+			<div class="flex items-center gap-0.5">
+				<button
+					type="button"
+					onclick={() => projectStore.undo()}
+					disabled={!projectStore.canUndo}
+					class="inline-flex size-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
+					aria-label="Undo"
+					title="Undo (⌘Z)"
+				>
+					<Undo2 class="size-3.5" />
+				</button>
+				<button
+					type="button"
+					onclick={() => projectStore.redo()}
+					disabled={!projectStore.canRedo}
+					class="inline-flex size-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-30 disabled:hover:bg-transparent"
+					aria-label="Redo"
+					title="Redo (⌘⇧Z)"
+				>
+					<Redo2 class="size-3.5" />
+				</button>
 			</div>
-		{/if}
 
-		<div class="flex items-center gap-2 text-[12px] text-fg-subtle" data-numeric>
-			{#if projectStore.saving}
-				<Loader class="size-3.5 animate-spin" />
-				<span>Saving…</span>
-			{:else if projectStore.dirty}
-				<Save class="size-3.5" />
-				<span>Unsaved</span>
-			{:else}
-				<Check class="size-3.5 text-success" />
-				<span>{savedAgoLabel}</span>
-			{/if}
-			{#if projectStore.project?.changelog?.[0]}
-				<a
-					href="/project/{projectStore.project.id}/release"
-					class="hidden rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg md:inline-flex"
-					title="Last sealed version (jump to Release)"
+			{#if fourLayers.length > 0}
+				<div
+					class="hidden items-center gap-2 border-l border-border pl-3 lg:flex"
+					title="font5.md's four-layer model: brief → drawing → compiled → business"
+					aria-label="Project layer progress"
 				>
-					v{projectStore.project.changelog[0].version}
-				</a>
+					{#each fourLayers as layer (layer.key)}
+						<a
+							href={layer.href}
+							class="group flex flex-col items-center gap-0.5"
+							title="{layer.label}: {layer.pct}%"
+						>
+							<div class="h-[3px] w-9 overflow-hidden rounded-full bg-surface-2">
+								<div
+									class="h-full {layer.pct === 100
+										? 'bg-success'
+										: layer.pct >= 50
+											? 'bg-accent'
+											: 'bg-warn'}"
+									style="width: {layer.pct}%;"
+								></div>
+							</div>
+							<span
+								class="text-[9px] tracking-wider text-fg-subtle uppercase group-hover:text-fg"
+							>
+								{layer.label}
+							</span>
+						</a>
+					{/each}
+				</div>
 			{/if}
-			{#if previewStore.sizeKb > 0}
-				<a
-					href="/project/{projectStore.project?.id}/export"
-					class="hidden rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg lg:inline-flex"
-					title="Last preview build size · {previewStore.lastBuildMs.toFixed(0)}ms — jump to Export"
-				>
-					{previewStore.sizeKb.toFixed(1)} KB
-				</a>
-			{/if}
-			{#if projectStore.project?.familyId}
-				<a
-					href="/family/{projectStore.project.familyId}"
-					class="hidden items-center gap-1 rounded bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent hover:bg-accent hover:text-accent-fg md:inline-flex"
-					title="Open family hub"
-				>
-					<Layers class="size-2.5" />
-					Family
-					{#if projectStore.project.familyAxes?.wght || projectStore.project.familyAxes?.ital}
-						<span class="font-mono" data-numeric>
-							{projectStore.project.familyAxes?.wght ?? 400}{projectStore.project.familyAxes?.ital ? 'i' : ''}
-						</span>
-					{/if}
-				</a>
-			{/if}
+
+			<!-- Build size + last version chips moved to the slim row so the
+			     identity row stays clean. -->
+			<div class="hidden items-center gap-1.5 lg:flex">
+				{#if projectStore.project?.changelog?.[0]}
+					<a
+						href="/project/{projectStore.project.id}/release"
+						class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+						title="Last sealed version (jump to Release)"
+						data-numeric
+					>
+						v{projectStore.project.changelog[0].version}
+					</a>
+				{/if}
+				{#if previewStore.sizeKb > 0}
+					<a
+						href="/project/{projectStore.project?.id}/export"
+						class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+						title="Last preview build size · {previewStore.lastBuildMs.toFixed(0)}ms — jump to Export"
+						data-numeric
+					>
+						{previewStore.sizeKb.toFixed(1)} KB
+					</a>
+				{/if}
+			</div>
 		</div>
-
-		<div class="relative">
-			<button
-				type="button"
-				onclick={() => (statsOpen = !statsOpen)}
-				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-				aria-label="Project stats"
-				title="Project stats"
-			>
-				<BarChart3 class="size-4" />
-			</button>
-			<StatsPopover open={statsOpen} onclose={() => (statsOpen = false)} />
-		</div>
-
-		<button
-			type="button"
-			onclick={() => projectStore.toggleLock()}
-			class="inline-flex size-8 items-center justify-center rounded-md transition-colors hover:bg-surface-2 {projectStore.project?.locked
-				? 'text-warn'
-				: 'text-fg-muted hover:text-fg'}"
-			aria-label={projectStore.project?.locked ? 'Unlock project' : 'Lock project (read-only)'}
-			title={projectStore.project?.locked
-				? 'Project is locked — unlock to edit (⌘⇧L)'
-				: 'Lock — seal as read-only (⌘⇧L)'}
-		>
-			{#if projectStore.project?.locked}
-				<LockIcon class="size-4" />
-			{:else}
-				<UnlockIcon class="size-4" />
-			{/if}
-		</button>
-
-		<button
-			type="button"
-			onclick={() => (shortcutsOpen = true)}
-			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-			aria-label="Keyboard shortcuts"
-			title="Keyboard shortcuts (?)"
-		>
-			<HelpCircle class="size-4" />
-		</button>
-
-		<button
-			type="button"
-			onclick={() => (settingsOpen = true)}
-			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-			aria-label="Settings"
-			title="Settings (API key, etc.)"
-		>
-			<Settings class="size-4" />
-		</button>
 	</header>
 
 	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
