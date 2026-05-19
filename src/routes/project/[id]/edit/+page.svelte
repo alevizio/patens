@@ -1760,10 +1760,11 @@
 			</div>
 		</div>
 
-		<!-- Right properties panel — overflow-y-auto so the 13 stacked sections
-		     (Glyph / Metrics / Status / Live preview / Audit / …) scroll
+		<!-- Right properties panel — block layout (no flex) with overflow-y
+		     on the aside itself, so the 13 stacked section divs (Glyph /
+		     Metrics / Status / Live preview / Audit / …) scroll naturally
 		     instead of getting clipped past the viewport. -->
-		<aside class="flex min-h-0 flex-col overflow-y-auto border-l border-border bg-surface">
+		<aside class="h-full overflow-y-auto border-l border-border bg-surface">
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 					<span>Glyph</span>

@@ -8,45 +8,28 @@
 		messages?: readonly string[];
 		/** How long each rotating message is shown, ms. */
 		rotateMs?: number;
-		/** Delay before anything appears (avoids flicker on fast loads). */
-		delayMs?: number;
 		/** Fill the parent height. */
 		fill?: boolean;
 	};
 
-	let {
-		label = 'Loading',
-		messages,
-		rotateMs = 1800,
-		delayMs = 120,
-		fill = true
-	}: Props = $props();
+	let { label = 'Loading', messages, rotateMs = 1800, fill = true }: Props = $props();
 
-	let visible = $state(false);
 	let messageIdx = $state(0);
 
 	onMount(() => {
-		const t = setTimeout(() => (visible = true), delayMs);
-		let rot: ReturnType<typeof setInterval> | undefined;
-		if (messages && messages.length > 1) {
-			rot = setInterval(
-				() => (messageIdx = (messageIdx + 1) % messages.length),
-				rotateMs
-			);
-		}
-		return () => {
-			clearTimeout(t);
-			if (rot) clearInterval(rot);
-		};
+		if (!messages || messages.length <= 1) return;
+		const rot = setInterval(
+			() => (messageIdx = (messageIdx + 1) % messages.length),
+			rotateMs
+		);
+		return () => clearInterval(rot);
 	});
 
 	const currentMessage = $derived(messages?.[messageIdx]);
 </script>
 
 <div
-	class="flex {fill ? 'h-full' : ''} flex-col items-center justify-center gap-4 text-fg-muted transition-opacity duration-200 {visible
-		? 'opacity-100'
-		: 'opacity-0'}"
+	class="flex {fill ? 'h-full' : ''} flex-col items-center justify-center gap-4 text-fg-muted"
 	role="status"
 	aria-live="polite"
 	aria-busy="true"
