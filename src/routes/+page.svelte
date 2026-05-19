@@ -582,7 +582,7 @@
 	ondrop={onDrop}
 	role="application"
 >
-	<header class="mb-10 flex flex-col gap-4">
+	<header class="mb-14 flex flex-col gap-4">
 		<div class="flex items-center justify-between gap-2">
 			<div
 				class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
@@ -617,7 +617,7 @@
 		<h1 class="max-w-3xl text-3xl leading-[1.1] tracking-tight text-balance sm:text-4xl lg:text-[40px]">
 			<span
 				class="block text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif; font-weight: 600;"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
 			>
 				{taglineParts[0]}
 			</span>
@@ -710,10 +710,10 @@
 		     is set in a typeface representative of its kind — Display in big
 		     serif, Code in mono, Editorial in serif italic, UI in sans — so
 		     the cards read as actual samples, not labels. -->
-		<section class="mb-6">
-			<div class="mb-2 flex items-baseline justify-between gap-2">
+		<section class="mb-10">
+			<div class="mb-3 flex items-baseline justify-between gap-2">
 				<h2
-					class="text-[11px] font-semibold tracking-[0.18em] text-fg-subtle uppercase"
+					class="text-[11px] tracking-[0.18em] text-fg-subtle uppercase"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
 					Quick start
@@ -722,31 +722,31 @@
 					Pre-fills the Brief with intent + use cases.
 				</span>
 			</div>
-			<div class="grid grid-cols-2 gap-2 md:grid-cols-4">
+			<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
 				{#each QUICK_PRESETS as p (p.id)}
 					{@const previewStyle = p.kind === 'display'
-						? 'font-family: \'Hoefler Text\', \'Times New Roman\', serif; font-weight: 900; font-style: normal;'
+						? "font-family: 'Helvetica Neue', Impact, 'Arial Black', sans-serif; font-weight: 900; letter-spacing: -0.02em;"
 						: p.kind === 'mono'
-							? 'font-family: ui-monospace, Menlo, \'Courier New\', monospace; font-weight: 500;'
+							? "font-family: ui-monospace, Menlo, 'Courier New', monospace; font-weight: 500;"
 							: p.kind === 'text'
-								? 'font-family: ui-serif, Georgia, \'Times New Roman\', serif; font-weight: 600;'
+								? "font-family: ui-serif, Georgia, 'Times New Roman', serif;"
 								: 'font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 600;'}
 					<button
 						type="button"
 						onclick={() => createFromPreset(p)}
 						disabled={presetBusy !== null}
-						class="group flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3.5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent-soft/20 hover:shadow-sm disabled:translate-y-0 disabled:opacity-60 disabled:hover:bg-surface"
+						class="group flex flex-col gap-3 rounded-2xl border border-transparent bg-surface-2/40 px-5 py-5 text-left transition-all hover:-translate-y-0.5 hover:border-border hover:bg-surface hover:shadow-sm disabled:translate-y-0 disabled:opacity-60"
 						title={p.intent}
 					>
 						<div
-							class="text-2xl leading-none text-fg transition-colors group-hover:text-accent"
+							class="text-[28px] leading-none text-fg transition-colors group-hover:text-accent"
 							style={previewStyle}
 						>
 							Aa
 						</div>
 						<div>
 							<div class="text-[13px] font-medium text-fg">{p.label}</div>
-							<div class="mt-0.5 line-clamp-2 text-[11px] leading-snug text-fg-subtle">
+							<div class="mt-1 line-clamp-2 text-[11px] leading-snug text-fg-subtle">
 								{p.intent}
 							</div>
 						</div>
@@ -756,11 +756,11 @@
 		</section>
 	{/if}
 
-	<div class="grid gap-6 lg:grid-cols-[1fr_340px]">
+	<div class="grid gap-8 lg:grid-cols-[1fr_320px]">
 		<Panel padding="md">
 			<div class="mb-3 flex items-center justify-between gap-3">
 				<h2
-					class="text-[14px] font-semibold tracking-tight text-fg"
+					class="text-[15px] tracking-tight text-fg"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
 					Your fonts
@@ -1093,53 +1093,6 @@
 				</ul>
 			{/if}
 
-			<!-- Demo fonts: two installable .otf files we ship so you can see
-			     what a Font Studio export looks like before drawing anything. -->
-			<div class="mt-6 rounded-lg border border-dashed border-border bg-surface-2/30 p-4">
-				<div class="mb-1 flex items-baseline justify-between gap-2">
-					<h3 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-						See what ships
-					</h3>
-					<span class="text-[11px] text-fg-subtle">2 demo fonts · made in this app</span>
-				</div>
-				<p class="mb-3 text-[12px] text-fg-muted">
-					Download, double-click to install on macOS, then type in any app.
-					Each has 8 glyphs — enough to render <span class="font-medium text-fg">HOTEL NINE</span>
-					and <span class="font-medium text-fg">noon</span>.
-				</p>
-				<div class="grid gap-2 sm:grid-cols-2">
-					<a
-						href="/demo-fonts/StudioGeometric-Regular.otf"
-						download
-						class="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft/40"
-						title="Download Studio Geometric Regular (.otf)"
-					>
-						<div class="flex size-9 shrink-0 items-center justify-center rounded bg-fg/5 font-mono text-[13px] font-semibold text-fg">
-							H
-						</div>
-						<div class="min-w-0 flex-1">
-							<div class="truncate text-[13px] font-medium text-fg">Studio Geometric</div>
-							<div class="truncate text-[11px] text-fg-subtle">Monolinear sans · Regular</div>
-						</div>
-						<Download class="size-3.5 shrink-0 text-fg-subtle" aria-hidden="true" />
-					</a>
-					<a
-						href="/demo-fonts/StudioSlab-Regular.otf"
-						download
-						class="flex items-center gap-3 rounded-md border border-border bg-surface px-3 py-2.5 transition-colors hover:border-accent hover:bg-accent-soft/40"
-						title="Download Studio Slab Regular (.otf)"
-					>
-						<div class="flex size-9 shrink-0 items-center justify-center rounded bg-fg/5 font-mono text-[13px] font-semibold text-fg">
-							T
-						</div>
-						<div class="min-w-0 flex-1">
-							<div class="truncate text-[13px] font-medium text-fg">Studio Slab</div>
-							<div class="truncate text-[11px] text-fg-subtle">Slab serif · Regular</div>
-						</div>
-						<Download class="size-3.5 shrink-0 text-fg-subtle" aria-hidden="true" />
-					</a>
-				</div>
-			</div>
 		</Panel>
 
 		<div class="grid gap-4">
@@ -1170,25 +1123,23 @@
 				</Panel>
 			{/if}
 
-			<!-- Single CTA card replaces the old stacked "New font" + "Start
-			     from a font" panels. The full creation flow (blank / import /
-			     URL + starter library) lives in CreateFontDialog now, so the
-			     right column stays scannable. -->
-			<Panel padding="md" class="border-accent/30 bg-accent-soft/20">
+			<!-- Single CTA card — kept visually light so it doesn't fight the
+			     project list. Full creation flow lives in CreateFontDialog. -->
+			<div class="rounded-2xl border border-dashed border-border bg-transparent p-5">
 				<h2
-					class="mb-1 text-[14px] font-semibold tracking-tight text-fg"
+					class="mb-1 text-[15px] tracking-tight text-fg"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
 					Start a font
 				</h2>
-				<p class="mb-3 text-[11px] text-fg-subtle">
-					Blank canvas, an existing OTF/UFO, or a public URL — pick one.
+				<p class="mb-4 text-[12px] leading-snug text-fg-subtle">
+					Blank canvas, an existing OTF/UFO, or a public URL.
 				</p>
 				<Button onclick={() => (createDialogOpen = true)} fullWidth>
 					{#snippet icon()}<Plus class="size-4" />{/snippet}
 					New font
 				</Button>
-			</Panel>
+			</div>
 
 			{#if storage && storage.quota > 0}
 				{@const pct = Math.min(100, Math.round((storage.used / storage.quota) * 1000) / 10)}
@@ -1246,6 +1197,71 @@
 			{/if}
 		</div>
 	</div>
+
+	<!-- Made-in-this-app examples. Lives as its own full-width section
+	     below the main grid so it's discoverable without competing with
+	     the project list for attention. -->
+	<section class="mt-14">
+		<div class="mb-3 flex items-baseline justify-between gap-2">
+			<h2
+				class="text-[11px] tracking-[0.18em] text-fg-subtle uppercase"
+				style="font-family: ui-serif, Georgia, serif;"
+			>
+				Made with Font Studio
+			</h2>
+			<span class="text-[11px] text-fg-subtle">
+				Two example .otf files · download & install
+			</span>
+		</div>
+		<p class="mb-4 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
+			Both were generated end-to-end by this app — drawn shapes, advance
+			widths, OS/2 metadata, the whole envelope. Download, double-click to
+			install on macOS, then type <span class="font-medium text-fg">HOTEL NINE</span>
+			or <span class="font-medium text-fg">noon</span> in any app to see them at work.
+		</p>
+		<div class="grid gap-3 sm:grid-cols-2">
+			<a
+				href="/demo-fonts/StudioGeometric-Regular.otf"
+				download
+				class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
+				title="Download Studio Geometric Regular (.otf)"
+			>
+				<div
+					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[24px] text-fg group-hover:text-accent"
+					style="font-family: ui-sans-serif, system-ui, sans-serif;"
+				>
+					H
+				</div>
+				<div class="min-w-0 flex-1">
+					<div class="truncate text-[14px] font-medium text-fg">Studio Geometric</div>
+					<div class="truncate text-[11px] text-fg-subtle">
+						Monolinear sans · Regular · 8 glyphs · 2.3 KB
+					</div>
+				</div>
+				<Download class="size-4 shrink-0 text-fg-subtle group-hover:text-accent" aria-hidden="true" />
+			</a>
+			<a
+				href="/demo-fonts/StudioSlab-Regular.otf"
+				download
+				class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
+				title="Download Studio Slab Regular (.otf)"
+			>
+				<div
+					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[24px] text-fg group-hover:text-accent"
+					style="font-family: ui-serif, Georgia, serif;"
+				>
+					T
+				</div>
+				<div class="min-w-0 flex-1">
+					<div class="truncate text-[14px] font-medium text-fg">Studio Slab</div>
+					<div class="truncate text-[11px] text-fg-subtle">
+						Slab serif · Regular · 8 glyphs · 2.4 KB
+					</div>
+				</div>
+				<Download class="size-4 shrink-0 text-fg-subtle group-hover:text-accent" aria-hidden="true" />
+			</a>
+		</div>
+	</section>
 
 	{#if dragActive}
 		<div
