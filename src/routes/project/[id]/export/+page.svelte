@@ -4,6 +4,10 @@
 	import { buildFont, hasMarkAnchors } from '$lib/font/export';
 	import { applyMarkPositioning } from '$lib/font/mark-feature';
 	import {
+		checkMasterCompatibility,
+		summarizeCompatibility
+	} from '$lib/font/vf-compat';
+	import {
 		ensurePython,
 		finalizeFont,
 		buildVariableFont,
@@ -314,6 +318,15 @@ body {
 		if (!project || !isVariable) return;
 		vfBusy = true;
 		try {
+			// Fail-fast compatibility check BEFORE Pyodide load. Pyodide's
+			// fontTools eventually catches incompatibilities but produces
+			// opaque errors ~15s into the build. This gives the user actionable
+			// per-glyph diagnostics in milliseconds.
+			const report = checkMasterCompatibility(project);
+			if (!report.ok) {
+				toast.error(summarizeCompatibility(report));
+				return;
+			}
 			await ensurePython();
 			// Build a static OTF for every master (default + extras)
 			const allMasters: Array<{ name: string; buffer: ArrayBuffer; location: Record<string, number> }> = [];
@@ -370,6 +383,13 @@ body {
 		}
 		staticFamilyBusy = true;
 		try {
+			// Same fail-fast compat check as exportVf — varLib.instancer also
+			// requires master compatibility.
+			const report = checkMasterCompatibility(project);
+			if (!report.ok) {
+				toast.error(summarizeCompatibility(report));
+				return;
+			}
 			await ensurePython();
 			const defaultLocation: Record<string, number> = {};
 			for (const a of project.axes ?? []) defaultLocation[a.tag] = a.default;
