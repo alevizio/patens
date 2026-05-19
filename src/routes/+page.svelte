@@ -661,28 +661,33 @@
 		     Total grid = 4 cols: primary takes 2, secondaries take 1 each.
 		     Continue card absorbs the old standalone "Continue working" strip. -->
 		<div class="mt-10 grid gap-3 md:grid-cols-4">
+			<!-- Primary CTA: previously bg-fg (full inversion) — read as a
+			     huge white block in dark theme, too loud. Switched to an
+			     accent-soft tint with an accent border so it still reads as
+			     primary via colour signal + 2-column span, without flashing
+			     the entire top of the page. -->
 			<button
 				type="button"
 				onclick={() => (createDialogOpen = true)}
-				class="group relative flex items-center gap-5 overflow-hidden rounded-2xl bg-fg p-6 text-left text-canvas transition-all hover:-translate-y-0.5 hover:shadow-lg md:col-span-2"
+				class="group relative flex items-center gap-5 overflow-hidden rounded-2xl border border-accent/60 bg-accent-soft/40 p-6 text-left text-fg transition-all hover:-translate-y-0.5 hover:border-accent hover:bg-accent-soft/60 hover:shadow-md md:col-span-2"
 			>
 				<div
-					class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-canvas/10 text-canvas"
+					class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg"
 				>
 					<Plus class="size-6" />
 				</div>
 				<div class="min-w-0 flex-1">
 					<div
-						class="text-[18px] leading-tight"
+						class="text-[18px] leading-tight text-fg"
 						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 					>
 						Start a new font
 					</div>
-					<div class="mt-1.5 text-[12px] leading-snug text-canvas/70">
+					<div class="mt-1.5 text-[12px] leading-snug text-fg-muted">
 						Blank canvas, named & ready in seconds
 					</div>
 				</div>
-				<span class="text-canvas/60 transition-transform group-hover:translate-x-0.5">
+				<span class="text-accent transition-transform group-hover:translate-x-0.5">
 					→
 				</span>
 			</button>
@@ -1195,45 +1200,55 @@
 
 			{#if storage && storage.quota > 0}
 				{@const pct = Math.min(100, Math.round((storage.used / storage.quota) * 1000) / 10)}
-				<div class="rounded-2xl border border-border bg-surface p-5 text-[12px]">
-					<div class="mb-3 flex items-baseline justify-between">
-						<h2
-							class="text-[15px] tracking-tight text-fg"
-							style="font-family: ui-serif, Georgia, serif;"
-						>
-							Browser storage
-						</h2>
-						<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
-							{formatBytes(storage.used)} / {formatBytes(storage.quota)}
-						</span>
+				<!-- Storage is system metadata, not editorial content — keep it
+				     low-key. Compact strip: small label, mono used/quota, thin
+				     bar, link-style backup/restore. The previous serif-headed
+				     "Browser storage" card with two big buttons read way too
+				     prominent for a 0.007%-used housekeeping indicator. -->
+				<div class="flex flex-col justify-between gap-3 rounded-2xl border border-border bg-surface px-5 py-4">
+					<div>
+						<div class="flex items-baseline justify-between gap-2">
+							<span class="text-[11px] font-medium tracking-wider text-fg-subtle uppercase">
+								Storage
+							</span>
+							<span
+								class="font-mono text-[11px] text-fg-muted"
+								data-numeric
+								title="{pct}% used"
+							>
+								{formatBytes(storage.used)}
+								<span class="text-fg-subtle">/ {formatBytes(storage.quota)}</span>
+							</span>
+						</div>
+						<div class="mt-2 h-[3px] overflow-hidden rounded-full bg-surface-2">
+							<div
+								class="h-full transition-all {pct > 80
+									? 'bg-danger'
+									: pct > 50
+										? 'bg-warn'
+										: 'bg-fg/40'}"
+								style="width: {Math.max(pct, 1)}%;"
+							></div>
+						</div>
+						<p class="mt-2.5 text-[11px] leading-snug text-fg-subtle">
+							Projects live in this browser. Back up periodically to keep a copy
+							elsewhere.
+						</p>
 					</div>
-					<div class="h-1.5 overflow-hidden rounded-full bg-surface-2">
-						<div
-							class="h-full transition-all {pct > 80
-								? 'bg-danger'
-								: pct > 50
-									? 'bg-warn'
-									: 'bg-success'}"
-							style="width: {pct}%;"
-						></div>
-					</div>
-					<p class="mt-3 text-[11px] leading-snug text-fg-subtle">
-						Projects are stored locally. Back up periodically to keep a copy outside
-						this browser.
-					</p>
-					<div class="mt-3 flex gap-2">
+					<div class="flex items-center gap-3 text-[11px] font-medium">
 						{#if projects.length > 0}
 							<button
 								type="button"
 								onclick={handleBackupAll}
 								disabled={backingUp}
-								class="flex-1 rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
+								class="text-fg-muted underline-offset-2 transition-colors hover:text-accent hover:underline disabled:opacity-60"
 							>
-								{backingUp ? 'Bundling…' : `Backup ${projects.length} → JSON`}
+								{backingUp ? 'Bundling…' : `Backup ${projects.length} →`}
 							</button>
+							<span class="text-fg-subtle/50">·</span>
 						{/if}
 						<label
-							class="flex-1 cursor-pointer rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-center text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+							class="cursor-pointer text-fg-muted underline-offset-2 transition-colors hover:text-accent hover:underline"
 						>
 							{restoring ? 'Restoring…' : 'Restore JSON…'}
 							<input
@@ -1248,10 +1263,12 @@
 								}}
 							/>
 						</label>
+						{#if restoreMessage}
+							<span class="ml-auto truncate text-[10px] text-fg-subtle">
+								{restoreMessage}
+							</span>
+						{/if}
 					</div>
-					{#if restoreMessage}
-						<div class="mt-2 text-[10px] text-fg-subtle">{restoreMessage}</div>
-					{/if}
 				</div>
 			{/if}
 		</section>
