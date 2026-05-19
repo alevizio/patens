@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onDestroy, untrack } from 'svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { buildFont } from '$lib/font/export';
 	import {
 		ensurePython,
@@ -409,7 +410,7 @@ function rgb(hex) {
 			currentVfUrl = url;
 			vfFamily = family;
 		} catch (err) {
-			alert('VF preview build failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('VF preview build failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			vfBuilding = false;
 		}

@@ -119,7 +119,7 @@ body {
 			cssCopied = true;
 			setTimeout(() => (cssCopied = false), 1500);
 		} catch {
-			alert('Copy failed — select and copy manually.');
+			toast.error('Copy failed — select and copy manually.');
 		}
 	};
 
@@ -139,6 +139,8 @@ body {
 				await ensurePython();
 				buffer = await finalizeFont(buffer, { feaSource: fea });
 			} catch (err) {
+				const msg = err instanceof Error ? err.message : String(err);
+				toast.warn(`Features didn't compile — exporting without them. (${msg})`);
 				console.warn('Feature compilation failed, exporting without:', err);
 			}
 		}
@@ -257,7 +259,7 @@ body {
 				`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.woff2`
 			);
 		} catch (err) {
-			alert('WOFF2 export failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('WOFF2 export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			woff2Busy = false;
 		}
@@ -338,7 +340,7 @@ body {
 				`${safeFilename(project.metadata.familyName) || 'Untitled'}-VF.ttf`
 			);
 		} catch (err) {
-			alert('Variable font build failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('Variable font build failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			vfBusy = false;
 		}
@@ -347,7 +349,7 @@ body {
 	const exportStaticFamily = async () => {
 		if (!project || !isVariable) return;
 		if ((project.instances ?? []).length === 0) {
-			alert('Add named instances on the Designspace tab first.');
+			toast.warn('Add named instances on the Designspace tab first.');
 			return;
 		}
 		staticFamilyBusy = true;
@@ -390,7 +392,7 @@ body {
 				`${safeFilename(project.metadata.familyName) || 'Untitled'}-static-family.zip`
 			);
 		} catch (err) {
-			alert(
+			toast.error(
 				'Static family export failed: ' + (err instanceof Error ? err.message : String(err))
 			);
 		} finally {
@@ -409,7 +411,7 @@ body {
 				`${safeFilename(project.metadata.familyName) || 'Untitled'}.ufo.zip`
 			);
 		} catch (err) {
-			alert('UFO export failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('UFO export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			ufoBusy = false;
 		}
@@ -680,7 +682,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				`${safeFilename(family)}-test.html`
 			);
 		} catch (err) {
-			alert('Test page export failed: ' + (err instanceof Error ? err.message : String(err)));
+			toast.error('Test page export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			testPageBusy = false;
 		}

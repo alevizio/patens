@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		createProject,
 		deleteProject,
@@ -356,10 +357,11 @@
 			await saveProject(project);
 			createDialogOpen = false;
 			if (isFirstProject) {
-				// Welcome the user into their own foundry on first create
-				const { toast } = await import('$lib/stores/toast.svelte');
-				const { celebrate } = await import('$lib/delight');
+				// Welcome the user into their own foundry on first create.
+				// celebrate() stays dynamically imported so canvas-confetti only
+				// loads when this branch actually fires.
 				toast.success(`Welcome to your foundry. Start with the letter H — it sets the proportion for everything else.`);
+				const { celebrate } = await import('$lib/delight');
 				celebrate('small');
 			}
 			await goto(`/project/${project.id}/edit`);
@@ -461,7 +463,7 @@
 			await saveProject(project);
 			if (importWarning) {
 				// Surface warning before navigating away
-				alert(importWarning);
+				toast.warn(importWarning);
 			}
 			await goto(`/project/${project.id}/edit`);
 		} catch (err) {
@@ -481,7 +483,7 @@
 			const { project } = await importFromUrl(url);
 			importWarning = checkReservedName(project.metadata.familyName);
 			await saveProject(project);
-			if (importWarning) alert(importWarning);
+			if (importWarning) toast.warn(importWarning);
 			await goto(`/project/${project.id}/edit`);
 		} catch (err) {
 			importError = err instanceof Error ? err.message : 'Could not fetch font from URL';
@@ -515,14 +517,14 @@
 				};
 				importWarning = checkReservedName(project.metadata.familyName);
 				await saveProject(project);
-				if (importWarning) alert(importWarning);
+				if (importWarning) toast.warn(importWarning);
 				await goto(`/project/${project.id}/edit`);
 			} else {
 				importing = true;
 				const { project } = await importFromOtf(file);
 				importWarning = checkReservedName(project.metadata.familyName);
 				await saveProject(project);
-				if (importWarning) alert(importWarning);
+				if (importWarning) toast.warn(importWarning);
 				await goto(`/project/${project.id}/edit`);
 			}
 		} catch (err) {
@@ -578,7 +580,7 @@
 			};
 			importWarning = checkReservedName(project.metadata.familyName);
 			await saveProject(project);
-			if (importWarning) alert(importWarning);
+			if (importWarning) toast.warn(importWarning);
 			await goto(`/project/${project.id}/edit`);
 		} catch (err) {
 			importError = err instanceof Error ? err.message : 'Could not read UFO archive.';
