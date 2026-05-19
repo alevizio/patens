@@ -609,14 +609,6 @@
 					{@const Icon = tab.icon}
 					<a
 						href={tab.href}
-						data-debug-tab={tab.href}
-						onclick={(e) => {
-							// TEMP diagnostic — surface why nav clicks aren't navigating.
-							// Logs every tab click; default behaviour preserved (SvelteKit
-							// still intercepts and routes). Remove once nav is verified.
-							// eslint-disable-next-line no-console
-							console.log('[tab click]', tab.href, '→ currentPath:', currentPath, '· defaultPrevented:', e.defaultPrevented);
-						}}
 						title={'shortcut' in tab
 							? `${tab.label} (${tab.shortcut})`
 							: tab.label}
