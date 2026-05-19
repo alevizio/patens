@@ -34,11 +34,19 @@
 	]);
 </script>
 
+<!--
+  All Y values below are written in FONT space (Y+ up). The parent group in
+  DrawingCanvas applies `transform="scale(1, -1)"`, which inverts Y for the
+  whole drawing pipeline. Pre-negating here would double-flip and push most
+  of the overlay off-screen below the viewport (the cell rect, advance edges,
+  and ascender/cap/x guide lines all vanish), which is exactly what happened
+  before — visible only on empty glyphs where contours can't mask it.
+-->
 <g class="pointer-events-none" data-overlay="metrics">
-	<!-- Glyph body fill -->
+	<!-- Glyph body fill. In font space: descender at bottom, ascender at top. -->
 	<rect
 		x={0}
-		y={-metrics.ascender}
+		y={metrics.descender}
 		width={advance}
 		height={metrics.ascender - metrics.descender}
 		fill="var(--color-surface)"
@@ -50,8 +58,8 @@
 			<line
 				x1={i * step}
 				x2={i * step}
-				y1={-metrics.ascender}
-				y2={-metrics.descender}
+				y1={metrics.descender}
+				y2={metrics.ascender}
 				stroke="var(--color-grid)"
 				stroke-width="1"
 				vector-effect="non-scaling-stroke"
@@ -61,8 +69,8 @@
 			<line
 				x1={0}
 				x2={advance}
-				y1={-metrics.descender - i * step}
-				y2={-metrics.descender - i * step}
+				y1={metrics.descender + i * step}
+				y2={metrics.descender + i * step}
 				stroke="var(--color-grid)"
 				stroke-width="1"
 				vector-effect="non-scaling-stroke"
@@ -74,7 +82,7 @@
 		<!-- Overshoot zones: subtle horizontal bands where round chars should reach -->
 		<rect
 			x={-50}
-			y={-(metrics.capHeight + overshoot)}
+			y={metrics.capHeight}
 			width={advance + 100}
 			height={overshoot}
 			fill="var(--color-cap-height)"
@@ -82,7 +90,7 @@
 		/>
 		<rect
 			x={-50}
-			y={-(metrics.xHeight + overshoot)}
+			y={metrics.xHeight}
 			width={advance + 100}
 			height={overshoot}
 			fill="var(--color-x-height)"
@@ -90,7 +98,7 @@
 		/>
 		<rect
 			x={-50}
-			y={0}
+			y={-overshoot}
 			width={advance + 100}
 			height={overshoot}
 			fill="var(--color-baseline)"
@@ -100,8 +108,8 @@
 		<line
 			x1={-50}
 			x2={advance + 50}
-			y1={-(metrics.capHeight + overshoot)}
-			y2={-(metrics.capHeight + overshoot)}
+			y1={metrics.capHeight + overshoot}
+			y2={metrics.capHeight + overshoot}
 			stroke="var(--color-cap-height)"
 			stroke-width="1"
 			stroke-dasharray="1 4"
@@ -111,8 +119,8 @@
 		<line
 			x1={-50}
 			x2={advance + 50}
-			y1={-(metrics.xHeight + overshoot)}
-			y2={-(metrics.xHeight + overshoot)}
+			y1={metrics.xHeight + overshoot}
+			y2={metrics.xHeight + overshoot}
 			stroke="var(--color-x-height)"
 			stroke-width="1"
 			stroke-dasharray="1 4"
@@ -122,8 +130,8 @@
 		<line
 			x1={-50}
 			x2={advance + 50}
-			y1={overshoot}
-			y2={overshoot}
+			y1={-overshoot}
+			y2={-overshoot}
 			stroke="var(--color-baseline)"
 			stroke-width="1"
 			stroke-dasharray="1 4"
@@ -132,13 +140,14 @@
 		/>
 	{/if}
 
-	<!-- Horizontal guide lines -->
+	<!-- Horizontal guide lines. Labels live in screen space — we un-flip them
+	     inline so the text doesn't render upside-down inside the flipped group. -->
 	{#each guideLines as line (line.label)}
 		<line
 			x1={-50}
 			x2={advance + 50}
-			y1={-line.y}
-			y2={-line.y}
+			y1={line.y}
+			y2={line.y}
 			stroke={line.color}
 			stroke-width="1.25"
 			stroke-dasharray={line.label === 'base' ? 'none' : '4 4'}
@@ -154,6 +163,7 @@
 			font-size="11"
 			font-family="ui-monospace, monospace"
 			class="select-none"
+			transform="scale(1, -1)"
 			style="paint-order: stroke; stroke: var(--color-canvas); stroke-width: 3;"
 		>
 			{line.label}
@@ -164,8 +174,8 @@
 	<line
 		x1={leftSidebearing}
 		x2={leftSidebearing}
-		y1={-metrics.ascender}
-		y2={-metrics.descender}
+		y1={metrics.descender}
+		y2={metrics.ascender}
 		stroke="var(--color-border-strong)"
 		stroke-width="1"
 		stroke-dasharray="2 4"
@@ -175,8 +185,8 @@
 	<line
 		x1={advance - rightSidebearing}
 		x2={advance - rightSidebearing}
-		y1={-metrics.ascender}
-		y2={-metrics.descender}
+		y1={metrics.descender}
+		y2={metrics.ascender}
 		stroke="var(--color-border-strong)"
 		stroke-width="1"
 		stroke-dasharray="2 4"
@@ -188,8 +198,8 @@
 	<line
 		x1={0}
 		x2={0}
-		y1={-metrics.ascender}
-		y2={-metrics.descender}
+		y1={metrics.descender}
+		y2={metrics.ascender}
 		stroke="var(--color-border-strong)"
 		stroke-width="1.25"
 		vector-effect="non-scaling-stroke"
@@ -197,8 +207,8 @@
 	<line
 		x1={advance}
 		x2={advance}
-		y1={-metrics.ascender}
-		y2={-metrics.descender}
+		y1={metrics.descender}
+		y2={metrics.ascender}
 		stroke="var(--color-border-strong)"
 		stroke-width="1.25"
 		vector-effect="non-scaling-stroke"
