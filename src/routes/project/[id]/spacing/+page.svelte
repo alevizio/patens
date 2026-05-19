@@ -1190,6 +1190,7 @@
 				<div class="grid grid-cols-[auto_auto_auto_1fr] items-center gap-1.5">
 					<select
 						bind:value={bulkSbWhich}
+						aria-label="Which sidebearing to apply"
 						class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none"
 					>
 						<option value="both">LSB + RSB</option>
@@ -1200,10 +1201,12 @@
 					<input
 						type="number"
 						bind:value={bulkSbValue}
+						aria-label="Sidebearing value in font units"
 						class="w-16 rounded border border-border bg-surface px-1.5 py-1 text-right font-mono text-[11px] outline-none"
 					/>
 					<select
 						bind:value={bulkSbCategory}
+						aria-label="Glyph category to apply to"
 						class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none"
 					>
 						<option value="upper">to A–Z</option>

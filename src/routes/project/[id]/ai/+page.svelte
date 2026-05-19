@@ -511,6 +511,7 @@ Write the design-notes essay.`;
 					<select
 						bind:value={suggestTargetCp}
 						disabled={suggestGenerating || !settings.hasKey || drawnGlyphsList.length === 0}
+						aria-label="Target glyph to generate"
 						class="h-9 min-w-[14rem] flex-1 rounded-md border border-border bg-surface px-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft disabled:opacity-50"
 					>
 						<option value={null}>Pick a target glyph…</option>

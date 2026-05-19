@@ -844,6 +844,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						projectStore.updateMetadata({
 							fsType: Number(e.currentTarget.value) as 0 | 2 | 4 | 8
 						})}
+					aria-label="Embedding restrictions (fsType)"
 					class="rounded-md border border-border bg-surface px-2.5 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
 				>
 					{#each FS_TYPE_OPTIONS as opt (opt.value)}

@@ -107,3 +107,32 @@ test('/audit (demo project) has no serious/critical a11y violations', async ({
 	await page.waitForURL(/\/audit$/);
 	await auditPage(page);
 });
+
+// Remaining in-app tabs. Each follows the same shape: open the demo, click
+// the tab link, audit. Generated to ensure no surface is left unaudited.
+const PROJECT_TABS = [
+	{ name: 'brief', linkName: /^Brief/, urlPattern: /\/brief$/ },
+	{ name: 'spacing', linkName: /^Spacing/, urlPattern: /\/spacing$/ },
+	{ name: 'designspace', linkName: /^Designspace/, urlPattern: /\/designspace$/ },
+	{ name: 'features', linkName: /^Features/, urlPattern: /\/features$/ },
+	{ name: 'ai', linkName: /^AI/, urlPattern: /\/ai$/ },
+	{ name: 'preview', linkName: /^Preview/, urlPattern: /\/preview$/ },
+	{ name: 'specimen', linkName: /^Specimen/, urlPattern: /\/specimen$/ },
+	{ name: 'compare', linkName: /^Compare/, urlPattern: /\/compare$/ },
+	{ name: 'release', linkName: /^Release/, urlPattern: /\/release$/ },
+	{ name: 'export', linkName: /^Export/, urlPattern: /\/export$/ }
+] as const;
+
+for (const tab of PROJECT_TABS) {
+	test(`/${tab.name} (demo project) has no serious/critical a11y violations`, async ({
+		page
+	}) => {
+		await page.goto('/');
+		await dismissWelcomeIfPresent(page);
+		await page.getByRole('button', { name: /Open the example project/i }).click();
+		await page.waitForURL(/\/project\/[^/]+\/edit$/);
+		await page.getByRole('link', { name: tab.linkName }).first().click();
+		await page.waitForURL(tab.urlPattern);
+		await auditPage(page);
+	});
+}

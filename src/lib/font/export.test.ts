@@ -29,7 +29,7 @@ const project = (glyphs: Record<number, Glyph>): Project =>
 		masters: [],
 		axes: [],
 		instances: [],
-		features: { source: '' },
+		features: { kern: true, liga: false },
 		brief: {},
 		samples: {},
 		changelog: [],

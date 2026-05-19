@@ -272,10 +272,10 @@
 								<span class="text-[14px] font-medium text-success">Passing</span>
 							{:else if errors > 0}
 								<AlertCircle class="size-5 text-danger" />
-								<span class="text-[14px] font-medium text-danger">{errors} errors</span>
+								<span class="text-[14px] font-medium text-danger-strong">{errors} errors</span>
 							{:else}
 								<AlertTriangle class="size-5 text-warn" />
-								<span class="text-[14px] font-medium text-warn">Coverage low</span>
+								<span class="text-[14px] font-medium text-warn-strong">Coverage low</span>
 							{/if}
 						</div>
 					</div>

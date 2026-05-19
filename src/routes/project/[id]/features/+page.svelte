@@ -209,6 +209,7 @@
 				<textarea
 					bind:value={buffer}
 					oninput={() => (dirty = true)}
+					aria-label="OpenType feature source (.fea)"
 					class="block h-[60vh] w-full resize-none border-0 bg-canvas px-4 py-3 font-mono text-[12px] leading-[1.6] text-fg outline-none"
 					spellcheck="false"
 				></textarea>
