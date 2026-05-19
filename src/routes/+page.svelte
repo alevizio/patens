@@ -628,10 +628,18 @@
 		</nav>
 	</header>
 
+	<!-- Spacing scale on this page (Tailwind):
+	     - mb-4   16px — within section, between header and content
+	     - mb-8   32px — within section, between major sub-blocks
+	     - mb-16  64px — between distinct sections (Hero ↔ Quick Start)
+	     - mb-24  96px — between major content categories
+	     Section headers track three sizes (28 / 22 / 20px) to create
+	     a real hierarchy instead of a row of equal peers. -->
+
 	<!-- Hero: editorial tagline + 3-CTA dashboard strip. The CTAs are the
 	     core dashboard idea — every common entry point sits above the fold,
 	     visually distinct, no scrolling required to begin work. -->
-	<section class="mb-14">
+	<section class="mb-16">
 		<h1 class="max-w-3xl text-3xl leading-[1.05] tracking-tight text-balance sm:text-[44px]">
 			<span
 				class="block text-fg"
@@ -648,28 +656,29 @@
 			project is saved locally.
 		</p>
 
-		<!-- 3 primary CTAs. Primary fills with fg/accent, secondaries are
-		     bordered. Continue card absorbs the old standalone "Continue
-		     working" strip — one row of cards, not two surfaces. -->
-		<div class="mt-8 grid gap-3 md:grid-cols-3">
+		<!-- 3 CTAs with weighted hierarchy: primary spans 2 columns on wide
+		     screens so it physically dominates rather than just color-popping.
+		     Total grid = 4 cols: primary takes 2, secondaries take 1 each.
+		     Continue card absorbs the old standalone "Continue working" strip. -->
+		<div class="mt-10 grid gap-3 md:grid-cols-4">
 			<button
 				type="button"
 				onclick={() => (createDialogOpen = true)}
-				class="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-fg p-5 text-left text-canvas transition-all hover:-translate-y-0.5 hover:shadow-lg"
+				class="group relative flex items-center gap-5 overflow-hidden rounded-2xl bg-fg p-6 text-left text-canvas transition-all hover:-translate-y-0.5 hover:shadow-lg md:col-span-2"
 			>
 				<div
-					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-canvas/10 text-canvas"
+					class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-canvas/10 text-canvas"
 				>
-					<Plus class="size-5" />
+					<Plus class="size-6" />
 				</div>
 				<div class="min-w-0 flex-1">
 					<div
-						class="text-[15px] leading-tight"
+						class="text-[18px] leading-tight"
 						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 					>
 						Start a new font
 					</div>
-					<div class="mt-1 text-[12px] leading-snug text-canvas/70">
+					<div class="mt-1.5 text-[12px] leading-snug text-canvas/70">
 						Blank canvas, named & ready in seconds
 					</div>
 				</div>
@@ -681,55 +690,49 @@
 			{#if continueCandidate}
 				<a
 					href="/project/{continueCandidate.id}/{continueCandidate.slug}"
-					class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+					class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 				>
 					<div
-						class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
 					>
-						<PenTool class="size-5" />
+						<PenTool class="size-4" />
 					</div>
 					<div class="min-w-0 flex-1">
 						<div
-							class="truncate text-[15px] leading-tight text-fg"
+							class="truncate text-[14px] leading-tight text-fg"
 							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 						>
 							{continueGreeting(continueCandidate.updatedAt)}
 						</div>
-						<div class="mt-1 truncate text-[12px] leading-snug text-fg-muted">
-							{continueCandidate.name} · {continueCandidate.slug} ·
+						<div class="mt-1 truncate text-[11px] leading-snug text-fg-muted">
+							{continueCandidate.name} ·
 							<span class="font-mono" data-numeric>
 								{formatRelative(continueCandidate.updatedAt)}
 							</span>
 						</div>
 					</div>
-					<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
-						→
-					</span>
 				</a>
 			{:else}
 				<a
 					href="#quick-start"
-					class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+					class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 				>
 					<div
-						class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+						class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
 					>
-						<Sparkles class="size-5" />
+						<Sparkles class="size-4" />
 					</div>
 					<div class="min-w-0 flex-1">
 						<div
-							class="text-[15px] leading-tight text-fg"
+							class="text-[14px] leading-tight text-fg"
 							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 						>
-							Pick a style to start
+							Pick a style
 						</div>
-						<div class="mt-1 text-[12px] leading-snug text-fg-muted">
-							UI, Display, Mono, or Editorial — pre-filled
+						<div class="mt-1 text-[11px] leading-snug text-fg-muted">
+							UI · Display · Mono · Editorial
 						</div>
 					</div>
-					<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
-						↓
-					</span>
 				</a>
 			{/if}
 
@@ -738,27 +741,24 @@
 				onclick={() => {
 					createDialogOpen = true;
 				}}
-				class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+				class="group flex flex-col gap-3 rounded-2xl border border-border bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 			>
 				<div
-					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+					class="flex size-10 items-center justify-center rounded-lg bg-accent-soft text-accent"
 				>
-					<UploadCloud class="size-5" />
+					<UploadCloud class="size-4" />
 				</div>
 				<div class="min-w-0 flex-1">
 					<div
-						class="text-[15px] leading-tight text-fg"
+						class="text-[14px] leading-tight text-fg"
 						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 					>
 						Import a font
 					</div>
-					<div class="mt-1 text-[12px] leading-snug text-fg-muted">
-						.otf · .ttf · .ufo.zip · public URL
+					<div class="mt-1 text-[11px] leading-snug text-fg-muted">
+						.otf · .ttf · .ufo.zip · URL
 					</div>
 				</div>
-				<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
-					→
-				</span>
 			</button>
 		</div>
 	</section>
@@ -769,17 +769,20 @@
 		     representative of its kind (Display in heavy sans, Code in mono,
 		     Editorial in upright serif, UI in sans) so the cards read as
 		     actual samples, not just labels. -->
-		<section id="quick-start" class="mb-12 scroll-mt-8">
-			<div class="mb-4 flex items-baseline justify-between gap-2">
-				<h2
-					class="text-[20px] tracking-tight text-fg"
-					style="font-family: ui-serif, Georgia, serif;"
-				>
-					Quick start
-				</h2>
-				<span class="text-[12px] text-fg-subtle">
-					Pre-fills the Brief with intent + use cases.
-				</span>
+		<!-- Tertiary section: lighter header (18px), tighter than Your fonts. -->
+		<section id="quick-start" class="mb-16 scroll-mt-8">
+			<div class="mb-4 flex items-baseline justify-between gap-3">
+				<div class="flex items-baseline gap-3">
+					<h2
+						class="text-[18px] tracking-tight text-fg"
+						style="font-family: ui-serif, Georgia, serif;"
+					>
+						Quick start
+					</h2>
+					<span class="text-[11px] text-fg-subtle">
+						Pre-fills the Brief with intent + use cases
+					</span>
+				</div>
 			</div>
 			<div class="grid grid-cols-2 gap-3 md:grid-cols-4">
 				{#each QUICK_PRESETS as p (p.id)}
@@ -816,14 +819,13 @@
 	{/if}
 
 	<div class="grid gap-8">
-		<!-- Project library — full-width, no panel chrome. The h2 + count
-		     act as the section header; project rows below have their own
-		     card surface. -->
+		<!-- Primary content section: bigger header (28px) so it dominates
+		     the secondary sections by typographic weight. -->
 		<section>
-			<div class="mb-4 flex items-center justify-between gap-3">
+			<div class="mb-5 flex items-baseline justify-between gap-3">
 				<h2
-					class="text-[20px] tracking-tight text-fg"
-					style="font-family: ui-serif, Georgia, serif;"
+					class="text-[28px] leading-none tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Your fonts
 				</h2>
@@ -1158,8 +1160,9 @@
 
 		<!-- Footer row: secondary content (recent releases, storage). Lives
 		     below the main project list. Two-col on wide screens, stacks on
-		     mobile. No more crammed right rail competing with the projects. -->
-		<section class="mt-4 grid gap-4 md:grid-cols-2">
+		     mobile. Generous top gap so it reads as a separate "house-keeping"
+		     band rather than tacked onto the project list. -->
+		<section class="mt-10 grid gap-4 md:grid-cols-2">
 			{#if recentReleases.length > 0}
 				<div class="rounded-2xl border border-border bg-surface p-5">
 					<h2
@@ -1254,66 +1257,93 @@
 		</section>
 	</div>
 
-	<!-- Made-in-this-app examples — full-width section below the projects
-	     grid so users can see what's shippable before drawing a glyph. -->
-	<section class="mt-14">
-		<div class="mb-4 flex items-baseline justify-between gap-2">
+	<!-- Made-in-this-app examples — asymmetric composition: section-intro
+	     column on the left, two example cards stacked on the right. Breaks
+	     the page's symmetric rhythm so this content reads as "an aside",
+	     not "another full-width grid". -->
+	<section class="mt-24 grid gap-8 md:grid-cols-[5fr_7fr] md:gap-10">
+		<div>
 			<h2
-				class="text-[20px] tracking-tight text-fg"
-				style="font-family: ui-serif, Georgia, serif;"
+				class="text-[22px] leading-tight tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				Made with Font Studio
 			</h2>
-			<span class="text-[12px] text-fg-subtle">
-				Two example .otf files · download & install
-			</span>
+			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
+				Both were generated end-to-end by this app — drawn shapes, advance
+				widths, OS/2 metadata, the whole envelope. Download, double-click to
+				install on macOS, then type <span class="font-medium text-fg">HOTEL NINE</span>
+				or <span class="font-medium text-fg">noon</span> in any app to see them
+				at work.
+			</p>
+			<p class="mt-3 font-mono text-[10px] tracking-wide text-fg-subtle uppercase">
+				Two example .otf files
+			</p>
 		</div>
-		<p class="mb-5 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
-			Both were generated end-to-end by this app — drawn shapes, advance
-			widths, OS/2 metadata, the whole envelope. Download, double-click to
-			install on macOS, then type <span class="font-medium text-fg">HOTEL NINE</span>
-			or <span class="font-medium text-fg">noon</span> in any app to see them at work.
-		</p>
-		<div class="grid gap-3 sm:grid-cols-2">
+		<div class="grid gap-3">
 			<a
 				href="/demo-fonts/StudioGeometric-Regular.otf"
 				download
-				class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
+				class="group flex items-center gap-5 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
 				title="Download Studio Geometric Regular (.otf)"
 			>
 				<div
-					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[24px] text-fg group-hover:text-accent"
+					class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[34px] leading-none text-fg group-hover:text-accent"
 					style="font-family: ui-sans-serif, system-ui, sans-serif;"
 				>
-					H
+					Hn
 				</div>
 				<div class="min-w-0 flex-1">
-					<div class="truncate text-[14px] font-medium text-fg">Studio Geometric</div>
-					<div class="truncate text-[11px] text-fg-subtle">
-						Monolinear sans · Regular · 8 glyphs · 2.3 KB
+					<div
+						class="text-[16px] leading-tight text-fg"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					>
+						Studio Geometric
+					</div>
+					<div class="mt-1 text-[11px] text-fg-subtle">Monolinear sans · Regular</div>
+					<div
+						class="mt-1.5 font-mono text-[10px] tracking-wide text-fg-subtle"
+						data-numeric
+					>
+						8 glyphs · 2.3 KB · .otf
 					</div>
 				</div>
-				<Download class="size-4 shrink-0 text-fg-subtle group-hover:text-accent" aria-hidden="true" />
+				<Download
+					class="size-4 shrink-0 text-fg-subtle group-hover:text-accent"
+					aria-hidden="true"
+				/>
 			</a>
 			<a
 				href="/demo-fonts/StudioSlab-Regular.otf"
 				download
-				class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
+				class="group flex items-center gap-5 rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
 				title="Download Studio Slab Regular (.otf)"
 			>
 				<div
-					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[24px] text-fg group-hover:text-accent"
+					class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-fg/5 text-[34px] leading-none text-fg group-hover:text-accent"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
-					T
+					Tn
 				</div>
 				<div class="min-w-0 flex-1">
-					<div class="truncate text-[14px] font-medium text-fg">Studio Slab</div>
-					<div class="truncate text-[11px] text-fg-subtle">
-						Slab serif · Regular · 8 glyphs · 2.4 KB
+					<div
+						class="text-[16px] leading-tight text-fg"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					>
+						Studio Slab
+					</div>
+					<div class="mt-1 text-[11px] text-fg-subtle">Slab serif · Regular</div>
+					<div
+						class="mt-1.5 font-mono text-[10px] tracking-wide text-fg-subtle"
+						data-numeric
+					>
+						8 glyphs · 2.4 KB · .otf
 					</div>
 				</div>
-				<Download class="size-4 shrink-0 text-fg-subtle group-hover:text-accent" aria-hidden="true" />
+				<Download
+					class="size-4 shrink-0 text-fg-subtle group-hover:text-accent"
+					aria-hidden="true"
+				/>
 			</a>
 		</div>
 	</section>
