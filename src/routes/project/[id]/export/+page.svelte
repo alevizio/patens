@@ -4,7 +4,6 @@
 	import { buildFont, hasMarkAnchors } from '$lib/font/export';
 	import {
 		ensurePython,
-		projectToUfoZip,
 		finalizeFont,
 		buildVariableFont,
 		instancesAsStaticZip,
@@ -12,6 +11,7 @@
 		getPythonProgress
 	} from '$lib/font/python';
 	import { otfToWoff2 } from '$lib/font/woff2';
+	import { projectToUfoZipNative } from '$lib/font/ufo';
 	import { autoFeaSource } from '$lib/font/fea';
 	import { generateDesignMd } from '$lib/font/design-md';
 	import { zipSync, strToU8 } from 'fflate';
@@ -411,8 +411,10 @@ body {
 		if (!project) return;
 		ufoBusy = true;
 		try {
-			await ensurePython();
-			const zip = await projectToUfoZip(JSON.stringify(project), project.metadata.familyName);
+			// Native UFO 3 writer — no Pyodide round-trip. Synchronous; the
+			// `await` would be redundant but we keep the busy state for the
+			// brief moment fflate spends zipping a large project.
+			const zip = projectToUfoZipNative(project, project.metadata.familyName);
 			downloadBlob(
 				new Blob([zip], { type: 'application/zip' }),
 				`${safeFilename(project.metadata.familyName) || 'Untitled'}.ufo.zip`
