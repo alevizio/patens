@@ -269,8 +269,9 @@
 		}
 		if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
 			e.preventDefault();
+			const wasClean = !projectStore.dirty;
 			await projectStore.flush();
-			t.success('Saved.');
+			t.success(wasClean ? 'Already saved.' : 'Saved.');
 		} else if ((e.metaKey || e.ctrlKey) && e.key === ',') {
 			e.preventDefault();
 			settingsOpen = !settingsOpen;

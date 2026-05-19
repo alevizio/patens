@@ -97,6 +97,8 @@ export const homeTagline = (now: Date = new Date()): string => {
 /** Per-milestone copy. Concrete, specific to type design, not generic. */
 export const milestoneMessage = (count: number): string => {
 	switch (count) {
+		case 1:
+			return 'One. The foundry begins.';
 		case 5:
 			return 'First five drawn.';
 		case 10:

@@ -284,7 +284,7 @@ class ProjectStore {
 		if (!this.project || typeof localStorage === 'undefined') return;
 		const drawnAfter = this.countDrawnGlyphs();
 		if (drawnAfter <= drawnBefore) return; // only celebrate going up
-		const milestones = [5, 10, 25, 50, 100, 200];
+		const milestones = [1, 5, 10, 25, 50, 100, 200];
 		let celebrated: number[] = [];
 		try {
 			celebrated = JSON.parse(localStorage.getItem(this.milestoneKey()) ?? '[]') as number[];
