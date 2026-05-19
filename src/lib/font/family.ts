@@ -150,17 +150,26 @@ export const unlinkProjectFromFamily = async (projectId: string): Promise<void> 
  * when the user edits these on the family hub. Per-sibling overrides are
  * intentional, so this overwrites — the family is the canonical owner of these
  * fields.
+ *
+ * Locked siblings are skipped (name-table metadata is shipped content, and the
+ * lock contract is "no content edits until unlocked"). Returns count of
+ * siblings actually updated and a separate list of skipped-because-locked ids.
  */
-export const propagateFamilyMetadata = async (familyId: string): Promise<number> => {
+export const propagateFamilyMetadata = async (
+	familyId: string
+): Promise<{ updated: number; skipped: string[] }> => {
 	const family = await loadFamily(familyId);
-	if (!family) return 0;
+	if (!family) return { updated: 0, skipped: [] };
 	const siblings = await listSiblings(familyId);
-	let count = 0;
+	let updated = 0;
+	const skipped: string[] = [];
 	for (const s of siblings) {
 		const p = await loadProject(s.id);
 		if (!p) continue;
-		// Treat empty strings as unset so the family hub can "clear" a propagated
-		// field (UI sets the value to "" on blank input).
+		if (p.locked) {
+			skipped.push(p.metadata.styleName || p.name);
+			continue;
+		}
 		const present = (v: string | undefined) =>
 			v !== undefined && v.trim().length > 0;
 		const nextMeta = {
@@ -171,9 +180,9 @@ export const propagateFamilyMetadata = async (familyId: string): Promise<number>
 			...(present(family.license) ? { license: family.license } : {})
 		};
 		await saveProject({ ...p, metadata: nextMeta });
-		count++;
+		updated++;
 	}
-	return count;
+	return { updated, skipped };
 };
 
 /**
@@ -191,7 +200,7 @@ export const syncMissingClassesFromRegular = async (
 		loadProject(regular.id),
 		loadProject(targetProjectId)
 	]);
-	if (!regularProject || !target) return 0;
+	if (!regularProject || !target || target.locked) return 0;
 	const present = new Set((target.classes ?? []).map((c) => c.name));
 	const toAdd = (regularProject.classes ?? []).filter((c) => !present.has(c.name));
 	if (toAdd.length === 0) return 0;
@@ -218,7 +227,7 @@ export const syncMetricsFromRegular = async (
 		loadProject(regular.id),
 		loadProject(targetProjectId)
 	]);
-	if (!regularProject || !target) return false;
+	if (!regularProject || !target || target.locked) return false;
 	const next: Project = {
 		...target,
 		metrics: { ...target.metrics, ...regularProject.metrics }
@@ -242,7 +251,7 @@ export const syncAnchorsFromRegular = async (
 		loadProject(regular.id),
 		loadProject(targetProjectId)
 	]);
-	if (!regularProject || !target) return 0;
+	if (!regularProject || !target || target.locked) return 0;
 	const nextGlyphs = { ...target.glyphs };
 	let added = 0;
 	for (const [cpStr, regGlyph] of Object.entries(regularProject.glyphs)) {
@@ -297,7 +306,7 @@ export const propagateKerningClasses = async (familyId: string): Promise<number>
 	for (const s of siblings) {
 		if (s.id === regular.id) continue;
 		const p = await loadProject(s.id);
-		if (!p) continue;
+		if (!p || p.locked) continue;
 		// Deep clone to avoid sharing refs across IndexedDB writes.
 		const next: Project = {
 			...p,

@@ -31,6 +31,7 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import { homeTagline, continueGreeting } from '$lib/delight';
+	import { formatRelative } from '$lib/util/format';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 	import Pin from '@lucide/svelte/icons/pin';
@@ -561,18 +562,6 @@
 		}
 	};
 
-	const formatRelative = (iso: string): string => {
-		const then = new Date(iso).getTime();
-		const diff = Date.now() - then;
-		const min = Math.round(diff / 60000);
-		if (min < 1) return 'just now';
-		if (min < 60) return `${min}m ago`;
-		const hr = Math.round(min / 60);
-		if (hr < 24) return `${hr}h ago`;
-		const day = Math.round(hr / 24);
-		if (day < 7) return `${day}d ago`;
-		return new Date(iso).toLocaleDateString();
-	};
 </script>
 
 <svelte:window onkeydown={handleGlobalKey} />
@@ -809,15 +798,13 @@
 			{:else if projects.length === 0}
 				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
 					<pre
-						class="mx-auto mb-3 inline-block whitespace-pre text-left font-mono text-[10px] leading-[1.1] text-fg-subtle"
-						aria-hidden="true">
-{`     ╱ ╲
+						class="mx-auto mb-3 inline-block whitespace-pre text-left font-mono text-[10px] leading-[1.15] text-fg-subtle"
+						aria-hidden="true">{`     ╱ ╲
     ╱   ╲      H  O  n  o
    ╱     ╲     ──────────
   ╱───────╲    your control set
  ╱         ╲   draws this whole
-╱           ╲  family.`}
-					</pre>
+╱           ╲  family.`}</pre>
 					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin.</p>
 				</div>
 			{:else if filteredProjects.length === 0}

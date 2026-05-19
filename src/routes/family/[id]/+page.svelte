@@ -66,13 +66,42 @@
 		await refreshAudit();
 	};
 
+	// Empty-string-safe drafts for the family-level metadata inputs. Family
+	// fields are `string | undefined`, but `<Input>`'s value binding wants a
+	// string — drafts mediate. Drafts sync down from family; on save we
+	// normalize empty strings back to undefined so cleared fields actually
+	// disappear from sibling metadata.
+	// svelte-ignore state_referenced_locally
+	let designerDraft = $state(data.family.designer ?? '');
+	// svelte-ignore state_referenced_locally
+	let copyrightDraft = $state(data.family.copyright ?? '');
+	// svelte-ignore state_referenced_locally
+	let licenseDraft = $state(data.family.license ?? '');
+	$effect(() => {
+		designerDraft = family.designer ?? '';
+		copyrightDraft = family.copyright ?? '';
+		licenseDraft = family.license ?? '';
+	});
+
 	const saveFamilyEdits = async () => {
 		if (saving) return;
 		saving = true;
 		try {
+			family = {
+				...family,
+				designer: designerDraft.trim() || undefined,
+				copyright: copyrightDraft.trim() || undefined,
+				license: licenseDraft.trim() || undefined
+			};
 			await saveFamily(family);
-			const count = await propagateFamilyMetadata(family.id);
-			toast.success(`Family saved · propagated to ${count} sibling${count === 1 ? '' : 's'}.`);
+			const result = await propagateFamilyMetadata(family.id);
+			const baseMsg = `Family saved · propagated to ${result.updated} sibling${result.updated === 1 ? '' : 's'}.`;
+			toast.success(baseMsg);
+			if (result.skipped.length > 0) {
+				toast.warn(
+					`Skipped locked sibling${result.skipped.length === 1 ? '' : 's'}: ${result.skipped.join(', ')}. Unlock to apply.`
+				);
+			}
 			await refresh();
 		} finally {
 			saving = false;
@@ -363,18 +392,18 @@
 		</h2>
 		<div class="grid gap-2 md:grid-cols-3">
 			<Field label="Designer">
-				<Input bind:value={family.designer as string} onblur={saveFamilyEdits} placeholder="Your Name" />
+				<Input bind:value={designerDraft} onblur={saveFamilyEdits} placeholder="Your Name" />
 			</Field>
 			<Field label="Copyright">
 				<Input
-					bind:value={family.copyright as string}
+					bind:value={copyrightDraft}
 					onblur={saveFamilyEdits}
 					placeholder="© 2026 …"
 				/>
 			</Field>
 			<Field label="License">
 				<Input
-					bind:value={family.license as string}
+					bind:value={licenseDraft}
 					onblur={saveFamilyEdits}
 					placeholder="SIL OFL 1.1"
 				/>

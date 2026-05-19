@@ -6,9 +6,7 @@
 	import { listSiblings } from '$lib/font/family';
 	import { toast } from '$lib/stores/toast.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
-	import Button from '$lib/ui/Button.svelte';
 	import Layers from '@lucide/svelte/icons/layers';
-	import Plus from '@lucide/svelte/icons/plus';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
@@ -32,8 +30,18 @@
 		mode: 'stroke' | 'fill' | 'both';
 	};
 
-	// Designer-friendly palette — distinguishable, never garish.
-	const COLORS = ['#5B9BD5', '#D55B5B', '#5BD58F', '#D5C25B', '#A65BD5', '#D58F5B'];
+	// Layer palette — reuses the metrics-overlay tokens defined in app.css
+	// (--baseline, --x-height, --cap-height, --ascender, --descender plus
+	// success). Already a coordinated foundry palette and stays in sync with
+	// light/dark theme changes automatically.
+	const COLOR_TOKENS = [
+		'var(--color-baseline)',
+		'var(--color-descender)',
+		'var(--color-x-height)',
+		'var(--color-ascender)',
+		'var(--color-cap-height)',
+		'var(--color-warn)'
+	];
 
 	let cp = $state<number>(0x0048); // default: H
 	let layers = $state<Layer[]>([]);
@@ -71,7 +79,7 @@
 				id: 'self',
 				label: project.metadata.familyName,
 				sublabel: project.metadata.styleName,
-				color: COLORS[0],
+				color: COLOR_TOKENS[0],
 				pathD: contoursToSvgPath(ownGlyph.contours),
 				advanceWidth: ownGlyph.advanceWidth,
 				upm: metrics.unitsPerEm,
@@ -96,7 +104,7 @@
 					id: `sibling-${s.id}`,
 					label: sp.metadata.familyName,
 					sublabel: `${sp.metadata.styleName} (sibling)`,
-					color: COLORS[colorIdx % COLORS.length],
+					color: COLOR_TOKENS[colorIdx % COLOR_TOKENS.length],
 					pathD: contoursToSvgPath(g.contours),
 					advanceWidth: g.advanceWidth,
 					upm: sp.metrics.unitsPerEm,
@@ -113,7 +121,7 @@
 		for (let i = 0; i < preserved.length; i++) {
 			preserved[i] = {
 				...preserved[i],
-				color: COLORS[(next.length + i) % COLORS.length]
+				color: COLOR_TOKENS[(next.length + i) % COLOR_TOKENS.length]
 			};
 		}
 		layers = [...next, ...preserved];
@@ -173,7 +181,7 @@
 					id,
 					label: refLabel,
 					sublabel: `${file.name} · reference`,
-					color: COLORS[layers.length % COLORS.length],
+					color: COLOR_TOKENS[layers.length % COLOR_TOKENS.length],
 					pathD,
 					advanceWidth: ot.advanceWidth,
 					upm: font.unitsPerEm,
@@ -304,8 +312,7 @@
 
 			<Panel padding="none">
 				<div
-					class="relative grid grid-cols-[1fr_280px] divide-x divide-border"
-					style="min-height: 480px;"
+					class="relative grid min-h-[480px] grid-cols-[1fr_280px] divide-x divide-border"
 				>
 					<div class="overflow-hidden bg-canvas p-6">
 						{#if layers.length === 0}
