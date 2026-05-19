@@ -352,6 +352,7 @@
 									onclick={() => projectStore.removeDecision(d.id)}
 									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 									aria-label="Remove decision"
+									title="Remove decision"
 								>
 									<Trash2 class="size-3.5" />
 								</button>
@@ -438,6 +439,7 @@
 									onclick={() => projectStore.removeBriefReference(r.id)}
 									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 									aria-label="Remove reference {r.name}"
+									title="Remove reference {r.name}"
 								>
 									<Trash2 class="size-3.5" />
 								</button>

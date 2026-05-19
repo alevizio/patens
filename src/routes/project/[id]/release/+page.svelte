@@ -515,6 +515,7 @@
 									onclick={() => projectStore.removeChangelogEntry(e.id)}
 									class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 									aria-label="Remove changelog entry v{e.version}"
+									title="Remove v{e.version}"
 								>
 									<Trash2 class="size-3.5" />
 								</button>

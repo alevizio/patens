@@ -40,6 +40,7 @@
 					onclick={onclose}
 					class="rounded p-1 text-fg-muted hover:bg-surface-2 hover:text-fg"
 					aria-label="Dismiss"
+					title="Dismiss welcome (Esc)"
 				>
 					<X class="size-4" />
 				</button>

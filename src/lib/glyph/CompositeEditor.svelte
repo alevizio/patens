@@ -221,6 +221,7 @@
 								onclick={() => removeComponent(idx)}
 								class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 								aria-label="Remove component"
+								title="Remove component"
 							>
 								<Trash2 class="size-3" />
 							</button>

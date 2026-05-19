@@ -360,6 +360,7 @@
 			href="/"
 			class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
 			aria-label="Back to projects"
+			title="Back to projects"
 		>
 			<ArrowLeft class="size-4" />
 		</a>

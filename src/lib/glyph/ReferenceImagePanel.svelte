@@ -165,6 +165,7 @@
 					onclick={remove}
 					class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 					aria-label="Remove reference image"
+					title="Remove reference image"
 				>
 					<Trash2 class="size-3" />
 				</button>

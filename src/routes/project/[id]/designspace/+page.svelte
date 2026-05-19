@@ -204,6 +204,7 @@
 									onclick={() => projectStore.removeAxis(axis.tag)}
 									class="self-end rounded p-1.5 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 									aria-label="Remove axis {axis.tag}"
+									title="Remove axis {axis.tag}"
 								>
 									<Trash2 class="size-3.5" />
 								</button>
@@ -400,6 +401,7 @@
 										onclick={() => projectStore.removeInstance(inst.id)}
 										class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 										aria-label="Remove instance {inst.styleName}"
+										title="Remove instance {inst.styleName}"
 									>
 										<Trash2 class="size-3.5" />
 									</button>

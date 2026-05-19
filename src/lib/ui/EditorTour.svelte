@@ -178,6 +178,7 @@
 				onclick={finish}
 				class="rounded p-1 text-fg-muted hover:bg-surface-2 hover:text-fg"
 				aria-label="Skip tour"
+				title="Skip tour (Esc)"
 			>
 				<X class="size-4" />
 			</button>

@@ -134,6 +134,7 @@
 					onclick={onclose}
 					class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-fg"
 					aria-label="Close"
+					title="Close shortcuts (?)"
 				>
 					<X class="size-3.5" />
 				</button>

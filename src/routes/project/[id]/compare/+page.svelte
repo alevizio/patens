@@ -451,6 +451,7 @@
 										onclick={() => toggleLayer(layer.id)}
 										class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
 										aria-label="Toggle visibility"
+										title={layer.visible ? 'Hide this layer' : 'Show this layer'}
 									>
 										{#if layer.visible}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 									</button>
@@ -460,6 +461,7 @@
 											onclick={() => removeLayer(layer.id)}
 											class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger"
 											aria-label="Remove reference layer"
+											title="Remove this reference layer"
 										>
 											<Trash2 class="size-3.5" />
 										</button>

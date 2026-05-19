@@ -981,6 +981,7 @@
 										density="sm"
 										onclick={() => handleDuplicate(p.id)}
 										aria-label="Duplicate"
+										title="Duplicate project"
 									>
 										{#snippet icon()}<Copy class="size-3.5" />{/snippet}
 									</Button>
@@ -989,6 +990,7 @@
 										density="sm"
 										onclick={() => handleToggleArchive(p.id)}
 										aria-label={p.archived ? 'Unarchive' : 'Archive'}
+										title={p.archived ? 'Unarchive project' : 'Archive project'}
 									>
 										{#snippet icon()}{#if p.archived}<ArchiveRestore
 													class="size-3.5"
@@ -999,6 +1001,7 @@
 										density="sm"
 										onclick={() => handleDelete(p)}
 										aria-label="Delete"
+										title="Delete project"
 									>
 										{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
 									</Button>

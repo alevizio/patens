@@ -673,6 +673,7 @@
 								onclick={() => projectStore.removeSidebearingClass(cls.id)}
 								class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 								aria-label="Delete class"
+								title="Delete sidebearing class"
 							>
 								<Trash2 class="size-3.5" />
 							</button>
@@ -1107,6 +1108,7 @@
 							onclick={() => projectStore.removeKerningClass(cls.name)}
 							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 							aria-label="Remove class {cls.name}"
+							title="Remove class {cls.name}"
 						>
 							<Trash2 class="size-3.5" />
 						</button>
@@ -1163,6 +1165,7 @@
 							onclick={() => removeKerning(pair.left, pair.right)}
 							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger"
 							aria-label="Remove pair"
+							title="Remove kerning pair"
 						>
 							<Trash2 class="size-3.5" />
 						</button>

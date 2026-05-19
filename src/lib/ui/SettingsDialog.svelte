@@ -62,6 +62,7 @@
 					onclick={onclose}
 					class="rounded p-1 text-fg-muted hover:bg-surface-2 hover:text-fg"
 					aria-label="Close"
+					title="Close settings (Esc)"
 				>
 					<X class="size-4" />
 				</button>
@@ -110,6 +111,7 @@
 								onclick={() => (showKey = !showKey)}
 								class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-fg-subtle hover:text-fg"
 								aria-label="Toggle visibility"
+								title={showKey ? 'Hide API key' : 'Show API key'}
 							>
 								{#if showKey}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 							</button>

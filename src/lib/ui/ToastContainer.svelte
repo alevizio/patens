@@ -40,6 +40,7 @@
 				onclick={() => toast.dismiss(t.id)}
 				class="ml-1 rounded p-0.5 opacity-60 hover:opacity-100"
 				aria-label="Dismiss notification"
+				title="Dismiss"
 			>
 				<X class="size-3" />
 			</button>
