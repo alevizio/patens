@@ -215,20 +215,25 @@
 	let vfAxisValues = $state<Record<string, number>>({});
 
 	$effect(() => {
-		if (!projectStore.project?.axes) return;
-		// Only re-assign when the axis tag set changes — avoid a reactive loop
-		// where the effect reads + writes vfAxisValues every tick.
-		const existingTags = new Set(Object.keys(vfAxisValues));
-		const projectTags = new Set(projectStore.project.axes.map((a) => a.tag));
-		let needsUpdate = false;
-		for (const a of projectStore.project.axes) if (!existingTags.has(a.tag)) needsUpdate = true;
-		for (const k of existingTags) if (!projectTags.has(k)) needsUpdate = true;
-		if (!needsUpdate) return;
-		const next: Record<string, number> = {};
-		for (const a of projectStore.project.axes) {
-			next[a.tag] = vfAxisValues[a.tag] ?? a.default;
-		}
-		vfAxisValues = next;
+		const axes = projectStore.project?.axes;
+		if (!axes) return;
+		const projectTags = new Set(axes.map((a) => a.tag));
+		// Reads of vfAxisValues are wrapped in untrack() so the effect re-runs
+		// only when the axis SET changes — not when we write back to vfAxisValues
+		// ourselves. Removes the reliance on the early-return guard to break the
+		// cycle (same pattern as compare/+page.svelte, see commit bc7399d).
+		untrack(() => {
+			const existingTags = new Set(Object.keys(vfAxisValues));
+			let needsUpdate = false;
+			for (const a of axes) if (!existingTags.has(a.tag)) needsUpdate = true;
+			for (const k of existingTags) if (!projectTags.has(k)) needsUpdate = true;
+			if (!needsUpdate) return;
+			const next: Record<string, number> = {};
+			for (const a of axes) {
+				next[a.tag] = vfAxisValues[a.tag] ?? a.default;
+			}
+			vfAxisValues = next;
+		});
 	});
 
 	const hasMastersForGlyph = $derived(
