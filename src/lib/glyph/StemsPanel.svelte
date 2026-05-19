@@ -9,7 +9,10 @@
 
 	let measurements = $state<StemMeasurement[]>([]);
 	let measuring = $state(false);
-	let lastKey = $state<string>('');
+	// Plain `let` (not $state) — only read+written inside the $effect below to
+	// dedupe re-measures; making it reactive risks the read-then-write cycle
+	// that crashed audit's mount (see commit bc7399d).
+	let lastKey = '';
 
 	const measure = async () => {
 		if (!glyph || !metrics || glyph.contours.length === 0 || measuring) return;

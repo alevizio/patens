@@ -369,7 +369,10 @@
 	};
 
 	// Auto-measure when the set or drawn glyphs change
-	let rhythmKey = $state('');
+	// Plain `let` (not $state) — only read+written inside the $effect below to
+	// dedupe re-measures; making it reactive risks the read-then-write cycle
+	// that crashed audit's mount (see commit bc7399d).
+	let rhythmKey = '';
 	$effect(() => {
 		const k = `${rhythmSet}:${rhythmDrawn.map((g) => `${g.codepoint}:${g.updatedAt}`).join('|')}`;
 		if (k === rhythmKey) return;
