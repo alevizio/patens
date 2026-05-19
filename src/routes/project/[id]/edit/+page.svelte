@@ -51,6 +51,8 @@
 	import MetricsInspector from '$lib/glyph/MetricsInspector.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
+	import ChevronDown from '@lucide/svelte/icons/chevron-down';
+	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -176,6 +178,27 @@
 	let resetSignal = $state(0);
 	let metricsText = $state('Hamburgevons');
 	let metricsSize = $state(96);
+
+	// Bottom bar (metrics preview + action row) collapse — persist across
+	// sessions in localStorage. Collapsing claws back ~170px of canvas height.
+	const BOTTOM_BAR_KEY = 'font-studio:editor-bottom-bar-collapsed';
+	let bottomBarCollapsed = $state(false);
+	$effect(() => {
+		if (typeof localStorage === 'undefined') return;
+		try {
+			bottomBarCollapsed = localStorage.getItem(BOTTOM_BAR_KEY) === '1';
+		} catch {
+			/* ignore */
+		}
+	});
+	const toggleBottomBar = () => {
+		bottomBarCollapsed = !bottomBarCollapsed;
+		try {
+			localStorage.setItem(BOTTOM_BAR_KEY, bottomBarCollapsed ? '1' : '0');
+		} catch {
+			/* ignore */
+		}
+	};
 
 	const strokeStyle = $derived({
 		...DEFAULT_STROKE,
@@ -1636,29 +1659,57 @@
 				</div>
 			{/if}
 
-			<!-- Live text strip (FontLab-style metrics window) -->
-			<div class="flex flex-col gap-1.5 border-t border-border bg-surface px-4 py-2.5">
-				<div class="flex items-center gap-3">
-					<input
-						type="text"
-						bind:value={metricsText}
-						placeholder="Type to preview…"
-						class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
-					/>
-					<label class="flex items-center gap-1.5">
-						<span class="text-[11px] text-fg-muted">Size</span>
+			<!-- Bottom strips (live preview + action bar). Collapsible via the
+			     chevron to claw back ~170px of canvas height when zoomed in.
+			     State persists in localStorage. -->
+			{#if bottomBarCollapsed}
+				<button
+					type="button"
+					onclick={toggleBottomBar}
+					class="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-1.5 text-[11px] text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					title="Expand the live preview + action bar"
+				>
+					<span class="inline-flex items-center gap-2">
+						<ChevronUp class="size-3.5" />
+						<span>Live preview · actions</span>
+					</span>
+					<span class="font-mono text-[10px] text-fg-subtle/70" data-numeric>
+						Show ↑
+					</span>
+				</button>
+			{:else}
+				<!-- Live text strip (FontLab-style metrics window) -->
+				<div class="flex flex-col gap-1.5 border-t border-border bg-surface px-4 py-2.5">
+					<div class="flex items-center gap-3">
 						<input
-							type="range"
-							min={24}
-							max={200}
-							step={4}
-							bind:value={metricsSize}
-							class="h-1 w-24 accent-fg"
-							aria-label="Metrics preview size"
+							type="text"
+							bind:value={metricsText}
+							placeholder="Type to preview…"
+							class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 						/>
-						<span class="w-8 text-[11px] text-fg-subtle" data-numeric>{metricsSize}</span>
-					</label>
-				</div>
+						<label class="flex items-center gap-1.5">
+							<span class="text-[11px] text-fg-muted">Size</span>
+							<input
+								type="range"
+								min={24}
+								max={200}
+								step={4}
+								bind:value={metricsSize}
+								class="h-1 w-24 accent-fg"
+								aria-label="Metrics preview size"
+							/>
+							<span class="w-8 text-[11px] text-fg-subtle" data-numeric>{metricsSize}</span>
+						</label>
+						<button
+							type="button"
+							onclick={toggleBottomBar}
+							class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
+							title="Collapse the live preview + action bar"
+							aria-label="Collapse bottom bar"
+						>
+							<ChevronDown class="size-3.5" />
+						</button>
+					</div>
 				<div
 					class="preview-font max-h-[120px] overflow-x-auto overflow-y-hidden whitespace-nowrap leading-[1]"
 					style="font-size: {metricsSize}px;"
@@ -1762,6 +1813,7 @@
 					</Button>
 				</div>
 			</div>
+			{/if}
 		</div>
 
 		<!-- Right properties panel — block layout (no flex) with overflow-y
