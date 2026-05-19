@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, untrack } from 'svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { contoursToSvgPath } from '$lib/font/path';
 	import { loadProject } from '$lib/font/project';
@@ -75,8 +75,11 @@
 
 	const rebuildAutoLayers = async () => {
 		if (!project || !metrics) return;
-		// Preserve any reference-font layers (drag-dropped); replace self + siblings
-		const preserved = layers.filter((l) => l.id.startsWith('ref-'));
+		// Preserve any reference-font layers (drag-dropped); replace self + siblings.
+		// untrack() so the calling $effect doesn't pick up `layers` as a sync
+		// dependency — without it, writing back to `layers` below retriggers
+		// the effect → infinite loop → mount of next route silently aborts.
+		const preserved = untrack(() => layers.filter((l) => l.id.startsWith('ref-')));
 		const next: Layer[] = [];
 		// 1. The current project's glyph
 		const ownGlyph = project.glyphs[cp];

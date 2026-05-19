@@ -66,9 +66,11 @@
 		info: allIssues.filter((i) => i.severity === 'info').length
 	});
 
-	// Celebrate the first time the audit hits 0 issues in a session.
-	// Stored per-project so the celebration recurs after new issues appear + clear.
-	let lastSeenAllPass = $state(false);
+	// Celebrate the first time the audit hits 0 issues in a session. Plain `let`
+	// (not $state) so writing back inside the effect doesn't retrigger it — the
+	// reactive write/read cycle on $state crashed audit's mount with
+	// "Maximum update depth exceeded" when reached after some nav sequences.
+	let lastSeenAllPass = false;
 	$effect(() => {
 		const allPass = counts.all === 0 && projectStore.project !== null;
 		if (allPass && !lastSeenAllPass) {
