@@ -45,6 +45,7 @@
 	import Library from '@lucide/svelte/icons/library';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import Download from '@lucide/svelte/icons/download';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -575,150 +576,208 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div
-	class="relative mx-auto max-w-5xl px-6 py-12 sm:py-20"
+	class="relative mx-auto max-w-6xl px-6 py-8 sm:py-10"
 	ondragenter={onDragEnter}
 	ondragleave={onDragLeave}
 	ondragover={onDragOver}
 	ondrop={onDrop}
 	role="application"
 >
-	<header class="mb-14 flex flex-col gap-4">
-		<div class="flex items-center justify-between gap-2">
-			<div
-				class="inline-flex w-fit items-center gap-2 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted"
-				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
+	<!-- Slim top bar: brand pill + secondary nav. Acts as the dashboard's
+	     chrome header — distinct from the editorial hero below. -->
+	<header
+		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
+	>
+		<a href="/" class="group inline-flex items-center gap-2.5">
+			<span
+				class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
 			>
 				<Type class="size-3.5" />
+			</span>
+			<span
+				class="text-[13px] font-medium tracking-tight text-fg"
+				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
+			>
 				Font Studio
-			</div>
-			<div class="flex items-center gap-2">
-				<a
-					href="/families"
-					class="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+			</span>
+			{#if todayTotals.editedToday > 0}
+				<span
+					class="ml-2 hidden items-center gap-1 rounded-full bg-accent-soft px-2 py-0.5 font-mono text-[10px] font-medium text-accent sm:inline-flex"
+					data-numeric
+					title="Glyphs edited today across all projects"
 				>
-					<Layers class="size-3.5" />
-					Families
-				</a>
-				<a
-					href="/learn"
-					class="rounded-full border border-border bg-surface px-3 py-1 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
-				>
-					Learn the craft →
-				</a>
-			</div>
-		</div>
-		<!-- Mixed typography: serif italic top line for editorial voice, sans
-		     bottom line for system-tool grounding. The contrast says "this app
-		     deals in type" before you read a word. -->
-		<!-- Capped at text-4xl on wide screens so the longest tagline
-		     ("long after everyone else has logged off.") wraps to exactly
-		     two lines on a 1280px+ viewport. Tighter line-height keeps the
-		     two-line block compact. -->
-		<h1 class="max-w-3xl text-3xl leading-[1.1] tracking-tight text-balance sm:text-4xl lg:text-[40px]">
+					<span class="size-1 rounded-full bg-accent"></span>
+					{todayTotals.editedToday} today
+				</span>
+			{/if}
+		</a>
+		<nav class="flex items-center gap-1">
+			<a
+				href="/families"
+				class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+			>
+				<Layers class="size-3.5" />
+				Families
+			</a>
+			<a
+				href="/learn"
+				class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+			>
+				Learn the craft
+			</a>
+		</nav>
+	</header>
+
+	<!-- Hero: editorial tagline + 3-CTA dashboard strip. The CTAs are the
+	     core dashboard idea — every common entry point sits above the fold,
+	     visually distinct, no scrolling required to begin work. -->
+	<section class="mb-14">
+		<h1 class="max-w-3xl text-3xl leading-[1.05] tracking-tight text-balance sm:text-[44px]">
 			<span
 				class="block text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
 			>
 				{taglineParts[0]}
 			</span>
-			<span class="mt-0.5 block font-sans font-semibold text-fg-muted">
+			<span class="mt-1 block font-sans font-semibold text-fg-muted">
 				{taglineParts[1]}
 			</span>
 		</h1>
-		<p class="max-w-xl text-[15px] leading-relaxed text-fg-muted">
-			Sketch with a pen or trackpad, vectorize, space, kern, and export a real OTF — all in
-			your browser. Every project is saved locally.
+		<p class="mt-4 max-w-xl text-[15px] leading-relaxed text-fg-muted">
+			Sketch, vectorize, space, kern, and export a real OTF — all in your browser. Every
+			project is saved locally.
 		</p>
-	</header>
 
-	{#if todayTotals.editedToday > 0 || todayTotals.editedThisWeek > 0}
-		<div
-			class="mb-3 flex flex-wrap items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px]"
-		>
-			<span
-				class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		<!-- 3 primary CTAs. Primary fills with fg/accent, secondaries are
+		     bordered. Continue card absorbs the old standalone "Continue
+		     working" strip — one row of cards, not two surfaces. -->
+		<div class="mt-8 grid gap-3 md:grid-cols-3">
+			<button
+				type="button"
+				onclick={() => (createDialogOpen = true)}
+				class="group relative flex items-center gap-4 overflow-hidden rounded-2xl bg-fg p-5 text-left text-canvas transition-all hover:-translate-y-0.5 hover:shadow-lg"
 			>
-				Today
-			</span>
-			{#if todayTotals.editedToday > 0}
-				<span class="text-fg-muted" data-numeric>
-					<span class="font-mono font-semibold text-accent">{todayTotals.editedToday}</span> edit{todayTotals.editedToday === 1 ? '' : 's'} across
-					<span class="font-mono font-semibold text-accent">{todayTotals.activeProjects}</span>
-					project{todayTotals.activeProjects === 1 ? '' : 's'}
-				</span>
-			{:else}
-				<span class="text-fg-subtle">No edits yet.</span>
-			{/if}
-			{#if todayTotals.editedThisWeek > todayTotals.editedToday}
-				<span class="text-fg-subtle" data-numeric>
-					· {todayTotals.editedThisWeek} this week
-				</span>
-			{/if}
-		</div>
-	{/if}
-
-	{#if continueCandidate}
-		<a
-			href="/project/{continueCandidate.id}/{continueCandidate.slug}"
-			class="group mb-6 flex items-center gap-4 rounded-lg border border-border bg-surface-2/40 px-4 py-3 transition-colors hover:border-accent hover:bg-surface-2"
-		>
-			<div
-				class="flex size-9 shrink-0 items-center justify-center rounded-md bg-accent-soft text-accent"
-			>
-				<PenTool class="size-4" />
-			</div>
-			<div class="min-w-0 flex-1">
-				<div class="flex items-baseline gap-2">
-					<span
-						class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+				<div
+					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-canvas/10 text-canvas"
+				>
+					<Plus class="size-5" />
+				</div>
+				<div class="min-w-0 flex-1">
+					<div
+						class="text-[15px] leading-tight"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 					>
-						{continueGreeting(continueCandidate.updatedAt)}
-					</span>
-					<span class="text-[11px] text-fg-subtle" data-numeric>
-						{continueCandidate.slug} · updated {formatRelative(continueCandidate.updatedAt)}
-					</span>
+						Start a new font
+					</div>
+					<div class="mt-1 text-[12px] leading-snug text-canvas/70">
+						Blank canvas, named & ready in seconds
+					</div>
 				</div>
-				<div class="truncate text-[13px] font-medium text-fg">
-					{continueCandidate.name}
-					<span class="text-fg-muted">· {continueCandidate.familyName}</span>
-					{#if continueCandidate.lastEditedGlyph}
-						<span class="text-fg-subtle" data-numeric>
-							· last on
-							<span class="font-mono text-fg-muted">
-								{#if continueCandidate.lastEditedGlyph.codepoint > 0x20 && continueCandidate.lastEditedGlyph.codepoint < 0x10000}
-									{String.fromCodePoint(continueCandidate.lastEditedGlyph.codepoint)}
-								{:else}
-									{continueCandidate.lastEditedGlyph.name}
-								{/if}
+				<span class="text-canvas/60 transition-transform group-hover:translate-x-0.5">
+					→
+				</span>
+			</button>
+
+			{#if continueCandidate}
+				<a
+					href="/project/{continueCandidate.id}/{continueCandidate.slug}"
+					class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+				>
+					<div
+						class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+					>
+						<PenTool class="size-5" />
+					</div>
+					<div class="min-w-0 flex-1">
+						<div
+							class="truncate text-[15px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							{continueGreeting(continueCandidate.updatedAt)}
+						</div>
+						<div class="mt-1 truncate text-[12px] leading-snug text-fg-muted">
+							{continueCandidate.name} · {continueCandidate.slug} ·
+							<span class="font-mono" data-numeric>
+								{formatRelative(continueCandidate.updatedAt)}
 							</span>
-						</span>
-					{/if}
-				</div>
-			</div>
-			<span
-				class="hidden text-[12px] text-fg-muted transition-colors group-hover:text-accent md:inline"
+						</div>
+					</div>
+					<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
+						→
+					</span>
+				</a>
+			{:else}
+				<a
+					href="#quick-start"
+					class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
+				>
+					<div
+						class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+					>
+						<Sparkles class="size-5" />
+					</div>
+					<div class="min-w-0 flex-1">
+						<div
+							class="text-[15px] leading-tight text-fg"
+							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						>
+							Pick a style to start
+						</div>
+						<div class="mt-1 text-[12px] leading-snug text-fg-muted">
+							UI, Display, Mono, or Editorial — pre-filled
+						</div>
+					</div>
+					<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
+						↓
+					</span>
+				</a>
+			{/if}
+
+			<button
+				type="button"
+				onclick={() => {
+					createDialogOpen = true;
+				}}
+				class="group relative flex items-center gap-4 overflow-hidden rounded-2xl border border-border bg-surface p-5 text-left transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-md"
 			>
-				Resume →
-			</span>
-		</a>
-	{/if}
+				<div
+					class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent"
+				>
+					<UploadCloud class="size-5" />
+				</div>
+				<div class="min-w-0 flex-1">
+					<div
+						class="text-[15px] leading-tight text-fg"
+						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					>
+						Import a font
+					</div>
+					<div class="mt-1 text-[12px] leading-snug text-fg-muted">
+						.otf · .ttf · .ufo.zip · public URL
+					</div>
+				</div>
+				<span class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent">
+					→
+				</span>
+			</button>
+		</div>
+	</section>
 
 	{#if projects.length > 0 || !loading}
-		<!-- Quick Start: lives ABOVE the main grid as a wide row so the four
-		     starting kinds get one full panel of breathing room instead of
-		     being squished into the narrow right column. Each preset's label
-		     is set in a typeface representative of its kind — Display in big
-		     serif, Code in mono, Editorial in serif italic, UI in sans — so
-		     the cards read as actual samples, not labels. -->
-		<section class="mb-10">
-			<div class="mb-3 flex items-baseline justify-between gap-2">
+		<!-- Quick Start: lives below the hero CTA strip — four kind chips that
+		     pre-fill the Brief. Each preview "Aa" is rendered in a typeface
+		     representative of its kind (Display in heavy sans, Code in mono,
+		     Editorial in upright serif, UI in sans) so the cards read as
+		     actual samples, not just labels. -->
+		<section id="quick-start" class="mb-12 scroll-mt-8">
+			<div class="mb-4 flex items-baseline justify-between gap-2">
 				<h2
-					class="text-[11px] tracking-[0.18em] text-fg-subtle uppercase"
+					class="text-[20px] tracking-tight text-fg"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
 					Quick start
 				</h2>
-				<span class="text-[11px] text-fg-subtle">
+				<span class="text-[12px] text-fg-subtle">
 					Pre-fills the Brief with intent + use cases.
 				</span>
 			</div>
@@ -756,11 +815,14 @@
 		</section>
 	{/if}
 
-	<div class="grid gap-8 lg:grid-cols-[1fr_320px]">
-		<Panel padding="md">
-			<div class="mb-3 flex items-center justify-between gap-3">
+	<div class="grid gap-8">
+		<!-- Project library — full-width, no panel chrome. The h2 + count
+		     act as the section header; project rows below have their own
+		     card surface. -->
+		<section>
+			<div class="mb-4 flex items-center justify-between gap-3">
 				<h2
-					class="text-[15px] tracking-tight text-fg"
+					class="text-[20px] tracking-tight text-fg"
 					style="font-family: ui-serif, Georgia, serif;"
 				>
 					Your fonts
@@ -1092,13 +1154,18 @@
 					{/each}
 				</ul>
 			{/if}
+		</section>
 
-		</Panel>
-
-		<div class="grid gap-4">
+		<!-- Footer row: secondary content (recent releases, storage). Lives
+		     below the main project list. Two-col on wide screens, stacks on
+		     mobile. No more crammed right rail competing with the projects. -->
+		<section class="mt-4 grid gap-4 md:grid-cols-2">
 			{#if recentReleases.length > 0}
-				<Panel padding="md">
-					<h2 class="mb-2 text-sm font-semibold tracking-wide text-fg-muted uppercase">
+				<div class="rounded-2xl border border-border bg-surface p-5">
+					<h2
+						class="mb-3 text-[15px] tracking-tight text-fg"
+						style="font-family: ui-serif, Georgia, serif;"
+					>
 						Recent releases
 					</h2>
 					<ul class="grid gap-1.5">
@@ -1120,61 +1187,50 @@
 							</a>
 						{/each}
 					</ul>
-				</Panel>
+				</div>
 			{/if}
-
-			<!-- Single CTA card — kept visually light so it doesn't fight the
-			     project list. Full creation flow lives in CreateFontDialog. -->
-			<div class="rounded-2xl border border-dashed border-border bg-transparent p-5">
-				<h2
-					class="mb-1 text-[15px] tracking-tight text-fg"
-					style="font-family: ui-serif, Georgia, serif;"
-				>
-					Start a font
-				</h2>
-				<p class="mb-4 text-[12px] leading-snug text-fg-subtle">
-					Blank canvas, an existing OTF/UFO, or a public URL.
-				</p>
-				<Button onclick={() => (createDialogOpen = true)} fullWidth>
-					{#snippet icon()}<Plus class="size-4" />{/snippet}
-					New font
-				</Button>
-			</div>
 
 			{#if storage && storage.quota > 0}
 				{@const pct = Math.min(100, Math.round((storage.used / storage.quota) * 1000) / 10)}
-				<div
-					class="rounded-lg border border-border bg-surface-2/40 px-3 py-2 text-[11px] text-fg-muted"
-				>
-					<div class="flex items-baseline justify-between">
-						<span class="font-medium">Browser storage</span>
-						<span class="font-mono text-fg-subtle" data-numeric>
+				<div class="rounded-2xl border border-border bg-surface p-5 text-[12px]">
+					<div class="mb-3 flex items-baseline justify-between">
+						<h2
+							class="text-[15px] tracking-tight text-fg"
+							style="font-family: ui-serif, Georgia, serif;"
+						>
+							Browser storage
+						</h2>
+						<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
 							{formatBytes(storage.used)} / {formatBytes(storage.quota)}
 						</span>
 					</div>
-					<div class="mt-1 h-1 overflow-hidden rounded-full bg-surface-2">
+					<div class="h-1.5 overflow-hidden rounded-full bg-surface-2">
 						<div
-							class="h-full {pct > 80 ? 'bg-danger' : pct > 50 ? 'bg-warn' : 'bg-success'}"
+							class="h-full transition-all {pct > 80
+								? 'bg-danger'
+								: pct > 50
+									? 'bg-warn'
+									: 'bg-success'}"
 							style="width: {pct}%;"
 						></div>
 					</div>
-					<div class="mt-1 text-[10px] text-fg-subtle">
-						Projects are stored locally in your browser. Export OTF/UFO/JSON
-						periodically to keep backups.
-					</div>
-					<div class="mt-2 flex gap-2">
+					<p class="mt-3 text-[11px] leading-snug text-fg-subtle">
+						Projects are stored locally. Back up periodically to keep a copy outside
+						this browser.
+					</p>
+					<div class="mt-3 flex gap-2">
 						{#if projects.length > 0}
 							<button
 								type="button"
 								onclick={handleBackupAll}
 								disabled={backingUp}
-								class="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
+								class="flex-1 rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent disabled:opacity-60"
 							>
 								{backingUp ? 'Bundling…' : `Backup ${projects.length} → JSON`}
 							</button>
 						{/if}
 						<label
-							class="flex-1 cursor-pointer rounded-md border border-border bg-surface px-2 py-1 text-center text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+							class="flex-1 cursor-pointer rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-center text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
 						>
 							{restoring ? 'Restoring…' : 'Restore JSON…'}
 							<input
@@ -1191,29 +1247,28 @@
 						</label>
 					</div>
 					{#if restoreMessage}
-						<div class="mt-1 text-[10px] text-fg-subtle">{restoreMessage}</div>
+						<div class="mt-2 text-[10px] text-fg-subtle">{restoreMessage}</div>
 					{/if}
 				</div>
 			{/if}
-		</div>
+		</section>
 	</div>
 
-	<!-- Made-in-this-app examples. Lives as its own full-width section
-	     below the main grid so it's discoverable without competing with
-	     the project list for attention. -->
+	<!-- Made-in-this-app examples — full-width section below the projects
+	     grid so users can see what's shippable before drawing a glyph. -->
 	<section class="mt-14">
-		<div class="mb-3 flex items-baseline justify-between gap-2">
+		<div class="mb-4 flex items-baseline justify-between gap-2">
 			<h2
-				class="text-[11px] tracking-[0.18em] text-fg-subtle uppercase"
+				class="text-[20px] tracking-tight text-fg"
 				style="font-family: ui-serif, Georgia, serif;"
 			>
 				Made with Font Studio
 			</h2>
-			<span class="text-[11px] text-fg-subtle">
+			<span class="text-[12px] text-fg-subtle">
 				Two example .otf files · download & install
 			</span>
 		</div>
-		<p class="mb-4 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
+		<p class="mb-5 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
 			Both were generated end-to-end by this app — drawn shapes, advance
 			widths, OS/2 metadata, the whole envelope. Download, double-click to
 			install on macOS, then type <span class="font-medium text-fg">HOTEL NINE</span>
