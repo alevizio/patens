@@ -218,11 +218,13 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		ascender: metrics.ascender,
 		descender: metrics.descender,
 		designer: metadata.designer || '',
-		designerURL: '',
-		manufacturer: metadata.designer || '',
-		manufacturerURL: '',
+		designerURL: metadata.designerURL || '',
+		// Spec: name table ID 8 — foundry. Falls back to designer name when
+		// the user hasn't set a separate foundry/publisher.
+		manufacturer: metadata.manufacturer || metadata.designer || '',
+		manufacturerURL: metadata.manufacturerURL || '',
 		license: metadata.license || '',
-		licenseURL: '',
+		licenseURL: metadata.licenseURL || '',
 		version: metadata.version || '1.000',
 		copyright: metadata.copyright || '',
 		glyphs
@@ -243,10 +245,16 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 
 	// OS/2.fsType — embedding bits. Default 0 (installable, no restrictions) per
 	// Google Fonts' OFL requirement; users can opt into restricted/preview/editable.
+	// OS/2.achVendID — 4-byte ASCII foundry tag (registered with Microsoft).
+	// Padded/truncated to exactly 4 chars; defaults to 'NONE' when unspecified.
 	const os2 = (font.tables as Record<string, unknown> | undefined)?.os2 as
-		| { fsType?: number }
+		| { fsType?: number; achVendID?: string }
 		| undefined;
-	if (os2) os2.fsType = metadata.fsType ?? 0;
+	if (os2) {
+		os2.fsType = metadata.fsType ?? 0;
+		const raw = (metadata.vendorID ?? '').trim();
+		os2.achVendID = (raw || 'NONE').slice(0, 4).padEnd(4, ' ');
+	}
 
 	// Vertical metrics (OS/2 + hhea). Was a Pyodide round-trip; now native to
 	// opentype.js so OTF export skips the ~15MB Python runtime unless .fea

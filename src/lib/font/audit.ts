@@ -467,6 +467,86 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 	// drift that a designer working alone commonly misses.
 	issues.push(...auditPeers(project));
 
+	// Release-readiness metadata. These are the "professional polish" name-table
+	// + OS/2 fields. Empty fields produce nameless OTF/TTF binaries that look
+	// amateur in Font Book / Glyphs / OS font menus. All warns (not errors) —
+	// the font still compiles, it just won't pass FontBakery review or look
+	// foundry-grade to downstream users.
+	const md = project.metadata;
+	const ver = md.version?.trim();
+	if (!md.designer?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'meta-no-designer',
+			message: 'Designer field is empty — name table ID 9 ships blank. Glyphs / Font Book show "Unknown designer".'
+		});
+	}
+	if (!md.copyright?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'meta-no-copyright',
+			message: 'Copyright notice is empty — required by most foundries and by Google Fonts review.'
+		});
+	}
+	if (!md.license?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'meta-no-license',
+			message: 'License field is empty. Pick a preset (OFL 1.1, Proprietary) on the Export tab so downstream users know the terms.'
+		});
+	}
+	if (!md.licenseURL?.trim() && md.license?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'meta-no-license-url',
+			message: 'License set but no license URL — recommended so embedded apps can link out (e.g. https://scripts.sil.org/OFL for OFL).'
+		});
+	}
+	if (!md.designerURL?.trim() && md.designer?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'meta-no-designer-url',
+			message: 'Designer URL is empty. A homepage / portfolio link gets shown in some font dialogs and PDF metadata.'
+		});
+	}
+	if (!md.manufacturer?.trim() && md.designer?.trim()) {
+		// We fall back to designer if blank, so this is just info-level.
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'meta-no-manufacturer',
+			message: 'Manufacturer (foundry) is empty — falling back to designer name. If you ship under a foundry brand, set it explicitly.'
+		});
+	}
+	if (!md.vendorID?.trim()) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'meta-no-vendor-id',
+			message: 'OS/2 vendor ID is empty — defaults to "NONE". Register a 4-letter foundry tag at https://learn.microsoft.com/typography/vendors/ to identify your fonts in tool diagnostics.'
+		});
+	} else if (!/^[\x20-\x7e]{1,4}$/.test(md.vendorID.trim())) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'meta-vendor-id-invalid',
+			message: `Vendor ID "${md.vendorID}" should be 1-4 ASCII characters (will be padded with spaces). Microsoft's registry uses 4-letter all-caps tags.`
+		});
+	}
+	if (ver && !/^\d+\.\d{2,3}$/.test(ver)) {
+		issues.push({
+			codepoint: 0,
+			severity: 'info',
+			code: 'meta-version-format',
+			message: `Version "${ver}" doesn't match the OpenType "MAJOR.MINOR" convention (e.g. "1.000", "2.345"). Some tools parse the string into the head.fontRevision field and round.`
+		});
+	}
+
 	return sortBySeverity(issues);
 };
 

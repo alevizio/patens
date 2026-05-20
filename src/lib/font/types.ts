@@ -180,6 +180,20 @@ export type FontMetadata = {
 	 * Undefined defaults to 0 at build time.
 	 */
 	fsType?: 0 | 2 | 4 | 8;
+	/** name table ID 12 — designer's homepage / portfolio. */
+	designerURL?: string;
+	/** name table ID 8 — foundry / publisher name. Falls back to `designer` when blank. */
+	manufacturer?: string;
+	/** name table ID 11 — foundry / publisher URL. */
+	manufacturerURL?: string;
+	/** name table ID 14 — license URL (e.g. https://scripts.sil.org/OFL for OFL). */
+	licenseURL?: string;
+	/**
+	 * OS/2.achVendID — 4-byte ASCII foundry tag registered with Microsoft.
+	 * Blank/zero is treated as "unspecified" by font tools; setting a real
+	 * 4-byte tag is a professional polish step. Truncated / padded to 4 chars.
+	 */
+	vendorID?: string;
 };
 
 export const FS_TYPE_OPTIONS: Array<{ value: 0 | 2 | 4 | 8; label: string; hint: string }> = [

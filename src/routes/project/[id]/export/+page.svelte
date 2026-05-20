@@ -798,19 +798,25 @@ document.querySelectorAll('.controls button').forEach((b) => {
 		input.value = '';
 	};
 
-	const LICENSE_PRESETS: Record<string, { license: string; copyright?: (designer: string) => string }> = {
+	const LICENSE_PRESETS: Record<
+		string,
+		{ license: string; copyright?: (designer: string) => string; licenseURL?: string }
+	> = {
 		ofl: {
 			license:
 				'This Font Software is licensed under the SIL Open Font License, Version 1.1. ' +
 				'This license is copied below, and is also available with a FAQ at: ' +
 				'https://openfontlicense.org. Reserved Font Names must be changed in derivative work.',
-			copyright: (d) => `Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}, with Reserved Font Names.`
+			copyright: (d) =>
+				`Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}, with Reserved Font Names.`,
+			licenseURL: 'https://openfontlicense.org'
 		},
 		proprietary: {
 			license:
 				'All rights reserved. This font is proprietary and may not be redistributed, ' +
 				'modified, or used outside of the licensed scope without written permission.',
-			copyright: (d) => `Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}. All rights reserved.`
+			copyright: (d) =>
+				`Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}. All rights reserved.`
 		},
 		personal: {
 			license:
@@ -825,7 +831,8 @@ document.querySelectorAll('.controls button').forEach((b) => {
 		const designer = project.metadata.designer ?? '';
 		projectStore.updateMetadata({
 			license: preset.license,
-			...(preset.copyright ? { copyright: preset.copyright(designer) } : {})
+			...(preset.copyright ? { copyright: preset.copyright(designer) } : {}),
+			...(preset.licenseURL ? { licenseURL: preset.licenseURL } : {})
 		});
 	};
 </script>
@@ -888,6 +895,49 @@ document.querySelectorAll('.controls button').forEach((b) => {
 						value={project.metadata.license}
 						onchange={(e) =>
 							projectStore.updateMetadata({ license: e.currentTarget.value })}
+					/>
+				</Field>
+				<Field label="Designer URL" hint="Homepage / portfolio — name table ID 12">
+					<Input
+						value={project.metadata.designerURL ?? ''}
+						onchange={(e) =>
+							projectStore.updateMetadata({ designerURL: e.currentTarget.value })}
+						placeholder="https://yourdomain.com"
+					/>
+				</Field>
+				<Field label="Manufacturer / foundry" hint="Defaults to Designer when blank — name table ID 8">
+					<Input
+						value={project.metadata.manufacturer ?? ''}
+						onchange={(e) =>
+							projectStore.updateMetadata({ manufacturer: e.currentTarget.value })}
+						placeholder="e.g. Klim Type Foundry"
+					/>
+				</Field>
+				<Field label="Manufacturer URL" hint="Foundry homepage — name table ID 11">
+					<Input
+						value={project.metadata.manufacturerURL ?? ''}
+						onchange={(e) =>
+							projectStore.updateMetadata({ manufacturerURL: e.currentTarget.value })}
+						placeholder="https://foundry.com"
+					/>
+				</Field>
+				<Field label="License URL" hint="e.g. https://scripts.sil.org/OFL — name table ID 14">
+					<Input
+						value={project.metadata.licenseURL ?? ''}
+						onchange={(e) =>
+							projectStore.updateMetadata({ licenseURL: e.currentTarget.value })}
+						placeholder="https://scripts.sil.org/OFL"
+					/>
+				</Field>
+				<Field
+					label="Vendor ID"
+					hint="4-char ASCII foundry tag — OS/2.achVendID. Register at microsoft.com/typography/vendors"
+				>
+					<Input
+						value={project.metadata.vendorID ?? ''}
+						onchange={(e) =>
+							projectStore.updateMetadata({ vendorID: e.currentTarget.value })}
+						placeholder="e.g. KLIM"
 					/>
 				</Field>
 			</div>
