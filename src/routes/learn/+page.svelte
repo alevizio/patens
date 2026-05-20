@@ -4,7 +4,6 @@
 	import Compass from '@lucide/svelte/icons/compass';
 	import Pencil from '@lucide/svelte/icons/pen-tool';
 	import Wrench from '@lucide/svelte/icons/wrench';
-	import Rocket from '@lucide/svelte/icons/rocket';
 	import Type from '@lucide/svelte/icons/type';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
@@ -598,33 +597,29 @@
 		</div>
 	</section>
 
-	<!-- Final CTA — bigger, hero-like to close the page strongly -->
-	<section
-		class="mt-24 flex flex-col items-start gap-5 rounded-2xl border border-accent/40 bg-accent-soft/30 p-8 md:flex-row md:items-center md:gap-8"
-	>
-		<div
-			class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-accent text-accent-fg"
-		>
-			<Rocket class="size-6" />
-		</div>
-		<div class="flex-1">
-			<div
-				class="text-[20px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
-			>
-				Ready to start?
+	<!-- Final CTA — editorial closing rule. No tinted container, no icon-box;
+	     a thin accent border-t + Hoefler heading + action button. -->
+	<section class="mt-24 border-t border-accent/30 pt-10">
+		<div class="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-8">
+			<div class="flex-1">
+				<div
+					class="text-[24px] leading-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					Ready to start?
+				</div>
+				<p class="mt-2 text-[13px] leading-relaxed text-fg-muted">
+					Create a project, fill in the Brief tab, draw your control set —
+					<span class="font-mono text-fg-muted" data-numeric>n o H O a e s c p v y f g</span>.
+				</p>
 			</div>
-			<p class="mt-1 text-[13px] leading-relaxed text-fg-muted">
-				Create a project, fill in the Brief tab, draw your control set —
-				<span class="font-mono text-fg-muted" data-numeric>n o H O a e s c p v y f g</span>.
-			</p>
+			<a
+				href="/"
+				class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-5 py-2.5 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent/90"
+			>
+				New project →
+			</a>
 		</div>
-		<a
-			href="/"
-			class="inline-flex items-center gap-1.5 rounded-md bg-accent px-4 py-2 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent/90"
-		>
-			New project →
-		</a>
 	</section>
 
 		</div>
