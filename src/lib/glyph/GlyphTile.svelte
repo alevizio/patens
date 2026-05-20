@@ -62,9 +62,14 @@
 	});
 
 	const viewBox = $derived.by(() => {
-		const totalHeight = fontSpan;
+		// With scaleY(-1) flipping the SVG around its center, the viewBox's
+		// pre-flip top maps to the post-flip bottom. To make font ascender land
+		// at the visual top of the tile (and descender at the bottom), the
+		// pre-flip viewBox must START at `descender` and end at `ascender`.
+		// Previously this used `-ascender`, which pushed the cap-height off the
+		// top of the tile — only the baseline strip was visible.
 		const width = Math.max(glyph.advanceWidth, 100);
-		return `0 ${-ascender} ${width} ${totalHeight}`;
+		return `0 ${descender} ${width} ${fontSpan}`;
 	});
 
 	const componentCount = $derived(glyph.components?.length ?? 0);
@@ -108,7 +113,7 @@
 			     contours, so the project's own preview font has an empty slot
 			     for this codepoint and would paint blank if we used it. -->
 			<span
-				class="text-2xl font-light text-fg-muted/80"
+				class="text-2xl font-light text-fg-subtle"
 				style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 			>
 				{char}

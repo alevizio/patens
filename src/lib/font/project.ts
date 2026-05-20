@@ -243,7 +243,10 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		const totalHeight = p.metrics.ascender - p.metrics.descender;
 		thumbnail = {
 			path: cmds.join(' '),
-			viewBox: `0 ${-p.metrics.ascender} ${Math.max(pick.advanceWidth, 200)} ${totalHeight}`,
+			// viewBox min-y is `descender` (not `-ascender`): paired with the
+			// scaleY(-1) the renderer applies, this maps font ascender to the
+			// visual top of the thumbnail and descender to the bottom.
+			viewBox: `0 ${p.metrics.descender} ${Math.max(pick.advanceWidth, 200)} ${totalHeight}`,
 			advance: pick.advanceWidth
 		};
 	}
