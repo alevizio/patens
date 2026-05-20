@@ -8,6 +8,52 @@
 	import Type from '@lucide/svelte/icons/type';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
+	// Sidebar nav: anchors + scroll-spy. `mountedSections` is populated by
+	// the per-section IntersectionObserver effect; whichever one is closest
+	// to the top of the viewport wins `activeId`.
+	const SECTIONS = [
+		{ id: 'timeline', label: 'Beginner timeline' },
+		{ id: 'exercises', label: 'Exercises' },
+		{ id: 'tools', label: 'Tools' },
+		{ id: 'reading', label: 'Reading' },
+		{ id: 'foundries', label: 'Foundries' },
+		{ id: 'research', label: 'Research' }
+	] as const;
+	let activeId = $state<string>(SECTIONS[0].id);
+
+	$effect(() => {
+		if (typeof window === 'undefined') return;
+		const visible = new Map<string, number>();
+		const obs = new IntersectionObserver(
+			(entries) => {
+				for (const e of entries) {
+					if (e.isIntersecting) visible.set(e.target.id, e.intersectionRatio);
+					else visible.delete(e.target.id);
+				}
+				if (visible.size === 0) return;
+				// Whichever section reads highest in the viewport wins.
+				let bestId = activeId;
+				let bestTop = Infinity;
+				for (const id of visible.keys()) {
+					const el = document.getElementById(id);
+					if (!el) continue;
+					const top = el.getBoundingClientRect().top;
+					if (top < bestTop && top >= -80) {
+						bestTop = top;
+						bestId = id;
+					}
+				}
+				activeId = bestId;
+			},
+			{ rootMargin: '-80px 0px -55% 0px', threshold: [0, 0.1, 0.25, 0.5] }
+		);
+		for (const s of SECTIONS) {
+			const el = document.getElementById(s.id);
+			if (el) obs.observe(el);
+		}
+		return () => obs.disconnect();
+	});
+
 	const TIMELINE: Array<{ weeks: string; phase: string; tasks: string[] }> = [
 		{
 			weeks: 'Week 1–2',
@@ -256,8 +302,35 @@
 		</p>
 	</section>
 
+	<!-- Sidebar nav + main content. The sidebar sticks to the top of the
+	     viewport while scrolling and highlights the section currently in
+	     view. On mobile it's hidden — the page just stacks. -->
+	<div class="lg:grid lg:grid-cols-[180px_1fr] lg:gap-12 xl:grid-cols-[200px_1fr] xl:gap-16">
+		<aside class="hidden lg:block">
+			<nav class="sticky top-8">
+				<div class="mb-3 font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
+					On this page
+				</div>
+				<ul class="grid border-l border-border">
+					{#each SECTIONS as s (s.id)}
+						<a
+							href="#{s.id}"
+							class="-ml-px block border-l-2 py-1.5 pl-4 text-[12px] leading-tight transition-colors {activeId ===
+							s.id
+								? 'border-fg font-medium text-fg'
+								: 'border-transparent text-fg-subtle hover:text-fg'}"
+						>
+							{s.label}
+						</a>
+					{/each}
+				</ul>
+			</nav>
+		</aside>
+
+		<div class="min-w-0">
+
 	<!-- TIMELINE — primary section, biggest treatment -->
-	<section class="mb-16">
+	<section id="timeline" class="mb-16 scroll-mt-8">
 		<div class="mb-6 flex items-baseline gap-3">
 			<Compass class="size-5 self-center text-accent" />
 			<h2
@@ -316,7 +389,7 @@
 	</section>
 
 	<!-- EXERCISES — secondary, 2-col grid -->
-	<section class="mb-16">
+	<section id="exercises" class="mb-16 scroll-mt-8">
 		<div class="mb-5 flex items-baseline gap-3">
 			<Pencil class="size-4 self-center text-accent" />
 			<h2
@@ -343,7 +416,7 @@
 
 	<!-- TOOLS — asymmetric: heading column + grid column.
 	     Breaks the "stack of full-width sections" rhythm. -->
-	<section class="mb-16 grid gap-8 md:grid-cols-[4fr_8fr] md:gap-10">
+	<section id="tools" class="mb-16 grid scroll-mt-8 gap-8 md:grid-cols-[4fr_8fr] md:gap-10">
 		<div>
 			<div class="flex items-baseline gap-3">
 				<Wrench class="size-4 self-center text-accent" />
@@ -386,7 +459,7 @@
 	</section>
 
 	<!-- READING — same asymmetric pattern, mirrored to vary the rhythm -->
-	<section class="mb-16 grid gap-8 md:grid-cols-[8fr_4fr] md:gap-10">
+	<section id="reading" class="mb-16 grid scroll-mt-8 gap-8 md:grid-cols-[8fr_4fr] md:gap-10">
 		<div class="grid gap-2 md:order-2-NEVER">
 			{#each READING as r (r.title)}
 				<a
@@ -435,7 +508,7 @@
 	</section>
 
 	<!-- FOUNDRIES — 2-col grid of cards, slightly more typographic -->
-	<section class="mb-16">
+	<section id="foundries" class="mb-16 scroll-mt-8">
 		<div class="mb-5 flex items-baseline gap-3">
 			<Compass class="size-4 self-center text-accent" />
 			<h2
@@ -478,7 +551,7 @@
 	</section>
 
 	<!-- RESEARCH — small tertiary section -->
-	<section class="mb-16">
+	<section id="research" class="mb-16 scroll-mt-8">
 		<div class="mb-4 flex items-baseline gap-3">
 			<BookOpen class="size-4 self-center text-accent" />
 			<h2
@@ -551,4 +624,7 @@
 			New project →
 		</a>
 	</section>
+
+		</div>
+	</div>
 </div>
