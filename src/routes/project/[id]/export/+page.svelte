@@ -11,11 +11,13 @@
 		ensurePython,
 		finalizeFont,
 		buildVariableFont,
+		compileStaticTtf,
 		instancesAsStaticZip,
 		subscribeToPython,
 		getPythonProgress
 	} from '$lib/font/python';
 	import { otfToWoff2 } from '$lib/font/woff2';
+	import { hintTtf, checkHinterAvailable, type HinterAvailability } from '$lib/font/hint';
 	import { projectToUfoZipNative } from '$lib/font/ufo';
 	import { autoFeaSource } from '$lib/font/fea';
 	import { generateDesignMd } from '$lib/font/design-md';
@@ -174,6 +176,48 @@ body {
 			new Blob([buffer], { type: 'font/otf' }),
 			`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}.otf`
 		);
+	};
+
+	// ---------- Static TTF (TrueType outlines) + optional auto-hinting ----------
+	// TTF is what Windows GDI / Office / older Edge consume best at body sizes.
+	// `ttfautohint` only works on `glyf`-format binaries, so we have to convert
+	// the OTF (CFF outlines) → TTF (glyf, via Cu2Qu) before posting to the
+	// hint server.
+	let ttfBusy = $state(false);
+	let hintForWindows = $state(true);
+	let hinter = $state<HinterAvailability>({ available: false, reason: 'unchecked' });
+	$effect(() => {
+		void checkHinterAvailable().then((a) => (hinter = a));
+	});
+	const exportTtf = async () => {
+		if (!project || ttfBusy) return;
+		ttfBusy = true;
+		try {
+			const otfBuffer = await buildOtfBuffer();
+			await ensurePython();
+			let ttfBuffer = await compileStaticTtf(otfBuffer);
+			let hintSuffix = '';
+			if (hintForWindows && hinter.available) {
+				try {
+					ttfBuffer = await hintTtf(ttfBuffer);
+					hintSuffix = '-hinted';
+					toast.success(
+						`Hinted TTF exported (${(ttfBuffer.byteLength / 1024).toFixed(1)} KB).`
+					);
+				} catch (err) {
+					const msg = err instanceof Error ? err.message : String(err);
+					toast.warn(`Hinting failed — exported unhinted. (${msg})`);
+				}
+			}
+			downloadBlob(
+				new Blob([ttfBuffer], { type: 'font/ttf' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-${safeFilename(project.metadata.styleName)}${hintSuffix}.ttf`
+			);
+		} catch (err) {
+			toast.error('TTF export failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			ttfBusy = false;
+		}
 	};
 
 	// ---------- Trial / restricted subset export ----------
@@ -1058,6 +1102,38 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					<span class="text-[12px] text-fg-subtle">
 						Standard OpenType file for design apps and Font Book.
 					</span>
+				</div>
+				<div class="flex flex-wrap items-center gap-3">
+					<Button onclick={exportTtf} disabled={!validation.ok || ttfBusy} loading={ttfBusy}>
+						{#snippet icon()}<Download class="size-4" />{/snippet}
+						{ttfBusy ? 'Compiling TTF…' : 'Export TTF'}
+					</Button>
+					<label
+						class="inline-flex items-center gap-1.5 text-[12px] text-fg-muted {hinter.available
+							? ''
+							: 'opacity-50'}"
+						title={hinter.available
+							? 'Adds TrueType bytecode hints for crisper rendering on Windows GDI / Office / sub-150% DPI displays'
+							: `Hinting unavailable: ${'reason' in hinter ? hinter.reason : 'server not configured'}. The TTF will still export, just unhinted.`}
+					>
+						<input
+							type="checkbox"
+							bind:checked={hintForWindows}
+							disabled={!hinter.available}
+							class="size-3.5 accent-accent"
+						/>
+						Hint for Windows
+						{#if hinter.available && 'version' in hinter}
+							<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+								· {hinter.version}
+							</span>
+						{/if}
+					</label>
+				</div>
+				<div class="-mt-1 pl-1 text-[11px] leading-snug text-fg-subtle">
+					TrueType outlines (cubic → quadratic via Cu2Qu). Auto-hinting via
+					<code class="font-mono text-fg-subtle">ttfautohint</code> sharpens body
+					text on Windows + low-DPI displays; harmless on macOS / iOS / retina.
 				</div>
 				{#if isVariable}
 					<div class="flex items-center gap-3">

@@ -205,6 +205,70 @@ font.save('/tmp/out.otf')
 };
 
 /**
+ * Convert an OTF/CFF buffer to a TTF/glyf buffer by converting cubic
+ * outlines to quadratic via Cu2Qu. Required step before TrueType
+ * auto-hinting (`ttfautohint` only operates on TT outlines + the glyf
+ * table). The conversion is lossy in the strict mathematical sense but
+ * imperceptible at body sizes; max-err of 1 EM unit is the de-facto
+ * standard (Glyphs / FontLab use the same).
+ */
+export const compileStaticTtf = async (otfBuffer: ArrayBuffer): Promise<ArrayBuffer> => {
+	const py = await ensurePython();
+	py.FS.writeFile('/tmp/in.otf', new Uint8Array(otfBuffer));
+	await py.runPythonAsync(`
+from fontTools.ttLib import TTFont, newTable
+from fontTools.pens.cu2quPen import Cu2QuPen
+from fontTools.pens.ttGlyphPen import TTGlyphPen
+
+font = TTFont('/tmp/in.otf')
+assert font.sfntVersion == 'OTTO', 'Expected CFF/OTF input'
+
+glyph_order = font.getGlyphOrder()
+glyph_set = font.getGlyphSet()
+
+glyf = newTable('glyf')
+glyf.glyphOrder = glyph_order
+glyf.glyphs = {}
+for name in glyph_order:
+    pen = TTGlyphPen(None)
+    cu2qu = Cu2QuPen(pen, max_err=1.0, reverse_direction=True)
+    glyph_set[name].draw(cu2qu)
+    glyf.glyphs[name] = pen.glyph()
+
+# Swap CFF outlines for glyf/loca + bump sfntVersion to TTF
+for tag in ('CFF ', 'CFF2', 'VORG'):
+    if tag in font:
+        del font[tag]
+font['glyf'] = glyf
+font['loca'] = newTable('loca')
+font.sfntVersion = '\\x00\\x01\\x00\\x00'
+
+# maxp v1.0 (TT format) — fields auto-compute on save
+maxp = font['maxp']
+maxp.tableVersion = 0x00010000
+maxp.numGlyphs = len(glyph_order)
+for attr in (
+    'maxPoints', 'maxContours', 'maxCompositePoints', 'maxCompositeContours',
+    'maxZones', 'maxTwilightPoints', 'maxStorage', 'maxFunctionDefs',
+    'maxInstructionDefs', 'maxStackElements', 'maxSizeOfInstructions',
+    'maxComponentElements', 'maxComponentDepth'
+):
+    setattr(maxp, attr, 0)
+maxp.maxZones = 1
+
+# post format 2.0 carries glyph names; 3.0 doesn't. Keep names if present.
+if 'post' in font and font['post'].formatType not in (2.0, 3.0):
+    font['post'].formatType = 2.0
+
+font.save('/tmp/out.ttf')
+	`);
+	const out = py.FS.readFile('/tmp/out.ttf');
+	const buf = new ArrayBuffer(out.byteLength);
+	new Uint8Array(buf).set(out);
+	return buf;
+};
+
+/**
  * Build a variable font, then instantiate each named instance as a static
  * TTF, zip them together, and return the zip buffer. Used by Export →
  * "Export instances as a static family".
