@@ -427,15 +427,11 @@
 				or visit any project and link it from its Stats popover (coming next).
 			</p>
 		{:else}
-			<ul class="grid gap-2 md:grid-cols-2">
+			<ul class="divide-y divide-border border-y border-border">
 				{#each siblings as s (s.id)}
 					{@const chips = axisChips(s.familyAxes)}
-					<li
-						class="grid grid-cols-[auto_1fr_auto] items-center gap-3 rounded-md border border-border bg-surface-2/40 p-3"
-					>
-						<div
-							class="flex size-12 items-center justify-center overflow-hidden rounded bg-canvas"
-						>
+					<li class="grid grid-cols-[auto_1fr_auto] items-center gap-4 py-3">
+						<div class="flex size-12 items-center justify-center text-fg">
 							{#if s.thumbnail}
 								<svg
 									viewBox={s.thumbnail.viewBox}
@@ -448,39 +444,38 @@
 									<path d={s.thumbnail.path} fill="currentColor" fill-rule="evenodd" />
 								</svg>
 							{:else}
-								<span class="text-2xl font-mono text-fg-muted">H</span>
+								<span
+									class="text-2xl leading-none text-fg-muted"
+									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+								>
+									H
+								</span>
 							{/if}
 						</div>
 						<div class="min-w-0">
 							<a
 								href="/project/{s.id}/edit"
-								class="block truncate text-[13px] font-semibold text-fg hover:text-accent"
+								class="block truncate text-[15px] leading-tight text-fg transition-colors hover:text-accent-strong"
+								style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 							>
 								{s.name}
 							</a>
-							<div class="flex flex-wrap gap-1 mt-0.5">
+							<div
+								class="mt-1 flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5 font-mono text-[10px] text-fg-subtle"
+								data-numeric
+							>
 								{#each chips as c (c)}
-									<span
-										class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted"
-										data-numeric
-									>
-										{c}
-									</span>
+									<span>{c}</span>
 								{/each}
 								{#if chips.length === 0}
-									<span class="text-[10px] text-fg-subtle">no familyAxes set</span>
+									<span>no familyAxes</span>
 								{/if}
-								<span
-									class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-subtle"
-									data-numeric
-									title="Drawn glyphs · last sealed version"
-								>
+								<span title="Drawn glyphs · last sealed version">
 									{s.glyphCount} drawn{s.lastSealedVersion ? ` · v${s.lastSealedVersion}` : ''}
 								</span>
 								{#if (s.editsToday ?? 0) > 0}
 									<span
-										class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent-strong"
-										data-numeric
+										class="font-medium text-accent-strong"
 										title="Glyphs edited in last 24h"
 									>
 										{s.editsToday} today
@@ -491,7 +486,7 @@
 						<button
 							type="button"
 							onclick={() => handleUnlinkSibling(s.id)}
-							class="rounded p-1 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
+							class="rounded p-1 text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong"
 							aria-label="Unlink from family"
 							title="Unlink from family"
 						>
