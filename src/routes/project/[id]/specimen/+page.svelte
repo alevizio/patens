@@ -133,11 +133,28 @@
 					<div>
 						<div class="font-semibold text-neutral-900">Designer</div>
 						<div>{project.metadata.designer || '—'}</div>
+						{#if project.metadata.designerURL?.trim()}
+							<div class="mt-0.5 truncate text-neutral-400">
+								{project.metadata.designerURL.replace(/^https?:\/\//, '')}
+							</div>
+						{/if}
 					</div>
-					<div>
-						<div class="font-semibold text-neutral-900">Version</div>
-						<div>{project.metadata.version}</div>
-					</div>
+					{#if project.metadata.manufacturer?.trim()}
+						<div>
+							<div class="font-semibold text-neutral-900">Foundry</div>
+							<div>{project.metadata.manufacturer}</div>
+							{#if project.metadata.manufacturerURL?.trim()}
+								<div class="mt-0.5 truncate text-neutral-400">
+									{project.metadata.manufacturerURL.replace(/^https?:\/\//, '')}
+								</div>
+							{/if}
+						</div>
+					{:else}
+						<div>
+							<div class="font-semibold text-neutral-900">Version</div>
+							<div>{project.metadata.version}</div>
+						</div>
+					{/if}
 					<div>
 						<div class="font-semibold text-neutral-900">Glyphs</div>
 						<div>{drawnGlyphs.length} drawn</div>
@@ -247,11 +264,63 @@
 					<dt class="text-neutral-500">Version</dt>
 					<dd>{project.metadata.version}</dd>
 					<dt class="text-neutral-500">Designer</dt>
-					<dd>{project.metadata.designer || '—'}</dd>
+					<dd>
+						{project.metadata.designer || '—'}
+						{#if project.metadata.designerURL?.trim()}
+							<span class="ml-1.5 text-neutral-400">·
+								<a
+									href={project.metadata.designerURL}
+									target="_blank"
+									rel="noopener"
+									class="underline-offset-2 hover:underline"
+								>
+									{project.metadata.designerURL.replace(/^https?:\/\//, '')}
+								</a>
+							</span>
+						{/if}
+					</dd>
+					{#if project.metadata.manufacturer?.trim() && project.metadata.manufacturer !== project.metadata.designer}
+						<dt class="text-neutral-500">Foundry</dt>
+						<dd>
+							{project.metadata.manufacturer}
+							{#if project.metadata.manufacturerURL?.trim()}
+								<span class="ml-1.5 text-neutral-400">·
+									<a
+										href={project.metadata.manufacturerURL}
+										target="_blank"
+										rel="noopener"
+										class="underline-offset-2 hover:underline"
+									>
+										{project.metadata.manufacturerURL.replace(/^https?:\/\//, '')}
+									</a>
+								</span>
+							{/if}
+						</dd>
+					{/if}
 					<dt class="text-neutral-500">Copyright</dt>
 					<dd>{project.metadata.copyright || '—'}</dd>
 					<dt class="text-neutral-500">License</dt>
-					<dd class="whitespace-pre-line">{project.metadata.license || '—'}</dd>
+					<dd class="whitespace-pre-line">
+						{project.metadata.license || '—'}
+						{#if project.metadata.licenseURL?.trim()}
+							<div class="mt-1 text-neutral-400">
+								<a
+									href={project.metadata.licenseURL}
+									target="_blank"
+									rel="noopener"
+									class="underline-offset-2 hover:underline"
+								>
+									{project.metadata.licenseURL.replace(/^https?:\/\//, '')}
+								</a>
+							</div>
+						{/if}
+					</dd>
+					{#if project.metadata.vendorID?.trim()}
+						<dt class="text-neutral-500">Vendor ID</dt>
+						<dd class="font-mono text-[12px]" data-numeric>
+							{project.metadata.vendorID.slice(0, 4).padEnd(4, ' ')}
+						</dd>
+					{/if}
 					<dt class="text-neutral-500">UPM</dt>
 					<dd data-numeric>{project.metrics.unitsPerEm}</dd>
 					<dt class="text-neutral-500">Cap height / x-height</dt>
