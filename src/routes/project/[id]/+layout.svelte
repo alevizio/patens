@@ -451,69 +451,99 @@
 				</button>
 				{#if projectSwitcherOpen}
 					<!-- No fixed-inset click-catcher — closed by window-mousedown
-					     effect above so it doesn't eat clicks on the rest of the page. -->
+					     effect above so it doesn't eat clicks on the rest of the page.
+					     Editorial direction matches home + families: no row pills,
+					     divider rhythm between projects, left-border indicator on
+					     active/hover, Hoefler serif on project names. -->
 					<div
 						bind:this={projectSwitcherEl}
-						class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface p-1 shadow-xl"
+						class="absolute left-0 top-full z-40 mt-1.5 max-h-[420px] w-80 overflow-y-auto rounded-lg border border-border bg-surface shadow-xl"
 					>
-						{#each allProjects as p (p.id)}
-							<a
-								href="/project/{p.id}/edit"
-								onclick={() => (projectSwitcherOpen = false)}
-								class="flex items-center gap-3 rounded-md px-3 py-2 transition-colors hover:bg-surface-2 {p.id ===
-								projectStore.project?.id
-									? 'bg-accent-soft/40'
-									: ''}"
-							>
-								<div
-									class="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded bg-fg/5 text-[14px] font-semibold text-fg"
-								>
-									{#if p.thumbnail}
-										<svg
-											viewBox={p.thumbnail.viewBox}
-											width="32"
-											height="32"
-											preserveAspectRatio="xMidYMid meet"
-											style="transform: scaleY(-1);"
-											aria-hidden="true"
+						<ul class="divide-y divide-border">
+							{#each allProjects as p (p.id)}
+								{@const active = p.id === projectStore.project?.id}
+								<li>
+									<a
+										href="/project/{p.id}/edit"
+										onclick={() => (projectSwitcherOpen = false)}
+										class="group flex items-center gap-3 border-l-2 px-3.5 py-2.5 transition-colors {active
+											? 'border-fg bg-surface-2/40'
+											: 'border-transparent hover:border-border-strong hover:bg-surface-2/30'}"
+									>
+										<div
+											class="flex size-9 shrink-0 items-center justify-center overflow-hidden text-fg"
 										>
-											<path d={p.thumbnail.path} fill="currentColor" fill-rule="evenodd" />
-										</svg>
-									{:else}
-										{(p.familyName[0] ?? 'A').toUpperCase()}
-									{/if}
-								</div>
-								<div class="min-w-0 flex-1">
-									<div class="flex items-center gap-1.5">
-										<div class="truncate text-[13px] font-medium text-fg">{p.name}</div>
-										{#if p.locked}
-											<LockIcon class="size-2.5 text-warn" aria-label="Locked" />
-										{/if}
-									</div>
-									<div class="truncate text-[11px] text-fg-subtle" data-numeric>
-										{p.familyName} · {p.glyphCount} drawn{(p.kerningCount ?? 0) > 0
-											? ` · ${p.kerningCount} kern`
-											: ''}{(p.editsToday ?? 0) > 0 ? ` · ${p.editsToday} today` : ''}
-									</div>
-									{#if p.tagline}
-										<div class="mt-0.5 truncate text-[10px] text-fg-subtle">
-											{p.tagline}
+											{#if p.thumbnail}
+												<svg
+													viewBox={p.thumbnail.viewBox}
+													width="36"
+													height="36"
+													preserveAspectRatio="xMidYMid meet"
+													style="transform: scaleY(-1);"
+													aria-hidden="true"
+												>
+													<path
+														d={p.thumbnail.path}
+														fill="currentColor"
+														fill-rule="evenodd"
+													/>
+												</svg>
+											{:else}
+												<span
+													class="text-[22px] leading-none"
+													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+												>
+													{(p.familyName[0] ?? 'A').toUpperCase()}
+												</span>
+											{/if}
 										</div>
-									{/if}
-								</div>
-							</a>
-						{/each}
+										<div class="min-w-0 flex-1">
+											<div class="flex items-center gap-1.5">
+												<div
+													class="truncate text-[14px] leading-tight text-fg"
+													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+												>
+													{p.name}
+												</div>
+												{#if p.locked}
+													<LockIcon
+														class="size-2.5 shrink-0 text-warn-strong"
+														aria-label="Locked"
+													/>
+												{/if}
+											</div>
+											<div
+												class="mt-0.5 truncate font-mono text-[10px] text-fg-subtle"
+												data-numeric
+											>
+												{p.familyName} · {p.glyphCount} drawn{(p.kerningCount ?? 0) > 0
+													? ` · ${p.kerningCount} kern`
+													: ''}{(p.editsToday ?? 0) > 0
+													? ` · ${p.editsToday} today`
+													: ''}
+											</div>
+											{#if p.tagline}
+												<div
+													class="mt-0.5 truncate text-[11px] leading-snug text-fg-subtle"
+													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+												>
+													{p.tagline}
+												</div>
+											{/if}
+										</div>
+									</a>
+								</li>
+							{/each}
+						</ul>
 						{#if allProjects.length === 0}
-							<div class="px-3 py-2 text-[12px] text-fg-subtle">No other projects.</div>
+							<div class="px-4 py-3 text-[12px] text-fg-subtle">No other projects.</div>
 						{/if}
-						<div class="mt-1 border-t border-border pt-1">
-							<a
-								href="/"
-								class="block rounded-md px-3 py-2 text-[12px] font-medium text-accent-strong hover:bg-accent-soft/40"
-							>
-								All projects · New font →
-							</a>
-						</div>
+						<a
+							href="/"
+							class="block border-t border-border px-4 py-2.5 text-[12px] font-medium text-accent-strong transition-colors hover:bg-accent-soft/30"
+						>
+							All projects · New font →
+						</a>
 					</div>
 				{/if}
 			</div>
