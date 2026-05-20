@@ -313,15 +313,17 @@
 				</div>
 				<ul class="grid border-l border-border">
 					{#each SECTIONS as s (s.id)}
-						<a
-							href="#{s.id}"
-							class="-ml-px block border-l-2 py-1.5 pl-4 text-[12px] leading-tight transition-colors {activeId ===
-							s.id
-								? 'border-fg font-medium text-fg'
-								: 'border-transparent text-fg-subtle hover:text-fg'}"
-						>
-							{s.label}
-						</a>
+						<li>
+							<a
+								href="#{s.id}"
+								class="-ml-px block border-l-2 py-1.5 pl-4 text-[12px] leading-tight transition-colors {activeId ===
+								s.id
+									? 'border-fg font-medium text-fg'
+									: 'border-transparent text-fg-subtle hover:text-fg'}"
+							>
+								{s.label}
+							</a>
+						</li>
 					{/each}
 				</ul>
 			</nav>
