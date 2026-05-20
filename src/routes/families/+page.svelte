@@ -2,7 +2,6 @@
 	import type { FamilyIndexEntry } from '$lib/font/family';
 	import { formatRelative } from '$lib/util/format';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Layers from '@lucide/svelte/icons/layers';
 	import Type from '@lucide/svelte/icons/type';
 
 	let { data }: { data: { families: FamilyIndexEntry[] } } = $props();
@@ -102,21 +101,16 @@
 					{data.families.length}
 				</span>
 			</div>
-			<ul class="grid gap-2">
+			<ul class="divide-y divide-border border-y border-border">
 				{#each data.families as f (f.id)}
 					<li>
 						<a
 							href="/family/{f.id}"
-							class="group flex items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-4 transition-all hover:-translate-y-0.5 hover:border-accent hover:shadow-sm"
+							class="group flex items-baseline justify-between gap-4 py-4 transition-colors"
 						>
-							<div
-								class="flex size-12 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent-strong"
-							>
-								<Layers class="size-5" />
-							</div>
 							<div class="min-w-0 flex-1">
 								<div
-									class="truncate text-[16px] leading-tight text-fg"
+									class="truncate text-[20px] leading-tight text-fg transition-colors group-hover:text-accent-strong"
 									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 								>
 									{f.name}
@@ -130,7 +124,8 @@
 								</div>
 							</div>
 							<span
-								class="text-fg-subtle transition-all group-hover:translate-x-0.5 group-hover:text-accent"
+								class="shrink-0 font-mono text-[14px] text-fg-subtle transition-transform group-hover:translate-x-0.5 group-hover:text-accent-strong"
+								aria-hidden="true"
 							>
 								→
 							</span>
