@@ -25,7 +25,9 @@
 		}}
 		tabindex="-1"
 	>
-		<Panel class="w-full max-w-xl">
+		<Panel
+			class="max-h-[calc(100vh-2rem)] w-full max-w-xl overflow-y-auto"
+		>
 			<div class="mb-3 flex items-start justify-between gap-3">
 				<div>
 					<div class="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-wider text-accent uppercase">
