@@ -65,20 +65,18 @@
 				{#each revisions as r (r.id)}
 					<li class="flex items-center gap-2 rounded-md border border-border bg-surface-2/40 px-2 py-1.5">
 						<svg
-							viewBox="0 0 {Math.max(r.advanceWidth, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
+							viewBox="0 {metrics?.descender ?? -200} {Math.max(r.advanceWidth, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
 							width="32"
 							height="32"
 							preserveAspectRatio="xMidYMid meet"
 							style="transform: scaleY(-1);"
 							aria-hidden="true"
 						>
-							<g transform="translate(0 {-(metrics?.ascender ?? 800)})">
-								<path
-									d={contoursToSvgPath(r.contours)}
-									fill="currentColor"
-									fill-rule="evenodd"
-								/>
-							</g>
+							<path
+								d={contoursToSvgPath(r.contours)}
+								fill="currentColor"
+								fill-rule="evenodd"
+							/>
 						</svg>
 						<span class="flex-1 truncate text-[11px] text-fg-muted" data-numeric>
 							{formatTime(r.takenAt)}

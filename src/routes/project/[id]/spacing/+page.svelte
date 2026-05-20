@@ -1020,20 +1020,18 @@
 					{@const isOutlier = stem > 0 && Math.abs(diff) > 5}
 					<div class="flex flex-col items-center gap-1">
 						<svg
-							viewBox="0 0 {Math.max(g.advanceWidth, 200)} {(project?.metrics.ascender ?? 800) - (project?.metrics.descender ?? -200)}"
+							viewBox="0 {project?.metrics.descender ?? -200} {Math.max(g.advanceWidth, 200)} {(project?.metrics.ascender ?? 800) - (project?.metrics.descender ?? -200)}"
 							width="60"
 							height="80"
 							preserveAspectRatio="xMidYMid meet"
 							style="transform: scaleY(-1);"
 							aria-label={g.name}
 						>
-							<g transform="translate(0 {-(project?.metrics.ascender ?? 800)})">
-								<path
-									d={contoursToSvgPath(g.contours)}
-									fill="currentColor"
-									fill-rule="evenodd"
-								/>
-							</g>
+							<path
+								d={contoursToSvgPath(g.contours)}
+								fill="currentColor"
+								fill-rule="evenodd"
+							/>
 						</svg>
 						<div class="flex flex-col items-center text-[10px]">
 							<span class="font-mono text-fg">{String.fromCodePoint(g.codepoint)}</span>

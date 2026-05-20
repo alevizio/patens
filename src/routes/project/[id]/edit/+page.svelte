@@ -1572,19 +1572,17 @@
 					<div class="flex items-center gap-3">
 						<div class="shrink-0 rounded border border-border bg-canvas p-2">
 							<svg
-								viewBox="0 0 {Math.max(glyph.advanceWidth, 200)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
+								viewBox="0 {metrics?.descender ?? -200} {Math.max(glyph.advanceWidth, 200)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
 								width="80"
 								height="80"
 								preserveAspectRatio="xMidYMid meet"
 								style="transform: scaleY(-1);"
 							>
-								<g transform="translate(0 {-(metrics?.ascender ?? 800)})">
-									<path
-										d={contoursToSvgPath(interpolatedContours)}
-										fill="currentColor"
-										fill-rule="evenodd"
-									/>
-								</g>
+								<path
+									d={contoursToSvgPath(interpolatedContours)}
+									fill="currentColor"
+									fill-rule="evenodd"
+								/>
 							</svg>
 						</div>
 						<div class="flex-1 grid gap-1.5">
@@ -1640,7 +1638,7 @@
 								></span>
 							{/if}
 							<svg
-								viewBox="0 0 {Math.max(item.glyph?.advanceWidth ?? 100, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
+								viewBox="0 {metrics?.descender ?? -200} {Math.max(item.glyph?.advanceWidth ?? 100, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
 								width="40"
 								height="40"
 								preserveAspectRatio="xMidYMid meet"
@@ -1648,13 +1646,11 @@
 								aria-hidden="true"
 							>
 								{#if item.glyph && item.glyph.contours.length > 0}
-									<g transform="translate(0 {-(metrics?.ascender ?? 800)})">
-										<path
-											d={contoursToSvgPath(item.glyph.contours)}
-											fill="currentColor"
-											fill-rule="evenodd"
-										/>
-									</g>
+									<path
+										d={contoursToSvgPath(item.glyph.contours)}
+										fill="currentColor"
+										fill-rule="evenodd"
+									/>
 								{/if}
 							</svg>
 							<span class="text-[10px] font-medium {isActive ? 'text-accent' : 'text-fg-muted'}">
