@@ -42,6 +42,8 @@
 	import Download from '@lucide/svelte/icons/download';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
 	import HardDrive from '@lucide/svelte/icons/hard-drive';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
 	import StorageDialog from '$lib/ui/StorageDialog.svelte';
 	import { createDemoProject } from '$lib/font/demo-project';
 
@@ -660,6 +662,19 @@
 			>
 				Learn the craft
 			</a>
+			<button
+				type="button"
+				onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
+				class="inline-flex size-7 items-center justify-center text-fg-muted transition-colors hover:text-fg"
+				aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+				title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+			>
+				{#if settings.theme === 'dark'}
+					<Sun class="size-3.5" />
+				{:else}
+					<Moon class="size-3.5" />
+				{/if}
+			</button>
 			{#if storage && storage.quota > 0}
 				{@const pct = Math.min(100, (storage.used / storage.quota) * 100)}
 				<button

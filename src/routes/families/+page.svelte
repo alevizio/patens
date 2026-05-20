@@ -3,6 +3,9 @@
 	import { formatRelative } from '$lib/util/format';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Type from '@lucide/svelte/icons/type';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
+	import { settings } from '$lib/stores/settings.svelte';
 
 	let { data }: { data: { families: FamilyIndexEntry[] } } = $props();
 </script>
@@ -30,13 +33,28 @@
 				Font Studio
 			</span>
 		</a>
-		<a
-			href="/"
-			class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-		>
-			<ArrowLeft class="size-3.5" />
-			Back to projects
-		</a>
+		<div class="flex items-center gap-1">
+			<button
+				type="button"
+				onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
+				class="inline-flex size-7 items-center justify-center text-fg-muted transition-colors hover:text-fg"
+				aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+				title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+			>
+				{#if settings.theme === 'dark'}
+					<Sun class="size-3.5" />
+				{:else}
+					<Moon class="size-3.5" />
+				{/if}
+			</button>
+			<a
+				href="/"
+				class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+			>
+				<ArrowLeft class="size-3.5" />
+				Back to projects
+			</a>
+		</div>
 	</header>
 
 	<!-- Hero: editorial heading + intro. Same h1 treatment as home -->
