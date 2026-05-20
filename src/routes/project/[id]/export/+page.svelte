@@ -331,7 +331,7 @@ body {
 
 	let bundleBusy = $state(false);
 	/**
-	 * Export the full release bundle in one go: OTF + WOFF2 + HTML test page +
+	 * Export the full release bundle in one go: OTF + TTF + WOFF2 + HTML test page +
 	 * .font.json. Sequential downloads — most browsers allow multiple downloads
 	 * after the user explicitly clicks the bundle button.
 	 */
@@ -340,6 +340,8 @@ body {
 		bundleBusy = true;
 		try {
 			await exportOtf();
+			await new Promise((r) => setTimeout(r, 350));
+			await exportTtf();
 			await new Promise((r) => setTimeout(r, 350));
 			await exportWoff2();
 			await new Promise((r) => setTimeout(r, 350));
@@ -350,7 +352,7 @@ body {
 			exportFeaSource();
 			await new Promise((r) => setTimeout(r, 350));
 			exportDesignMd();
-			toast.success('Release bundle: 6 files downloaded.');
+			toast.success('Release bundle: 7 files downloaded.');
 		} catch (err) {
 			toast.error('Bundle export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
@@ -536,6 +538,21 @@ body {
 			const styleId = safeFilename(project.metadata.styleName) || 'Regular';
 			const otfBuffer = await buildOtfBuffer();
 			const otfBytes = new Uint8Array(otfBuffer);
+			// Static TTF (TrueType outlines) — Windows / Office / sub-150% DPI
+			// compatibility. Hint when the server hinter is available; fall back
+			// silently to unhinted on failure so the bundle still ships.
+			await ensurePython();
+			let ttfBuffer = await compileStaticTtf(otfBuffer);
+			let ttfHinted = false;
+			if (hintForWindows && hinter.available) {
+				try {
+					ttfBuffer = await hintTtf(ttfBuffer);
+					ttfHinted = true;
+				} catch {
+					// Best-effort — keep the unhinted TTF in the bundle.
+				}
+			}
+			const ttfBytes = new Uint8Array(ttfBuffer);
 			const woff2 = await otfToWoff2(otfBuffer);
 			const woff2Bytes = woff2 instanceof Uint8Array ? woff2 : new Uint8Array(woff2);
 			const projectJson = JSON.stringify(project, null, 2);
@@ -567,6 +584,7 @@ ${[12, 18, 24, 36, 48, 72]
 </body></html>`;
 			const files: Record<string, Uint8Array> = {
 				[`${familyId}-${styleId}.otf`]: otfBytes,
+				[`${familyId}-${styleId}${ttfHinted ? '-hinted' : ''}.ttf`]: ttfBytes,
 				[`${familyId}-${styleId}.woff2`]: woff2Bytes,
 				[`${familyId}.features.fea`]: strToU8(fea),
 				[`${familyId}.font.json`]: strToU8(projectJson),
@@ -579,7 +597,7 @@ ${[12, 18, 24, 36, 48, 72]
 				`${familyId}-${styleId}-release.zip`
 			);
 			toast.success(
-				`Release zip: 6 files in ${(zipped.byteLength / 1024).toFixed(1)} KB`
+				`Release zip: 7 files${ttfHinted ? ' (TTF hinted)' : ''} in ${(zipped.byteLength / 1024).toFixed(1)} KB`
 			);
 		} catch (err) {
 			toast.error('Zip bundle failed: ' + (err instanceof Error ? err.message : String(err)));
@@ -1075,7 +1093,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					{zipBundleBusy ? 'Zipping…' : 'Download release ZIP (one file)'}
 				</Button>
 				<span class="text-[12px] text-fg-muted">
-					Single .zip with OTF + WOFF2 + .fea + .font.json + DESIGN.md + test-page.html.
+					Single .zip with OTF + TTF (auto-hinted if available) + WOFF2 + .fea + .font.json + DESIGN.md + test-page.html.
 					Best for sharing a release with one click.
 				</span>
 			</div>
