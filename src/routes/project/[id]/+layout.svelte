@@ -531,18 +531,24 @@
 						>
 							Master
 						</span>
-						<select
-							value={projectStore.selectedMasterId ?? ''}
-							onchange={(e) =>
-								projectStore.selectMaster(e.currentTarget.value || undefined)}
-							class="border-0 bg-transparent text-[11px] font-medium text-fg outline-none focus:ring-0"
-							aria-label="Master"
-						>
-							<option value="">Default</option>
-							{#each projectStore.project.masters ?? [] as m (m.id)}
-								<option value={m.id}>{m.name}</option>
-							{/each}
-						</select>
+						<span class="relative inline-block">
+							<select
+								value={projectStore.selectedMasterId ?? ''}
+								onchange={(e) =>
+									projectStore.selectMaster(e.currentTarget.value || undefined)}
+								class="cursor-pointer appearance-none bg-transparent pr-4 text-[11px] font-medium text-fg outline-none hover:underline hover:underline-offset-4 focus-visible:underline focus-visible:underline-offset-4"
+								aria-label="Master"
+							>
+								<option value="">Default</option>
+								{#each projectStore.project.masters ?? [] as m (m.id)}
+									<option value={m.id}>{m.name}</option>
+								{/each}
+							</select>
+							<ChevronDown
+								class="pointer-events-none absolute top-1/2 right-0 size-3 -translate-y-1/2 text-fg-subtle"
+								aria-hidden="true"
+							/>
+						</span>
 					</label>
 				{/if}
 				{#if projectStore.project?.familyId}
@@ -567,9 +573,11 @@
 			<div class="flex-1"></div>
 
 			<!-- Save status — text only, no pill chrome. Mono on the "Saved Xs
-			     ago" line treats it as data, not as a status badge. -->
+			     ago" line treats it as data, not as a status badge. Container
+			     is items-center because the dot has no baseline; pairing a
+			     circle with baseline-aligned text reads misaligned. -->
 			<div
-				class="hidden items-baseline gap-1.5 font-mono text-[11px] text-fg-muted md:inline-flex"
+				class="hidden items-center gap-1.5 font-mono text-[11px] text-fg-muted md:inline-flex"
 				data-numeric
 				title={projectStore.saving
 					? 'Saving project to local storage'
@@ -578,13 +586,13 @@
 						: 'Saved to local storage'}
 			>
 				{#if projectStore.saving}
-					<Loader class="size-3 animate-spin self-center" />
+					<Loader class="size-3 animate-spin" />
 					<span>Saving…</span>
 				{:else if projectStore.dirty}
-					<span class="size-1.5 self-center rounded-full bg-warn-strong"></span>
+					<span class="size-1.5 rounded-full bg-warn-strong"></span>
 					<span>Unsaved</span>
 				{:else}
-					<span class="size-1.5 self-center rounded-full bg-success-strong"></span>
+					<span class="size-1.5 rounded-full bg-success-strong"></span>
 					<span>{savedAgoLabel}</span>
 				{/if}
 			</div>
@@ -592,7 +600,7 @@
 			<!-- System action buttons. No cluster-box chrome — they sit on the
 			     header surface with simple spacing. Hover tooltips carry the
 			     meaning, no labels needed since the set is unchanging. -->
-			<div class="flex items-center gap-0.5">
+			<div class="flex items-center gap-1">
 				<div class="relative">
 					<button
 						type="button"
@@ -696,7 +704,7 @@
 
 			<!-- Undo/Redo — kept close to the tabs since they apply to whatever
 			     page you're on. -->
-			<div class="flex items-center gap-0.5">
+			<div class="flex items-center gap-1">
 				<button
 					type="button"
 					onclick={() => projectStore.undo()}
