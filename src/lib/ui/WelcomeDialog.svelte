@@ -2,10 +2,6 @@
 	import Button from './Button.svelte';
 	import Panel from './Panel.svelte';
 	import X from '@lucide/svelte/icons/x';
-	import Pencil from '@lucide/svelte/icons/pencil';
-	import Wand from '@lucide/svelte/icons/wand-sparkles';
-	import Eye from '@lucide/svelte/icons/eye';
-	import Download from '@lucide/svelte/icons/download';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 
 	type Props = { open: boolean; onclose: () => void };
@@ -52,50 +48,42 @@
 				The core loop is four moves. The whole tool is built around making each one fast.
 			</p>
 
-			<ol class="mb-4 grid gap-2.5">
-				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-warn/15 text-warn-strong">
-						<Pencil class="size-3.5" />
-					</div>
+			<ol class="mb-5 divide-y divide-border border-y border-border">
+				<li class="grid grid-cols-[2.5rem_1fr] gap-x-3 py-3">
+					<div class="font-mono text-[11px] tracking-wider text-fg-subtle" data-numeric>01</div>
 					<div>
-						<div class="text-[13px] font-semibold text-fg">1. Sketch</div>
-						<div class="text-[12px] text-fg-muted">
+						<div class="text-[13px] font-semibold text-fg">Sketch</div>
+						<div class="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
 							Draw any glyph with the pencil (Apple Pencil + pressure works). Start with
-							<span class="font-mono">H O n o</span> — the proportion control set.
+							<span class="font-mono" data-numeric>H O n o</span> — the proportion control set.
 						</div>
 					</div>
 				</li>
-				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-accent/15 text-accent-strong">
-						<Wand class="size-3.5" />
-					</div>
+				<li class="grid grid-cols-[2.5rem_1fr] gap-x-3 py-3">
+					<div class="font-mono text-[11px] tracking-wider text-fg-subtle" data-numeric>02</div>
 					<div>
-						<div class="text-[13px] font-semibold text-fg">2. Trace</div>
-						<div class="text-[12px] text-fg-muted">
-							Press T (or click "Trace"). Multi-stroke shapes get union'd; outlines get
+						<div class="text-[13px] font-semibold text-fg">Trace</div>
+						<div class="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
+							Press T (or click &ldquo;Trace&rdquo;). Multi-stroke shapes get union&rsquo;d; outlines get
 							smooth cubic curves via Schneider fitting. Edit points with the A tool.
 						</div>
 					</div>
 				</li>
-				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-success/15 text-success-strong">
-						<Eye class="size-3.5" />
-					</div>
+				<li class="grid grid-cols-[2.5rem_1fr] gap-x-3 py-3">
+					<div class="font-mono text-[11px] tracking-wider text-fg-subtle" data-numeric>03</div>
 					<div>
-						<div class="text-[13px] font-semibold text-fg">3. Preview live</div>
-						<div class="text-[12px] text-fg-muted">
+						<div class="text-[13px] font-semibold text-fg">Preview live</div>
+						<div class="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
 							Every change re-builds the font in ~15ms via opentype.js + FontFace API.
 							Type any string in the strip below the canvas to see it instantly.
 						</div>
 					</div>
 				</li>
-				<li class="flex items-start gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2.5">
-					<div class="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-fg/10 text-fg">
-						<Download class="size-3.5" />
-					</div>
+				<li class="grid grid-cols-[2.5rem_1fr] gap-x-3 py-3">
+					<div class="font-mono text-[11px] tracking-wider text-fg-subtle" data-numeric>04</div>
 					<div>
-						<div class="text-[13px] font-semibold text-fg">4. Export</div>
-						<div class="text-[12px] text-fg-muted">
+						<div class="text-[13px] font-semibold text-fg">Export</div>
+						<div class="mt-0.5 text-[12px] leading-relaxed text-fg-muted">
 							OTF for Font Book, WOFF2 for web, UFO for Glyphs/RoboFont/FontLab. The
 							Export tab runs a pre-flight check first.
 						</div>
@@ -103,28 +91,31 @@
 				</li>
 			</ol>
 
-			<div class="mb-4 rounded-md border border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px] text-fg-muted">
-				<span class="font-medium text-accent">Pro tip:</span> you can start from an existing
-				font — paste a GitHub URL, drop a file anywhere on this page, or pick from the
-				starter library on the right.
-			</div>
+			<p class="mb-5 text-[12px] leading-relaxed text-fg-muted">
+				<span class="mr-1 font-mono text-[10px] tracking-wider uppercase text-accent-strong">
+					Pro tip ·
+				</span>
+				You can start from an existing font — paste a GitHub URL, drop a file anywhere on this page,
+				or pick from the starter library on the right.
+			</p>
 
-			<div class="mb-4 grid gap-2 sm:grid-cols-2">
+			<div class="mb-5 grid grid-cols-1 divide-y divide-border border-y border-border sm:grid-cols-2 sm:divide-x sm:divide-y-0">
 				<a
 					href="/learn"
 					onclick={onclose}
-					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px] hover:border-accent hover:bg-accent-soft/30"
+					class="group block py-3 pr-4 transition-colors"
 				>
-					<div class="font-medium text-fg">New to type design?</div>
-					<div class="mt-0.5 text-fg-muted">
-						Read the 8-12 week beginner path, exercises, and tools →
+					<div class="text-[12px] font-medium text-fg group-hover:text-accent-strong">
+						New to type design?
+					</div>
+					<div class="mt-0.5 text-[11px] leading-relaxed text-fg-muted">
+						Read the 8&ndash;12 week beginner path, exercises, and tools →
 					</div>
 				</a>
-				<div class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[12px]">
-					<div class="font-medium text-fg">Already drawing?</div>
-					<div class="mt-0.5 text-fg-muted">
-						Start with the Brief tab — define intent, audience, use cases before
-						the first stroke.
+				<div class="py-3 sm:pl-4">
+					<div class="text-[12px] font-medium text-fg">Already drawing?</div>
+					<div class="mt-0.5 text-[11px] leading-relaxed text-fg-muted">
+						Start with the Brief tab — define intent, audience, use cases before the first stroke.
 					</div>
 				</div>
 			</div>
