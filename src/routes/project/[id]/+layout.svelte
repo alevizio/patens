@@ -354,24 +354,22 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div class="flex h-screen flex-col">
-	<!-- Two-row header. Row 1 (taller, ~52px) carries identity + system
-	     chrome: who/what + persistent app actions. Row 2 (slim, ~38px)
-	     carries page navigation + edit actions tied to the current project.
-	     Splits "which project is this" from "what am I doing in it" so
-	     neither competes for horizontal real estate. -->
+	<!-- Two-row header, editorial chrome. Row 1 (~52px) carries identity +
+	     system actions; row 2 (~38px) carries the tab nav + edit actions.
+	     Both rows have been stripped of their cluster-box backgrounds and
+	     pill chrome — the buttons sit on the surface directly, separated
+	     by spacing and dividers rather than boxes. -->
 	<header class="border-b border-border bg-surface">
 		<!-- Row 1: identity, family/version meta, save status, system buttons. -->
-		<div class="flex h-[52px] items-center gap-3 border-b border-border/60 px-4">
+		<div class="flex h-[52px] items-center gap-4 px-5">
 			<a
 				href="/"
-				class="inline-flex size-8 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+				class="inline-flex size-7 items-center justify-center text-fg-subtle transition-colors hover:text-fg"
 				aria-label="Back to projects"
 				title="Back to projects"
 			>
 				<ArrowLeft class="size-4" />
 			</a>
-
-			<div class="h-5 w-px bg-border" aria-hidden="true"></div>
 
 			<!-- Identity zone: glyph thumb, project name (editable), switcher -->
 			<div class="relative flex min-w-0 items-center gap-2">
@@ -476,26 +474,26 @@
 				{/if}
 			</div>
 
-			<!-- Meta strip: family name + version + master (lg only).
-			     Visible separator from identity, mono numeric. -->
-			<div
-				class="hidden items-center gap-3 border-l border-border pl-3 lg:flex"
-			>
+			<!-- Meta strip: family name + version + master (lg only). Quiet
+			     dot-separated mono line, divider via spacing not borders. -->
+			<div class="hidden items-baseline gap-3 pl-3 lg:flex">
 				<div class="font-mono text-[11px] text-fg-subtle" data-numeric>
-					{projectStore.project?.metadata.familyName}
-					<span class="mx-1 text-fg-subtle">·</span>
+					<span>{projectStore.project?.metadata.familyName}</span>
+					<span class="mx-1.5">·</span>
 					<span class="text-fg-muted">v{projectStore.project?.metadata.version}</span>
 				</div>
 				{#if projectStore.project && (projectStore.project.masters?.length ?? 0) > 0}
-					<label
-						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1"
-					>
-						<Layers class="size-3 text-fg-muted" />
+					<label class="inline-flex items-baseline gap-1.5">
+						<span
+							class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase"
+						>
+							Master
+						</span>
 						<select
 							value={projectStore.selectedMasterId ?? ''}
 							onchange={(e) =>
 								projectStore.selectMaster(e.currentTarget.value || undefined)}
-							class="bg-transparent text-[11px] font-medium text-fg outline-none"
+							class="border-0 bg-transparent text-[11px] font-medium text-fg outline-none focus:ring-0"
 							aria-label="Master"
 						>
 							<option value="">Default</option>
@@ -508,14 +506,16 @@
 				{#if projectStore.project?.familyId}
 					<a
 						href="/family/{projectStore.project.familyId}"
-						class="inline-flex items-center gap-1 rounded bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent-strong hover:bg-accent hover:text-accent-fg"
+						class="inline-flex items-baseline gap-1 font-mono text-[10px] tracking-wider text-accent-strong uppercase underline-offset-[5px] hover:underline"
 						title="Open family hub"
 					>
-						<Layers class="size-2.5" />
 						Family
 						{#if projectStore.project.familyAxes?.wght || projectStore.project.familyAxes?.ital}
-							<span class="font-mono" data-numeric>
-								{projectStore.project.familyAxes?.wght ?? 400}{projectStore.project.familyAxes?.ital ? 'i' : ''}
+							<span data-numeric>
+								·&nbsp;{projectStore.project.familyAxes?.wght ?? 400}{projectStore
+									.project.familyAxes?.ital
+									? 'i'
+									: ''}
 							</span>
 						{/if}
 					</a>
@@ -524,9 +524,10 @@
 
 			<div class="flex-1"></div>
 
-			<!-- Save status pill — compact, centered with the buttons -->
+			<!-- Save status — text only, no pill chrome. Mono on the "Saved Xs
+			     ago" line treats it as data, not as a status badge. -->
 			<div
-				class="hidden items-center gap-1.5 rounded-md bg-surface-2/60 px-2.5 py-1 font-mono text-[11px] text-fg-muted md:inline-flex"
+				class="hidden items-baseline gap-1.5 font-mono text-[11px] text-fg-muted md:inline-flex"
 				data-numeric
 				title={projectStore.saving
 					? 'Saving project to local storage'
@@ -535,26 +536,26 @@
 						: 'Saved to local storage'}
 			>
 				{#if projectStore.saving}
-					<Loader class="size-3 animate-spin" />
+					<Loader class="size-3 animate-spin self-center" />
 					<span>Saving…</span>
 				{:else if projectStore.dirty}
-					<Save class="size-3" />
+					<span class="size-1.5 self-center rounded-full bg-warn-strong"></span>
 					<span>Unsaved</span>
 				{:else}
-					<Check class="size-3 text-success" />
+					<span class="size-1.5 self-center rounded-full bg-success-strong"></span>
 					<span>{savedAgoLabel}</span>
 				{/if}
 			</div>
 
-			<!-- System action cluster: stats, lock, help, settings.
-			     Each is a 32px icon button, no labels — they're persistent and
-			     unchanging, so a hover tooltip carries the meaning. -->
-			<div class="flex items-center gap-0.5 rounded-md border border-border/60 bg-surface-2/30 p-0.5">
+			<!-- System action buttons. No cluster-box chrome — they sit on the
+			     header surface with simple spacing. Hover tooltips carry the
+			     meaning, no labels needed since the set is unchanging. -->
+			<div class="flex items-center gap-0.5">
 				<div class="relative">
 					<button
 						type="button"
 						onclick={() => (statsOpen = !statsOpen)}
-						class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+						class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
 						aria-label="Project stats"
 						title="Project stats"
 					>
@@ -566,8 +567,8 @@
 					type="button"
 					onclick={() => projectStore.toggleLock()}
 					class="inline-flex size-7 items-center justify-center rounded transition-colors hover:bg-surface-2 {projectStore.project?.locked
-						? 'text-warn'
-						: 'text-fg-muted hover:text-fg'}"
+						? 'text-warn-strong'
+						: 'text-fg-subtle hover:text-fg'}"
 					aria-label={projectStore.project?.locked
 						? 'Unlock project'
 						: 'Lock project (read-only)'}
@@ -584,7 +585,7 @@
 				<button
 					type="button"
 					onclick={() => (shortcutsOpen = true)}
-					class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
 					aria-label="Keyboard shortcuts"
 					title="Keyboard shortcuts (?)"
 				>
@@ -593,7 +594,7 @@
 				<button
 					type="button"
 					onclick={() => (settingsOpen = true)}
-					class="inline-flex size-7 items-center justify-center rounded text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
 					aria-label="Settings"
 					title="Settings (API key, etc.)"
 				>
@@ -602,10 +603,13 @@
 			</div>
 		</div>
 
-		<!-- Row 2: tab navigation + edit actions tied to the project (undo/redo,
-		     layer progress). Slimmer than row 1 (~38px) and visually lighter. -->
-		<div class="flex h-[38px] items-center gap-3 px-4">
-			<nav class="flex flex-1 items-center gap-0.5 overflow-x-auto">
+		<!-- Row 2: tab navigation + edit actions. Editorial tab treatment —
+		     active state is a thick bottom border + ink-dark color; inactive
+		     is muted with hover. No pill-fill, no rounded backgrounds. The
+		     row's own border-b sits BEHIND the active tab's heavier border,
+		     creating a typographic underline relationship. -->
+		<div class="flex h-[40px] items-center gap-4 px-5">
+			<nav class="flex h-full flex-1 items-stretch gap-5 overflow-x-auto">
 				{#each tabs as tab (tab.href)}
 					{@const Icon = tab.icon}
 					<a
@@ -613,11 +617,11 @@
 						title={'shortcut' in tab
 							? `${tab.label} (${tab.shortcut})`
 							: tab.label}
-						class="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] font-medium transition-colors {isActive(
+						class="group relative -mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 text-[12px] transition-colors {isActive(
 							tab.href
 						)
-							? 'bg-surface-2 text-fg'
-							: 'text-fg-muted hover:text-fg'}"
+							? 'border-fg font-semibold text-fg'
+							: 'border-transparent font-medium text-fg-muted hover:border-border-strong hover:text-fg'}"
 					>
 						<Icon class="size-3.5" />
 						{tab.label}
@@ -691,13 +695,13 @@
 				</div>
 			{/if}
 
-			<!-- Build size + last version chips moved to the slim row so the
-			     identity row stays clean. -->
-			<div class="hidden items-center gap-1.5 lg:flex">
+			<!-- Build size + last version. Plain mono text, no chrome — they
+			     read as the data they are, hyperlinked through to their tabs. -->
+			<div class="hidden items-baseline gap-3 lg:flex">
 				{#if projectStore.project?.changelog?.[0]}
 					<a
 						href="/project/{projectStore.project.id}/release"
-						class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+						class="font-mono text-[10px] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
 						title="Last sealed version (jump to Release)"
 						data-numeric
 					>
@@ -707,7 +711,7 @@
 				{#if previewStore.sizeKb > 0}
 					<a
 						href="/project/{projectStore.project?.id}/export"
-						class="rounded bg-surface-2/60 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+						class="font-mono text-[10px] text-fg-muted underline-offset-4 hover:text-fg hover:underline"
 						title="Last preview build size · {previewStore.lastBuildMs.toFixed(0)}ms — jump to Export"
 						data-numeric
 					>
