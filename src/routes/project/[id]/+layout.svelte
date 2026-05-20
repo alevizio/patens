@@ -16,6 +16,8 @@
 	import Layers from '@lucide/svelte/icons/layers';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Settings from '@lucide/svelte/icons/settings';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
 	import Undo2 from '@lucide/svelte/icons/undo-2';
 	import Redo2 from '@lucide/svelte/icons/redo-2';
 	import FileText from '@lucide/svelte/icons/file-text';
@@ -640,6 +642,19 @@
 					title="Keyboard shortcuts (?)"
 				>
 					<HelpCircle class="size-3.5" />
+				</button>
+				<button
+					type="button"
+					onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+					title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+				>
+					{#if settings.theme === 'dark'}
+						<Sun class="size-3.5" />
+					{:else}
+						<Moon class="size-3.5" />
+					{/if}
 				</button>
 				<button
 					type="button"

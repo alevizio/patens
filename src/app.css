@@ -38,7 +38,7 @@
 
 @layer base {
 	:root {
-		color-scheme: light dark;
+		color-scheme: light;
 
 		/* light theme */
 		--canvas: 240 6% 97%;
@@ -73,38 +73,13 @@
 		--preview-family: 'PreviewFont, ui-sans-serif, system-ui';
 	}
 
-	@media (prefers-color-scheme: dark) {
-		:root:not(.theme-light) {
-			--canvas: 240 8% 6%;
-			--surface: 240 8% 9%;
-			--surface-2: 240 8% 12%;
-			--overlay: 240 8% 11%;
-			--border: 240 6% 18%;
-			--border-strong: 240 6% 28%;
-			--fg: 240 8% 95%;
-			--fg-muted: 240 5% 65%;
-			--fg-subtle: 240 5% 45%;
-			--accent: 222 88% 62%;
-			--accent-fg: 240 8% 6%;
-			--accent-soft: 222 60% 18%;
-			--accent-strong: 222 88% 75%;
-			--success: 145 60% 50%;
-			--success-strong: 145 60% 60%;
-			--warn: 35 90% 55%;
-			--warn-strong: 35 90% 65%;
-			--danger: 358 75% 60%;
-			--danger-strong: 358 75% 68%;
-			--grid: 240 6% 16%;
-			--baseline: 222 88% 62%;
-			--x-height: 145 60% 50%;
-			--cap-height: 222 70% 65%;
-			--ascender: 280 50% 65%;
-			--descender: 20 70% 60%;
-		}
-	}
-
-	/* Manual theme overrides (settings store toggles these classes on <html>) */
+	/* Light is the primary, default theme. Dark mode is opt-in via the
+	   Settings dialog (`theme-dark` class on :root). We deliberately do NOT
+	   auto-apply dark via `prefers-color-scheme: dark` — the foundry's
+	   day-shift is the canonical look, and a user on a dark-mode OS should
+	   still land on the cream canvas unless they ask otherwise. */
 	:root.theme-dark {
+		color-scheme: dark;
 		--canvas: 240 8% 6%;
 		--surface: 240 8% 9%;
 		--surface-2: 240 8% 12%;
@@ -148,20 +123,16 @@
 		text-rendering: geometricPrecision;
 	}
 
-	/* nicer scrollbars */
+	/* Scrollbars hidden across the app. Content stays scrollable via
+	   wheel / trackpad / keyboard — we just don't paint the bar. Matches
+	   the foundry's no-chrome direction. */
 	* {
-		scrollbar-width: thin;
-		scrollbar-color: hsl(var(--border-strong)) transparent;
+		scrollbar-width: none;
 	}
 	*::-webkit-scrollbar {
-		width: 10px;
-		height: 10px;
-	}
-	*::-webkit-scrollbar-thumb {
-		background: hsl(var(--border-strong));
-		border-radius: 999px;
-		border: 2px solid transparent;
-		background-clip: padding-box;
+		width: 0;
+		height: 0;
+		display: none;
 	}
 
 	/* Numeric tabular alignment for metric values everywhere */

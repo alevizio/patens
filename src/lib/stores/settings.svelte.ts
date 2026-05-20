@@ -54,7 +54,7 @@ class SettingsStore {
 	preferredModel = $state<string>('claude-sonnet-4-6');
 	welcomeDismissed = $state<boolean>(false);
 	editorTourDismissed = $state<boolean>(false);
-	theme = $state<ThemePref>('system');
+	theme = $state<ThemePref>('light');
 	editor = $state<EditorPrefs>({
 		showGrid: false,
 		showAnatomy: false,
@@ -70,8 +70,14 @@ class SettingsStore {
 		if (initial.preferredModel) this.preferredModel = initial.preferredModel;
 		this.welcomeDismissed = !!initial.welcomeDismissed;
 		this.editorTourDismissed = !!initial.editorTourDismissed;
-		if (initial.theme === 'light' || initial.theme === 'dark' || initial.theme === 'system') {
+		if (initial.theme === 'light' || initial.theme === 'dark') {
 			this.theme = initial.theme;
+		} else if (initial.theme === 'system') {
+			// Migration: 'system' used to follow OS dark-mode. Light is the
+			// canonical theme now, so anyone previously on 'system' lands on
+			// 'light' explicitly. They can still pick 'system' from Settings
+			// if they want OS-tracking back.
+			this.theme = 'light';
 		}
 		if (initial.editor) {
 			this.editor = { ...this.editor, ...initial.editor };
