@@ -1049,7 +1049,10 @@
 											: ''}
 									</div>
 									{#if p.tagline}
-										<div class="mt-0.5 truncate text-[11px] italic text-fg-subtle">
+										<div
+											class="mt-0.5 truncate text-[11px] text-fg-subtle"
+											style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+										>
 											{p.tagline}
 										</div>
 									{/if}

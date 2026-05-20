@@ -593,7 +593,7 @@
 		{#if kerningSuggestProposal}
 			<div class="mt-4 flex flex-col gap-3">
 				{#if kerningSuggestProposal.reasoning}
-					<p class="text-[12px] italic leading-snug text-fg-muted">
+					<p class="text-[12px] leading-snug text-fg-muted">
 						{kerningSuggestProposal.reasoning}
 					</p>
 				{/if}

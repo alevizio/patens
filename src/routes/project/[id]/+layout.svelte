@@ -452,7 +452,7 @@
 											: ''}{(p.editsToday ?? 0) > 0 ? ` · ${p.editsToday} today` : ''}
 									</div>
 									{#if p.tagline}
-										<div class="mt-0.5 truncate text-[10px] italic text-fg-subtle">
+										<div class="mt-0.5 truncate text-[10px] text-fg-subtle">
 											{p.tagline}
 										</div>
 									{/if}
