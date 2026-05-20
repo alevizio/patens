@@ -127,6 +127,48 @@
 	let projectSwitcherOpen = $state(false);
 	let projectSwitcherEl = $state<HTMLDivElement | null>(null);
 
+	// Sliding tab underline. A single absolutely-positioned bar inside the nav
+	// translates+scales between tabs on route change. Transform-only so the
+	// canvas-drawing surface keeps its frame budget; first paint skips the
+	// transition so the bar lands without sliding in from origin.
+	let tabNavEl = $state<HTMLElement | null>(null);
+	let tabBarLeft = $state(0);
+	let tabBarWidth = $state(0);
+	let tabBarReady = $state(false);
+	const measureActiveTab = () => {
+		if (!tabNavEl) return;
+		const active = tabNavEl.querySelector<HTMLElement>('a[data-tab-active="true"]');
+		if (!active) {
+			tabBarWidth = 0;
+			return;
+		}
+		tabBarLeft = active.offsetLeft;
+		tabBarWidth = active.offsetWidth;
+	};
+	$effect(() => {
+		// Re-measure whenever the active route changes.
+		void currentPath;
+		if (!tabNavEl) return;
+		requestAnimationFrame(() => {
+			measureActiveTab();
+			if (!tabBarReady) requestAnimationFrame(() => (tabBarReady = true));
+		});
+	});
+	$effect(() => {
+		if (typeof window === 'undefined' || !tabNavEl) return;
+		const onResize = () => measureActiveTab();
+		window.addEventListener('resize', onResize);
+		// ResizeObserver catches width changes the route-change effect misses:
+		// e.g. the Audit tab's badge appearing/disappearing shifts every tab
+		// to its right, and font loads can also reflow the row.
+		const ro = new ResizeObserver(() => measureActiveTab());
+		ro.observe(tabNavEl);
+		return () => {
+			window.removeEventListener('resize', onResize);
+			ro.disconnect();
+		};
+	});
+
 	// Close the project switcher on outside-click + Escape, without rendering
 	// a fixed-inset overlay (which used to eat every click on the page).
 	$effect(() => {
@@ -604,24 +646,25 @@
 		</div>
 
 		<!-- Row 2: tab navigation + edit actions. Editorial tab treatment —
-		     active state is a thick bottom border + ink-dark color; inactive
-		     is muted with hover. No pill-fill, no rounded backgrounds. The
-		     row's own border-b sits BEHIND the active tab's heavier border,
-		     creating a typographic underline relationship. -->
+		     active state is a thick bottom border (rendered as a single sliding
+		     bar) + ink-dark color; inactive is muted with hover. -->
 		<div class="flex h-[40px] items-center gap-4 px-5">
-			<nav class="flex h-full flex-1 items-stretch gap-5 overflow-x-auto">
+			<nav
+				bind:this={tabNavEl}
+				class="relative flex h-full flex-1 items-stretch gap-7 overflow-x-auto lg:gap-9 xl:gap-12"
+			>
 				{#each tabs as tab (tab.href)}
 					{@const Icon = tab.icon}
+					{@const active = isActive(tab.href)}
 					<a
 						href={tab.href}
+						data-tab-active={active}
 						title={'shortcut' in tab
 							? `${tab.label} (${tab.shortcut})`
 							: tab.label}
-						class="group relative -mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 text-[12px] transition-colors {isActive(
-							tab.href
-						)
-							? 'border-fg font-semibold text-fg'
-							: 'border-transparent font-medium text-fg-muted hover:border-border-strong hover:text-fg'}"
+						class="group relative inline-flex shrink-0 items-center gap-1.5 text-[12px] transition-colors {active
+							? 'font-semibold text-fg'
+							: 'font-medium text-fg-muted hover:text-fg'}"
 					>
 						<Icon class="size-3.5" />
 						{tab.label}
@@ -636,6 +679,19 @@
 						{/if}
 					</a>
 				{/each}
+
+				<!-- Sliding active-tab indicator. Base width 1px, scaled via
+				     transform.scaleX. Sits at -bottom-px so it flushes with
+				     the header row's own bottom border. -->
+				<span
+					aria-hidden="true"
+					class="tab-underline pointer-events-none absolute -bottom-px left-0 h-[2px] w-px origin-left bg-fg"
+					class:tab-underline--ready={tabBarReady}
+					style="transform: translate3d({tabBarLeft}px, 0, 0) scaleX({tabBarWidth}); opacity: {tabBarWidth >
+					0
+						? 1
+						: 0};"
+				></span>
 			</nav>
 
 			<!-- Undo/Redo — kept close to the tabs since they apply to whatever
@@ -768,3 +824,27 @@
 		</main>
 	</div>
 </div>
+
+<style>
+	/* Sliding tab underline.
+	   - transform + opacity only (GPU compositor, no layout/paint).
+	   - First paint has no transition: the bar lands at the active tab
+	     without sliding in from origin. After one RAF, .tab-underline--ready
+	     enables the transition for subsequent route changes.
+	   - Reduced motion: keep the opacity fade for the rare case where the
+	     bar appears/disappears, but skip the slide. */
+	.tab-underline {
+		transition: none;
+		will-change: transform;
+	}
+	.tab-underline--ready {
+		transition:
+			transform 280ms cubic-bezier(0.22, 1, 0.36, 1),
+			opacity 180ms ease-out;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.tab-underline--ready {
+			transition: opacity 180ms ease-out;
+		}
+	}
+</style>
