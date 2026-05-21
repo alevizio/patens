@@ -14,6 +14,7 @@ import { glyphBounds, roundToFontUnits } from './path';
 import { applyDetectedFeatures, detectFeatures } from './feature-detect';
 import { buildColorFontPlan, resolveColorFontPlan } from './color-build';
 import { buildAutoKern } from './kerning-auto';
+import { expandKerningClasses } from './kerning-classes';
 
 type OTPath = InstanceType<typeof opentype.Path>;
 type OTGlyph = InstanceType<typeof opentype.Glyph>;
@@ -275,10 +276,14 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 
 	if (project.features.kern) {
 		const pairs: Record<string, number> = {};
-		// First: emit user-set pairs. These always win.
-		for (const k of project.kerning) {
-			// Skip class-based pairs — those are handled by the .fea compile step
-			if (typeof k.left === 'string' || typeof k.right === 'string') continue;
+		// OT layout M2: expand class-based pairs into explicit codepoint
+		// pairs at export time. Previously class-based pairs were
+		// skipped here ("handled by the .fea compile step"), which left
+		// them orphaned unless the user had Pyodide+fontTools running.
+		// `expandKerningClasses` ensures direct user-set pairs override
+		// class-derived ones, so manual tuning still wins.
+		const expanded = expandKerningClasses(project.kerning, project.classes ?? []);
+		for (const k of expanded) {
 			const li = indexByCodepoint.get(k.left);
 			const ri = indexByCodepoint.get(k.right);
 			if (li === undefined || ri === undefined) continue;
