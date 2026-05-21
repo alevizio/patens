@@ -1,0 +1,109 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": ".*",
+			"continue": true,
+			"transforms": [
+				{
+					"type": "request.query",
+					"op": "delete",
+					"target": {
+						"key": "__pathname"
+					}
+				}
+			]
+		},
+		{
+			"src": "/_app/immutable/.+",
+			"headers": {
+				"cache-control": "public, immutable, max-age=31536000"
+			}
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "/_app/immutable/.+",
+			"status": 404,
+			"continue": false
+		},
+		{
+			"src": "^/?(?:/__data.json)?$",
+			"dest": "/"
+		},
+		{
+			"src": "^/api/ai/messages/?(?:/__data.json)?$",
+			"dest": "/api/ai/messages"
+		},
+		{
+			"src": "^/families/?(?:/__data.json)?$",
+			"dest": "/families"
+		},
+		{
+			"src": "^/family/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/family/[id]"
+		},
+		{
+			"src": "^/learn/?(?:/__data.json)?$",
+			"dest": "/learn"
+		},
+		{
+			"src": "^/project/([^/]+?)/?(?:/__data.json)?$",
+			"dest": "/project/[id]"
+		},
+		{
+			"src": "^/project/([^/]+?)/ai/?(?:/__data.json)?$",
+			"dest": "/project/[id]/ai"
+		},
+		{
+			"src": "^/project/([^/]+?)/audit/?(?:/__data.json)?$",
+			"dest": "/project/[id]/audit"
+		},
+		{
+			"src": "^/project/([^/]+?)/brief/?(?:/__data.json)?$",
+			"dest": "/project/[id]/brief"
+		},
+		{
+			"src": "^/project/([^/]+?)/compare/?(?:/__data.json)?$",
+			"dest": "/project/[id]/compare"
+		},
+		{
+			"src": "^/project/([^/]+?)/designspace/?(?:/__data.json)?$",
+			"dest": "/project/[id]/designspace"
+		},
+		{
+			"src": "^/project/([^/]+?)/edit/?(?:/__data.json)?$",
+			"dest": "/project/[id]/edit"
+		},
+		{
+			"src": "^/project/([^/]+?)/export/?(?:/__data.json)?$",
+			"dest": "/project/[id]/export"
+		},
+		{
+			"src": "^/project/([^/]+?)/features/?(?:/__data.json)?$",
+			"dest": "/project/[id]/features"
+		},
+		{
+			"src": "^/project/([^/]+?)/preview/?(?:/__data.json)?$",
+			"dest": "/project/[id]/preview"
+		},
+		{
+			"src": "^/project/([^/]+?)/release/?(?:/__data.json)?$",
+			"dest": "/project/[id]/release"
+		},
+		{
+			"src": "^/project/([^/]+?)/spacing/?(?:/__data.json)?$",
+			"dest": "/project/[id]/spacing"
+		},
+		{
+			"src": "^/project/([^/]+?)/specimen/?(?:/__data.json)?$",
+			"dest": "/project/[id]/specimen"
+		},
+		{
+			"src": "/.*",
+			"dest": "/![-]/catchall"
+		}
+	],
+	"overrides": {}
+}

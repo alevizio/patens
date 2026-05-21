@@ -1,0 +1,1 @@
+var e=e=>{let t=Date.parse(e);if(!Number.isFinite(t))return e;let n=Date.now()-t,r=Math.max(0,Math.floor(n/1e3));if(r<60)return`just now`;let i=Math.floor(r/60);if(i<60)return`${i}m ago`;let a=Math.floor(i/60);if(a<24)return`${a}h ago`;let o=Math.floor(a/24);if(o<30)return`${o}d ago`;let s=Math.floor(o/30);return s<12?`${s}mo ago`:`${Math.floor(s/12)}y ago`};export{e as t};

@@ -200,4 +200,59 @@ describe('auditGlyph', () => {
 		const issues = auditGlyph(glyph, baseProject());
 		expect(issues.find((i) => i.code === 'tiny-contour')).toBeUndefined();
 	});
+
+	// M2 — sidebearing-class drift detection.
+
+	it('flags LSB drift from sidebearing class median', () => {
+		// Class "Vertical stems" has H, I, L sharing sidebearings.
+		// Edit I to have a much smaller LSB — audit on I should flag it.
+		const H = baseGlyph({ codepoint: 0x48, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
+		const I = baseGlyph({ codepoint: 0x49, contours: [closedSquare(500)], leftSidebearing: 20, rightSidebearing: 60 });
+		const L = baseGlyph({ codepoint: 0x4c, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 50 });
+		const project = baseProject({
+			glyphs: { 0x48: H, 0x49: I, 0x4c: L },
+			sidebearingClasses: [{ id: 'sb1', name: 'Vertical stems', members: [0x48, 0x49, 0x4c] }]
+		});
+		const issues = auditGlyph(I, project);
+		const drift = issues.find((i) => i.code === 'sidebearing-class-drift-lsb');
+		expect(drift).toBeDefined();
+		expect(drift?.severity).toBe('info');
+	});
+
+	it('does NOT flag glyphs within 5fu of class median', () => {
+		const H = baseGlyph({ codepoint: 0x48, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
+		const I = baseGlyph({ codepoint: 0x49, contours: [closedSquare(500)], leftSidebearing: 63, rightSidebearing: 60 });
+		const L = baseGlyph({ codepoint: 0x4c, contours: [closedSquare(500)], leftSidebearing: 58, rightSidebearing: 60 });
+		const project = baseProject({
+			glyphs: { 0x48: H, 0x49: I, 0x4c: L },
+			sidebearingClasses: [{ id: 'sb1', name: 'Vertical stems', members: [0x48, 0x49, 0x4c] }]
+		});
+		const issues = auditGlyph(I, project);
+		expect(issues.find((i) => i.code === 'sidebearing-class-drift-lsb')).toBeUndefined();
+		expect(issues.find((i) => i.code === 'sidebearing-class-drift-rsb')).toBeUndefined();
+	});
+
+	it('does NOT report drift when only one class member exists', () => {
+		// I is alone in the class — no peers to compute a median from.
+		const I = baseGlyph({ codepoint: 0x49, contours: [closedSquare(500)], leftSidebearing: 999, rightSidebearing: 999 });
+		const project = baseProject({
+			glyphs: { 0x49: I },
+			sidebearingClasses: [{ id: 'sb1', name: 'Solo', members: [0x49] }]
+		});
+		const issues = auditGlyph(I, project);
+		expect(issues.find((i) => i.code === 'sidebearing-class-drift-lsb')).toBeUndefined();
+	});
+
+	it('flags both LSB and RSB drift when both are off', () => {
+		const H = baseGlyph({ codepoint: 0x48, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
+		const L = baseGlyph({ codepoint: 0x4c, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
+		const I = baseGlyph({ codepoint: 0x49, contours: [closedSquare(500)], leftSidebearing: 20, rightSidebearing: 100 });
+		const project = baseProject({
+			glyphs: { 0x48: H, 0x49: I, 0x4c: L },
+			sidebearingClasses: [{ id: 'sb1', name: 'Vertical stems', members: [0x48, 0x49, 0x4c] }]
+		});
+		const issues = auditGlyph(I, project);
+		expect(issues.find((i) => i.code === 'sidebearing-class-drift-lsb')).toBeDefined();
+		expect(issues.find((i) => i.code === 'sidebearing-class-drift-rsb')).toBeDefined();
+	});
 });

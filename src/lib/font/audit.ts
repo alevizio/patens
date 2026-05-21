@@ -165,6 +165,53 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Sidebearing-class drift (M2 audit). Sidebearing classes exist to
+	// enforce LSB/RSB consistency across grouped glyphs (e.g. H I L all
+	// share the same vertical-stem sidebearings). They drift silently
+	// when individual glyphs get edited via the metrics inspector,
+	// because the class itself doesn't auto-propagate edits — only the
+	// explicit "Set values" action does. Flag the drift so the
+	// designer can decide to re-apply the class values or remove the
+	// glyph from the class.
+	if (drawn) {
+		for (const cls of project.sidebearingClasses ?? []) {
+			if (!cls.members.includes(cp)) continue;
+			const peers = cls.members
+				.filter((m) => m !== cp)
+				.map((m) => project.glyphs[m])
+				.filter((g): g is Glyph => !!g && g.contours.length > 0);
+			if (peers.length === 0) continue;
+			const median = (arr: number[]) => {
+				const s = [...arr].sort((a, b) => a - b);
+				const mid = Math.floor(s.length / 2);
+				return s.length % 2 === 0 ? (s[mid - 1] + s[mid]) / 2 : s[mid];
+			};
+			const peerLsb = median(peers.map((p) => p.leftSidebearing));
+			const peerRsb = median(peers.map((p) => p.rightSidebearing));
+			const lsbDelta = glyph.leftSidebearing - peerLsb;
+			const rsbDelta = glyph.rightSidebearing - peerRsb;
+			// 5fu tolerance — within a few units is normal manual nudging,
+			// beyond that is real drift.
+			if (Math.abs(lsbDelta) > 5) {
+				issues.push({
+					codepoint: cp,
+					severity: 'info',
+					code: 'sidebearing-class-drift-lsb',
+					message: `LSB ${Math.round(glyph.leftSidebearing)} drifts from class "${cls.name}" median ${Math.round(peerLsb)} (${lsbDelta > 0 ? '+' : ''}${Math.round(lsbDelta)})`
+				});
+			}
+			if (Math.abs(rsbDelta) > 5) {
+				issues.push({
+					codepoint: cp,
+					severity: 'info',
+					code: 'sidebearing-class-drift-rsb',
+					message: `RSB ${Math.round(glyph.rightSidebearing)} drifts from class "${cls.name}" median ${Math.round(peerRsb)} (${rsbDelta > 0 ? '+' : ''}${Math.round(rsbDelta)})`
+				});
+			}
+			break; // one class report per glyph is enough
+		}
+	}
+
 	// Surface TODO / FIXME left in glyph notes — visible reminder pre-release
 	if (glyph.notes && /(?:^|\W)(TODO|FIXME)\b/i.test(glyph.notes)) {
 		issues.push({
