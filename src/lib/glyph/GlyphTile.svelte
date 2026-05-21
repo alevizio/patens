@@ -71,10 +71,6 @@
 		const minX = (advance - fontSpan) / 2;
 		return `${minX} ${descender} ${fontSpan} ${fontSpan}`;
 	});
-	// Centre x for SVG <text> fallback — same advance-centre as the path
-	// branch above, so a drawn O and a fallback O sit at the exact same
-	// horizontal position within the tile.
-	const fallbackCenterX = $derived(Math.max(glyph.advanceWidth, 100) / 2);
 
 	const componentCount = $derived(glyph.components?.length ?? 0);
 
@@ -113,32 +109,18 @@
 				<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
 			</svg>
 		{:else if char}
-			<!-- System-font fallback rendered inside the same EM-square SVG
-			     viewport as the drawn-glyph branch above, so empty slots and
-			     drawn slots share one scale: the cap-height fills ~70% of the
-			     em, both centred on the advance. The inner scaleY(-1) cancels
-			     the outer one so text reads upright. -->
-			<svg
-				viewBox={viewBox}
-				width={size}
-				height={size}
-				preserveAspectRatio="xMidYMid meet"
-				style="transform: scaleY(-1);"
-				aria-hidden="true"
+			<!-- System-font fallback. Font-size scales with the tile so an
+			     undrawn slot renders at approximately the same visual height
+			     as a drawn glyph: cap-height of a typical font is ~70% of em,
+			     and the drawn-glyph branch above fits the em square to the
+			     tile. So sizing the fallback to ~62% of the tile keeps the
+			     two pipelines visually matched at any tile size. -->
+			<span
+				class="font-light leading-none text-fg-subtle"
+				style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif; font-size: {Math.round(size * 0.62)}px;"
 			>
-				<g transform="scale(1 -1)">
-					<text
-						x={fallbackCenterX}
-						y="0"
-						font-size={fontSpan * 0.7}
-						text-anchor="middle"
-						dominant-baseline="alphabetic"
-						font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
-						font-weight="300"
-						class="fill-fg-subtle"
-					>{char}</text>
-				</g>
-			</svg>
+				{char}
+			</span>
 		{:else}
 			<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 				{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}
