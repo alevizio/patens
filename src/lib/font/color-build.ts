@@ -50,6 +50,41 @@ export type PlanBaseGlyphRecord = {
 export type ColorFontPlan = {
 	syntheticGlyphs: SyntheticLayerGlyph[];
 	baseGlyphRecords: PlanBaseGlyphRecord[];
+	/**
+	 * COLR v1 base-glyph paint records. One per glyph whose single
+	 * visible layer carries a gradient (linear or radial). Multi-layer
+	 * gradient glyphs continue to ship via v0 flat fallback — they'd
+	 * need PaintColrLayers + LayerList support, which is a follow-up.
+	 *
+	 * Each entry references a synthetic layer-glyph by NAME (resolved
+	 * to glyphID after the font's glyph set is finalised, same way the
+	 * v0 records work).
+	 */
+	v1Records: PlanV1BaseGlyphPaint[];
+};
+
+export type PlanV1BaseGlyphPaint = {
+	/** Name of the parent (color) base glyph in the font. */
+	baseGlyphName: string;
+	/** The synthetic layer glyph whose outline clips the paint. */
+	layerGlyphName: string;
+	/** Gradient paint shape — copied from the source ColorLayer.gradient. */
+	gradient:
+		| {
+				kind: 'linear';
+				x0: number;
+				y0: number;
+				x1: number;
+				y1: number;
+				stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
+			}
+		| {
+				kind: 'radial';
+				cx: number;
+				cy: number;
+				r: number;
+				stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
+			};
 };
 
 /**
@@ -65,15 +100,12 @@ export type ColorFontPlan = {
 export const buildColorFontPlan = (project: Project): ColorFontPlan => {
 	const syntheticGlyphs: SyntheticLayerGlyph[] = [];
 	const baseGlyphRecords: PlanBaseGlyphRecord[] = [];
+	const v1Records: PlanV1BaseGlyphPaint[] = [];
 
-	// No palettes → no color font, no layer glyphs. Caller may still
-	// have a useful monochrome project; we just don't emit COLR/CPAL.
 	if (!project.palettes || project.palettes.length === 0) {
-		return { syntheticGlyphs, baseGlyphRecords };
+		return { syntheticGlyphs, baseGlyphRecords, v1Records };
 	}
 
-	// Iterate glyphs by codepoint order so the plan is deterministic
-	// across runs.
 	const codepoints = Object.keys(project.glyphs)
 		.map((s) => Number(s))
 		.sort((a, b) => a - b);
@@ -83,15 +115,16 @@ export const buildColorFontPlan = (project: Project): ColorFontPlan => {
 		if (!glyph || !hasVisibleColorLayers(glyph.colorLayers)) continue;
 		const baseName = glyph.name || `cp${cp.toString(16)}`;
 		const layers: PlanBaseGlyphRecord['layers'] = [];
+		const visibleLayers = (glyph.colorLayers ?? []).filter(
+			(l) => !l.hidden && l.contours.length > 0
+		);
 		let layerIndex = 0;
-		for (const layer of glyph.colorLayers ?? []) {
-			if (layer.hidden) continue;
-			if (layer.contours.length === 0) continue;
+		for (const layer of visibleLayers) {
 			const layerGlyphName = `${baseName}.color${layerIndex}`;
 			syntheticGlyphs.push({
 				name: layerGlyphName,
 				contours: layer.contours,
-				advanceWidth: 0 // layer glyphs never render standalone
+				advanceWidth: 0
 			});
 			layers.push({
 				layerGlyphName,
@@ -104,9 +137,48 @@ export const buildColorFontPlan = (project: Project): ColorFontPlan => {
 			baseGlyphName: baseName,
 			layers
 		});
+
+		// COLR v1 record: only emit when the glyph has EXACTLY ONE visible
+		// layer and that layer has a gradient. Multi-layer glyphs need
+		// PaintColrLayers + LayerList support (deferred). Single-layer
+		// gradients are the most common case for the editor's gradient
+		// feature and ship cleanly via PaintGlyph → PaintLinearGradient
+		// (or PaintRadialGradient).
+		if (visibleLayers.length === 1) {
+			const lyr = visibleLayers[0];
+			if (lyr.gradient) {
+				const layerGlyphName = `${baseName}.color0`;
+				if (lyr.gradient.type === 'linear') {
+					v1Records.push({
+						baseGlyphName: baseName,
+						layerGlyphName,
+						gradient: {
+							kind: 'linear',
+							x0: lyr.gradient.start.x,
+							y0: lyr.gradient.start.y,
+							x1: lyr.gradient.end.x,
+							y1: lyr.gradient.end.y,
+							stops: lyr.gradient.stops
+						}
+					});
+				} else if (lyr.gradient.type === 'radial') {
+					v1Records.push({
+						baseGlyphName: baseName,
+						layerGlyphName,
+						gradient: {
+							kind: 'radial',
+							cx: lyr.gradient.center.x,
+							cy: lyr.gradient.center.y,
+							r: lyr.gradient.radius,
+							stops: lyr.gradient.stops
+						}
+					});
+				}
+			}
+		}
 	}
 
-	return { syntheticGlyphs, baseGlyphRecords };
+	return { syntheticGlyphs, baseGlyphRecords, v1Records };
 };
 
 /**
@@ -144,6 +216,102 @@ export const resolveColorFontPlan = (
 		out.push({ glyphID: baseId, layers });
 	}
 	// COLR v0 spec: baseGlyphRecords sorted ascending by glyphID.
+	out.sort((a, b) => a.glyphID - b.glyphID);
+	return out;
+};
+
+/**
+ * Resolve the v1 portion of the plan into `BaseGlyphPaint[]` ready
+ * for `writeColrV1`. Each entry's paint tree is `PaintGlyph` →
+ * gradient. Pre-sorted ascending by glyphID per the spec.
+ *
+ * The PaintLinearGradient's x2/y2 (rotation point) is computed as
+ * the start-perpendicular at unit length — matches the simplest
+ * common case where the gradient axis IS the perpendicular.
+ */
+export const resolveV1ColorFontPlan = (
+	plan: ColorFontPlan,
+	glyphIdByName: ReadonlyMap<string, number>
+): Array<{
+	glyphID: number;
+	paint:
+		| {
+				kind: 'glyph';
+				glyphID: number;
+				paint:
+					| {
+							kind: 'linearGradient';
+							x0: number;
+							y0: number;
+							x1: number;
+							y1: number;
+							x2: number;
+							y2: number;
+							stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
+						}
+					| {
+							kind: 'radialGradient';
+							x0: number;
+							y0: number;
+							r0: number;
+							x1: number;
+							y1: number;
+							r1: number;
+							stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
+						};
+			};
+}> => {
+	const out: ReturnType<typeof resolveV1ColorFontPlan> = [];
+	for (const rec of plan.v1Records) {
+		const baseId = glyphIdByName.get(rec.baseGlyphName);
+		const layerId = glyphIdByName.get(rec.layerGlyphName);
+		if (baseId === undefined || layerId === undefined) continue;
+		if (rec.gradient.kind === 'linear') {
+			// PaintLinearGradient requires a rotation point (x2,y2) — the
+			// perpendicular to the start→end axis at unit length passing
+			// through start. For the simplest gradients (no shear) this is
+			// just start + 90°-rotated direction.
+			const dx = rec.gradient.x1 - rec.gradient.x0;
+			const dy = rec.gradient.y1 - rec.gradient.y0;
+			const x2 = rec.gradient.x0 - dy;
+			const y2 = rec.gradient.y0 + dx;
+			out.push({
+				glyphID: baseId,
+				paint: {
+					kind: 'glyph',
+					glyphID: layerId,
+					paint: {
+						kind: 'linearGradient',
+						x0: rec.gradient.x0,
+						y0: rec.gradient.y0,
+						x1: rec.gradient.x1,
+						y1: rec.gradient.y1,
+						x2,
+						y2,
+						stops: rec.gradient.stops
+					}
+				}
+			});
+		} else {
+			out.push({
+				glyphID: baseId,
+				paint: {
+					kind: 'glyph',
+					glyphID: layerId,
+					paint: {
+						kind: 'radialGradient',
+						x0: rec.gradient.cx,
+						y0: rec.gradient.cy,
+						r0: 0,
+						x1: rec.gradient.cx,
+						y1: rec.gradient.cy,
+						r1: rec.gradient.r,
+						stops: rec.gradient.stops
+					}
+				}
+			});
+		}
+	}
 	out.sort((a, b) => a.glyphID - b.glyphID);
 	return out;
 };

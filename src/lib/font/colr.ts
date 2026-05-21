@@ -488,14 +488,19 @@ const writeColorRecord = (buf: ByteBuf, c: RGBA): void => {
 export const applyColorFontTables = (
 	sfntBuf: Uint8Array,
 	baseGlyphs: BaseGlyphRecord[],
-	palettes: ColorPalette[]
+	palettes: ColorPalette[],
+	v1BaseGlyphs: BaseGlyphPaint[] = []
 ): Uint8Array => {
-	if (baseGlyphs.length === 0 || palettes.length === 0) return sfntBuf;
+	if (baseGlyphs.length === 0 && v1BaseGlyphs.length === 0) return sfntBuf;
+	if (palettes.length === 0) return sfntBuf;
 	const cpal = writeCpalV0(palettes);
-	const colr = writeColrV0(baseGlyphs);
-	// Splice order doesn't matter for correctness; alphabetical for the
-	// SFNT directory is handled inside `spliceTable`. We splice CPAL
-	// first so a partial failure leaves an orderly file.
+	// COLR v1 when any gradient layers are present; v0 otherwise. The
+	// v1 table includes the v0 sections inline so older renderers still
+	// see flat-fill fallbacks.
+	const colr =
+		v1BaseGlyphs.length > 0
+			? writeColrV1(baseGlyphs, v1BaseGlyphs)
+			: writeColrV0(baseGlyphs);
 	const withCpal = spliceTable(sfntBuf, 'CPAL', cpal);
 	return spliceTable(withCpal, 'COLR', colr);
 };

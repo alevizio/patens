@@ -240,8 +240,11 @@ describe('resolveColorFontPlan', () => {
 	});
 
 	it('empty plan → empty resolved', () => {
-		expect(resolveColorFontPlan({ syntheticGlyphs: [], baseGlyphRecords: [] }, new Map())).toEqual(
-			[]
-		);
+		expect(
+			resolveColorFontPlan(
+				{ syntheticGlyphs: [], baseGlyphRecords: [], v1Records: [] },
+				new Map()
+			)
+		).toEqual([]);
 	});
 });

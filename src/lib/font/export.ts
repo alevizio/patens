@@ -12,7 +12,7 @@ import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
 import { applyDetectedFeatures, detectFeatures } from './feature-detect';
-import { buildColorFontPlan, resolveColorFontPlan } from './color-build';
+import { buildColorFontPlan, resolveColorFontPlan, resolveV1ColorFontPlan } from './color-build';
 import { buildAutoKern } from './kerning-auto';
 import { expandKerningClasses } from './kerning-classes';
 
@@ -171,6 +171,13 @@ export type BuildResult = {
 		glyphID: number;
 		layers: Array<{ glyphID: number; paletteIndex: number }>;
 	}>;
+	/**
+	 * For color fonts with gradient layers: the COLR v1 base-glyph
+	 * paint records ready to feed `applyColorFontTables`. Empty when
+	 * no gradient layers exist. When non-empty, the export emits a
+	 * combined v0 + v1 COLR table.
+	 */
+	colorV1BaseGlyphs: ReturnType<typeof resolveV1ColorFontPlan>;
 };
 
 export type BuildOptions = {
@@ -254,6 +261,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		glyphs.push(otGlyph);
 	}
 	const colorBaseGlyphs = resolveColorFontPlan(colorPlan, glyphIdByName);
+	const colorV1BaseGlyphs = resolveV1ColorFontPlan(colorPlan, glyphIdByName);
 
 	const font = new opentype.Font({
 		familyName: metadata.familyName || 'Untitled',
@@ -347,7 +355,13 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		);
 	}
 
-	return { font, indexByCodepoint, glyphCount: glyphs.length, colorBaseGlyphs };
+	return {
+		font,
+		indexByCodepoint,
+		glyphCount: glyphs.length,
+		colorBaseGlyphs,
+		colorV1BaseGlyphs
+	};
 };
 
 export const fontToArrayBuffer = (font: InstanceType<typeof opentype.Font>): ArrayBuffer =>

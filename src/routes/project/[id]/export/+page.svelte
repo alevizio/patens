@@ -171,7 +171,7 @@ body {
 		const disableAutoFeatures = autoFeatures
 			? new Set(project.features.disabledAutoFeatures ?? [])
 			: undefined;
-		const { font, indexByCodepoint, colorBaseGlyphs } = buildFont(project, {
+		const { font, indexByCodepoint, colorBaseGlyphs, colorV1BaseGlyphs } = buildFont(project, {
 			autoFeatures,
 			disableAutoFeatures
 		});
@@ -188,14 +188,22 @@ body {
 			) as ArrayBuffer;
 		}
 
-		// Color-font COLR v0 + CPAL v0 — splice when the project has at
-		// least one resolved color glyph + at least one palette. Synthetic
+		// Color-font COLR + CPAL — splice when the project has at least
+		// one resolved color glyph + at least one palette. Synthetic
 		// layer glyphs are already in `font` (added by `buildFont`).
-		if (colorBaseGlyphs.length > 0 && project.palettes && project.palettes.length > 0) {
+		// When any glyph has a single-layer gradient, also emits the
+		// COLR v1 paint tree so modern renderers show the gradient
+		// instead of the flat fallback.
+		if (
+			(colorBaseGlyphs.length > 0 || colorV1BaseGlyphs.length > 0) &&
+			project.palettes &&
+			project.palettes.length > 0
+		) {
 			const augmented = applyColorFontTables(
 				new Uint8Array(buffer),
 				colorBaseGlyphs,
-				project.palettes
+				project.palettes,
+				colorV1BaseGlyphs
 			);
 			buffer = augmented.buffer.slice(
 				augmented.byteOffset,
