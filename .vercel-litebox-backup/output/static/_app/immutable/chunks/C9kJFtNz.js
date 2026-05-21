@@ -1,1 +1,0 @@
-import{o as e,s as t}from"./BxIHShdD.js";import"./2TU3FloQ.js";import{t as n}from"./CejoeAUc.js";function r(r,i){let a=e(i,[`$$slots`,`$$events`,`$$legacy`]),o=[[`path`,{d:`M12 13v8`}],[`path`,{d:`M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242`}],[`path`,{d:`m8 17 4-4 4 4`}]];n(r,t({name:`cloud-upload`},()=>a,{get iconNode(){return o}}))}export{r as t};

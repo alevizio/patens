@@ -1,2 +1,0 @@
-import { a as consoleHello, c as installKonamiListener, d as timeOfDay, i as celebrateSeal, l as milestoneMessage, n as PYODIDE_BOOT_MESSAGES, o as continueGreeting, r as celebrate, s as homeTagline, t as FAMILY_BUILD_MESSAGES, u as prefersReducedMotion } from "./delight2.js";
-export { FAMILY_BUILD_MESSAGES, PYODIDE_BOOT_MESSAGES, celebrate, celebrateSeal, consoleHello, continueGreeting, homeTagline, installKonamiListener, milestoneMessage, prefersReducedMotion, timeOfDay };

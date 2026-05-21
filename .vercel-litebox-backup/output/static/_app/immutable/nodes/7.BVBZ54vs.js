@@ -1,1 +1,0 @@
-import{n as e}from"../chunks/DHw-IyYA.js";import{n as t}from"../chunks/CA71hrqg.js";var n=e({load:()=>r}),r=({params:e})=>{throw t(307,`/project/${e.id}/edit`)};export{n as universal};
