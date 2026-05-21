@@ -100,65 +100,140 @@ const collectMarkData = (
 };
 
 /**
- * Build a GPOS binary with one 'mark' feature wrapping a single
- * MarkBasePosFormat1 subtable. Returns `null` if the project has no
- * compatible mark/base anchor data (caller skips the splice in that case).
+ * Helper: turn a (markInfos, baseInfos, classNames) collection into
+ * a MarkBasePosFormat1 subtable. Returns null when the input would
+ * produce an invalid subtable (empty / duplicate coverage).
  */
-export const buildMarkGposBinary = (
-	project: Project,
-	indexByCodepoint: Map<number, number>
+const buildMarkBasePosSubtable = (
+	markInfos: MarkInfo[],
+	baseInfos: BaseInfo[],
+	classNames: string[]
 ): Uint8Array | null => {
-	const { markInfos, baseInfos, classNames } = collectMarkData(project, indexByCodepoint);
 	if (classNames.length === 0 || markInfos.length === 0 || baseInfos.length === 0)
 		return null;
-
 	const classIndexByName = new Map(classNames.map((c, i) => [c, i] as const));
 	const markClassCount = classNames.length;
-
-	// Sort marks by glyph index ascending so the coverage list matches the
-	// MarkArray order (spec invariant: glyph N at coverage index K → mark
-	// record K).
 	const sortedMarks = [...markInfos].sort((a, b) => a.gIdx - b.gIdx);
 	const markGlyphs = sortedMarks.map((m) => m.gIdx);
 	const markRecords: MarkRecord[] = sortedMarks.map((m) => ({
 		markClass: classIndexByName.get(m.className)!,
 		anchor: m.anchor
 	}));
-
-	// Bases similarly. For each base, build a length-markClassCount array of
-	// anchors (null for classes the base doesn't attach to).
 	const sortedBases = [...baseInfos].sort((a, b) => a.gIdx - b.gIdx);
 	const baseGlyphs = sortedBases.map((b) => b.gIdx);
 	const baseRecords: BaseRecord[] = sortedBases.map((b) => ({
 		anchors: classNames.map((name) => b.anchors.get(name) ?? null)
 	}));
-
-	// De-dupe coverage entries (a mark with multiple class attachments could
-	// otherwise appear twice in markGlyphs, breaking the spec invariant).
-	if (new Set(markGlyphs).size !== markGlyphs.length) {
-		// One mark with anchors on two different classes — the spec wants a
-		// single coverage entry but one mark record per glyph. We don't
-		// currently support that shape; skip and fall back.
-		return null;
-	}
+	if (new Set(markGlyphs).size !== markGlyphs.length) return null;
 	if (new Set(baseGlyphs).size !== baseGlyphs.length) return null;
-
-	const subtable = writeMarkBasePosFormat1({
+	return writeMarkBasePosFormat1({
 		markGlyphs,
 		baseGlyphs,
 		markRecords,
 		baseRecords,
 		markClassCount
 	});
-	const lookup = writeLookupTable(4, 0, [subtable]);
+};
+
+/**
+ * Collect mark-to-mark anchor data. A "mark2" (the attachee) is any
+ * mark glyph that ALSO has unprefixed anchors (e.g. `top`) where a
+ * NEXT mark could attach. A "mark1" (the attacher) is any mark glyph
+ * with `_` -prefixed anchors (same as mark-to-base; reused as the
+ * mkmk attacher).
+ *
+ * Convention: combining acute (U+0301) has both:
+ *   `_top`  — its bottom-centre, attaches to base's `top`
+ *   `top`   — its top-centre, where a next mark stacks on top of it
+ */
+const collectMkmkData = (
+	project: Project,
+	indexByCodepoint: Map<number, number>
+): { mark1Infos: MarkInfo[]; mark2Infos: BaseInfo[]; classNames: string[] } => {
+	const mark1Infos: MarkInfo[] = [];
+	const mark2InfosByGidx = new Map<number, BaseInfo>();
+	const classNamesUsedByMark1 = new Set<string>();
+	const classNamesUsedByMark2 = new Set<string>();
+	const allClassNames = new Set<string>();
+	for (const glyph of Object.values(project.glyphs)) {
+		if (!isMarkGlyph(glyph.codepoint)) continue;
+		const anchors = glyph.anchors ?? [];
+		if (anchors.length === 0) continue;
+		const gIdx = indexByCodepoint.get(glyph.codepoint);
+		if (gIdx === undefined) continue;
+		// Mark1: `_top` etc — the attachment point.
+		for (const a of anchors) {
+			if (!a.name.startsWith('_')) continue;
+			const className = a.name.slice(1);
+			mark1Infos.push({ gIdx, anchor: { x: a.x, y: a.y }, className });
+			allClassNames.add(className);
+			classNamesUsedByMark1.add(className);
+		}
+		// Mark2: non-underscore anchors on a MARK glyph mean "next mark
+		// attaches here". (Same anchor name shape as a base, but the glyph
+		// happens to be a mark.)
+		const mark2Anchors = new Map<string, { x: number; y: number }>();
+		for (const a of anchors) {
+			if (a.name.startsWith('_')) continue;
+			mark2Anchors.set(a.name, { x: a.x, y: a.y });
+			allClassNames.add(a.name);
+			classNamesUsedByMark2.add(a.name);
+		}
+		if (mark2Anchors.size > 0) {
+			mark2InfosByGidx.set(gIdx, { gIdx, anchors: mark2Anchors });
+		}
+	}
+	const classNames = [...allClassNames]
+		.filter((c) => classNamesUsedByMark1.has(c) && classNamesUsedByMark2.has(c))
+		.sort();
+	return {
+		mark1Infos: mark1Infos.filter((m) => classNames.includes(m.className)),
+		mark2Infos: [...mark2InfosByGidx.values()].filter((b) =>
+			[...b.anchors.keys()].some((n) => classNames.includes(n))
+		),
+		classNames
+	};
+};
+
+/**
+ * Build a GPOS binary covering both 'mark' (mark-to-base, Type 4)
+ * and 'mkmk' (mark-to-mark, Type 6) features. Returns `null` if
+ * neither has usable anchor data.
+ *
+ * GPOS Type 6 MarkMarkPosFormat1 has the same byte layout as Type 4
+ * MarkBasePosFormat1 — same subtable writer, just emitted under a
+ * lookup of type 6 instead of 4.
+ */
+export const buildMarkGposBinary = (
+	project: Project,
+	indexByCodepoint: Map<number, number>
+): Uint8Array | null => {
+	const mark = collectMarkData(project, indexByCodepoint);
+	const mkmk = collectMkmkData(project, indexByCodepoint);
+
+	const markSub = buildMarkBasePosSubtable(mark.markInfos, mark.baseInfos, mark.classNames);
+	const mkmkSub = buildMarkBasePosSubtable(mkmk.mark1Infos, mkmk.mark2Infos, mkmk.classNames);
+
+	if (!markSub && !mkmkSub) return null;
+
+	const lookups: Uint8Array[] = [];
+	const features: { tag: string; lookupListIndices: number[] }[] = [];
+	if (markSub) {
+		lookups.push(writeLookupTable(4, 0, [markSub]));
+		features.push({ tag: 'mark', lookupListIndices: [lookups.length - 1] });
+	}
+	if (mkmkSub) {
+		lookups.push(writeLookupTable(6, 0, [mkmkSub]));
+		features.push({ tag: 'mkmk', lookupListIndices: [lookups.length - 1] });
+	}
 
 	return writeGposTable({
 		scripts: [
-			{ tag: 'DFLT', defaultLangSysFeatureIndices: [0] },
-			{ tag: 'latn', defaultLangSysFeatureIndices: [0] }
+			{ tag: 'DFLT', defaultLangSysFeatureIndices: features.map((_, i) => i) },
+			{ tag: 'latn', defaultLangSysFeatureIndices: features.map((_, i) => i) }
 		],
-		features: [{ tag: 'mark', lookupListIndices: [0] }],
-		lookups: [lookup]
+		features,
+		lookups
 	});
 };
 

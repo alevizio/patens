@@ -172,6 +172,125 @@ describe('buildMarkGposBinary', () => {
 		// no matching mark. This is hard to verify without re-parsing the
 		// binary; rely on the byte-length being closer to a single-base case.
 	});
+
+	it('emits mkmk lookup when marks have both _top and top anchors (stacking)', () => {
+		// acute has _top (attach to base) + top (next mark stacks above)
+		// circumflex has _top (attach to acute's top) — no further marks
+		const acute = baseGlyph({
+			codepoint: 0x0301,
+			name: 'acutecomb',
+			anchors: [
+				{ name: '_top', x: 0, y: 0 }, // attach to base.top
+				{ name: 'top', x: 0, y: 200 } // next mark attaches here
+			]
+		});
+		const circumflex = baseGlyph({
+			codepoint: 0x0302,
+			name: 'circumflexcomb',
+			anchors: [{ name: '_top', x: 0, y: 0 }]
+		});
+		const A = baseGlyph({
+			codepoint: 0x41,
+			name: 'A',
+			anchors: [{ name: 'top', x: 300, y: 700 }]
+		});
+		const indexByCp = new Map([
+			[0x41, 1],
+			[0x301, 2],
+			[0x302, 3]
+		]);
+		const gpos = buildMarkGposBinary(
+			project({ 0x41: A, 0x301: acute, 0x302: circumflex }),
+			indexByCp
+		);
+		expect(gpos).not.toBeNull();
+		// GPOS header is 10 bytes; feature list comes after the script
+		// list. Just sanity-check that BOTH features (mark + mkmk) make
+		// it into the binary by searching the byte stream for the tags
+		// 'mark' and 'mkmk' (their 4-char ASCII representations).
+		const bytes = gpos!;
+		const findAscii = (s: string) => {
+			const needle = new TextEncoder().encode(s);
+			outer: for (let i = 0; i + needle.length <= bytes.length; i++) {
+				for (let j = 0; j < needle.length; j++) {
+					if (bytes[i + j] !== needle[j]) continue outer;
+				}
+				return i;
+			}
+			return -1;
+		};
+		expect(findAscii('mark')).toBeGreaterThan(0);
+		expect(findAscii('mkmk')).toBeGreaterThan(0);
+	});
+
+	it('emits mark + mkmk together when project has both', () => {
+		// Same setup as above — verifies the dual-feature path doesn't
+		// drop the mark feature in favour of mkmk.
+		const acute = baseGlyph({
+			codepoint: 0x0301,
+			name: 'acutecomb',
+			anchors: [
+				{ name: '_top', x: 0, y: 0 },
+				{ name: 'top', x: 0, y: 200 }
+			]
+		});
+		const circumflex = baseGlyph({
+			codepoint: 0x0302,
+			name: 'circumflexcomb',
+			anchors: [{ name: '_top', x: 0, y: 0 }]
+		});
+		const A = baseGlyph({
+			codepoint: 0x41,
+			name: 'A',
+			anchors: [{ name: 'top', x: 300, y: 700 }]
+		});
+		const indexByCp = new Map([
+			[0x41, 1],
+			[0x301, 2],
+			[0x302, 3]
+		]);
+		const gpos = buildMarkGposBinary(
+			project({ 0x41: A, 0x301: acute, 0x302: circumflex }),
+			indexByCp
+		);
+		expect(gpos).not.toBeNull();
+	});
+
+	it('NO mkmk lookup when no mark has an unprefixed anchor', () => {
+		// Only mark-to-base setup; no stacking.
+		const acute = baseGlyph({
+			codepoint: 0x0301,
+			name: 'acutecomb',
+			anchors: [{ name: '_top', x: 0, y: 0 }]
+		});
+		const A = baseGlyph({
+			codepoint: 0x41,
+			name: 'A',
+			anchors: [{ name: 'top', x: 300, y: 700 }]
+		});
+		const indexByCp = new Map([
+			[0x41, 1],
+			[0x301, 2]
+		]);
+		const gpos = buildMarkGposBinary(
+			project({ 0x41: A, 0x301: acute }),
+			indexByCp
+		);
+		expect(gpos).not.toBeNull();
+		const bytes = gpos!;
+		const find = (s: string) => {
+			const needle = new TextEncoder().encode(s);
+			outer: for (let i = 0; i + needle.length <= bytes.length; i++) {
+				for (let j = 0; j < needle.length; j++) {
+					if (bytes[i + j] !== needle[j]) continue outer;
+				}
+				return i;
+			}
+			return -1;
+		};
+		expect(find('mark')).toBeGreaterThan(0);
+		expect(find('mkmk')).toBe(-1);
+	});
 });
 
 // applyMarkPositioning ---------------------------------------------------

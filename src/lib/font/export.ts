@@ -454,15 +454,22 @@ export const applyStandardLigatures = (
  */
 export const hasMarkAnchors = (project: Project): boolean => {
 	const isMarkGlyph = (cp: number) => cp >= 0x0300 && cp <= 0x036f;
-	let hasMarkAnchor = false;
-	let hasBaseAnchor = false;
+	let hasMarkAttachAnchor = false;
+	let hasBaseAttachAnchor = false;
+	let hasMark2Anchor = false; // unprefixed anchor ON a mark = mkmk target
 	for (const g of Object.values(project.glyphs)) {
+		const cpIsMark = isMarkGlyph(g.codepoint);
 		for (const a of g.anchors ?? []) {
-			if (a.name.startsWith('_')) hasMarkAnchor = true;
-			else if (!isMarkGlyph(g.codepoint)) hasBaseAnchor = true;
-			if (hasMarkAnchor && hasBaseAnchor) return true;
+			if (a.name.startsWith('_')) hasMarkAttachAnchor = true;
+			else if (cpIsMark) hasMark2Anchor = true;
+			else hasBaseAttachAnchor = true;
 		}
 	}
+	// Trigger the GPOS splice when EITHER mark-to-base (mark + base
+	// anchors present) OR mark-to-mark (two marks, one with _, one
+	// without) has usable data.
+	if (hasMarkAttachAnchor && hasBaseAttachAnchor) return true;
+	if (hasMarkAttachAnchor && hasMark2Anchor) return true;
 	return false;
 };
 
