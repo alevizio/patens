@@ -315,10 +315,20 @@ class ProjectStore {
 
 	toggleLock() {
 		if (!this.project) return;
-		this.project = { ...this.project, locked: !this.project.locked };
-		// touch() also short-circuits when locked, so when locking we need to write
-		// updatedAt+dirty manually to ensure the lock state actually persists.
-		this.project = { ...this.project, updatedAt: new Date().toISOString() };
+		const nextLocked = !this.project.locked;
+		const nextUpdatedAt = new Date().toISOString();
+		// touch() short-circuits when locked, so we write `updatedAt`
+		// manually here to ensure the lock state actually persists. Both
+		// fields go in one transact() so observers see one update event.
+		if (!this.doc) {
+			this.project = { ...this.project, locked: nextLocked, updatedAt: nextUpdatedAt };
+		} else {
+			this.doc.transact(() => {
+				const root = this.doc!.getMap('project');
+				root.set('locked', nextLocked);
+				root.set('updatedAt', nextUpdatedAt);
+			});
+		}
 		this.dirty = true;
 		this.scheduleSave();
 	}
@@ -535,16 +545,11 @@ class ProjectStore {
 
 	addBriefReference(ref: Omit<import('$lib/font/types').BriefReference, 'id'>) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const brief = this.project.brief ?? {};
-		this.project = {
-			...this.project,
-			brief: {
-				...brief,
-				references: [...(brief.references ?? []), { ...ref, id: crypto.randomUUID() }]
-			}
-		};
-		this.touch();
+		this.withRootScalar('brief', {
+			...brief,
+			references: [...(brief.references ?? []), { ...ref, id: crypto.randomUUID() }]
+		});
 		// Try to load the family from Google Fonts so it becomes usable wherever
 		// font-family rules look it up (silently 404s if not on GF).
 		this.loadGoogleFontIfNeeded(ref.name);
@@ -560,16 +565,11 @@ class ProjectStore {
 
 	removeBriefReference(id: string) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const brief = this.project.brief ?? {};
-		this.project = {
-			...this.project,
-			brief: {
-				...brief,
-				references: (brief.references ?? []).filter((r) => r.id !== id)
-			}
-		};
-		this.touch();
+		this.withRootScalar('brief', {
+			...brief,
+			references: (brief.references ?? []).filter((r) => r.id !== id)
+		});
 	}
 
 	updateFeatures(mut: Partial<Project['features']>) {
@@ -987,7 +987,30 @@ class ProjectStore {
 	async addScriptPack(pack: ScriptPack) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = addScriptPackHelper(this.project, pack);
+		// addScriptPackHelper can add a whole range of glyphs (e.g. Cyrillic
+		// pack adds ~100 codepoints) plus potentially seed kerning classes.
+		// Write the new glyphs into the Y.Map atomically so observers see
+		// one update event instead of N.
+		const next = addScriptPackHelper(this.project, pack);
+		if (!this.doc) {
+			this.project = next;
+			this.touch();
+			await this.flush();
+			return;
+		}
+		this.doc.transact(() => {
+			const root = this.doc!.getMap('project');
+			const glyphMap = root.get('glyphs') as Y.Map<unknown>;
+			// Diff: add only the codepoints not previously present.
+			for (const [cpStr, glyph] of Object.entries(next.glyphs)) {
+				if (!glyphMap.has(cpStr)) glyphMap.set(cpStr, glyph);
+			}
+			// Classes can have additional entries from the script pack —
+			// replace the full Y.Array (same pattern as Day 3c helpers).
+			const cls = root.get('classes') as Y.Array<KerningClass>;
+			cls.delete(0, cls.length);
+			cls.insert(0, next.classes ?? []);
+		});
 		this.touch();
 		await this.flush();
 	}
@@ -1123,14 +1146,11 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: { ...current, flagged: !current.flagged, updatedAt: new Date().toISOString() }
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			flagged: !current.flagged,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	toggleGlyphPin(codepoint: number) {
@@ -1138,67 +1158,78 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current) return;
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: { ...current, pinned: !current.pinned, updatedAt: new Date().toISOString() }
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			pinned: !current.pinned,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	setGlyphStatus(codepoint: number, status: Glyph['status']) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		if (!this.project.glyphs[codepoint]) return;
 		const current = this.project.glyphs[codepoint];
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: { ...current, status, updatedAt: new Date().toISOString() }
-			}
-		};
-		this.touch();
+		if (!current) return;
+		this.writeGlyph(codepoint, {
+			...current,
+			status,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	renameGlyph(codepoint: number, name: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		if (!this.project.glyphs[codepoint]) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
 		const trimmed = name.trim();
 		if (!trimmed) return;
-		const current = this.project.glyphs[codepoint];
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: { ...current, name: trimmed, updatedAt: new Date().toISOString() }
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			name: trimmed,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	removeGlyph(codepoint: number) {
 		if (!this.project) return;
 		if (this.project.locked) return;
 		if (!this.project.glyphs[codepoint]) return;
-		const { [codepoint]: _, ...rest } = this.project.glyphs;
-		this.project = {
-			...this.project,
-			glyphs: rest,
-			// Drop kerning pairs referencing this glyph
-			kerning: this.project.kerning.filter((p) => p.left !== codepoint && p.right !== codepoint),
-			// Drop class members referencing this glyph
-			classes: (this.project.classes ?? []).map((c) => ({
-				...c,
-				members: c.members.filter((m) => m !== codepoint)
-			}))
-		};
-		// If this was the selected glyph, pick another
-		if (this.selectedCodepoint === codepoint) {
-			const codepoints = Object.keys(this.project.glyphs).map(Number);
+		// Three-shape atomic delete: glyphs Y.Map drop + kerning Y.Array
+		// filter (drop referencing pairs) + classes Y.Array (drop the
+		// codepoint from every member list). One transact() so observers
+		// see a single update event instead of three.
+		const nextKerning = this.project.kerning.filter(
+			(p) => p.left !== codepoint && p.right !== codepoint
+		);
+		const nextClasses = (this.project.classes ?? []).map((c) => ({
+			...c,
+			members: c.members.filter((m) => m !== codepoint)
+		}));
+		const willBeOrphaned = this.selectedCodepoint === codepoint;
+		if (!this.doc) {
+			const { [codepoint]: _, ...rest } = this.project.glyphs;
+			this.project = {
+				...this.project,
+				glyphs: rest,
+				kerning: nextKerning,
+				classes: nextClasses
+			};
+		} else {
+			this.doc.transact(() => {
+				const root = this.doc!.getMap('project');
+				const glyphMap = root.get('glyphs') as Y.Map<unknown>;
+				glyphMap.delete(String(codepoint));
+				const kern = root.get('kerning') as Y.Array<KerningPair>;
+				kern.delete(0, kern.length);
+				kern.insert(0, nextKerning);
+				const cls = root.get('classes') as Y.Array<KerningClass>;
+				cls.delete(0, cls.length);
+				cls.insert(0, nextClasses);
+			});
+		}
+		if (willBeOrphaned) {
+			const codepoints = Object.keys(this.project?.glyphs ?? {}).map(Number);
 			this.selectedCodepoint = codepoints[0] ?? 0x0041;
 		}
 		this.touch();
@@ -1310,7 +1341,7 @@ class ProjectStore {
 		if (!this.project) return 0;
 		if (this.project.locked) return 0;
 		let count = 0;
-		this.project = updateMasterHelper(this.project, masterId, (m) => {
+		const nextProject = updateMasterHelper(this.project, masterId, (m) => {
 			const next = { ...m.glyphs };
 			for (const [cpStr, srcGlyph] of Object.entries(this.project!.glyphs)) {
 				const cp = Number(cpStr);
@@ -1324,7 +1355,14 @@ class ProjectStore {
 			}
 			return { ...m, glyphs: next };
 		});
-		this.touch();
+		this.withYArray<Master>(
+			'masters',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, nextProject.masters ?? []);
+			},
+			() => nextProject.masters ?? []
+		);
 		return count;
 	}
 
@@ -1338,14 +1376,21 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const src = this.project.glyphs[codepoint];
 		if (!src) return;
-		this.project = updateMasterHelper(this.project, masterId, (m) => ({
+		const nextProject = updateMasterHelper(this.project, masterId, (m) => ({
 			...m,
 			glyphs: {
 				...m.glyphs,
 				[codepoint]: JSON.parse(JSON.stringify(src)) as Glyph
 			}
 		}));
-		this.touch();
+		this.withYArray<Master>(
+			'masters',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, nextProject.masters ?? []);
+			},
+			() => nextProject.masters ?? []
+		);
 	}
 }
 
