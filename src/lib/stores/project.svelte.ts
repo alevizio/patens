@@ -335,19 +335,38 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const drawnBefore = this.countDrawnGlyphs();
 		if (this.selectedMasterId) {
-			// Route to the additional master
-			this.project = updateMasterGlyph(this.project, this.selectedMasterId, codepoint, mut);
+			// Master branch — the helper returns a new Project with the
+			// `masters` array updated. Sync via the Y.Array helper using
+			// whole-array replacement, same shape as the Day 3c
+			// helper-delegating mutators. Perf is fine: master edits are
+			// rare (user has to explicitly select a non-default master)
+			// and the bench at 500 glyphs shows yDocToProject < 0.05ms.
+			const nextProject = updateMasterGlyph(
+				this.project,
+				this.selectedMasterId,
+				codepoint,
+				mut
+			);
+			this.withYArray<Master>(
+				'masters',
+				(arr) => {
+					arr.delete(0, arr.length);
+					arr.insert(0, nextProject.masters ?? []);
+				},
+				() => nextProject.masters ?? []
+			);
 		} else {
+			// Default master branch — single-glyph write to the Y.Map.
+			// Hot path during brush strokes; Day 3d profiling
+			// (yjs-schema.bench.test.ts) confirmed the doc round-trip
+			// stays sub-millisecond at 500 glyphs, so plain migration
+			// is safe without patch-based reconciliation.
 			const current = this.project.glyphs[codepoint];
 			if (!current) return;
 			const next = mut({ ...current });
 			next.updatedAt = new Date().toISOString();
-			this.project = {
-				...this.project,
-				glyphs: { ...this.project.glyphs, [codepoint]: next }
-			};
+			this.writeGlyph(codepoint, next);
 		}
-		this.touch();
 		this.checkMilestone(drawnBefore);
 	}
 
@@ -724,23 +743,38 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const cls = (this.project.sidebearingClasses ?? []).find((c) => c.id === id);
 		if (!cls) return;
-		const nextGlyphs = { ...this.project.glyphs };
+		// Compute the next glyphs for every class member; we'll write
+		// them all atomically in a single transact() so the doc fires
+		// one 'update' event for the whole batch instead of one per
+		// glyph (which would re-rebuild this.project N times).
+		const updates: Array<[number, Glyph]> = [];
 		for (const cp of cls.members) {
-			const g = nextGlyphs[cp];
+			const g = this.project.glyphs[cp];
 			if (!g) continue;
 			const newLsb = lsb !== null ? lsb : g.leftSidebearing;
 			const newRsb = rsb !== null ? rsb : g.rightSidebearing;
 			// Recompute advance: keep bbox width stable, slide LSB and pad RSB.
 			const bboxW = Math.max(0, g.advanceWidth - g.leftSidebearing - g.rightSidebearing);
-			nextGlyphs[cp] = {
+			updates.push([cp, {
 				...g,
 				leftSidebearing: newLsb,
 				rightSidebearing: newRsb,
 				advanceWidth: newLsb + bboxW + newRsb,
 				updatedAt: new Date().toISOString()
-			};
+			}]);
 		}
-		this.project = { ...this.project, glyphs: nextGlyphs };
+		if (updates.length === 0) return;
+		if (!this.doc) {
+			const nextGlyphs = { ...this.project.glyphs };
+			for (const [cp, g] of updates) nextGlyphs[cp] = g;
+			this.project = { ...this.project, glyphs: nextGlyphs };
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			const glyphMap = this.doc!.getMap('project').get('glyphs') as Y.Map<unknown>;
+			for (const [cp, g] of updates) glyphMap.set(String(cp), g);
+		});
 		this.touch();
 	}
 
