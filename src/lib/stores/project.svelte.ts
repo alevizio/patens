@@ -28,6 +28,8 @@ import {
 } from '$lib/font/project';
 import type { ScriptPack } from '$lib/font/charsets';
 import { aglfnName } from '$lib/font/aglfn';
+import * as Y from 'yjs';
+import { projectToYDoc } from '$lib/sync/yjs-schema';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -47,9 +49,34 @@ class ProjectStore {
 	private redoStack: Project[] = [];
 	private readonly maxHistory = 50;
 
+	/**
+	 * Phase C Day 1 — passive Y.Doc mirror.
+	 *
+	 * The doc is initialised in `load(project)` from the legacy
+	 * Project value and lives alongside the existing `project` state.
+	 * **Mutators do NOT write to the doc yet** — that's Day 2-3 work,
+	 * each mutator migrated one at a time through a Y.Doc transaction.
+	 * For now the doc is purely a scaffold: it exists, it can be read
+	 * via `getDoc()`, and it'll be wired to IndexedDB + PartyKit in
+	 * Days 4-5.
+	 *
+	 * Behaviour is unchanged for every existing caller; the doc just
+	 * tags along.
+	 */
+	private doc: Y.Doc | null = null;
+
+	getDoc(): Y.Doc | null {
+		return this.doc;
+	}
+
 	load(project: Project) {
 		this.project = project;
 		this.dirty = false;
+		// Phase C Day 1: initialise the Y.Doc mirror. Replaces any
+		// existing doc on project switch so we never accidentally
+		// carry state across projects.
+		if (this.doc) this.doc.destroy();
+		this.doc = projectToYDoc(project);
 		const codepoints = Object.keys(project.glyphs).map(Number);
 		// Restore last-selected glyph from localStorage if it's still in the set;
 		// otherwise default to the first uppercase Latin glyph that exists.
@@ -138,6 +165,10 @@ class ProjectStore {
 		this.saveTimer = null;
 		this.project = null;
 		this.dirty = false;
+		if (this.doc) {
+			this.doc.destroy();
+			this.doc = null;
+		}
 	}
 
 	private touch() {
