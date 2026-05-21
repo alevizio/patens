@@ -3,8 +3,10 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import type { GlyphReference } from '$lib/font/types';
 	import { contoursToSvgPath } from '$lib/font/path';
+	import { decomposeCodepoint } from '$lib/font/decompose';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
 
 	let newRefInput = $state('');
 	let showAdd = $state(false);
@@ -13,6 +15,19 @@
 	const components = $derived<GlyphReference[]>(glyph?.components ?? []);
 
 	const project = $derived(projectStore.project);
+
+	// NFD-based auto-compose suggestion. Only surfaces when the current
+	// glyph (a) has no contours AND no manual components yet AND (b) its
+	// Unicode NFD decomposition is fully present in the project's drawn
+	// glyphs. One click swaps it to a composite.
+	const composableSuggestion = $derived.by(() => {
+		if (!glyph || !project) return null;
+		if (glyph.contours.length > 0) return null;
+		if ((glyph.components?.length ?? 0) > 0) return null;
+		const d = decomposeCodepoint(glyph.codepoint, project);
+		if (!d || d.references.length < 2 || d.missing.length > 0) return null;
+		return d;
+	});
 
 	const labelFor = (cp: number): string => {
 		const g = project?.glyphs[cp];
@@ -160,9 +175,48 @@
 		</h3>
 
 		{#if components.length === 0 && !showAdd}
-			<p class="text-[11px] text-fg-subtle">
-				No components. Compose this glyph from references (e.g. <code class="font-mono">a</code> + <code class="font-mono">U+0301</code>).
-			</p>
+			{#if composableSuggestion}
+				<div
+					class="mb-2 rounded-md border border-accent/30 bg-accent-soft/40 p-2"
+				>
+					<div class="mb-1 flex items-center gap-1.5 text-[11px] font-medium text-accent-strong">
+						<Wand class="size-3" />
+						Composable from NFD
+					</div>
+					<p class="mb-2 text-[11px] leading-snug text-fg-muted">
+						This codepoint decomposes to {composableSuggestion.references.length} components
+						you've already drawn:
+						<span class="ml-1 font-mono text-fg">
+							{composableSuggestion.references
+								.map((r) => {
+									const ch =
+										r.baseCodepoint > 0x20 && r.baseCodepoint < 0x10000
+											? String.fromCodePoint(r.baseCodepoint)
+											: '';
+									return ch || `U+${r.baseCodepoint.toString(16).toUpperCase().padStart(4, '0')}`;
+								})
+								.join(' + ')}
+						</span>
+					</p>
+					<button
+						type="button"
+						onclick={() => {
+							if (!glyph || !composableSuggestion) return;
+							projectStore.applyComposite(glyph.codepoint, composableSuggestion.references);
+							toast.success(
+								`Composed from ${composableSuggestion.references.length} components.`
+							);
+						}}
+						class="w-full rounded-md border border-accent bg-accent px-2 py-1 text-[11px] font-medium text-accent-fg hover:bg-accent-strong"
+					>
+						Auto-compose
+					</button>
+				</div>
+			{:else}
+				<p class="text-[11px] text-fg-subtle">
+					No components. Compose this glyph from references (e.g. <code class="font-mono">a</code> + <code class="font-mono">U+0301</code>).
+				</p>
+			{/if}
 		{/if}
 
 		{#if components.length > 0 && previewLayers.length > 0}

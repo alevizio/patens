@@ -1171,6 +1171,34 @@ class ProjectStore {
 		return true;
 	}
 
+	/**
+	 * Apply a composite decomposition to a glyph. Replaces the
+	 * current contours/components with the provided reference list
+	 * (from `decomposeCodepoint`) and marks status as 'draft' so the
+	 * designer sees it surface in the "Drawn" filter immediately.
+	 * The base glyph's advance is inherited from the first
+	 * component (typically the letterform, not the mark).
+	 */
+	applyComposite(codepoint: number, references: import('$lib/font/types').GlyphReference[]) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current || references.length === 0) return;
+		const baseCp = references[0].baseCodepoint;
+		const base = this.project.glyphs[baseCp];
+		const advance = base?.advanceWidth ?? current.advanceWidth;
+		this.writeGlyph(codepoint, {
+			...current,
+			contours: [],
+			components: references.map((r) => ({ ...r })),
+			advanceWidth: advance,
+			leftSidebearing: base?.leftSidebearing ?? current.leftSidebearing,
+			rightSidebearing: base?.rightSidebearing ?? current.rightSidebearing,
+			status: 'draft',
+			updatedAt: new Date().toISOString()
+		});
+	}
+
 	resetGlyph(codepoint: number) {
 		if (!this.project) return;
 		if (this.project.locked) return;
