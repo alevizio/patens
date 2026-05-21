@@ -2,6 +2,8 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { STANDARD_AXES } from '$lib/font/types';
+	import { computeMasterWeights, interpolateGlyph } from '$lib/font/interpolate';
+	import { contoursToSvgPath } from '$lib/font/path';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -13,8 +15,55 @@
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Tag from '@lucide/svelte/icons/tag';
+	import Play from '@lucide/svelte/icons/play';
 
 	const project = $derived(projectStore.project);
+
+	// Live interpolation preview — drag axis sliders, see the selected
+	// glyph morph between masters in real time. Uses the same
+	// `computeMasterWeights` + `interpolateGlyph` helpers that power
+	// the variable-font export pipeline so the preview is exact, not
+	// an approximation.
+	let previewLocation = $state<Record<string, number>>({});
+	$effect(() => {
+		// Initialise / reset the preview location whenever axes change.
+		const next: Record<string, number> = {};
+		for (const a of project?.axes ?? []) {
+			next[a.tag] = previewLocation[a.tag] ?? a.default;
+		}
+		previewLocation = next;
+	});
+	const previewWeights = $derived.by(() => {
+		if (!project || (project.axes?.length ?? 0) === 0) return [];
+		const defaultLoc: Record<string, number> = {};
+		for (const a of project.axes ?? []) defaultLoc[a.tag] = a.default;
+		return computeMasterWeights(
+			previewLocation,
+			defaultLoc,
+			(project.masters ?? []).map((m) => ({ id: m.id, location: m.location }))
+		);
+	});
+	const previewContours = $derived.by(() => {
+		if (!project) return null;
+		const cp = projectStore.selectedCodepoint;
+		const defaultGlyph = project.glyphs[cp];
+		if (!defaultGlyph || defaultGlyph.contours.length === 0) return null;
+		// Snap to default if no masters / no axes
+		if (previewWeights.length <= 1) return defaultGlyph.contours;
+		// Build the Sample[] for interpolateGlyph from the weights.
+		const samples = previewWeights
+			.map((w) => {
+				const g = w.id
+					? (project.masters ?? []).find((m) => m.id === w.id)?.glyphs?.[cp] ?? defaultGlyph
+					: defaultGlyph;
+				return { glyph: g, weight: w.weight };
+			})
+			.filter((s) => s.weight > 0);
+		const out = interpolateGlyph(samples);
+		return out ?? defaultGlyph.contours;
+	});
+	const previewGlyph = $derived(project?.glyphs[projectStore.selectedCodepoint] ?? null);
+	const previewPath = $derived(previewContours ? contoursToSvgPath(previewContours) : '');
 
 	let newMasterName = $state('Bold');
 	let newMasterLocation = $state<Record<string, number>>({});
@@ -136,6 +185,103 @@
 					interpolated against the default at its axis location.
 				</p>
 			</header>
+
+			<!-- Interactive interpolation preview. Drag axis sliders to
+			     see the currently selected glyph morph in real time
+			     between the default + masters. -->
+			{#if (project.axes?.length ?? 0) > 0 && (project.masters?.length ?? 0) > 0 && previewGlyph}
+				<Panel>
+					<h2 class="mb-3 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						<Play class="size-3" /> Live preview
+					</h2>
+					<div class="grid grid-cols-[auto_1fr] gap-6">
+						<div
+							class="flex items-center justify-center rounded-md bg-canvas px-4 py-4"
+							style="min-width: 180px; min-height: 180px;"
+						>
+							<svg
+								viewBox="0 {project.metrics.descender} {Math.max(previewGlyph.advanceWidth, 100)} {project.metrics.ascender - project.metrics.descender}"
+								preserveAspectRatio="xMidYMid meet"
+								style="height: 160px; width: auto; transform: scaleY(-1);"
+								aria-label="Interpolated preview of glyph at U+{projectStore.selectedCodepoint.toString(16).toUpperCase().padStart(4, '0')}"
+							>
+								{#if previewPath}
+									<path d={previewPath} fill="currentColor" fill-rule="evenodd" class="text-fg" />
+								{:else}
+									<text
+										x="50%"
+										y="50%"
+										text-anchor="middle"
+										class="fill-fg-subtle"
+										transform="scale(1 -1)"
+									>—</text>
+								{/if}
+							</svg>
+						</div>
+						<div class="space-y-3">
+							{#each project.axes ?? [] as axis (axis.tag)}
+								<div>
+									<div class="mb-1 flex items-baseline justify-between gap-2">
+										<label
+											for="preview-{axis.tag}"
+											class="text-[12px] font-medium text-fg"
+										>
+											{axis.name}
+											<span class="ml-1 font-mono text-[10px] text-fg-subtle">{axis.tag}</span>
+										</label>
+										<span class="font-mono text-[12px] text-fg" data-numeric>
+											{Math.round(previewLocation[axis.tag] ?? axis.default)}
+										</span>
+									</div>
+									<input
+										id="preview-{axis.tag}"
+										type="range"
+										min={axis.minimum}
+										max={axis.maximum}
+										step="1"
+										value={previewLocation[axis.tag] ?? axis.default}
+										oninput={(ev) => {
+											previewLocation = {
+												...previewLocation,
+												[axis.tag]: Number(ev.currentTarget.value)
+											};
+										}}
+										class="w-full accent-accent"
+									/>
+									<div class="mt-0.5 flex justify-between font-mono text-[10px] text-fg-subtle">
+										<span data-numeric>{axis.minimum}</span>
+										<span data-numeric>{axis.maximum}</span>
+									</div>
+								</div>
+							{/each}
+							<details class="text-[12px] text-fg-muted">
+								<summary class="cursor-pointer text-fg hover:text-fg-strong">
+									Master weights
+								</summary>
+								<div class="mt-2 space-y-1 font-mono text-[11px]">
+									{#each previewWeights as w (w.id ?? 'default')}
+										{@const masterName = w.id
+											? (project.masters ?? []).find((m) => m.id === w.id)?.name ?? '?'
+											: 'Default'}
+										<div class="flex items-center gap-2">
+											<span class="w-24 truncate text-fg">{masterName}</span>
+											<div class="relative h-1.5 flex-1 overflow-hidden rounded-full bg-surface-2">
+												<div
+													class="absolute inset-y-0 left-0 bg-accent"
+													style="width: {(w.weight * 100).toFixed(1)}%;"
+												></div>
+											</div>
+											<span class="w-12 text-right text-fg-subtle" data-numeric>
+												{(w.weight * 100).toFixed(1)}%
+											</span>
+										</div>
+									{/each}
+								</div>
+							</details>
+						</div>
+					</div>
+				</Panel>
+			{/if}
 
 			<Panel>
 				<h2 class="mb-3 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
