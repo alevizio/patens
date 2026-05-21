@@ -45,7 +45,8 @@
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import StorageDialog from '$lib/ui/StorageDialog.svelte';
-	import { createDemoProject } from '$lib/font/demo-project';
+	// createDemoProject is no longer imported here — the project layout's
+	// load function builds the demo on the fly for /project/demo/edit.
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -195,9 +196,12 @@
 		if (openingDemo) return;
 		openingDemo = true;
 		try {
-			const project = createDemoProject();
-			await saveProject(project);
-			await goto(`/project/${project.id}/edit`);
+			// Navigate to /project/demo/edit — the project layout's load
+			// function recognises 'demo' as a special id and builds the
+			// demo project on the fly. Works even when IndexedDB is
+			// unavailable (private mode, quota errors, etc), which the
+			// previous "saveProject then goto" flow didn't.
+			await goto('/project/demo/edit');
 		} finally {
 			openingDemo = false;
 		}
