@@ -15,6 +15,7 @@ import { applyDetectedFeatures, detectFeatures } from './feature-detect';
 import { buildColorFontPlan, resolveColorFontPlan, resolveV1ColorFontPlan } from './color-build';
 import { buildAutoKern } from './kerning-auto';
 import { expandKerningClasses } from './kerning-classes';
+import { expandSubset, filterKerningToSubset } from './subset';
 
 type OTPath = InstanceType<typeof opentype.Path>;
 type OTGlyph = InstanceType<typeof opentype.Glyph>;
@@ -196,6 +197,13 @@ export type BuildOptions = {
 	autoFeatures?: boolean;
 	/** Tags to skip even when `autoFeatures` is true. */
 	disableAutoFeatures?: ReadonlySet<string>;
+	/**
+	 * Optional glyph subset — if provided, the export only includes
+	 * these codepoints (plus .notdef + space + transitive composite
+	 * base glyphs). Used to ship lean web-font subsets. When omitted,
+	 * the full glyph set is exported.
+	 */
+	subset?: ReadonlySet<number>;
 };
 
 export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResult => {
@@ -209,6 +217,16 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 			activeGlyphs = master.glyphs;
 			styleName = opts.styleSuffix ?? master.name;
 		}
+	}
+	// Subset filter — keep only the requested codepoints (+ .notdef +
+	// space + transitive composite base glyphs). Kerning gets filtered
+	// to match below.
+	let subsetIncluded: Set<number> | null = null;
+	if (opts.subset) {
+		const projectForSubset = { ...project, glyphs: activeGlyphs };
+		const { glyphs, included } = expandSubset(projectForSubset, opts.subset);
+		activeGlyphs = glyphs;
+		subsetIncluded = included;
 	}
 
 	// .notdef is always glyph index 0.
@@ -290,7 +308,16 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		// them orphaned unless the user had Pyodide+fontTools running.
 		// `expandKerningClasses` ensures direct user-set pairs override
 		// class-derived ones, so manual tuning still wins.
-		const expanded = expandKerningClasses(project.kerning, project.classes ?? []);
+		//
+		// Subset filter applies BEFORE expansion so class-vs-class pairs
+		// (which survive subsetting at filterKerningToSubset) still get
+		// their codepoint members filtered to subset-resolved ones.
+		const sourceKerning = subsetIncluded
+			? filterKerningToSubset(project.kerning, subsetIncluded)
+			: project.kerning;
+		const expanded = expandKerningClasses(sourceKerning, project.classes ?? []).filter(
+			(p) => !subsetIncluded || (subsetIncluded.has(p.left) && subsetIncluded.has(p.right))
+		);
 		for (const k of expanded) {
 			const li = indexByCodepoint.get(k.left);
 			const ri = indexByCodepoint.get(k.right);

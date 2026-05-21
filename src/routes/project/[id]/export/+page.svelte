@@ -39,6 +39,7 @@
 	import { preflightProject } from '$lib/font/audit';
 	import { expandKerningClasses } from '$lib/font/kerning-classes';
 	import { buildAutoKern } from '$lib/font/kerning-auto';
+	import { SUBSET_PRESETS } from '$lib/font/subset';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
@@ -75,6 +76,41 @@
 	let ufoBusy = $state(false);
 	let vfBusy = $state(false);
 	let staticFamilyBusy = $state(false);
+
+	// Glyph subsetting for web-font delivery. Pre-defined presets +
+	// custom characters can be selected; the export buildFont filter
+	// keeps only the resolved codepoints + .notdef + space + composite
+	// dependencies. Empty subset → full font (no filter applied).
+	let subsetEnabled = $state(false);
+	let subsetCustomText = $state('');
+	const SUBSET_PRESET_KEYS = Object.keys(SUBSET_PRESETS) as Array<keyof typeof SUBSET_PRESETS>;
+	let subsetSelectedPresets = $state<Set<string>>(new Set(['basic-latin']));
+	const subsetCodepoints = $derived.by(() => {
+		const out = new Set<number>();
+		for (const k of subsetSelectedPresets) {
+			for (const cp of SUBSET_PRESETS[k]?.codepoints ?? []) out.add(cp);
+		}
+		for (const ch of [...subsetCustomText]) {
+			const cp = ch.codePointAt(0);
+			if (cp !== undefined && cp >= 0x20) out.add(cp);
+		}
+		return out;
+	});
+	const subsetGlyphCount = $derived.by(() => {
+		if (!project) return 0;
+		if (!subsetEnabled || subsetCodepoints.size === 0) {
+			return Object.values(project.glyphs).filter(
+				(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+			).length;
+		}
+		// Quick estimate: subset size + .notdef + space (composite deps
+		// not counted; close enough for the UI).
+		let n = subsetCodepoints.size + 2;
+		for (const cp of subsetCodepoints) {
+			if (!project.glyphs[cp]) n--;
+		}
+		return n;
+	});
 
 	$effect(() => subscribeToPython((p) => (pythonProgress = p)));
 
@@ -173,7 +209,8 @@ body {
 			: undefined;
 		const { font, indexByCodepoint, colorBaseGlyphs, colorV1BaseGlyphs } = buildFont(project, {
 			autoFeatures,
-			disableAutoFeatures
+			disableAutoFeatures,
+			subset: subsetEnabled && subsetCodepoints.size > 0 ? subsetCodepoints : undefined
 		});
 		let buffer = font.toArrayBuffer();
 
@@ -1254,6 +1291,73 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				</span>
 				<span class="ml-1 text-[11px] text-fg-subtle">pairs in the font's kern table</span>
 			</div>
+		</Panel>
+
+		<!-- Glyph subsetting for web-font delivery. Pre-defined presets +
+		     a custom character box; the build pipeline keeps .notdef +
+		     space + composite-reference dependencies automatically. -->
+		<Panel>
+			<div class="mb-3 flex flex-wrap items-center gap-2">
+				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Subset
+				</h2>
+				<label class="ml-auto inline-flex items-center gap-1.5 text-[12px] text-fg-muted">
+					<input
+						type="checkbox"
+						bind:checked={subsetEnabled}
+						class="size-3.5 accent-accent"
+					/>
+					Subset the export
+				</label>
+			</div>
+			<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+				Limit the exported font to specific characters — useful for shipping
+				a lean web-font subset. <span class="font-mono">.notdef</span> + space
+				+ composite-reference bases (e.g. <span class="font-mono">A</span> for
+				<span class="font-mono">Á</span>) are always included.
+			</p>
+			{#if subsetEnabled}
+				<div class="mb-3 flex flex-wrap gap-1.5">
+					{#each SUBSET_PRESET_KEYS as k (k)}
+						{@const on = subsetSelectedPresets.has(k as string)}
+						<button
+							type="button"
+							onclick={() => {
+								const next = new Set(subsetSelectedPresets);
+								if (on) next.delete(k as string);
+								else next.add(k as string);
+								subsetSelectedPresets = next;
+							}}
+							class="rounded-md border px-2 py-1 text-[11px] font-medium transition-colors {on
+								? 'border-accent bg-accent-soft text-accent-strong'
+								: 'border-border bg-surface text-fg-muted hover:border-accent'}"
+						>
+							{SUBSET_PRESETS[k].label}
+						</button>
+					{/each}
+				</div>
+				<label class="block">
+					<span class="mb-1 block text-[11px] font-medium text-fg-muted">
+						Custom characters (paste/type any)
+					</span>
+					<textarea
+						bind:value={subsetCustomText}
+						placeholder="e.g. Hello, World!"
+						rows="2"
+						class="block w-full resize-y rounded-md border border-border bg-surface px-2 py-1 text-[12px] text-fg outline-none focus:border-accent"
+					></textarea>
+				</label>
+				<div class="mt-3 flex items-baseline justify-between text-[12px] text-fg-muted">
+					<span>
+						Subset codepoints:
+						<span class="ml-1 font-mono text-fg" data-numeric>{subsetCodepoints.size}</span>
+					</span>
+					<span>
+						≈ glyphs shipped:
+						<span class="ml-1 font-mono text-fg" data-numeric>{subsetGlyphCount}</span>
+					</span>
+				</div>
+			{/if}
 		</Panel>
 
 		<Panel>
