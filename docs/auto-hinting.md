@@ -45,47 +45,47 @@ apt-get install ttfautohint    # Debian / Ubuntu
 dnf install ttfautohint        # Fedora
 ```
 
-### Production (Vercel deploy)
+### Production (Vercel deploy) — **shipped: option 2 (Python serverless)**
 
-Three options, listed easiest → most flexible:
-
-#### Option 1 — bundle the binary in the repo *(simple, ~3 MB)*
-
-1. Download a Linux x86_64 build from
-   [source-foundry/ttfautohint-build releases](https://github.com/source-foundry/ttfautohint-build/releases)
-   (latest stable: `v1.8.3.2`, Sep 2019).
-2. Place at `bin/ttfautohint` and `chmod +x bin/ttfautohint`.
-3. Add a `vercel.json` with:
-
-   ```json
-   {
-   	"functions": {
-   		"src/routes/api/hint-font/+server.ts": {
-   			"includeFiles": "bin/ttfautohint"
-   		}
-   	}
-   }
-   ```
-
-4. Set the env var in the Vercel dashboard:
-
-   ```
-   TTFAUTOHINT_BIN = bin/ttfautohint
-   ```
-
-#### Option 2 — Python serverless function *(no binary in git)*
-
-Replace the route with a Vercel Python function under
-`api/hint-font.py` using
+Decision made 2026-05-21 to optimise for indie hosting cost: ship as a
+Vercel Python serverless function via
 [`ttfautohint-py`](https://pypi.org/project/ttfautohint-py/) (PyPI,
-last release Aug 2024). The wrapper ships the binary internally;
-`requirements.txt` is enough.
+Aug 2024). The wheel ships the hinter binary internally; no separate
+install step, no binary committed to git, free-tier Vercel Python
+runtime covers indie scale.
 
-#### Option 3 — separate worker service
+**What's on `main`:**
 
-Deploy a small Fly.io / Cloud Run / Workers container with the binary,
-have the SvelteKit route proxy to it. More moving parts but isolates
-the GPL'd binary from the closed-source app artifact.
+- `api/hint-font.py` — Vercel Python function. GET = health check;
+  POST = hint TTF. Mirrors the previous Node route's URL + query
+  contract so the client (`src/lib/font/hint.ts`) is unchanged.
+- `api/requirements.txt` — pins `ttfautohint-py==0.6.0`.
+- `src/routes/api/hint-font/+server.ts` — kept as a local-dev
+  fallback. In `pnpm dev` Vercel's Python runtime isn't running, so
+  SvelteKit handles the URL via the Node route; install
+  `ttfautohint` system-wide (brew / apt) to exercise hinting in dev.
+  In Vercel production, the Python file at the same URL path takes
+  precedence per Vercel's `/api/*.py` routing.
+
+**Deploy steps (one-time, dashboard click each):**
+
+1. Push to a Vercel-connected branch.
+2. Vercel auto-detects `api/requirements.txt` and installs the
+   Python runtime + ttfautohint-py for the function.
+3. Verify the GET health check responds at `/api/hint-font` returning
+   `{"available": true, "version": "..."}`.
+
+No env vars required.
+
+**Other options we ruled out:**
+
+- Option 1 — bundling the Linux binary in the repo (~3 MB to git,
+  plus `vercel.json` `includeFiles`). Works but uglier than letting
+  pip handle the binary install.
+- Option 3 — separate Fly.io / Cloud Run worker. Cleanest separation
+  but adds infrastructure cost + complexity. Revisit if Vercel's
+  Python runtime ever caps out (10-second cold start currently fine
+  for hinting workloads).
 
 ## License note
 

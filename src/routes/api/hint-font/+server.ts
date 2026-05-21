@@ -1,18 +1,23 @@
 /**
- * POST /api/hint-font
+ * POST /api/hint-font — LOCAL DEV FALLBACK
  *
- * Body: raw TTF binary (Content-Type: font/ttf).
- * Response: hinted TTF binary, or a JSON error describing why hinting
- * couldn't be performed.
+ * In production this URL is served by the Vercel Python function at
+ * `api/hint-font.py` (Python functions at `/api/*.py` take precedence
+ * over SvelteKit routes per Vercel's routing rules). The Python path
+ * uses `ttfautohint-py` which ships the hinter binary inside its
+ * wheel — no manual binary install required.
  *
- * This route shells out to the `ttfautohint` binary, which must be
- * available on PATH (or at TTFAUTOHINT_BIN). On macOS dev:
- *     brew install ttfautohint
- * On the Vercel deploy, the build step needs to either install the
- * binary or provide one at `bin/ttfautohint` and set TTFAUTOHINT_BIN.
+ * In `pnpm dev` the Python runtime doesn't run; SvelteKit handles
+ * this URL via the route here. To exercise hinting in local dev,
+ * install the binary system-wide:
  *
- * ttfautohint only handles TT outlines (the `glyf` table) — the client
- * must convert OTF/CFF → TTF via Cu2Qu before posting here.
+ *     brew install ttfautohint          # macOS
+ *     apt-get install ttfautohint       # Debian / Ubuntu
+ *
+ * Then `pnpm dev` and the toggle on the Export page lights up.
+ *
+ * Without the binary installed locally, this route reports the
+ * hinter as unavailable and the UI gracefully hides the toggle.
  */
 
 import { error, json } from '@sveltejs/kit';
@@ -26,28 +31,26 @@ import type { RequestHandler } from './$types';
 const execFileAsync = promisify(execFile);
 
 const HINTER_BIN = process.env.TTFAUTOHINT_BIN || 'ttfautohint';
-
-// Cap input size at 8 MB. Fonts above that almost certainly have
-// embedded bitmaps or non-Latin scripts we'd want to handle separately.
 const MAX_BYTES = 8 * 1024 * 1024;
 
 export const POST: RequestHandler = async ({ request, url }) => {
 	const ab = await request.arrayBuffer();
-	if (ab.byteLength === 0) {
-		throw error(400, 'Empty body — POST a TTF binary.');
-	}
+	if (ab.byteLength === 0) throw error(400, 'Empty body — POST a TTF binary.');
 	if (ab.byteLength > MAX_BYTES) {
-		throw error(413, `Font is ${(ab.byteLength / 1024 / 1024).toFixed(1)} MB; max ${MAX_BYTES / 1024 / 1024} MB.`);
+		throw error(
+			413,
+			`Font is ${(ab.byteLength / 1024 / 1024).toFixed(1)} MB; max ${MAX_BYTES / 1024 / 1024} MB.`
+		);
 	}
 
-	// Quick SFNT sanity check — TTF magic is 0x00010000.
 	const view = new DataView(ab);
 	if (view.getUint32(0) !== 0x00010000) {
-		throw error(400, 'Not a TTF — sfntVersion is not 0x00010000. (OTF/CFF must be converted to glyf first.)');
+		throw error(
+			400,
+			'Not a TTF — sfntVersion is not 0x00010000. (OTF/CFF must be converted to glyf first.)'
+		);
 	}
 
-	// Hint range comes from the query string so the UI can offer presets.
-	// Defaults follow the Google Fonts webfont recommendation: 8 → 50 PPM.
 	const rangeMin = clampInt(url.searchParams.get('rangeMin'), 4, 50, 8);
 	const rangeMax = clampInt(url.searchParams.get('rangeMax'), rangeMin, 200, 50);
 
@@ -59,8 +62,10 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		await execFileAsync(
 			HINTER_BIN,
 			[
-				'--hinting-range-min', String(rangeMin),
-				'--hinting-range-max', String(rangeMax),
+				'--hinting-range-min',
+				String(rangeMin),
+				'--hinting-range-max',
+				String(rangeMax),
 				'--no-info',
 				inPath,
 				outPath
@@ -73,7 +78,7 @@ export const POST: RequestHandler = async ({ request, url }) => {
 			headers: {
 				'Content-Type': 'font/ttf',
 				'Content-Length': String(hinted.byteLength),
-				'X-Hinter': 'ttfautohint',
+				'X-Hinter': 'ttfautohint-cli',
 				'X-Hint-Range': `${rangeMin}-${rangeMax}`
 			}
 		});
@@ -82,25 +87,29 @@ export const POST: RequestHandler = async ({ request, url }) => {
 		if (e.code === 'ENOENT') {
 			throw error(
 				503,
-				`Hinting unavailable: ttfautohint binary not found at "${HINTER_BIN}". On dev: brew install ttfautohint. In production: bundle the binary or set TTFAUTOHINT_BIN.`
+				`Hinting unavailable in local dev: ttfautohint binary not found at "${HINTER_BIN}". On macOS run \`brew install ttfautohint\`. In production this route is served by the Vercel Python function via ttfautohint-py and works without any local install.`
 			);
 		}
 		const stderr = e.stderr ? e.stderr.toString() : '';
 		throw error(500, `ttfautohint failed: ${e.message}${stderr ? `\n${stderr}` : ''}`);
 	} finally {
-		// Best-effort cleanup; ignore errors.
 		await fs.rm(dir, { recursive: true, force: true }).catch(() => {});
 	}
 };
 
-// Cheap health-check the UI uses to decide whether to even offer the toggle.
 export const GET: RequestHandler = async () => {
 	try {
 		const { stdout } = await execFileAsync(HINTER_BIN, ['--version'], { timeout: 5_000 });
 		return json({ available: true, version: stdout.trim() });
 	} catch (err) {
 		const e = err as NodeJS.ErrnoException;
-		return json({ available: false, reason: e.code === 'ENOENT' ? 'binary-missing' : e.message });
+		return json({
+			available: false,
+			reason:
+				e.code === 'ENOENT'
+					? 'binary-missing-locally — in production this route is the Vercel Python function (ttfautohint-py), works without any local install'
+					: e.message
+		});
 	}
 };
 
