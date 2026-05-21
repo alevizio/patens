@@ -1552,6 +1552,7 @@
 						onContoursChange={handleContoursChange}
 						onAnchorsChange={handleAnchorsChange}
 						onZoomChange={(p) => (zoomPercent = p)}
+						colorPalette={defaultPalette(projectStore.project?.palettes)}
 					/>
 				</div>
 			</div>

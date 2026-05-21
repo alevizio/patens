@@ -6,6 +6,8 @@
 		type StrokeStyle
 	} from '$lib/font/sketch-to-bezier';
 	import { contoursToSvgPath } from '$lib/font/path';
+	import { planColorRender, rgbaToCss } from '$lib/font/color';
+	import type { ColorPalette } from '$lib/font/types';
 	import MetricsOverlay from './MetricsOverlay.svelte';
 	import VectorPointLayer from './VectorPointLayer.svelte';
 	import AnchorLayer from './AnchorLayer.svelte';
@@ -42,6 +44,13 @@
 		onAnchorsChange?: (anchors: Anchor[]) => void;
 		/** Called with current zoom % whenever the view changes (100 = fit). */
 		onZoomChange?: (percent: number) => void;
+		/**
+		 * Color-font palette in active use. When provided alongside
+		 * `glyph.colorLayers`, the canvas paints a translucent composite
+		 * of those layers behind the monochrome outline so the designer
+		 * can edit contours with full colour context.
+		 */
+		colorPalette?: ColorPalette | null;
 	};
 
 	let {
@@ -63,8 +72,15 @@
 		onSketchChange,
 		onContoursChange,
 		onAnchorsChange,
-		onZoomChange
+		onZoomChange,
+		colorPalette = null
 	}: Props = $props();
+
+	// Translucent color-composite behind the monochrome outline. Skipped
+	// when no palette + no layers exist (typical monochrome case).
+	const colorRenderPlan = $derived(
+		colorPalette ? planColorRender(glyph.colorLayers, colorPalette) : []
+	);
 
 	let svgEl: SVGSVGElement | null = $state(null);
 	let activePointer = $state<number | null>(null);
@@ -434,6 +450,19 @@
 				>
 					{String.fromCodePoint(glyph.codepoint)}
 				</text>
+			</g>
+		{/if}
+
+		<!-- Color composite (translucent overlay BEHIND the mono outline).
+		     Rendered when the glyph has visible color layers + the project
+		     has a palette. Designer edits monochrome contours on top with
+		     full colour context visible — Option C from the day-9 design
+		     question. -->
+		{#if colorRenderPlan.length > 0}
+			<g opacity="0.45" pointer-events="none" aria-hidden="true">
+				{#each colorRenderPlan as step (step.layerId)}
+					<path d={step.path} fill={rgbaToCss(step.color)} fill-rule="evenodd" />
+				{/each}
 			</g>
 		{/if}
 
