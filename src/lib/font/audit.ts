@@ -251,6 +251,101 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		});
 	}
 
+	// Coverage gaps in standard typographic / currency / math sets. Only check
+	// once a font is past the "warming up" phase (≥ 26 drawn glyphs) so we
+	// don't nag during early sketching. `drawn` is computed below; precompute
+	// it here so the coverage block can gate on the count.
+	const drawnPreCoverage = Object.values(project.glyphs).filter(
+		(g) => g.contours.length > 0
+	).length;
+	if (drawnPreCoverage >= 26) {
+		const COVERAGE_GROUPS = [
+			{
+				code: 'coverage-typo-essentials',
+				label: 'Typographic essentials',
+				rationale:
+					'These are what separate a sketch from a usable text face: real curly quotes, real dashes, the ellipsis.',
+				codepoints: [
+					0x2018, // ‘ left single quote
+					0x2019, // ’ right single quote / apostrophe
+					0x201c, // “ left double quote
+					0x201d, // ” right double quote
+					0x2013, // – en-dash
+					0x2014, // — em-dash
+					0x2026, // … ellipsis
+					0x2022 //  • bullet
+				]
+			},
+			{
+				code: 'coverage-currency',
+				label: 'Currency baseline',
+				rationale:
+					'Even a Latin-only font is expected to support the major currency signs alongside the dollar.',
+				codepoints: [
+					0x0024, // $ dollar
+					0x00a2, // ¢ cent
+					0x00a3, // £ pound
+					0x00a5, // ¥ yen
+					0x20ac //  € euro
+				]
+			},
+			{
+				code: 'coverage-math',
+				label: 'Math symbols',
+				rationale:
+					'Math glyphs (real minus, multiply, division) matter for any font used in technical / scientific text.',
+				codepoints: [
+					0x002b, // + plus
+					0x2212, // − minus (real, not hyphen)
+					0x00d7, // × multiplication
+					0x00f7, // ÷ division
+					0x003d, // = equals
+					0x00b1, // ± plus-minus
+					0x2264, // ≤ less-equal
+					0x2265 //  ≥ greater-equal
+				]
+			},
+			{
+				code: 'coverage-latin-1-supp',
+				label: 'Latin-1 Supplement accents',
+				rationale:
+					'Without these, German / French / Spanish / Portuguese / Italian users fall back to system defaults mid-paragraph.',
+				codepoints: [
+					0x00e0, // à
+					0x00e1, // á
+					0x00e2, // â
+					0x00e4, // ä
+					0x00e7, // ç
+					0x00e8, // è
+					0x00e9, // é
+					0x00ea, // ê
+					0x00ed, // í
+					0x00f1, // ñ
+					0x00f3, // ó
+					0x00f6, // ö
+					0x00fa, // ú
+					0x00fc //  ü
+				]
+			}
+		] as const;
+		for (const group of COVERAGE_GROUPS) {
+			const missing = group.codepoints.filter(
+				(cp) => (project.glyphs[cp]?.contours.length ?? 0) === 0
+			);
+			if (missing.length > 0) {
+				const total = group.codepoints.length;
+				const drawn = total - missing.length;
+				const labels = missing.map((cp) => String.fromCodePoint(cp)).join(' ');
+				issues.push({
+					codepoint: 0,
+					severity: 'info',
+					code: group.code,
+					message: `${group.label}: ${drawn}/${total} drawn. Missing: ${labels} — ${group.rationale}`
+				});
+			}
+		}
+	}
+
 	// Anchor coverage on composite bases
 	let anchorless = 0;
 	for (const g of Object.values(project.glyphs)) {
