@@ -224,9 +224,9 @@ describe('planColorRender', () => {
 		const steps = planColorRender(layers, palette);
 		expect(steps).toHaveLength(2);
 		expect(steps[0].layerId).toBe('bottom');
-		expect(steps[0].color).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+		expect(steps[0].fill).toEqual({ type: 'solid', color: { r: 0, g: 0, b: 0, a: 1 } });
 		expect(steps[1].layerId).toBe('top');
-		expect(steps[1].color).toEqual({ r: 255, g: 0, b: 0, a: 1 });
+		expect(steps[1].fill).toEqual({ type: 'solid', color: { r: 255, g: 0, b: 0, a: 1 } });
 		// SVG path string non-empty for both
 		expect(steps[0].path.length).toBeGreaterThan(0);
 	});
@@ -272,5 +272,81 @@ describe('planColorRender', () => {
 		];
 		const steps = planColorRender(layers, palette);
 		expect(steps.map((s) => s.layerId)).toEqual(['a', 'c', 'e']);
+	});
+
+	// Color-fonts M2 — gradient layer rendering.
+
+	it('emits a linearGradient fill step when layer has a gradient', () => {
+		const layers: ColorLayer[] = [
+			{
+				id: 'gradient-fill',
+				contours: [tri],
+				paletteIndex: 0,
+				gradient: {
+					type: 'linear',
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+					stops: [
+						{ offset: 0, paletteIndex: 0 },
+						{ offset: 1, paletteIndex: 1 }
+					]
+				}
+			}
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(1);
+		expect(steps[0].fill.type).toBe('linearGradient');
+		if (steps[0].fill.type === 'linearGradient') {
+			expect(steps[0].fill.stops).toHaveLength(2);
+			expect(steps[0].fill.stops[0].color).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+			expect(steps[0].fill.stops[1].color).toEqual({ r: 255, g: 0, b: 0, a: 1 });
+		}
+	});
+
+	it('applies stop alpha multiplier on top of palette colour alpha', () => {
+		const layers: ColorLayer[] = [
+			{
+				id: 'translucent-gradient',
+				contours: [tri],
+				paletteIndex: 0,
+				gradient: {
+					type: 'linear',
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+					stops: [
+						{ offset: 0, paletteIndex: 0, alpha: 0.5 },
+						{ offset: 1, paletteIndex: 1, alpha: 0.25 }
+					]
+				}
+			}
+		];
+		const steps = planColorRender(layers, palette);
+		if (steps[0].fill.type === 'linearGradient') {
+			expect(steps[0].fill.stops[0].color.a).toBe(0.5); // base alpha 1 × 0.5
+			expect(steps[0].fill.stops[1].color.a).toBe(0.25);
+		}
+	});
+
+	it('falls back to solid fill when gradient has <2 valid stops', () => {
+		const layers: ColorLayer[] = [
+			{
+				id: 'broken-gradient',
+				contours: [tri],
+				paletteIndex: 1,
+				gradient: {
+					type: 'linear',
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 0 },
+					stops: [
+						{ offset: 0, paletteIndex: 99 }, // dropped — out of range
+						{ offset: 1, paletteIndex: 0 }
+					]
+				}
+			}
+		];
+		const steps = planColorRender(layers, palette);
+		// Only 1 valid stop survives → can't be a gradient → falls back
+		// to solid using the layer's `paletteIndex` (1 = red).
+		expect(steps[0].fill).toEqual({ type: 'solid', color: { r: 255, g: 0, b: 0, a: 1 } });
 	});
 });

@@ -457,11 +457,37 @@
 		     Rendered when the glyph has visible color layers + the project
 		     has a palette. Designer edits monochrome contours on top with
 		     full colour context visible — Option C from the day-9 design
-		     question. -->
+		     question. Color-fonts M2: a fill can be solid OR a linear
+		     gradient; gradients are emitted as <linearGradient> defs
+		     referenced by url() in the path's fill attribute. -->
 		{#if colorRenderPlan.length > 0}
+			<defs>
+				{#each colorRenderPlan as step (step.layerId)}
+					{#if step.fill.type === 'linearGradient'}
+						<linearGradient
+							id="grad-{step.layerId}"
+							gradientUnits="userSpaceOnUse"
+							x1={step.fill.start.x}
+							y1={step.fill.start.y}
+							x2={step.fill.end.x}
+							y2={step.fill.end.y}
+						>
+							{#each step.fill.stops as s (s.offset)}
+								<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+							{/each}
+						</linearGradient>
+					{/if}
+				{/each}
+			</defs>
 			<g opacity="0.45" pointer-events="none" aria-hidden="true">
 				{#each colorRenderPlan as step (step.layerId)}
-					<path d={step.path} fill={rgbaToCss(step.color)} fill-rule="evenodd" />
+					<path
+						d={step.path}
+						fill={step.fill.type === 'solid'
+							? rgbaToCss(step.fill.color)
+							: `url(#grad-${step.layerId})`}
+						fill-rule="evenodd"
+					/>
 				{/each}
 			</g>
 		{/if}

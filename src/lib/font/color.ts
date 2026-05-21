@@ -110,16 +110,30 @@ const makeId = (): string => {
 
 /**
  * A single drawable step for the color-glyph renderer: an SVG path
- * string + the RGBA fill colour. Steps are ordered bottom-up; the
- * caller fills them in array order so later layers paint on top.
+ * string + the fill. Steps are ordered bottom-up; the caller fills
+ * them in array order so later layers paint on top.
+ *
+ * Color-fonts M2 starter: `fill` is a discriminated union so a
+ * single step can be either flat (COLR v0 — what we already
+ * export today) or gradient (COLR v1 — preview only until the
+ * binary writer lands).
  */
 export type ColorRenderStep = {
 	/** SVG-path `d` string (same format as `contoursToSvgPath`). */
 	path: string;
-	color: RGBA;
+	fill: ColorRenderFill;
 	/** Source layer id, for hit-testing / hover state. */
 	layerId: string;
 };
+
+export type ColorRenderFill =
+	| { type: 'solid'; color: RGBA }
+	| {
+			type: 'linearGradient';
+			start: { x: number; y: number };
+			end: { x: number; y: number };
+			stops: Array<{ offset: number; color: RGBA }>;
+	  };
 
 /**
  * Plan a color-glyph render: produce an ordered list of (path, color)
@@ -148,9 +162,37 @@ export const planColorRender = (
 		if (layer.contours.length === 0) continue;
 		const path = contoursToSvgPath(layer.contours);
 		if (!path) continue;
+		// Color-fonts M2 gradient resolution: when the layer has a
+		// gradient, each stop's palette colour gets looked up and
+		// optionally alpha-multiplied. Invalid stops (out-of-range
+		// palette index) silently fall through to the flat fallback.
+		if (layer.gradient && layer.gradient.stops.length >= 2) {
+			const stops = layer.gradient.stops
+				.filter((s) => s.paletteIndex >= 0 && s.paletteIndex < palette.colors.length)
+				.map((s) => {
+					const base = palette.colors[s.paletteIndex];
+					const a = s.alpha === undefined ? base.a : base.a * s.alpha;
+					return { offset: s.offset, color: { ...base, a } };
+				});
+			if (stops.length >= 2) {
+				steps.push({
+					path,
+					fill: {
+						type: 'linearGradient',
+						start: layer.gradient.start,
+						end: layer.gradient.end,
+						stops
+					},
+					layerId: layer.id
+				});
+				continue;
+			}
+		}
+		// Flat fallback — both the COLR v0 export path and renderers
+		// that don't understand the gradient field land here.
 		steps.push({
 			path,
-			color: palette.colors[layer.paletteIndex],
+			fill: { type: 'solid', color: palette.colors[layer.paletteIndex] },
 			layerId: layer.id
 		});
 	}
@@ -172,7 +214,23 @@ export const applyColorRenderToCanvas = (
 ): void => {
 	for (const step of steps) {
 		ctx.save();
-		ctx.fillStyle = rgbaToCss(step.color);
+		if (step.fill.type === 'solid') {
+			ctx.fillStyle = rgbaToCss(step.fill.color);
+		} else {
+			// Linear gradient — Canvas2D's createLinearGradient takes
+			// coordinates in the post-transform space, and our caller
+			// has already set up the font-units-to-canvas-pixels
+			// transform via scaleY(-1) + translate. The gradient
+			// endpoints live in font units, so they ride along.
+			const grad = ctx.createLinearGradient(
+				step.fill.start.x,
+				step.fill.start.y,
+				step.fill.end.x,
+				step.fill.end.y
+			);
+			for (const s of step.fill.stops) grad.addColorStop(s.offset, rgbaToCss(s.color));
+			ctx.fillStyle = grad;
+		}
 		const path = new Path2D(step.path);
 		ctx.fill(path, 'evenodd');
 		ctx.restore();

@@ -94,10 +94,49 @@ export type ColorLayer = {
 	 * Index into the project's palettes. Each palette is an array of
 	 * RGBA tuples, so `paletteIndex` looks up a colour in the
 	 * currently-active palette (default / light / dark variants).
+	 * When `gradient` is also set, this stays as the fallback flat
+	 * fill for non-COLR-v1 renderers (and for the export pipeline
+	 * until the COLR v1 writer ships).
 	 */
 	paletteIndex: number;
+	/**
+	 * Optional COLR v1 linear gradient. When set, the preview canvas
+	 * renders the gradient instead of the flat paletteIndex fill —
+	 * but legacy COLR v0 exports keep using paletteIndex.
+	 *
+	 * Color-fonts M2 starter: types + preview only. The COLR v1
+	 * binary writer (paint trees, layer list, gradient encoding) is
+	 * deferred; until it ships, gradients are designed in the editor
+	 * but exports flatten to the fallback palette colour.
+	 */
+	gradient?: LinearGradient;
 	/** Per-layer visibility toggle in the editor (does not affect export). */
 	hidden?: boolean;
+};
+
+/**
+ * COLR v1 linear gradient. Start + end define the gradient axis
+ * in font units (same coordinate space as the glyph's contours).
+ * Color stops are positioned 0..1 along that axis; each stop
+ * references a palette colour so designers tweak the palette and
+ * every gradient layer follows automatically (same indirection
+ * the flat fill uses).
+ */
+export type LinearGradient = {
+	type: 'linear';
+	/** Gradient start point in font units. */
+	start: { x: number; y: number };
+	/** Gradient end point in font units. */
+	end: { x: number; y: number };
+	/** Color stops along the gradient. Must have ≥2 stops. */
+	stops: Array<{
+		/** Position along the gradient: 0 = start, 1 = end. */
+		offset: number;
+		/** Palette index for this stop's colour. */
+		paletteIndex: number;
+		/** Optional alpha multiplier (0..1) applied on top of the palette colour. */
+		alpha?: number;
+	}>;
 };
 
 /** A single RGBA colour in 0..255 channel range with float alpha 0..1. */
