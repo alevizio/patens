@@ -133,6 +133,7 @@ export const writeColrV0 = (baseGlyphs: BaseGlyphRecord[]): Uint8Array => {
  */
 export type Paint =
 	| { kind: 'colrLayers'; layers: Paint[] }
+	| { kind: 'solid'; paletteIndex: number; alpha?: number }
 	| {
 			kind: 'linearGradient';
 			x0: number;
@@ -191,7 +192,6 @@ export const writeColrV1 = (
 	v0BaseGlyphs: BaseGlyphRecord[],
 	v1BaseGlyphs: BaseGlyphPaint[]
 ): Uint8Array => {
-	// V0 invariant.
 	for (let i = 1; i < v0BaseGlyphs.length; i++) {
 		if (v0BaseGlyphs[i].glyphID <= v0BaseGlyphs[i - 1].glyphID) {
 			throw new Error(
@@ -199,7 +199,6 @@ export const writeColrV1 = (
 			);
 		}
 	}
-	// V1 invariant.
 	for (let i = 1; i < v1BaseGlyphs.length; i++) {
 		if (v1BaseGlyphs[i].glyphID <= v1BaseGlyphs[i - 1].glyphID) {
 			throw new Error(
@@ -214,17 +213,57 @@ export const writeColrV1 = (
 	const numV0Base = v0BaseGlyphs.length;
 	const totalV0Layers = v0BaseGlyphs.reduce((s, b) => s + b.layers.length, 0);
 
-	// Encode the v1 paint tree into a single sub-table buffer, recording
-	// the offset of each top-level Paint relative to its container.
-	const v1Paints = new ByteBuf();
-	// First pass: layout each top-level paint. Each entry in v1BaseGlyphs
-	// points to its root paint via an Offset32 relative to the
-	// BaseGlyphList start. We allocate paint bytes in v1Paints + track
-	// (paint root index → offset within v1Paints).
-	const paintOffsets: number[] = [];
-	for (const r of v1BaseGlyphs) {
-		paintOffsets.push(v1Paints.length);
-		writePaint(v1Paints, r.paint);
+	// Phase 1: scan top-level paints, allocate LayerList indices for any
+	// PaintColrLayers we encounter. The flat layerPaints list holds the
+	// children of every PaintColrLayers in registration order.
+	type TopLevelAllocation =
+		| { kind: 'direct'; paint: Paint }
+		| { kind: 'layers'; firstLayerIndex: number; numLayers: number };
+	const topLevelAllocations: TopLevelAllocation[] = [];
+	const layerPaints: Paint[] = [];
+	for (const rec of v1BaseGlyphs) {
+		if (rec.paint.kind === 'colrLayers') {
+			const firstLayerIndex = layerPaints.length;
+			for (const child of rec.paint.layers) layerPaints.push(child);
+			topLevelAllocations.push({
+				kind: 'layers',
+				firstLayerIndex,
+				numLayers: rec.paint.layers.length
+			});
+		} else {
+			topLevelAllocations.push({ kind: 'direct', paint: rec.paint });
+		}
+	}
+
+	// Phase 2: emit all paint sub-tables into a single buffer, tracking
+	// the byte offset of each top-level paint AND each layer paint within
+	// the paint buffer. PaintColrLayers headers are written with the
+	// LayerList index pre-computed in phase 1, so no fixups needed.
+	const paintBuf = new ByteBuf();
+	const topLevelOffsets: number[] = [];
+	for (const alloc of topLevelAllocations) {
+		topLevelOffsets.push(paintBuf.length);
+		if (alloc.kind === 'layers') {
+			// PaintColrLayers (format 1):
+			//   uint8 format = 1
+			//   uint8 numLayers
+			//   uint32 firstLayerIndex (into LayerList)
+			paintBuf.writeUint8(1);
+			if (alloc.numLayers > 0xff) {
+				throw new Error(
+					`PaintColrLayers: numLayers ${alloc.numLayers} > 255 — split into multiple groups`
+				);
+			}
+			paintBuf.writeUint8(alloc.numLayers);
+			paintBuf.writeUint32(alloc.firstLayerIndex);
+		} else {
+			writePaint(paintBuf, alloc.paint);
+		}
+	}
+	const layerPaintOffsets: number[] = [];
+	for (const child of layerPaints) {
+		layerPaintOffsets.push(paintBuf.length);
+		writePaint(paintBuf, child);
 	}
 
 	const baseV0Off = HEADER;
@@ -233,31 +272,29 @@ export const writeColrV1 = (
 		v0BaseGlyphs.length === 0 && v1BaseGlyphs.length === 0
 			? 0
 			: layerV0Off + totalV0Layers * V0_LAYER_REC;
-	// BaseGlyphList header: uint32 numRecords + records[6 each]
 	const v1BaseListSize = v1BaseGlyphs.length === 0 ? 0 : 4 + v1BaseGlyphs.length * 6;
 	const v1LayerListOff = v1BaseGlyphs.length === 0 ? 0 : v1BaseListOff + v1BaseListSize;
-	// LayerList header: uint32 numLayers + Offset32[numLayers]
-	// (Empty layer list — paint trees are inline via BaseGlyphPaintRecord.paintOffset.)
-	const v1LayerListSize = v1BaseGlyphs.length === 0 ? 0 : 4;
+	// LayerList header = uint32 numLayers + Offset32[numLayers]
+	const v1LayerListSize =
+		v1BaseGlyphs.length === 0 ? 0 : 4 + layerPaints.length * 4;
 	const v1PaintsOff = v1BaseGlyphs.length === 0 ? 0 : v1LayerListOff + v1LayerListSize;
 	const totalSize =
 		v1BaseGlyphs.length === 0
 			? layerV0Off + totalV0Layers * V0_LAYER_REC
-			: v1PaintsOff + v1Paints.length;
+			: v1PaintsOff + paintBuf.length;
 
 	const buf = new ByteBuf();
-	buf.writeUint16(1); // version
+	buf.writeUint16(1);
 	buf.writeUint16(numV0Base);
 	buf.writeUint32(numV0Base === 0 ? 0 : baseV0Off);
 	buf.writeUint32(totalV0Layers === 0 ? 0 : layerV0Off);
 	buf.writeUint16(totalV0Layers);
 	buf.writeUint32(v1BaseListOff);
-	buf.writeUint32(0); // layerListOffset (we inline paint trees per record, not via LayerList refs)
+	buf.writeUint32(layerPaints.length > 0 ? v1LayerListOff : 0);
 	buf.writeUint32(0); // clipListOffset
 	buf.writeUint32(0); // varIndexMapOffset
 	buf.writeUint32(0); // itemVariationStoreOffset
 
-	// V0 base glyph records
 	let layerCursor = 0;
 	for (const b of v0BaseGlyphs) {
 		buf.writeUint16(b.glyphID);
@@ -265,7 +302,6 @@ export const writeColrV1 = (
 		buf.writeUint16(b.layers.length);
 		layerCursor += b.layers.length;
 	}
-	// V0 layer records
 	for (const b of v0BaseGlyphs) {
 		for (const l of b.layers) {
 			buf.writeUint16(l.glyphID);
@@ -273,25 +309,23 @@ export const writeColrV1 = (
 		}
 	}
 
-	// V1 BaseGlyphList
 	if (v1BaseGlyphs.length > 0) {
+		// BaseGlyphList: uint32 numRecords + (uint16 glyphID + Offset32 paintOffset)[]
 		buf.writeUint32(v1BaseGlyphs.length);
-		// Each record: uint16 glyphID + Offset32 paintOffset (from
-		// BaseGlyphList start). The paint sits in v1Paints, whose offset
-		// from the BaseGlyphList start is v1PaintsOff - v1BaseListOff.
 		const paintsFromBaseList = v1PaintsOff - v1BaseListOff;
 		for (let i = 0; i < v1BaseGlyphs.length; i++) {
 			buf.writeUint16(v1BaseGlyphs[i].glyphID);
-			buf.writeUint32(paintsFromBaseList + paintOffsets[i]);
+			buf.writeUint32(paintsFromBaseList + topLevelOffsets[i]);
 		}
-		// V1 LayerList (empty — the spec requires the offset to be present
-		// in the header IF the table has layers referenced by index, but
-		// inline paint trees don't need it. We still write an empty header
-		// so the table reads cleanly; the headerOffset for it is 0 so
-		// renderers skip the empty list.)
-		buf.writeUint32(0);
-		// V1 Paint sub-tables
-		buf.writeBytes(v1Paints.toUint8Array());
+		// LayerList: uint32 numLayers + Offset32[numLayers] (each from
+		// LayerList start). When numLayers is 0 we still emit the
+		// 4-byte header so the byte layout matches the computed size.
+		buf.writeUint32(layerPaints.length);
+		const paintsFromLayerList = v1PaintsOff - v1LayerListOff;
+		for (let i = 0; i < layerPaints.length; i++) {
+			buf.writeUint32(paintsFromLayerList + layerPaintOffsets[i]);
+		}
+		buf.writeBytes(paintBuf.toUint8Array());
 	}
 
 	const out = buf.toUint8Array();
@@ -323,13 +357,23 @@ const writeF2Dot14 = (buf: ByteBuf, v: number): void => {
 
 const writePaint = (buf: ByteBuf, paint: Paint): void => {
 	if (paint.kind === 'colrLayers') {
-		// Format 1: PaintColrLayers — but to avoid needing a real LayerList,
-		// we DON'T emit format 1 for v1 yet. Single-layer paints are wrapped
-		// in PaintGlyph directly. Multi-layer paths require the LayerList
-		// path which is future work.
+		// PaintColrLayers is emitted by writeColrV1 directly (it needs to
+		// know the LayerList index allocation). Nested PaintColrLayers
+		// inside a PaintColrLayers isn't supported — but the editor's
+		// data model can't produce that shape anyway.
 		throw new Error(
-			'writePaint: PaintColrLayers (format 1) not yet supported — wrap single PaintGlyph per layer instead'
+			'writePaint: PaintColrLayers must be emitted by writeColrV1 top-level handler, not recursively'
 		);
+	}
+	if (paint.kind === 'solid') {
+		// Format 2: PaintSolid.
+		//   uint8 format = 2
+		//   uint16 paletteIndex
+		//   F2DOT14 alpha
+		buf.writeUint8(2);
+		buf.writeUint16(paint.paletteIndex);
+		writeF2Dot14(buf, paint.alpha ?? 1);
+		return;
 	}
 	if (paint.kind === 'glyph') {
 		// Format 10: PaintGlyph.

@@ -223,6 +223,81 @@ describe('writeColrV1', () => {
 		expect(u32(colr, 14)).toBeGreaterThan(0); // v1 baseList offset
 	});
 
+	it('PaintColrLayers + LayerList for multi-layer paint trees', () => {
+		const colr = writeColrV1(
+			[],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'colrLayers',
+						layers: [
+							{
+								kind: 'glyph',
+								glyphID: 6,
+								paint: { kind: 'solid', paletteIndex: 0 }
+							},
+							{
+								kind: 'glyph',
+								glyphID: 7,
+								paint: {
+									kind: 'linearGradient',
+									x0: 0,
+									y0: 0,
+									x1: 100,
+									y1: 0,
+									x2: 0,
+									y2: 100,
+									stops: [
+										{ offset: 0, paletteIndex: 0 },
+										{ offset: 1, paletteIndex: 1 }
+									]
+								}
+							}
+						]
+					}
+				}
+			]
+		);
+		expect(u16(colr, 0)).toBe(1);
+		const v1BaseListOff = u32(colr, 14);
+		const layerListOff = u32(colr, 18);
+		expect(layerListOff).toBeGreaterThan(0);
+		// LayerList header: uint32 numLayers
+		expect(u32(colr, layerListOff)).toBe(2);
+		// Walk: BaseGlyphList → record points to PaintColrLayers
+		const paintOffFromBaseList = u32(colr, v1BaseListOff + 6);
+		const paintOff = v1BaseListOff + paintOffFromBaseList;
+		// PaintColrLayers (format 1): uint8 format + uint8 numLayers + uint32 firstLayerIndex
+		expect(colr[paintOff]).toBe(1);
+		expect(colr[paintOff + 1]).toBe(2); // numLayers
+		expect(u32(colr, paintOff + 2)).toBe(0); // firstLayerIndex
+	});
+
+	it('PaintSolid (format 2) — uint16 paletteIndex + F2DOT14 alpha', () => {
+		const colr = writeColrV1(
+			[],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'glyph',
+						glyphID: 5,
+						paint: { kind: 'solid', paletteIndex: 3, alpha: 0.5 }
+					}
+				}
+			]
+		);
+		const v1BaseListOff = u32(colr, 14);
+		const paintOff = v1BaseListOff + u32(colr, v1BaseListOff + 6);
+		// PaintGlyph header (6 bytes) → nested at paintOff + 6
+		const solidOff = paintOff + 6;
+		expect(colr[solidOff]).toBe(2); // format = solid
+		expect(u16(colr, solidOff + 1)).toBe(3); // paletteIndex
+		// F2DOT14 alpha: 0.5 = 0x2000
+		expect(u16(colr, solidOff + 3)).toBe(0x2000);
+	});
+
 	it('rejects v1 records out of glyphID order', () => {
 		expect(() =>
 			writeColrV1(
