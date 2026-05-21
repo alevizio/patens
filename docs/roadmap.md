@@ -314,10 +314,15 @@ start). Required.
    write directly via opentype.js `font.substitution.addSingle` /
    `addAlternate` / `addLigature` — instant, zero Pyodide cost. For
    `calt` + custom FEA, keep the existing Pyodide+feaLib route. Single
-   export pipeline merges both. **Critical pre-work:** write a
-   round-trip smoke test (write `salt`+`smcp` via opentype.js → verify
-   via HarfBuzz) before committing to this path. opentype.js's non-
-   `liga` write paths are confirmed in the bundle but undocumented.
+   export pipeline merges both.
+   **Smoke test landed (`a6b8c…` to be assigned): `addSingle` works
+   for `salt` / `smcp` / `c2sc`; `addAlternate` works for `aalt`;
+   features survive save → reparse round-trip cleanly.** One
+   constraint surfaced — opentype.js requires features be added in
+   alphabetical order between distinct tags. The M1 compile path MUST
+   sort the detected-features list by tag before calling the writers.
+   Pinned in the smoke test so a future refactor that drops sorting
+   fails loudly there instead of in the export path.
 4. **Live preview via HarfBuzzJS** (3 d). Add `harfbuzzjs` dep,
    shape the test string against the in-memory font, feature toggles
    above the preview drive per-call shaping. Render shaped glyph IDs

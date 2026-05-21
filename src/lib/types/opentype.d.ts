@@ -72,6 +72,56 @@ declare module 'opentype.js' {
 		download(filename?: string): void;
 		getKerningValue(leftGlyph: Glyph, rightGlyph: Glyph): number;
 		getPath(text: string, x: number, y: number, fontSize: number): Path;
+		// Substitution write/read API. Confirmed present in opentype.js v2.x
+		// bundle (dist/opentype.js) but absent from the README. Used by the
+		// OT-layout-depth milestone-1 work — see docs/next-90-days.md §B.
+		// `script` defaults to 'DFLT'; `language` defaults to 'dflt'.
+		substitution: {
+			addSingle(
+				feature: string,
+				substitution: { sub: string | string[]; by: string | string[] },
+				script?: string,
+				language?: string
+			): void;
+			addAlternate(
+				feature: string,
+				substitution: { sub: string; by: string[] },
+				script?: string,
+				language?: string
+			): void;
+			addMultiple(
+				feature: string,
+				substitution: { sub: string; by: string[] },
+				script?: string,
+				language?: string
+			): void;
+			addLigature(
+				feature: string,
+				ligature: { sub: string[]; by: string },
+				script?: string,
+				language?: string
+			): void;
+			getSingle(
+				feature: string,
+				script?: string,
+				language?: string
+			): Array<{ sub: number | number[]; by: number | number[] }>;
+			getAlternates(
+				feature: string,
+				script?: string,
+				language?: string
+			): Array<{ sub: number; by: number[] }>;
+			getLigatures(
+				feature: string,
+				script?: string,
+				language?: string
+			): Array<{ sub: number[]; by: number }>;
+			getFeature(
+				feature: string,
+				script?: string,
+				language?: string
+			): Array<unknown> | undefined;
+		};
 	}
 
 	export function parse(buffer: ArrayBuffer): Font;
