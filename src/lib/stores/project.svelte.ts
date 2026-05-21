@@ -14,6 +14,7 @@ import type {
 	Master,
 	Project,
 	RGBA,
+	SidebearingClass,
 	VariableInstance
 } from '$lib/font/types';
 import {
@@ -642,14 +643,26 @@ class ProjectStore {
 
 	/** Kerning classes CRUD */
 	upsertKerningClass(cls: KerningClass) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		const existing = (this.project.classes ?? []).findIndex((c) => c.name === cls.name);
-		const next = [...(this.project.classes ?? [])];
-		if (existing >= 0) next[existing] = cls;
-		else next.push(cls);
-		this.project = { ...this.project, classes: next };
-		this.touch();
+		this.withYArray<KerningClass>(
+			'classes',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((c) => c.name === cls.name);
+				if (i >= 0) {
+					arr.delete(i, 1);
+					arr.insert(i, [cls]);
+				} else {
+					arr.insert(arr.length, [cls]);
+				}
+			},
+			(curr) => {
+				const i = curr.findIndex((c) => c.name === cls.name);
+				const next = [...curr];
+				if (i >= 0) next[i] = cls;
+				else next.push(cls);
+				return next;
+			}
+		);
 	}
 
 	removeKerningClass(name: string) {
@@ -670,51 +683,56 @@ class ProjectStore {
 		if (!this.project) return id;
 		if (this.project.locked) return id;
 		const cleanName = name.trim() || `Group ${(this.project.sidebearingClasses?.length ?? 0) + 1}`;
-		this.project = {
-			...this.project,
-			sidebearingClasses: [
-				...(this.project.sidebearingClasses ?? []),
-				{ id, name: cleanName, members: [...new Set(members)] }
-			]
-		};
-		this.touch();
+		const entry: SidebearingClass = { id, name: cleanName, members: [...new Set(members)] };
+		this.withYArray<SidebearingClass>(
+			'sidebearingClasses',
+			(arr) => arr.insert(arr.length, [entry]),
+			(curr) => [...curr, entry]
+		);
 		return id;
 	}
 
 	removeSidebearingClass(id: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			sidebearingClasses: (this.project.sidebearingClasses ?? []).filter((c) => c.id !== id)
-		};
-		this.touch();
+		this.withYArray<SidebearingClass>(
+			'sidebearingClasses',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((c) => c.id === id);
+				if (i >= 0) arr.delete(i, 1);
+			},
+			(curr) => curr.filter((c) => c.id !== id)
+		);
 	}
 
 	updateSidebearingClassMembers(id: string, members: number[]) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			sidebearingClasses: (this.project.sidebearingClasses ?? []).map((c) =>
-				c.id === id ? { ...c, members: [...new Set(members)] } : c
-			)
-		};
-		this.touch();
+		const uniq = [...new Set(members)];
+		this.withYArray<SidebearingClass>(
+			'sidebearingClasses',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((c) => c.id === id);
+				if (i < 0) return;
+				arr.delete(i, 1);
+				arr.insert(i, [{ ...items[i], members: uniq }]);
+			},
+			(curr) => curr.map((c) => (c.id === id ? { ...c, members: uniq } : c))
+		);
 	}
 
 	renameSidebearingClass(id: string, name: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
 		const cleanName = name.trim();
 		if (!cleanName) return;
-		this.project = {
-			...this.project,
-			sidebearingClasses: (this.project.sidebearingClasses ?? []).map((c) =>
-				c.id === id ? { ...c, name: cleanName } : c
-			)
-		};
-		this.touch();
+		this.withYArray<SidebearingClass>(
+			'sidebearingClasses',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((c) => c.id === id);
+				if (i < 0) return;
+				arr.delete(i, 1);
+				arr.insert(i, [{ ...items[i], name: cleanName }]);
+			},
+			(curr) => curr.map((c) => (c.id === id ? { ...c, name: cleanName } : c))
+		);
 	}
 
 	/** Set LSB and/or RSB on every member of a sidebearing class, recomputing advance from bbox + sb. */
@@ -743,43 +761,60 @@ class ProjectStore {
 		this.touch();
 	}
 
-	// ---------- Color palettes (CPAL) ----------
+	// ---------- Y.Array mutator helper ----------
 
 	/**
-	 * Run a callback inside a Y.Doc transaction targeting the
-	 * `palettes` Y.Array. Falls back to a legacy direct-assignment
+	 * Run a callback inside a Y.Doc transaction targeting the named
+	 * Y.Array field, or fall back to a legacy direct-assignment
 	 * mutator when the doc isn't wired up (defensive — Day 1
 	 * unconditionally inits the doc in load()).
 	 *
-	 * Day-3a internal helper for the palette mutators below; once all
-	 * Day 3 mutators land this pattern moves into a private
-	 * `withPaletteArray<T>()` method that every Y.Array-backed
-	 * collection shares.
+	 * Day 3a started with a palette-specific version of this; Day 3b
+	 * generalised it so every Y.Array-backed collection in the
+	 * schema (kerning, classes, sidebearingClasses, axes, masters,
+	 * instances, palettes) shares one implementation.
+	 *
+	 * Multi-field mutators (e.g. `removeKerningClass`, which touches
+	 * both `classes` and `kerning`) and helper-delegating ones
+	 * (`addAxis`, `addMaster`, `updateMaster`) bypass this and open
+	 * their own `doc.transact()` block — they're Day 3c work.
 	 */
-	private mutatePaletteArray(
-		viaDoc: (arr: Y.Array<ColorPalette>) => void,
-		viaLegacy: (current: ColorPalette[]) => ColorPalette[]
+	private withYArray<T>(
+		field:
+			| 'kerning'
+			| 'classes'
+			| 'sidebearingClasses'
+			| 'axes'
+			| 'masters'
+			| 'instances'
+			| 'palettes',
+		viaDoc: (arr: Y.Array<T>) => void,
+		viaLegacy: (current: T[]) => T[]
 	): void {
 		if (!this.project) return;
 		if (this.project.locked) return;
 		if (!this.doc) {
+			const current = (this.project[field] as unknown as T[] | undefined) ?? [];
 			this.project = {
 				...this.project,
-				palettes: viaLegacy(this.project.palettes ?? [])
+				[field]: viaLegacy(current)
 			};
 			this.touch();
 			return;
 		}
 		this.doc.transact(() => {
-			const arr = this.doc!.getMap('project').get('palettes') as Y.Array<ColorPalette>;
+			const arr = this.doc!.getMap('project').get(field) as Y.Array<T>;
 			viaDoc(arr);
 		});
 		this.touch();
 	}
 
+	// ---------- Color palettes (CPAL) ----------
+
 	/** Add a fresh palette to the project. Returns the new palette's id. */
 	addPalette(palette: ColorPalette): string {
-		this.mutatePaletteArray(
+		this.withYArray<ColorPalette>(
+			'palettes',
 			(arr) => arr.insert(arr.length, [palette]),
 			(curr) => [...curr, palette]
 		);
@@ -787,7 +822,8 @@ class ProjectStore {
 	}
 
 	removePalette(id: string) {
-		this.mutatePaletteArray(
+		this.withYArray<ColorPalette>(
+			'palettes',
 			(arr) => {
 				const items = arr.toArray();
 				const i = items.findIndex((p) => p.id === id);
@@ -798,7 +834,8 @@ class ProjectStore {
 	}
 
 	updatePalette(id: string, mut: (p: ColorPalette) => ColorPalette) {
-		this.mutatePaletteArray(
+		this.withYArray<ColorPalette>(
+			'palettes',
 			(arr) => {
 				const items = arr.toArray();
 				const i = items.findIndex((p) => p.id === id);
@@ -837,7 +874,8 @@ class ProjectStore {
 			const padding = new Array(length - p.colors.length).fill(0).map(() => ({ ...fill }));
 			return { ...p, colors: [...p.colors, ...padding] };
 		};
-		this.mutatePaletteArray(
+		this.withYArray<ColorPalette>(
+			'palettes',
 			(arr) => {
 				// Replace every entry in place via delete + insert so the Y.Array
 				// observes the right structural changes (insertion CRDT semantics).
@@ -895,24 +933,38 @@ class ProjectStore {
 
 	/** Named instances CRUD */
 	upsertInstance(inst: VariableInstance) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		const existing = (this.project.instances ?? []).findIndex((i) => i.id === inst.id);
-		const next = [...(this.project.instances ?? [])];
-		if (existing >= 0) next[existing] = inst;
-		else next.push(inst);
-		this.project = { ...this.project, instances: next };
-		this.touch();
+		this.withYArray<VariableInstance>(
+			'instances',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((x) => x.id === inst.id);
+				if (i >= 0) {
+					arr.delete(i, 1);
+					arr.insert(i, [inst]);
+				} else {
+					arr.insert(arr.length, [inst]);
+				}
+			},
+			(curr) => {
+				const i = curr.findIndex((x) => x.id === inst.id);
+				const next = [...curr];
+				if (i >= 0) next[i] = inst;
+				else next.push(inst);
+				return next;
+			}
+		);
 	}
 
 	removeInstance(id: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			instances: (this.project.instances ?? []).filter((i) => i.id !== id)
-		};
-		this.touch();
+		this.withYArray<VariableInstance>(
+			'instances',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((x) => x.id === id);
+				if (i >= 0) arr.delete(i, 1);
+			},
+			(curr) => curr.filter((x) => x.id !== id)
+		);
 	}
 
 	async addScriptPack(pack: ScriptPack) {
@@ -1151,13 +1203,17 @@ class ProjectStore {
 	}
 
 	updateAxis(tag: string, mut: Partial<Axis>) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			axes: (this.project.axes ?? []).map((a) => (a.tag === tag ? { ...a, ...mut } : a))
-		};
-		this.touch();
+		this.withYArray<Axis>(
+			'axes',
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((a) => a.tag === tag);
+				if (i < 0) return;
+				arr.delete(i, 1);
+				arr.insert(i, [{ ...items[i], ...mut }]);
+			},
+			(curr) => curr.map((a) => (a.tag === tag ? { ...a, ...mut } : a))
+		);
 	}
 
 	async addMaster(name: string, location: Record<string, number>) {
