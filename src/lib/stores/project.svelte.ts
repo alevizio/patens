@@ -288,7 +288,26 @@ class ProjectStore {
 	private touch() {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = { ...this.project, updatedAt: new Date().toISOString() };
+		const nextUpdatedAt = new Date().toISOString();
+		// Write updatedAt through the doc so live state + doc stay in
+		// sync. Without this, `this.project.updatedAt` drifts ahead of
+		// `doc.getMap('project').get('updatedAt')` between mutator
+		// calls, and the next mutator's refreshFromDoc would revert
+		// the live value to the doc's older one.
+		//
+		// The transact() fires its own 'update' event, which triggers
+		// refreshFromDoc. That's intentional: it pulls `this.project`
+		// back from the doc, keeping the two definitionally equal.
+		// The cost is ~0.04ms per touch() at 500 glyphs (bench
+		// d9ab393), so doubling per-mutator transact cost is invisible
+		// to the user.
+		if (this.doc) {
+			this.doc.transact(() => {
+				this.doc!.getMap('project').set('updatedAt', nextUpdatedAt);
+			});
+		} else {
+			this.project = { ...this.project, updatedAt: nextUpdatedAt };
+		}
 		this.dirty = true;
 		this.scheduleSave();
 		this.scheduleSnapshot();

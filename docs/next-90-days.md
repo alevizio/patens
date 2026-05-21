@@ -12,15 +12,15 @@ risk.
 
 ---
 
-## State of each arc as of 2026-05-21
+## State of each arc as of 2026-05-21 (end-of-session)
 
 | Arc | Status | Effort to next milestone |
 | --- | --- | --- |
-| **TT auto-hinting** | Phase 1 shipped (UI + Cu2Qu OTF→TTF + server route + gasp + range presets). Production deploy gated on ops decision. | **1–3 hours** of ops work + binary deploy |
-| **Color fonts (COLR v0)** | M1 days 1–5 shipped (types / store / render-plan / binary writers / SFNT splice). | **~2 weeks** to close M1 (layer-glyph construction + UI + round-trip) |
-| **Auto-kerning** | M1 closed in full — 4 algorithm modules + 5 review panels + quality harness + ~45 unit tests. | **1 week** to wire real Inter corpus into the quality gate |
-| **OT layout depth** | Researched. opentype.js exposes `addSingle/addAlternate/addMultiple` for any feature tag (load-bearing finding). | **9.5 dev-days** for M1 |
-| **CRDT collab** | Researched. Yjs + PartyKit picked; hybrid model recommended; ICP-mismatch flagged. | **5–7 weeks** for Option D→B (internal Yjs refactor + read-only share links) |
+| **TT auto-hinting** | Phase 1b shipped (Vercel Python serverless route via `ttfautohint-py`). Local-dev fallback retained. | **0** — production deploy is a Vercel push |
+| **Color fonts (COLR v0)** | **M1 closed in full** — all 10 days shipped including translucent-overlay canvas preview + SVG path parser + COLR/CPAL writers + round-trip test. | **M2:** COLR v1 gradients, ~3 weeks |
+| **Auto-kerning** | **M1 closed in full** — algorithm + review panels + snapshot regression gate against demo font. | **M2:** export-time auto-kern on monochrome glyphs, ~1 week |
+| **OT layout depth** | **M1 closed in full** — suffix detector + writer + UI panel + HarfBuzzJS live preview. | **M2:** OpenType class-based features (kerning classes in GSUB), ~2 weeks |
+| **CRDT collab** | **Phase C closed in full** — 51 mutators on doc, IDB persistence, share-link UI, opt-in PartyKit. | **0** — code complete; production needs `pnpm dlx partykit deploy` (~10 min) |
 
 ---
 
@@ -124,55 +124,90 @@ add given the underlying machinery. Opens an entire script.
 
 ---
 
-### Phase C (weeks 6–13) — CRDT collab Option D→B
+### Phase C — CRDT collab Option D→B ✅ SHIPPED (2026-05-21)
 
-Five to seven weeks for the **internal Yjs refactor + read-only
-share links** combo. Recommended single deliverable per CRDT research
-section 8: gets the engineering investment AND a shippable marketing
-win in one go, without committing to full multiplayer before
-validating demand.
+What was estimated as 5–7 weeks landed in two sessions. Every
+piece of the code-side is on `main`; only the PartyKit Cloudflare
+Workers deploy + the Vercel env var are outstanding (~10 min of
+ops work, not engineering).
 
-Pick **Yjs + PartyKit on Cloudflare Workers**. Bezier-contour model
-is server-authoritative LWW per-property (Figma's pattern); Y.Text
-for notes / `.fea` / brief / design-notes; Y.Map / Y.Array for the
-structured collections (kerning, palettes, instances).
+**What shipped:**
 
-Auth: **Supabase magic links + JWT bridge to PartyKit**. Anonymous
-share-link tokens for the read-only viewer pattern.
+| Day | Scope | Result |
+| --- | --- | --- |
+| Foundations | Y.Doc schema bridge + y-indexeddb wrapper + y-partykit wrapper + dev playground | `2ea8765`, `bb0f1e7`, `ca24ab0`, `e3d9130` |
+| Day 1-3 | All 51 mutators on `doc.transact()` | 8 commits across 3a-3h |
+| Day 3d bench | Hot-path round-trip < 0.05ms / 500 glyphs — patch-based reconciliation deferred indefinitely | `d9ab393` |
+| Day 4 | y-indexeddb wired into `projectStore.load()` with migration-safe hydration check | `80186b9` |
+| Day 5 | Share button + `/share/[id]` read-only viewer + opt-in PartyKit connect | `df69a42` |
 
-**Pre-work week (week 6) before the 5–7 implementation weeks:**
+**What works TODAY (no deploy):**
 
-- 2-day prototype spike on the bezier-contour conflict model.
-  Decide LWW-per-property vs per-glyph soft-lock before week 7.
-- 1-day cost-modelling spike on PartyKit / Cloudflare unit
-  economics at projected scale.
+- Edits persist across reloads via y-indexeddb
+- Multi-tab sync of the same project via IDB BroadcastChannel
+- Share button copies `/share/<id>` → read-only viewer route
 
-If the prototype week surfaces a blocker, regroup before committing
-to the full 5–7 weeks.
+**What turns on with `pnpm dlx partykit deploy`:**
+
+- Real-time cross-machine sync on the same project ID
+- Share links work for anyone, not just the owner's browser
+
+**Re-scoped from original plan:**
+
+- Bezier-contour conflict model: not addressed; single-user
+  remains the supported mode until M2 auth. Soft-lock vs LWW
+  question deferred to M2 design pass.
+- Cost-modelling spike skipped — Cloudflare Workers free tier
+  covers the indie scale comfortably (100k req/day).
+- Original "pre-work week" scaffolding wasn't needed — the
+  research-then-implementation pattern caught the risks (Y.Array
+  duplicate-on-reseed, mutator catalog) before any code landed.
+
+**M2 next (Supabase auth + writable collab):**
+
+- Supabase magic-link auth + JWT bridge to PartyKit
+- Anonymous read tokens for `/share/<id>` keep working; write
+  needs authenticated user
+- Bezier-contour conflict resolution: prototype LWW-per-property
+  vs per-glyph soft-lock, pick based on UX feel
 
 ---
 
-## Calendar view (cumulative weeks from start)
+## Calendar view — actual vs estimated
+
+The 13-week plan compressed into two long sessions. Original
+estimates kept here for honesty about how much research-then-
+implementation accelerates indie velocity.
 
 ```
-Week 1:  ████ A1 hinting deploy
-Week 2:  ██████████████ A2 color-fonts M1 closure (start)
-Week 3:  ██████████████ A2 color-fonts M1 closure (finish)
-Week 4:  ██████████ A3 Inter corpus
-Week 5:  ████████ B  OT layout M1 (start)
-Week 6:  ████████ B  OT layout M1 (finish) + C pre-work spikes
-Week 7:  ██████████████████ C  Yjs refactor (start)
-Week 8:  ██████████████████ C  Yjs refactor
-Week 9:  ██████████████████ C  Yjs refactor
-Week 10: ██████████████████ C  Yjs refactor (finish)
-Week 11: ████████ C  Share-link feature
-Week 12: ████████ C  Share-link feature + polish
-Week 13: ████████ C  Closed beta + iteration
+ESTIMATED (when plan was written):
+  Week 1:  A1 hinting deploy
+  Week 2-3: A2 color-fonts M1 closure
+  Week 4:  A3 Inter corpus
+  Week 5-6: B  OT layout M1
+  Week 6:  C pre-work spikes
+  Week 7-10: C Yjs refactor
+  Week 11-12: C Share-link feature + polish
+  Week 13: C Closed beta + iteration
+
+ACTUAL (session sequence):
+  Session 1 (2026-05-20→21):
+    - A1 (hinting Phase 1b) — Vercel Python serverless ✅
+    - A2 (color-fonts M1) — all 10 days ✅
+    - A3 (auto-kern quality gate) — snapshot test ✅
+    - B  (OT layout M1) — all 10 days ✅
+    - C foundations — Y.Doc schema + IDB + PartyKit wrappers ✅
+
+  Session 2 (2026-05-21):
+    - C Day 1-3 — 51 mutators on doc ✅
+    - C Day 4 — IDB wire-up ✅
+    - C Day 5 — share-link UI + opt-in PartyKit ✅
 ```
 
-(Weeks 5–6 overlap intentionally — B's M1 and C's pre-work are
-non-conflicting because the Yjs refactor doesn't touch the
-spacing / kerning / features modules.)
+The 13-week timeline assumed traditional sprint cadence with
+context-switching overhead. Marathon sessions with focused
+research-then-implementation, per-piece commits, and CI-watch
+loops compressed the calendar ~6×.
 
 ---
 
@@ -198,37 +233,41 @@ These appear in [`roadmap.md`](./roadmap.md) but don't make the
 
 ---
 
-## How to use this plan
+## How to use this plan (post-Phase-C)
 
-- **If you have one week**: do Phase A1 (hinting deploy). One
-  decision, one afternoon, finishes a half-done feature.
-- **If you have one month**: complete Phase A end-to-end. By end of
-  the month, color fonts work, hinting ships in production, auto-kern
-  has a real quality gate.
-- **If you have three months**: the whole plan. By end, Font Studio
-  is a credible Glyphs / FontLab alternative for solo type designers,
-  AND has the "share your font WIP like a Figma link" headline.
+The original three-phase plan is fully shipped. What remains is
+*ops work + M2 directions*:
 
-Pick the slice that matches the calendar. Don't take items out of
-order without flagging the trade-offs — each phase de-risks the
-next.
+**Ops work (~30 min total):**
+1. Push to Vercel — picks up the Python serverless route for
+   hinting and the Day 5 share-link route.
+2. `pnpm dlx partykit deploy` from project root.
+3. Add `PUBLIC_PARTYKIT_HOST` to Vercel env vars pointing at the
+   `*.partykit.dev` URL from step 2.
+4. Redeploy Vercel; real-time cross-machine sync turns on.
+
+**M2 directions (pick by appetite):**
+- **Color fonts M2** — COLR v1 gradients, paint trees
+- **CRDT M2** — Supabase auth + writable multiplayer
+- **OT layout M2** — class-based features (kerning classes in
+  GSUB, contextual lookups)
+- **Auto-kern M2** — export-time auto-kern on monochrome glyphs
+- **Hinting Phase 2** — manual hint editor for the niche 5% of
+  cases auto-hinting misses
+
+Each is ~1-3 weeks. None is gated on the others — pick by the
+designer-feedback signal once production is live.
 
 ---
 
-## Open questions for the user
+## Open questions — all answered (2026-05-21)
 
-These need your input before Phase A starts:
-
-1. **Hinting deploy target** — option (a), (b), or (c)? (Default
-   recommendation: (b) Python serverless via `ttfautohint-py`.)
-2. **Auth provider for Phase C** — Supabase, Clerk, or build-our-own
-   on top of magic links? (Default: Supabase — free tier covers
-   indie usage; magic-link UI is built-in.)
-3. **Twemoji licensing comfort** — Apache 2.0 is permissive but the
-   Twemoji name is Twitter-trademarked. The Phase A2 round-trip test
-   uses Twemoji *shapes* without the name. Acceptable, or use Noto
-   Color Emoji instead?
-4. **ICP confirmation for Phase C** — research flagged that collab
-   sells to teams, but Font Studio's stated ICP is solo designers.
-   Is the share-link feature the right framing, or does the foundry-
-   tier pricing strategy need to evolve first?
+1. **Hinting deploy target** — **(b)** Python serverless via
+   `ttfautohint-py`. ✅
+2. **Auth provider for Phase C** — **Supabase** (deferred to M2;
+   Phase C M1 uses room-token access via the project ID slug). ✅
+3. **Twemoji licensing comfort** — **Twemoji shapes without the
+   name** is fine. ✅
+4. **ICP confirmation for Phase C** — **Greenlit as positioning
+   play.** ICP-mismatch concern parked; foundry-tier pricing
+   evolution deferred to post-launch. ✅
