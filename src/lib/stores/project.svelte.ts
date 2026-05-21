@@ -745,36 +745,69 @@ class ProjectStore {
 
 	// ---------- Color palettes (CPAL) ----------
 
+	/**
+	 * Run a callback inside a Y.Doc transaction targeting the
+	 * `palettes` Y.Array. Falls back to a legacy direct-assignment
+	 * mutator when the doc isn't wired up (defensive — Day 1
+	 * unconditionally inits the doc in load()).
+	 *
+	 * Day-3a internal helper for the palette mutators below; once all
+	 * Day 3 mutators land this pattern moves into a private
+	 * `withPaletteArray<T>()` method that every Y.Array-backed
+	 * collection shares.
+	 */
+	private mutatePaletteArray(
+		viaDoc: (arr: Y.Array<ColorPalette>) => void,
+		viaLegacy: (current: ColorPalette[]) => ColorPalette[]
+	): void {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		if (!this.doc) {
+			this.project = {
+				...this.project,
+				palettes: viaLegacy(this.project.palettes ?? [])
+			};
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			const arr = this.doc!.getMap('project').get('palettes') as Y.Array<ColorPalette>;
+			viaDoc(arr);
+		});
+		this.touch();
+	}
+
 	/** Add a fresh palette to the project. Returns the new palette's id. */
 	addPalette(palette: ColorPalette): string {
-		if (!this.project) return palette.id;
-		if (this.project.locked) return palette.id;
-		this.project = {
-			...this.project,
-			palettes: [...(this.project.palettes ?? []), palette]
-		};
-		this.touch();
+		this.mutatePaletteArray(
+			(arr) => arr.insert(arr.length, [palette]),
+			(curr) => [...curr, palette]
+		);
 		return palette.id;
 	}
 
 	removePalette(id: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			palettes: (this.project.palettes ?? []).filter((p) => p.id !== id)
-		};
-		this.touch();
+		this.mutatePaletteArray(
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((p) => p.id === id);
+				if (i >= 0) arr.delete(i, 1);
+			},
+			(curr) => curr.filter((p) => p.id !== id)
+		);
 	}
 
 	updatePalette(id: string, mut: (p: ColorPalette) => ColorPalette) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			palettes: (this.project.palettes ?? []).map((p) => (p.id === id ? mut(p) : p))
-		};
-		this.touch();
+		this.mutatePaletteArray(
+			(arr) => {
+				const items = arr.toArray();
+				const i = items.findIndex((p) => p.id === id);
+				if (i < 0) return;
+				arr.delete(i, 1);
+				arr.insert(i, [mut(items[i])]);
+			},
+			(curr) => curr.map((p) => (p.id === id ? mut(p) : p))
+		);
 	}
 
 	/**
@@ -797,17 +830,27 @@ class ProjectStore {
 	 * palettes must agree on length.
 	 */
 	resizePalettes(length: number, fill: RGBA = { r: 26, g: 26, b: 26, a: 1 }) {
-		if (!this.project) return;
-		if (this.project.locked) return;
 		if (length < 0) return;
-		const next = (this.project.palettes ?? []).map((p) => {
+		const reshape = (p: ColorPalette): ColorPalette => {
 			if (p.colors.length === length) return p;
 			if (p.colors.length > length) return { ...p, colors: p.colors.slice(0, length) };
 			const padding = new Array(length - p.colors.length).fill(0).map(() => ({ ...fill }));
 			return { ...p, colors: [...p.colors, ...padding] };
-		});
-		this.project = { ...this.project, palettes: next };
-		this.touch();
+		};
+		this.mutatePaletteArray(
+			(arr) => {
+				// Replace every entry in place via delete + insert so the Y.Array
+				// observes the right structural changes (insertion CRDT semantics).
+				const items = arr.toArray();
+				for (let i = 0; i < items.length; i++) {
+					const next = reshape(items[i]);
+					if (next === items[i]) continue;
+					arr.delete(i, 1);
+					arr.insert(i, [next]);
+				}
+			},
+			(curr) => curr.map(reshape)
+		);
 	}
 
 	// ---------- Color layers (COLR v0) ----------
