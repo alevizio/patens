@@ -370,10 +370,88 @@ Sources: [Microsoft OT spec p–t](https://learn.microsoft.com/en-us/typography/
 [FontBakery](https://github.com/fonttools/fontbakery) ·
 [shaperglot](https://github.com/googlefonts/shaperglot).
 
-### 12. Real-time collaboration (CRDT — Y.js)
-Two designers on one font live. The biggest "no one's done it in a
-browser" differentiator. Significant lift — needs server presence,
-authentication model, conflict resolution. Worth scoping but not soon.
+### 12. Real-time collaboration (CRDT) — researched 2026-05-21
+
+**Verdict from research:** yes — but stage it carefully. Tractable
+tech-wise; the open question is ICP fit (collab sells to teams; our
+ICP is solo designers). Recommendation: ship as a positioning play
+("share your font WIP like a Figma link") more than a daily-utility
+play.
+
+**Stack choices:**
+- **Yjs** (most ecosystem, smallest bundle ~30 KB, fastest in
+  benchmarks). Automerge 3.0 (Aug 2025, ~10× memory cut) is the
+  realistic Plan B if Yjs's single-maintainer bus factor materialises.
+  Loro and diamond-types currently rule out (latter is dormant since
+  2022).
+- **PartyKit on Cloudflare** for sync transport (cheapest at indie
+  scale, Yjs-native, what tldraw ships in production). Liveblocks is
+  fastest TTM but expensive at scale. Vercel does not host stateful
+  WebSocket itself.
+- **Supabase magic-link + JWT bridge** for auth. Anonymous +
+  link-based access for the read-only viewer pattern (Figma-style
+  "anyone with the link").
+- **y-indexeddb** for client-side persistence — replicates the Y.Doc
+  to IndexedDB so offline + reconnect works without a server hop.
+
+**Critical design call — bezier contour conflict model:** do NOT
+model contour geometry as a true CRDT. Use Figma's own pattern —
+server-authoritative LWW per-property — with an "active editor lock
+per glyph" via Yjs awareness. Two designers on the same glyph: one
+grabs the soft lock, the second enters viewer mode for that glyph
+until released. The rest of the project (notes, kerning, palettes,
+.fea source) uses proper Y.Text / Y.Map / Y.Array semantics. No
+prior art is fully satisfying for vector-graphics conflict — plan a
+1-week prototype spike before committing M2 scope.
+
+**No browser-based font editor ships multiplayer today.** Fontra
+explicitly lists "peer-to-peer collaboration" as future research
+([Fontra docs](https://docs.fontra.xyz/introduction/)). Real
+defensible moat.
+
+**Four milestone-1 options compared:**
+
+| Option | Scope | Effort | Wow factor |
+|---|---|---|---|
+| A. Full multiplayer | Auth + sync + presence + hybrid CRDT + share UI | 10-14 wk | 10/10 |
+| **B. Read-only share links** | Anon JWT + WS broadcast of owner's Y.Doc | 3-4 wk | 6/10 |
+| C. Async via Git / Drive | File-format sync, no realtime | 2-3 wk | 3/10 |
+| **D. Internal Yjs refactor only** | Move state to Y.Doc, ship single-user | 4-6 wk | 2/10 (10/10 as foundation) |
+
+**Recommended: D → B in one release.** 5–7 weeks total. Refactors
+state to Yjs internally AND ships the read-only share link. Lays
+foundation for full multiplayer (M2) without rework.
+
+**Milestone 2** (Q4 2026 or later, depending on M1 signal):
+Promote read-only links to read-write; per-glyph soft locks; hybrid
+CRDT from the recommendation above; awareness cursors on the canvas;
+"active on this glyph" sidebar indicators. ~8–10 wk on top of M1.
+Run a closed beta with 5–10 type-design pairs.
+
+**Risks:**
+- **CRDT history GC** for years-long projects — Yjs has partial
+  tombstone collapse but text-CRDTs only grow. Mitigation: periodic
+  server-side compaction snapshots. Pattern is documented but rarely
+  benchmarked at 10-year horizons.
+- **Yjs maintainer bus factor** — Kevin Jahns is one person.
+  Mitigation: sponsor him, plan an eventual Automerge-3 migration
+  path.
+- **ICP mismatch** — multiplayer mostly sells to teams. The Option B
+  share-link framing is the way to get marketing value without
+  betting on full multiplayer demand.
+- **Bezier conflict semantics** — no prior art is fully satisfying.
+  1-week spike before locking M2 scope.
+
+Sources: [Yjs GitHub](https://github.com/yjs/yjs) ·
+[Automerge 3.0 blog](https://automerge.org/blog/automerge-3/) ·
+[Figma multiplayer blog](https://www.figma.com/blog/how-figmas-multiplayer-technology-works/) ·
+[tldraw sync](https://tldraw.dev/blog/announcing-tldraw-sync) ·
+[PartyKit docs](https://docs.partykit.io/how-partykit-works/) ·
+[Liveblocks pricing](https://liveblocks.io/pricing) ·
+[Y-Sweet docs](https://docs.jamsocket.com/y-sweet) ·
+[crdt-benchmarks](https://github.com/dmonad/crdt-benchmarks) ·
+[Fontra docs](https://docs.fontra.xyz/introduction/) ·
+[SyncroState (Svelte 5)](https://github.com/relm-us/svelt-yjs).
 
 ### 13. WebGPU + MSDF glyph preview
 Already-researched-not-implemented from earlier session notes. WebGPU
