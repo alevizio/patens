@@ -40,6 +40,7 @@
 		"canvas-confetti": "^1.9.4",
 		"fflate": "^0.8.3",
 		"fit-curve": "^0.2.0",
+		"harfbuzzjs": "^1.2.0",
 		"idb-keyval": "^6.2.2",
 		"opentype.js": "^2.0.0",
 		"perfect-freehand": "^1.2.3",
