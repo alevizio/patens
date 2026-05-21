@@ -61,16 +61,20 @@
 		return ` · ${w}×${h}`;
 	});
 
+	// EM-square viewBox: every tile shows the same span on both axes (the
+	// font's full em-height), horizontally centred on each glyph's advance.
+	// This keeps every glyph at the same intrinsic scale — a narrow letter
+	// (I, l) naturally renders narrow inside the same window that a wide
+	// letter (M, W) fills, instead of each being independently stretched.
 	const viewBox = $derived.by(() => {
-		// With scaleY(-1) flipping the SVG around its center, the viewBox's
-		// pre-flip top maps to the post-flip bottom. To make font ascender land
-		// at the visual top of the tile (and descender at the bottom), the
-		// pre-flip viewBox must START at `descender` and end at `ascender`.
-		// Previously this used `-ascender`, which pushed the cap-height off the
-		// top of the tile — only the baseline strip was visible.
-		const width = Math.max(glyph.advanceWidth, 100);
-		return `0 ${descender} ${width} ${fontSpan}`;
+		const advance = Math.max(glyph.advanceWidth, 100);
+		const minX = (advance - fontSpan) / 2;
+		return `${minX} ${descender} ${fontSpan} ${fontSpan}`;
 	});
+	// Centre x for SVG <text> fallback — same advance-centre as the path
+	// branch above, so a drawn O and a fallback O sit at the exact same
+	// horizontal position within the tile.
+	const fallbackCenterX = $derived(Math.max(glyph.advanceWidth, 100) / 2);
 
 	const componentCount = $derived(glyph.components?.length ?? 0);
 
@@ -109,15 +113,32 @@
 				<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
 			</svg>
 		{:else if char}
-			<!-- System font: this branch only renders when the glyph has zero
-			     contours, so the project's own preview font has an empty slot
-			     for this codepoint and would paint blank if we used it. -->
-			<span
-				class="text-2xl font-light text-fg-subtle"
-				style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
+			<!-- System-font fallback rendered inside the same EM-square SVG
+			     viewport as the drawn-glyph branch above, so empty slots and
+			     drawn slots share one scale: the cap-height fills ~70% of the
+			     em, both centred on the advance. The inner scaleY(-1) cancels
+			     the outer one so text reads upright. -->
+			<svg
+				viewBox={viewBox}
+				width={size}
+				height={size}
+				preserveAspectRatio="xMidYMid meet"
+				style="transform: scaleY(-1);"
+				aria-hidden="true"
 			>
-				{char}
-			</span>
+				<g transform="scale(1 -1)">
+					<text
+						x={fallbackCenterX}
+						y="0"
+						font-size={fontSpan * 0.7}
+						text-anchor="middle"
+						dominant-baseline="alphabetic"
+						font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif"
+						font-weight="300"
+						class="fill-fg-subtle"
+					>{char}</text>
+				</g>
+			</svg>
 		{:else}
 			<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 				{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}
