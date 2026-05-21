@@ -45,6 +45,7 @@
 		"opentype.js": "^2.0.0",
 		"perfect-freehand": "^1.2.3",
 		"polygon-clipping": "^0.15.7",
-		"woff2-encoder": "^2.0.0"
+		"woff2-encoder": "^2.0.0",
+		"yjs": "^13.6.30"
 	}
 }
