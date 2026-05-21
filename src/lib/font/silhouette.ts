@@ -110,15 +110,16 @@ export const sampleGlyphSilhouette = (
 };
 
 /**
- * Minimum horizontal distance between two glyphs placed at offset 0.
- * Walks both silhouettes scan-by-scan and returns the smallest
- * `B.left - A.right` where both glyphs have ink. Returns `null` when
- * the glyphs never share any scan height with ink (typical for marks
- * vs descenders).
+ * Minimum horizontal distance between two glyphs as if both placed at
+ * the same origin (no advance applied). Returns `min(B.left − A.right)`
+ * across scan heights where both glyphs have ink. The result can be
+ * negative (B's silhouette overhangs into A's right margin) and is
+ * defined relative to the glyphs' local coords — NOT to natural
+ * placement. Callers wanting the *visible* gap in a real pair should
+ * use `pairGap()` instead.
  *
- * Used by the kerning suggester: given a target gap (derived from a
- * reference pair like "HH" or "nn"), the kerning delta is
- * `target - silhouetteDistance(A, B)`.
+ * Returns `null` when the glyphs never share any scan height with ink
+ * (typical for marks vs descenders).
  *
  * Both inputs MUST be sampled with the same `samples` count and y-range.
  */
@@ -140,4 +141,39 @@ export const silhouetteDistance = (
 		if (best === null || gap < best) best = gap;
 	}
 	return best;
+};
+
+/**
+ * Minimum *visible* horizontal gap between two glyphs placed in their
+ * natural advance order: A at origin, B at `A.advance`. Walks both
+ * silhouettes and returns the smallest
+ *   `(leftAdvance + B.left) − A.right`
+ * across scan heights with ink on both sides. Negative results mean
+ * the ink overlaps. Returns the count of overlapping inked rows
+ * alongside the gap so callers can derive confidence.
+ *
+ * Used by the kerning suggester: kern delta = targetGap − naturalGap.
+ */
+export const pairGap = (
+	leftSilhouette: SilhouetteSample[],
+	leftAdvance: number,
+	rightSilhouette: SilhouetteSample[]
+): { gap: number; inkedRows: number } | null => {
+	if (leftSilhouette.length !== rightSilhouette.length) {
+		throw new Error(
+			`pairGap: sample count mismatch (${leftSilhouette.length} vs ${rightSilhouette.length})`
+		);
+	}
+	let best: number | null = null;
+	let inkedRows = 0;
+	for (let i = 0; i < leftSilhouette.length; i++) {
+		const lr = leftSilhouette[i].right;
+		const rl = rightSilhouette[i].left;
+		if (lr === null || rl === null) continue;
+		inkedRows++;
+		const gap = leftAdvance + rl - lr;
+		if (best === null || gap < best) best = gap;
+	}
+	if (best === null) return null;
+	return { gap: best, inkedRows };
 };
