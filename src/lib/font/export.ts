@@ -12,6 +12,7 @@ import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
 import { applyDetectedFeatures, detectFeatures } from './feature-detect';
+import { buildColorFontPlan, resolveColorFontPlan } from './color-build';
 
 type OTPath = InstanceType<typeof opentype.Path>;
 type OTGlyph = InstanceType<typeof opentype.Glyph>;
@@ -158,6 +159,16 @@ export type BuildResult = {
 	font: InstanceType<typeof opentype.Font>;
 	indexByCodepoint: Map<number, number>;
 	glyphCount: number;
+	/**
+	 * For color fonts: the COLR baseGlyphRecords ready to feed
+	 * `applyColorFontTables`. Empty when the project has no color
+	 * layers or no palettes. IDs are post-append (synthetic layer
+	 * glyphs are already in the font).
+	 */
+	colorBaseGlyphs: Array<{
+		glyphID: number;
+		layers: Array<{ glyphID: number; paletteIndex: number }>;
+	}>;
 };
 
 export type BuildOptions = {
@@ -208,20 +219,39 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		.map((s) => Number(s))
 		.sort((a, b) => a - b);
 
+	const glyphIdByName = new Map<string, number>();
 	for (const cp of codepoints) {
 		const g = activeGlyphs[cp];
 		const eff = effectiveContoursWithMap(g, activeGlyphs);
 		const advanceWidth = effectiveAdvanceWidth(g, eff);
 		const path = contoursToOpenTypePath(eff);
+		const name = g.name || `uni${cp.toString(16).toUpperCase().padStart(4, '0')}`;
 		const otGlyph = new opentype.Glyph({
-			name: g.name || `uni${cp.toString(16).toUpperCase().padStart(4, '0')}`,
+			name,
 			unicode: cp,
 			advanceWidth,
 			path
 		});
 		indexByCodepoint.set(cp, glyphs.length);
+		glyphIdByName.set(name, glyphs.length);
 		glyphs.push(otGlyph);
 	}
+
+	// Color-font synthetic layer glyphs. Each visible ColorLayer becomes
+	// a standalone glyph (no codepoint) carrying just that layer's
+	// contours; the COLR baseGlyphRecord later references it by ID.
+	const colorPlan = buildColorFontPlan(project);
+	for (const syn of colorPlan.syntheticGlyphs) {
+		const path = contoursToOpenTypePath(syn.contours);
+		const otGlyph = new opentype.Glyph({
+			name: syn.name,
+			advanceWidth: syn.advanceWidth,
+			path
+		});
+		glyphIdByName.set(syn.name, glyphs.length);
+		glyphs.push(otGlyph);
+	}
+	const colorBaseGlyphs = resolveColorFontPlan(colorPlan, glyphIdByName);
 
 	const font = new opentype.Font({
 		familyName: metadata.familyName || 'Untitled',
@@ -290,7 +320,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		);
 	}
 
-	return { font, indexByCodepoint, glyphCount: glyphs.length };
+	return { font, indexByCodepoint, glyphCount: glyphs.length, colorBaseGlyphs };
 };
 
 export const fontToArrayBuffer = (font: InstanceType<typeof opentype.Font>): ArrayBuffer =>

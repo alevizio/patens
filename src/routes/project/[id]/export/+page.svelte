@@ -3,6 +3,7 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { buildFont, hasMarkAnchors } from '$lib/font/export';
 	import { applyMarkPositioning } from '$lib/font/mark-feature';
+	import { applyColorFontTables } from '$lib/font/colr';
 	import {
 		checkMasterCompatibility,
 		summarizeCompatibility
@@ -143,7 +144,7 @@ body {
 		const disableAutoFeatures = autoFeatures
 			? new Set(project.features.disabledAutoFeatures ?? [])
 			: undefined;
-		const { font, indexByCodepoint } = buildFont(project, {
+		const { font, indexByCodepoint, colorBaseGlyphs } = buildFont(project, {
 			autoFeatures,
 			disableAutoFeatures
 		});
@@ -157,6 +158,21 @@ body {
 			buffer = spliced.buffer.slice(
 				spliced.byteOffset,
 				spliced.byteOffset + spliced.byteLength
+			) as ArrayBuffer;
+		}
+
+		// Color-font COLR v0 + CPAL v0 — splice when the project has at
+		// least one resolved color glyph + at least one palette. Synthetic
+		// layer glyphs are already in `font` (added by `buildFont`).
+		if (colorBaseGlyphs.length > 0 && project.palettes && project.palettes.length > 0) {
+			const augmented = applyColorFontTables(
+				new Uint8Array(buffer),
+				colorBaseGlyphs,
+				project.palettes
+			);
+			buffer = augmented.buffer.slice(
+				augmented.byteOffset,
+				augmented.byteOffset + augmented.byteLength
 			) as ArrayBuffer;
 		}
 
