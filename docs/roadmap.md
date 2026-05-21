@@ -265,18 +265,110 @@ Research questions:
 For users who ship OTF (not TTF). Python-only at the moment; running
 in browser via Pyodide is feasible. AFDKO 4.0 ships `otfautohint`.
 
-### 11. OT layout depth — alternates, swashes, contextual
-The features tab currently handles standard ligatures via opentype.js's
-`addLigature`. Real OT power is in:
+### 11. OT layout depth — researched 2026-05-21
 
-- `salt` / `ss01–ss20` — stylistic alternates and sets
-- `swsh` / `cswh` — swashes
-- `calt` — contextual alternates (e.g. swap glyph based on neighbors)
-- `init` / `medi` / `fina` — position-aware (Latin script alternates)
-- `aalt` — all-alternates lookup (referenced by other tags)
+**Verdict from research:** tractable as a next major direction.
+Milestone-1 ships in ~1.5 weeks if scoped to 10 declarative features
+plus a HarfBuzzJS live preview. Closes a real "Glyphs / FontLab have
+it, browser editors don't" gap for daily-use professional Latin work.
 
-Research the FEA syntax for each, then either compile via Pyodide or
-add to the JS feature compiler.
+**Headline finding** (load-bearing for M1): **opentype.js's write API
+is bigger than its README admits.** Bundle introspection confirms
+`font.substitution.addSingle` / `addAlternate` / `addMultiple` /
+`addLigature` accept ANY feature tag, not just `liga`/`rlig`. This
+eliminates the Pyodide hop for ~85 % of feature work. Type 6
+(contextual / `calt`) is the only common feature still requiring
+feaLib via Pyodide until we ship the M2 visual rule builder.
+
+**Pattern from pro tools — declarative suffix detection:** Glyphs and
+FontLab both auto-generate features from glyph naming conventions.
+Mirror that in Font Studio:
+
+  `.sc` / `.smcp` → `smcp` lookup
+  `.c2sc`        → `c2sc`
+  `.ss01–.ss20`  → `ss01`–`ss20` (with optional `featureNames` block)
+  `.salt` / `.alt` / `.cvNN` → `salt` / `cv01`–`cv99`
+  `.osf` / `.tf` / `.tosf`   → `onum` / `tnum` / `tosf`
+  `.numr` / `.dnom` / `.sups` / `.subs` → fractions + super/subscript
+  `.swsh`        → `swsh` (non-contextual only — contextual is `calt`)
+  `.init/.medi/.fina/.isol` → Arabic positional (M1 stretch)
+
+**Live preview MUST use HarfBuzzJS, not opentype.js's renderer** —
+opentype.js's `font.draw()` only applies `liga`/`rlig` at draw time.
+Fontra (browser-based editor, closest analog to us) uses the same
+HarfBuzzJS path; it's ~1 MB gzipped (vs Pyodide's 10–15 MB cold
+start). Required.
+
+**Milestone 1** (~1.5 weeks) — "Declarative features + live preview":
+
+1. **Suffix detector** (1 d). Scans `project.glyphs`, returns
+   `{ feature → [{ from, to }] }` map by glyph-name pattern. Accepts
+   Glyphs / Adobe / AGL suffix dialects.
+2. **Features tab UI** (3 d). Replace freeform textarea with a
+   detected-features list: one card per discovered feature with a
+   toggle, plain-English label ("Small caps — replaces lowercase with
+   shorter capital forms"), member-glyph chips, collapsible localized-
+   name editor for `ss##`. The current `.fea` textarea moves under a
+   "Custom FEA" disclosure (preserves the existing escape hatch).
+3. **Hybrid compile path** (2 d). For the 9 declarative features,
+   write directly via opentype.js `font.substitution.addSingle` /
+   `addAlternate` / `addLigature` — instant, zero Pyodide cost. For
+   `calt` + custom FEA, keep the existing Pyodide+feaLib route. Single
+   export pipeline merges both. **Critical pre-work:** write a
+   round-trip smoke test (write `salt`+`smcp` via opentype.js → verify
+   via HarfBuzz) before committing to this path. opentype.js's non-
+   `liga` write paths are confirmed in the bundle but undocumented.
+4. **Live preview via HarfBuzzJS** (3 d). Add `harfbuzzjs` dep,
+   shape the test string against the in-memory font, feature toggles
+   above the preview drive per-call shaping. Render shaped glyph IDs
+   through the existing canvas pipeline.
+5. **`aalt` aggregator** (0.5 d). At export, auto-build the all-
+   alternates feature from sibling features. Designer-invisible.
+
+**Deliverable**: a beginner who draws `A.ss01`, `a.sc`, `one.osf`
+sees three feature cards auto-appear, toggles them in a live preview,
+and exports a working OTF — with no Pyodide cold start unless they
+hit the "Custom FEA" escape hatch or use `calt`.
+
+**Milestone 2:**
+
+- **Arabic positional builder** — same suffix model (`.init`, `.medi`,
+  `.fina`, `.isol`), auto-classify glyphs by Unicode joining type.
+- **Visual contextual-rule builder** for `calt` — row-based UI:
+  "before [X]", "match [Y]", "after [Z]", "replace with [Y.alt]";
+  compiles to FEA.
+- **FontBakery-compatible feature test fixtures** — JSON shaping
+  tests + "Run tests" button driven by HarfBuzzJS.
+- **`featureNames` table editor** for `ss##` — per-language localized
+  names.
+- **Variable-font `rvrn`** — required substitution variations.
+
+**Explicitly out of scope:** Devanagari shaping (M2+ standalone
+project), CJK OT features (shaped at the engine level), OpenType
+MATH (separate spec, tiny audience), vertical writing.
+
+**Risks:**
+
+- **opentype.js write-path quality is the load-bearing assumption.**
+  Verify with the round-trip smoke test on day 1.
+- **HarfBuzzJS ~1 MB gzipped** — material, but acceptable vs Pyodide.
+  Lazy-load on first Features-tab visit.
+- **`calt` punted to raw FEA in M1** is the most-asked-about feature
+  by serious designers. M2 visual builder is the answer.
+- **Glyph-naming dialect conflicts** (Adobe vs Glyphs vs AGL on edge
+  cases like `oldstyle` vs `osf`). M1 accepts multiple dialects.
+
+Sources: [Microsoft OT spec p–t](https://learn.microsoft.com/en-us/typography/opentype/spec/features_pt) ·
+[Microsoft OT spec f–j](https://learn.microsoft.com/en-us/typography/opentype/spec/features_fj) ·
+[Adobe AFDKO FEA spec](http://adobe-type-tools.github.io/afdko/OpenTypeFeatureFileSpecification.html) ·
+[Glyphs auto feature generation](https://handbook.glyphsapp.com/automatic-feature-generation/) ·
+[FontLab 8 release notes](https://help.fontlab.com/fontlab/8/whats-new/release-notes/8.4.0.8898/) ·
+[Fontra OT/HarfBuzz blog](https://blog.fontra.xyz/blog/opentype-harfbuzz/) ·
+[harfbuzzjs](https://github.com/harfbuzz/harfbuzzjs) ·
+[opentype.js](https://github.com/opentypejs/opentype.js) ·
+[Simon Cozens — feature tag DB](https://simoncozens.github.io/feature-tags/) ·
+[FontBakery](https://github.com/fonttools/fontbakery) ·
+[shaperglot](https://github.com/googlefonts/shaperglot).
 
 ### 12. Real-time collaboration (CRDT — Y.js)
 Two designers on one font live. The biggest "no one's done it in a
