@@ -260,6 +260,20 @@ maxp.maxZones = 1
 if 'post' in font and font['post'].formatType not in (2.0, 3.0):
     font['post'].formatType = 2.0
 
+# gasp v1 — tells the OS how to render this font at every PPM. The modern
+# recommendation (Google Fonts default, what ttfautohint emits) is "do
+# everything": gridfit + grayscale + symmetric smoothing + symmetric
+# gridfit. Without an explicit gasp the OS falls back to heuristic
+# defaults that may not match the design intent.
+#   GASP_GRIDFIT             = 0x0001
+#   GASP_DOGRAY              = 0x0002
+#   GASP_SYMMETRIC_GRIDFIT   = 0x0004
+#   GASP_SYMMETRIC_SMOOTHING = 0x0008
+gasp = newTable('gasp')
+gasp.version = 1
+gasp.gaspRange = {0xFFFF: 0x000F}
+font['gasp'] = gasp
+
 font.save('/tmp/out.ttf')
 	`);
 	const out = py.FS.readFile('/tmp/out.ttf');
