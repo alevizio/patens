@@ -37,11 +37,38 @@
 	import Loader from '@lucide/svelte/icons/loader-2';
 
 	import { preflightProject } from '$lib/font/audit';
+	import { expandKerningClasses } from '$lib/font/kerning-classes';
+	import { buildAutoKern } from '$lib/font/kerning-auto';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
 	const project = $derived(projectStore.project);
 	const preflightIssues = $derived(project ? preflightProject(project) : []);
+
+	// Kerning preview — show what'll actually ship in the font's kern
+	// table after manual pairs + class expansion + auto-kern. Surfaces
+	// the algorithmic work that's silent at export time.
+	const kerningPreview = $derived.by(() => {
+		if (!project) return { manual: 0, expanded: 0, auto: 0, autoReference: null as null | string };
+		const manualNumeric = project.kerning.filter(
+			(k) => typeof k.left === 'number' && typeof k.right === 'number'
+		).length;
+		const expanded = expandKerningClasses(project.kerning, project.classes ?? []).length;
+		const autoKernEnabled = project.features.autoKern !== false;
+		if (!autoKernEnabled || project.kerning.length === 0) {
+			return { manual: manualNumeric, expanded, auto: 0, autoReference: null };
+		}
+		const auto = buildAutoKern(project);
+		const refLabel = auto.referenceUsed
+			? `${String.fromCodePoint(auto.referenceUsed.left)}${String.fromCodePoint(auto.referenceUsed.right)}`
+			: null;
+		return {
+			manual: manualNumeric,
+			expanded,
+			auto: auto.pairs.length,
+			autoReference: refLabel
+		};
+	});
 
 	let pythonProgress = $state(getPythonProgress());
 	let woff2Busy = $state(false);
@@ -1165,6 +1192,60 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					{/each}
 				</div>
 			{/if}
+		</Panel>
+
+		<!-- Kerning preview — surfaces what'll land in the kern table.
+		     Manual pairs are what the user explicitly tuned; expanded =
+		     class-pair cross-product (M2); auto = silhouette-driven
+		     suggestions (M2). Total = what's in the font. -->
+		<Panel>
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Kerning preview
+			</h2>
+			<div class="grid grid-cols-3 gap-3 text-[12px]">
+				<div>
+					<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Manual pairs
+					</div>
+					<div class="mt-1 font-mono text-[20px] text-fg" data-numeric>{kerningPreview.manual}</div>
+					<p class="text-[11px] text-fg-muted">Tuned by you in the Spacing tab.</p>
+				</div>
+				<div>
+					<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						From classes
+					</div>
+					<div class="mt-1 font-mono text-[20px] text-fg" data-numeric>
+						{kerningPreview.expanded - kerningPreview.manual}
+					</div>
+					<p class="text-[11px] text-fg-muted">
+						Cross-product of class members. User-tuned values override.
+					</p>
+				</div>
+				<div>
+					<div class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Auto-kern
+					</div>
+					<div class="mt-1 font-mono text-[20px] text-fg" data-numeric>{kerningPreview.auto}</div>
+					<p class="text-[11px] text-fg-muted">
+						{#if kerningPreview.autoReference}
+							From reference "<span class="font-mono">{kerningPreview.autoReference}</span>".
+						{:else if project?.features.autoKern === false}
+							Disabled in Features tab.
+						{:else if kerningPreview.manual === 0}
+							Needs at least one manual pair as reference.
+						{:else}
+							Skipped — no usable reference.
+						{/if}
+					</p>
+				</div>
+			</div>
+			<div class="mt-3 border-t border-border pt-3 text-[12px] text-fg-muted">
+				Total shipped:
+				<span class="ml-1 font-mono text-fg" data-numeric>
+					{kerningPreview.expanded + kerningPreview.auto}
+				</span>
+				<span class="ml-1 text-[11px] text-fg-subtle">pairs in the font's kern table</span>
+			</div>
 		</Panel>
 
 		<Panel>
