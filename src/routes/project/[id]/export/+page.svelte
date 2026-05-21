@@ -189,6 +189,17 @@ body {
 	$effect(() => {
 		void checkHinterAvailable().then((a) => (hinter = a));
 	});
+	// Hint-range preset. ttfautohint emits bytecode covering this PPM window;
+	// outside it, the OS falls back to grayscale AA. Google Fonts recommends
+	// 8-50 for webfonts (default); print designers may pick a tighter range
+	// for body text; complex display work benefits from a wider range.
+	type HintPreset = 'web' | 'print' | 'wide';
+	let hintPreset = $state<HintPreset>('web');
+	const HINT_PRESETS: Record<HintPreset, { rangeMin: number; rangeMax: number; label: string; hint: string }> = {
+		web: { rangeMin: 8, rangeMax: 50, label: 'Webfont (8–50)', hint: 'Google Fonts default — covers typical screen body sizes.' },
+		print: { rangeMin: 12, rangeMax: 32, label: 'Print body (12–32)', hint: 'Tighter range optimized for body-text PPM windows.' },
+		wide: { rangeMin: 6, rangeMax: 72, label: 'Wide (6–72)', hint: 'Display + small caps — bigger payload, broader rendering range.' }
+	};
 	const exportTtf = async () => {
 		if (!project || ttfBusy) return;
 		ttfBusy = true;
@@ -199,10 +210,11 @@ body {
 			let hintSuffix = '';
 			if (hintForWindows && hinter.available) {
 				try {
-					ttfBuffer = await hintTtf(ttfBuffer);
+					const { rangeMin, rangeMax } = HINT_PRESETS[hintPreset];
+					ttfBuffer = await hintTtf(ttfBuffer, { rangeMin, rangeMax });
 					hintSuffix = '-hinted';
 					toast.success(
-						`Hinted TTF exported (${(ttfBuffer.byteLength / 1024).toFixed(1)} KB).`
+						`Hinted TTF exported (${(ttfBuffer.byteLength / 1024).toFixed(1)} KB · ${rangeMin}–${rangeMax} PPM).`
 					);
 				} catch (err) {
 					const msg = err instanceof Error ? err.message : String(err);
@@ -546,7 +558,8 @@ body {
 			let ttfHinted = false;
 			if (hintForWindows && hinter.available) {
 				try {
-					ttfBuffer = await hintTtf(ttfBuffer);
+					const { rangeMin, rangeMax } = HINT_PRESETS[hintPreset];
+					ttfBuffer = await hintTtf(ttfBuffer, { rangeMin, rangeMax });
 					ttfHinted = true;
 				} catch {
 					// Best-effort — keep the unhinted TTF in the bundle.
@@ -1197,6 +1210,25 @@ document.querySelectorAll('.controls button').forEach((b) => {
 							</span>
 						{/if}
 					</label>
+					{#if hinter.available && hintForWindows}
+						<label
+							class="inline-flex items-center gap-1.5 text-[12px] text-fg-muted"
+							title={HINT_PRESETS[hintPreset].hint}
+						>
+							<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
+								Range
+							</span>
+							<select
+								bind:value={hintPreset}
+								class="cursor-pointer appearance-none bg-transparent text-[11px] font-medium text-fg outline-none hover:underline hover:underline-offset-4 focus-visible:underline focus-visible:underline-offset-4"
+								aria-label="Hint PPM range preset"
+							>
+								{#each Object.entries(HINT_PRESETS) as [id, p] (id)}
+									<option value={id}>{p.label}</option>
+								{/each}
+							</select>
+						</label>
+					{/if}
 				</div>
 				<div class="-mt-1 pl-1 text-[11px] leading-snug text-fg-subtle">
 					TrueType outlines (cubic → quadratic via Cu2Qu). Auto-hinting via
