@@ -184,6 +184,47 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				message: `${nearCollinearCount} point${nearCollinearCount === 1 ? '' : 's'} within 1fu of the line between neighbours — safe to remove`
 			});
 		}
+
+		// Sharp-angle kinks: a tight angle between adjacent line segments
+		// where the designer probably intended either a smooth curve or a
+		// proper corner. Threshold: turn-angle between 5° and 25° from
+		// straight. Very small turns (<5°) read as "almost straight,
+		// you might want truly straight" — caught by near-collinear above.
+		// Larger turns (>25°) read as deliberate corners and are fine.
+		let kinkCount = 0;
+		for (const c of glyph.contours) {
+			const pts: Array<{ x: number; y: number }> = [];
+			for (const cmd of c.commands) {
+				if (cmd.type === 'M' || cmd.type === 'L') pts.push({ x: cmd.x, y: cmd.y });
+				if (cmd.type === 'C' || cmd.type === 'Q') pts.length = 0;
+			}
+			for (let i = 1; i < pts.length - 1; i++) {
+				const a = pts[i - 1];
+				const b = pts[i];
+				const d = pts[i + 1];
+				// Incoming + outgoing direction vectors
+				const ix = b.x - a.x;
+				const iy = b.y - a.y;
+				const ox = d.x - b.x;
+				const oy = d.y - b.y;
+				const il = Math.hypot(ix, iy);
+				const ol = Math.hypot(ox, oy);
+				if (il < 1 || ol < 1) continue; // segments too short to judge
+				// cos(turn angle) — 1 = perfectly straight, -1 = doubled back
+				const cosT = (ix * ox + iy * oy) / (il * ol);
+				if (cosT >= 1) continue;
+				const turnDeg = (Math.acos(Math.max(-1, Math.min(1, cosT))) * 180) / Math.PI;
+				if (turnDeg >= 5 && turnDeg <= 25) kinkCount++;
+			}
+		}
+		if (kinkCount > 0) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'sharp-kink',
+				message: `${kinkCount} sharp-but-not-quite-corner${kinkCount === 1 ? '' : 's'} (5–25° turn) — likely intended as a curve or a sharper corner`
+			});
+		}
 	}
 
 	// Composite references that point to empty base glyphs

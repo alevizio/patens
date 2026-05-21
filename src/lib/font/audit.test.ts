@@ -268,6 +268,35 @@ describe('auditGlyph', () => {
 		expect(ncl?.severity).toBe('info');
 	});
 
+	it('flags sharp-but-not-quite-corner kinks (5–25° turn)', () => {
+		// A near-vertical segment that bends slightly to the right —
+		// turn-angle around 10°. Typical accidental kink.
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 0, y: 200 },     // straight up
+						{ type: 'L', x: 35, y: 400 },    // ~10° kink off vertical
+						{ type: 'L', x: 100, y: 400 },
+						{ type: 'L', x: 100, y: 0 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'sharp-kink')).toBeDefined();
+	});
+
+	it('does NOT flag a 90° corner as a kink (intentional)', () => {
+		const glyph = baseGlyph({ contours: [closedSquare(500)] });
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'sharp-kink')).toBeUndefined();
+	});
+
 	it('does NOT flag a clean polygon with no near-collinear interior nodes', () => {
 		const glyph = baseGlyph({
 			contours: [

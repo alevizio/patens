@@ -2776,10 +2776,43 @@
 														/>
 													</label>
 												</div>
+												<!-- Gradient stops — each row: editable offset %, palette
+												     picker, swatch, remove button. The minimum of 2 stops
+												     is enforced by disabling the remove button when only
+												     two remain (a "gradient" with 1 stop is just a flat fill). -->
 												<div class="grid gap-0.5 text-[10px] text-fg-muted">
 													{#each l.gradient.stops as stop, sIdx (sIdx)}
 														<div class="flex items-center gap-1">
-															<span class="w-10 font-mono">{(stop.offset * 100).toFixed(0)}%</span>
+															<input
+																type="number"
+																min="0"
+																max="100"
+																step="5"
+																value={Math.round(stop.offset * 100)}
+																oninput={(e) => {
+																	const pct = Math.max(
+																		0,
+																		Math.min(100, Number(e.currentTarget.value))
+																	);
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) => ({
+																			...layer,
+																			gradient: layer.gradient
+																				? {
+																						...layer.gradient,
+																						stops: layer.gradient.stops.map((s, j) =>
+																							j === sIdx ? { ...s, offset: pct / 100 } : s
+																						)
+																					}
+																				: layer.gradient
+																		})
+																	);
+																}}
+																class="w-10 rounded border border-border bg-surface px-1 font-mono text-[10px]"
+																aria-label="Stop {sIdx + 1} offset percentage"
+															/>
 															<select
 																value={stop.paletteIndex}
 																onchange={(e) =>
@@ -2810,8 +2843,66 @@
 																class="size-3 rounded border border-border"
 																style="background: {rgbaToCss(activePalette.colors[stop.paletteIndex])};"
 															></span>
+															<button
+																type="button"
+																onclick={() =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) => ({
+																			...layer,
+																			gradient: layer.gradient
+																				? {
+																						...layer.gradient,
+																						stops: layer.gradient.stops.filter(
+																							(_s, j) => j !== sIdx
+																						)
+																					}
+																				: layer.gradient
+																		})
+																	)}
+																disabled={l.gradient.stops.length <= 2}
+																class="ml-auto rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-fg-subtle"
+																aria-label="Remove stop {sIdx + 1}"
+																title={l.gradient.stops.length <= 2
+																	? 'Minimum 2 stops required for a gradient'
+																	: 'Remove this stop'}
+															>
+																<span class="font-mono text-[10px]">×</span>
+															</button>
 														</div>
 													{/each}
+													<button
+														type="button"
+														onclick={() =>
+															projectStore.updateColorLayer(
+																glyph.codepoint,
+																l.id,
+																(layer: ColorLayer) => {
+																	if (!layer.gradient) return layer;
+																	// Insert a new stop at the midpoint between the
+																	// last existing stop and 1.0, using the last
+																	// stop's palette index — designer can tweak from
+																	// there.
+																	const stops = [...layer.gradient.stops];
+																	const last = stops[stops.length - 1];
+																	const midOffset = (last.offset + 1) / 2;
+																	stops.push({
+																		offset: Math.min(1, midOffset),
+																		paletteIndex: last.paletteIndex
+																	});
+																	// Sort by offset so stops always render
+																	// left-to-right in the gradient direction.
+																	stops.sort((a, b) => a.offset - b.offset);
+																	return { ...layer, gradient: { ...layer.gradient, stops } };
+																}
+															)}
+														disabled={activePalette.colors.length < 1}
+														class="mt-0.5 rounded border border-dashed border-border-strong/50 px-2 py-0.5 text-[10px] text-fg-muted hover:border-accent hover:text-accent disabled:opacity-30"
+														title="Add a new stop at the midpoint between the last stop and 100%"
+													>
+														+ stop
+													</button>
 												</div>
 											</div>
 										{:else}
