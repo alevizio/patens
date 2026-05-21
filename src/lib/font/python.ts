@@ -500,6 +500,12 @@ if build_HVAR is not None:
 # Without this, OS font menus often misclassify the styles.
 instances = spec.get('instances') or []
 if instances and spec['axes']:
+    # Convention from the Microsoft Typography sample data + Glyphs / Inter:
+    # ital → slnt → wght → wdth → opsz, registered axes first, custom axes
+    # after. The 'ordering' field in each axis record is what STAT v1.2 uses
+    # to drive instance grouping in OS font menus (so a wght+wdth family
+    # reads "Bold Condensed", not "Condensed Bold").
+    AXIS_ORDER = {'ital': 0, 'slnt': 1, 'wght': 2, 'wdth': 3, 'opsz': 4}
     # Build axis value records: one per unique value used by any instance,
     # plus the axis default if not already covered.
     stat_axes = []
@@ -526,9 +532,21 @@ if instances and spec['axes']:
             if v == ax['default']:
                 entry['flags'] = 2  # ElidableAxisValueName — OS hides this from compound names
             values.append(entry)
-        stat_axes.append({'tag': tag, 'name': ax['name'], 'values': values})
+        # 'ordering' is the v1.2 STAT field — fontTools writes table version
+        # 0x00010002 when any axis carries it. Registered axes get their
+        # canonical order; custom axes sort after by tag offset.
+        ordering = AXIS_ORDER.get(tag, 100 + ord(tag[0]))
+        stat_axes.append({
+            'tag': tag,
+            'name': ax['name'],
+            'ordering': ordering,
+            'values': values
+        })
     try:
-        buildStatTable(vf, stat_axes)
+        # elidedFallbackName = nameID 2 (style sub-family) is the recommended
+        # default — when an instance's combined name elides all values, fall
+        # back to "Regular" from the existing name table.
+        buildStatTable(vf, stat_axes, elidedFallbackName=2)
     except Exception as e:
         # STAT build is best-effort — keep the VF even if STAT details fail
         print('STAT build skipped:', e)
