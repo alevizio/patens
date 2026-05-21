@@ -11,6 +11,7 @@
 		type AuditSeverity
 	} from '$lib/font/audit';
 	import { glyphBounds } from '$lib/font/path';
+	import { booleanContours } from '$lib/font/path-edit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -119,7 +120,11 @@
 		'metrics-use-typo-off',
 		'glyph-name-invalid',
 		'glyph-name-empty',
-		'glyph-name-too-long'
+		'glyph-name-too-long',
+		// Contour-shape fixers (parity with the Edit-tab audit panel).
+		'self-intersecting',
+		'duplicate-points',
+		'near-collinear-points'
 	]);
 
 	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
@@ -219,6 +224,74 @@
 				}
 				projectStore.renameGlyph(issue.codepoint, cleaned);
 				toast.success(`Renamed to "${cleaned}"`);
+				return;
+			}
+			// Contour-shape fixers — same logic as the Edit-tab audit panel.
+			case 'self-intersecting': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				const cleaned = booleanContours(g.contours, 'union');
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
+				return;
+			}
+			case 'duplicate-points': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				const cleaned = g.contours.map((c) => {
+					const out: typeof c.commands = [];
+					let prevX: number | null = null;
+					let prevY: number | null = null;
+					for (const cmd of c.commands) {
+						if (cmd.type === 'Z') {
+							out.push(cmd);
+							prevX = null;
+							prevY = null;
+							continue;
+						}
+						if (
+							prevX !== null &&
+							prevY !== null &&
+							cmd.type !== 'M' &&
+							Math.abs(cmd.x - prevX) < 0.5 &&
+							Math.abs(cmd.y - prevY) < 0.5
+						)
+							continue;
+						out.push(cmd);
+						prevX = cmd.x;
+						prevY = cmd.y;
+					}
+					return { ...c, commands: out };
+				});
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
+				return;
+			}
+			case 'near-collinear-points': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				const cleaned = g.contours.map((c) => {
+					const cmds = [...c.commands];
+					const drop = new Set<number>();
+					for (let i = 1; i < cmds.length - 1; i++) {
+						const a = cmds[i - 1];
+						const b = cmds[i];
+						const d = cmds[i + 1];
+						if (
+							(a.type !== 'M' && a.type !== 'L') ||
+							b.type !== 'L' ||
+							d.type !== 'L'
+						)
+							continue;
+						const num = Math.abs(
+							(d.y - a.y) * b.x - (d.x - a.x) * b.y + d.x * a.y - d.y * a.x
+						);
+						const den = Math.hypot(d.x - a.x, d.y - a.y);
+						if (den < 0.001) continue;
+						if (num / den < 1) drop.add(i);
+					}
+					if (drop.size === 0) return c;
+					return { ...c, commands: cmds.filter((_, i) => !drop.has(i)) };
+				});
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
 				return;
 			}
 		}
