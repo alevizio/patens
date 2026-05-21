@@ -593,18 +593,45 @@ class ProjectStore {
 	upsertKerningPair(pair: KerningPair) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		const existing = this.project.kerning.findIndex(
-			(k) => k.left === pair.left && k.right === pair.right
-		);
-		const next = [...this.project.kerning];
-		if (pair.value === 0) {
-			if (existing >= 0) next.splice(existing, 1);
-		} else if (existing >= 0) {
-			next[existing] = pair;
-		} else {
-			next.push(pair);
+		if (!this.doc) {
+			// Belt-and-braces: Day 1 wires up the doc unconditionally
+			// in load(), but if a future caller bypassed load() this
+			// keeps the legacy mutation path alive instead of throwing.
+			const existing = this.project.kerning.findIndex(
+				(k) => k.left === pair.left && k.right === pair.right
+			);
+			const next = [...this.project.kerning];
+			if (pair.value === 0) {
+				if (existing >= 0) next.splice(existing, 1);
+			} else if (existing >= 0) {
+				next[existing] = pair;
+			} else {
+				next.push(pair);
+			}
+			this.project = { ...this.project, kerning: next };
+			this.touch();
+			return;
 		}
-		this.project = { ...this.project, kerning: next };
+		// Phase C Day 2: first mutator migrated to the Y.Doc transaction
+		// path. After this transact() returns, the doc fires 'update' →
+		// refreshFromDoc() → project = yDocToProject(doc) → Svelte
+		// reactivity. No more direct `this.project = { ... }` here.
+		this.doc.transact(() => {
+			const root = this.doc!.getMap('project');
+			const arr = root.get('kerning') as Y.Array<KerningPair>;
+			const items = arr.toArray();
+			const existing = items.findIndex(
+				(k) => k.left === pair.left && k.right === pair.right
+			);
+			if (pair.value === 0) {
+				if (existing >= 0) arr.delete(existing, 1);
+			} else if (existing >= 0) {
+				arr.delete(existing, 1);
+				arr.insert(existing, [pair]);
+			} else {
+				arr.insert(arr.length, [pair]);
+			}
+		});
 		this.touch();
 	}
 
