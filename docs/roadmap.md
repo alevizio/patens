@@ -466,16 +466,60 @@ worth doing if there's a measured pain point in the current canvas.
 
 ---
 
+## M2 ships log (2026-05-21 session)
+
+Per-feature shipping log, in order, with telemetry. Sourced from
+`git log --oneline` between Phase C close (31f7b36) and end of M2
+sweep. All commits on `main`.
+
+| Commit | Feature | Tests added |
+| --- | --- | --- |
+| `dbf345c` | Auto-kern M2 — silhouette-driven kerning at export | 6 |
+| `11bd4b3` | OT layout M2 — class-based kerning ships at export | 7 |
+| `55d8e1b` | Audit M2 — off-grid + duplicate + tiny-contour checks | 4 |
+| `e2feec0` | Kerning preview panel in Export tab | 0 (UI) |
+| `bf2417f` | Live typeset preview on `/share/<id>` route | 0 (UI) |
+| `39e0ed1` | Designspace live interpolation slider | 0 (UI) |
+| `d13467c` | NFD-based auto-compose for accented glyphs | 8 |
+| `e66fc0e` | Bulk auto-compose action in glyph browser | 0 (UI) |
+
+**Cumulative session telemetry:** 397 vitest tests pass, 33 test
+files, svelte-check clean on 660 files. 25 net new tests across
+the M2 sweep.
+
+**Cross-cutting design moves:**
+
+- Every export-time pipeline now layers `manual → class-expanded →
+  algorithmic` for kerning, with the user-set-wins invariant
+  preserved at every layer. Designers tune the high-signal pairs
+  manually; classes expand them across siblings; auto-kern fills
+  the rest. Three layers, one consistent rule.
+- The auto-suggest UX vocabulary (wand-sparkles icon +
+  accent-soft styling + count-of-candidates label) is now
+  established across NFD compose + auto-kern + auto-features —
+  consistent visual language for "the algorithm thinks it can
+  help here."
+- Round-trip cost profiling (d9ab393) is now load-bearing: it
+  unblocked Day 3d, and the same approach is the playbook for
+  future "is this safe to wire to the hot path?" questions.
+
+---
+
 ## Maintenance / quality
 
 Things that aren't features but compound over time.
 
 ### Audit / preflight extensions
-- Glyph outline auto-issues — open paths, off-curve points outside
-  bbox, near-collinear points that should be removed, kink detection.
+- ~~Glyph outline auto-issues — open paths, off-curve points outside
+  bbox, near-collinear points that should be removed, kink detection.~~
+  Partial: off-grid + duplicate + tiny-contour shipped (55d8e1b).
+  Kink detection + near-collinear still open.
 - Mark anchor coverage — for every base glyph in COMBINING DIACRITICAL
   MARKS range, check `top` / `bottom` anchors exist.
 - Hangs of orphan code in the .fea source.
+- Composable-via-NFD as info-level suggestion (the bulk-compose
+  surface is in the glyph browser; an audit hint on the per-glyph
+  panel would help discovery).
 
 ### Test coverage gaps
 - The new `compileStaticTtf` function has no vitest unit tests.
