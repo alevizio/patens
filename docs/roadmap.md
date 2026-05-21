@@ -82,18 +82,66 @@ variable-font support. Plan: spawn a research agent on each topic to
 get a sourced report with a recommended approach, then a separate
 implementation arc.
 
-### 7. Color fonts (COLR v1 / CPAL / SVG-in-OT)
-Opens a new design category Font Studio doesn't address today: emoji
-fonts, icon fonts, expressive display faces. Research questions:
+### 7. Color fonts (COLR v0 / COLR v1 / CPAL) — researched 2026-05-21
 
-- What's the format complexity? COLR v0 (layer-and-palette, simple) vs
-  v1 (gradients, transforms, blend modes — Chrome 98+, complex)?
-- Design UX in existing tools — what does Glyphs / Apple Color
-  Emoji Tool / Apple's macOS color editor look like?
-- Browser + OS support matrix in 2026 — last gaps before this is fully
-  rolled out?
-- Editor primitives — layer panel, palette picker, gradient editor.
-  How would they fit the foundry / quiet / considered direction?
+**Verdict from research:** build it, but as Milestone 2 — after core
+features (auto-kerning, hinting production deploy) stabilize.
+
+Format consolidation: **COLR v0 + CPAL is universal** (Chrome / Edge /
+Firefox / Safari all platforms, plus DirectWrite, Core Text, Android).
+**COLR v1 ships everywhere except Safari** (Chrome 98+, Firefox 108+,
+Edge 98+, Win11 DirectWrite native, Android Skia; WebKit
+[standards-positions #415](https://github.com/WebKit/standards-positions/issues/415)
+still open as of May 2026). OT-SVG is Adobe-stronghold and declining;
+sbix is Apple-emoji-only legacy; CBDT/CBLC is effectively deprecated.
+
+Production users in 2026: Google Noto Color Emoji (COLRv1+SVG fallback),
+Microsoft Fluent (hybrid v0+v1+monochrome), expressive display foundries
+(Nabla, Foldit, Plakato Color), Material Icons two-tone. Apple still
+ships sbix bitmaps. Glyphs 3 and FontLab 8 both have full COLR v1
+editors — Font Studio enters as a follower, not a pioneer.
+
+Free wins already in the codebase:
+- **opentype.js can read + write COLR v0 + CPAL** since PR #490 (2022).
+  Milestone 1 export is essentially free.
+- **fontTools.colorLib.builder** (Pyodide-runnable) handles COLR v1
+  paint trees + `COLRVariationMerger` for variable color. Milestone 2
+  builds on the same Pyodide infrastructure we already use for VF.
+
+**Milestone 1** (3–5 weeks) — "Layered color, flat fills":
+1. Project schema: `glyph.colorLayers: Array<{ path, paletteIndex }>`
+   + `palettes: CPAL[]` with `default | light | dark` flags.
+2. UI: layer panel (z-order, visibility, palette-index picker), CPAL
+   editor.
+3. Preview: iterate layers via opentype.js → Canvas2D fill.
+4. Export: COLR v0 + CPAL v0 via opentype.js.
+5. Round-trip test against a Twemoji-shape font.
+
+**Milestone 2** (8–12 weeks) — "COLR v1 paints":
+1. Paint-tree schema (`PaintLinearGradient`, `PaintTransform`,
+   `PaintComposite`, etc.).
+2. Gradient editor UI (linear + radial) + affine handles.
+3. Pyodide + `fontTools.colorLib.builder` export.
+4. Safari fallback: auto-emit PNG/SVG alongside COLR v1 (mirrors Noto).
+5. CSS preview pane with `font-palette: light/dark` toggle.
+
+**Milestone 3** (later) — variable color, blend modes, sbix/OT-SVG
+exporters for Apple/Adobe interop.
+
+**Skip:** building our own paint compiler. Lean on `paintcompiler` and
+`fontTools.colorLib.builder` instead. UFO has no canonical color-layer
+convention — invent or borrow, but expect that to be sticky.
+
+**Dominant risk:** Safari WYSIWYG. Until WebKit ships COLR v1, the
+editor preview must either accept Safari users seeing a static fallback
+or we build a Skia-WASM / canvas paint-tree interpreter (weeks of work).
+
+Sources: [caniuse COLR v1](https://caniuse.com/colr-v1) ·
+[Chrome COLRv1 blog](https://developer.chrome.com/blog/colrv1-fonts) ·
+[Glyphs handbook — layered color](https://handbook.glyphsapp.com/color-fonts/layered/) ·
+[FontLab 8 — what's new color](https://help.fontlab.com/fontlab/8/whats-new/whats-new-09-color/) ·
+[fontTools colorLib.builder](https://fonttools.readthedocs.io/en/stable/colorLib/index.html) ·
+[opentype.js PR #490](https://github.com/opentypejs/opentype.js/pull/490).
 
 ### 8. Auto-spacing / auto-kerning
 The single biggest "Glyphs / FontLab have it, browser editors don't"
