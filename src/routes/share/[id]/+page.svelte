@@ -1,5 +1,6 @@
 <script lang="ts">
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
+	import { contoursToSvgPath } from '$lib/font/path';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
@@ -16,6 +17,48 @@
 
 	const ascender = $derived(project.metrics.ascender);
 	const descender = $derived(project.metrics.descender);
+
+	// Live typesetting — visitor types any text, we render it inline
+	// using the project's own SVG paths. Kerning pairs from the
+	// project apply automatically so visitors see the font as the
+	// designer intended (not as system-fallback substitutes).
+	let typeText = $state('Type something here');
+	const kerningLookup = $derived.by(() => {
+		const map = new Map<string, number>();
+		for (const k of project.kerning) {
+			if (typeof k.left !== 'number' || typeof k.right !== 'number') continue;
+			map.set(`${k.left},${k.right}`, k.value);
+		}
+		return map;
+	});
+	const typeset = $derived.by(() => {
+		const out: Array<{ char: string; path: string; advance: number; x: number }> = [];
+		let x = 0;
+		const codepoints = [...typeText];
+		for (let i = 0; i < codepoints.length; i++) {
+			const ch = codepoints[i];
+			const cp = ch.codePointAt(0) ?? 0;
+			const g = project.glyphs[cp];
+			if (!g || g.contours.length === 0) {
+				// Missing glyph — render as a hollow box at half-em width.
+				const w = Math.round(project.metrics.unitsPerEm * 0.5);
+				out.push({ char: ch, path: '', advance: w, x });
+				x += w;
+				continue;
+			}
+			out.push({ char: ch, path: contoursToSvgPath(g.contours), advance: g.advanceWidth, x });
+			x += g.advanceWidth;
+			// Apply kerning if there's a next character
+			if (i + 1 < codepoints.length) {
+				const nextCp = codepoints[i + 1].codePointAt(0) ?? 0;
+				const kv = kerningLookup.get(`${cp},${nextCp}`);
+				if (kv !== undefined) x += kv;
+			}
+		}
+		return { glyphs: out, totalWidth: x };
+	});
+
+	const fontSpan = $derived(ascender - descender);
 </script>
 
 <svelte:head>
@@ -48,6 +91,62 @@
 			</p>
 		{/if}
 	</header>
+
+	<!-- Live typeset preview. Renders typed text using the project's
+	     own SVG paths + kerning data, so visitors see the WIP font
+	     as the designer intended. -->
+	<section class="mb-10">
+		<h2
+			class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		>
+			Try it
+		</h2>
+		<input
+			type="text"
+			bind:value={typeText}
+			placeholder="Type something..."
+			class="w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
+		/>
+		<div
+			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6"
+			style="--font-baseline: {ascender}px;"
+		>
+			<svg
+				viewBox="0 {descender} {Math.max(typeset.totalWidth, 100)} {fontSpan}"
+				preserveAspectRatio="xMinYMid meet"
+				style="height: 96px; width: auto; transform: scaleY(-1); display: block;"
+				aria-label="Typeset preview of {project.metadata.familyName}"
+			>
+				{#each typeset.glyphs as g, i (i + '-' + g.char)}
+					{#if g.path}
+						<path
+							d={g.path}
+							transform="translate({g.x} 0)"
+							fill="currentColor"
+							fill-rule="evenodd"
+							class="text-fg"
+						/>
+					{:else}
+						<rect
+							x={g.x + 20}
+							y={descender + 20}
+							width={g.advance - 40}
+							height={fontSpan - 40}
+							fill="none"
+							stroke="currentColor"
+							stroke-width="20"
+							stroke-dasharray="40 40"
+							class="text-fg-subtle"
+						/>
+					{/if}
+				{/each}
+			</svg>
+		</div>
+		<p class="mt-2 text-[11px] text-fg-subtle">
+			Live render with the project's kerning applied. Dashed boxes mark
+			glyphs the designer hasn't drawn yet — system font won't substitute.
+		</p>
+	</section>
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
 	     state without spilling into editor chrome. -->
