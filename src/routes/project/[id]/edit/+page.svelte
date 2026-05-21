@@ -18,6 +18,7 @@
 		type PathOp
 	} from '$lib/font/path-edit';
 	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
+	import { suggestAnchors } from '$lib/font/anchors-suggest';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -2070,6 +2071,32 @@
 					<span>Anchors</span>
 					<span class="text-fg-subtle" data-numeric>{glyph.anchors?.length ?? 0}</span>
 				</h3>
+				{#if projectStore.project}
+					{@const suggestions = suggestAnchors(glyph, projectStore.project)}
+					{#if suggestions.length > 0}
+						{@const needsUpdate = suggestions.some((s) => {
+							const ex = glyph.anchors?.find((a) => a.name === s.name);
+							return !ex || Math.abs(ex.x - s.x) > 8 || Math.abs(ex.y - s.y) > 8;
+						})}
+						{#if needsUpdate}
+							<button
+								type="button"
+								onclick={() =>
+									projectStore.applyAnchorSuggestions(
+										glyph.codepoint,
+										suggestions.map((s) => ({ name: s.name, x: s.x, y: s.y }))
+									)}
+								class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft/60 px-2 py-1.5 text-[11px] font-medium text-accent-strong hover:bg-accent-soft"
+								title="Centre anchors on the glyph's actual bbox at cap/x-height. Existing custom-named anchors are preserved."
+							>
+								<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="size-3">
+									<path d="M5 12h14M12 5v14M9 9l3-3 3 3M9 15l3 3 3-3" />
+								</svg>
+								Suggest anchors from bbox
+							</button>
+						{/if}
+					{/if}
+				{/if}
 				{#if glyph.anchors && glyph.anchors.length > 0}
 					<ul class="mb-2 grid gap-1">
 						{#each glyph.anchors as a (a.name)}

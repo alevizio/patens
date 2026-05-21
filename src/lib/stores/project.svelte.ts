@@ -1172,6 +1172,31 @@ class ProjectStore {
 	}
 
 	/**
+	 * Apply auto-suggested anchors to a glyph. Used by the "Suggest
+	 * anchors" button in the editor — replaces existing canonical-
+	 * named anchors (top, bottom, _top) with bbox-centred
+	 * suggestions and leaves any designer-named custom anchors
+	 * (e.g. `centerleft`) untouched.
+	 */
+	applyAnchorSuggestions(
+		codepoint: number,
+		suggestions: ReadonlyArray<{ name: string; x: number; y: number }>
+	) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		const suggestedNames = new Set(suggestions.map((s) => s.name));
+		const kept = (current.anchors ?? []).filter((a) => !suggestedNames.has(a.name));
+		const next = [...kept, ...suggestions.map((s) => ({ name: s.name, x: s.x, y: s.y }))];
+		this.writeGlyph(codepoint, {
+			...current,
+			anchors: next,
+			updatedAt: new Date().toISOString()
+		});
+	}
+
+	/**
 	 * Apply a composite decomposition to a glyph. Replaces the
 	 * current contours/components with the provided reference list
 	 * (from `decomposeCodepoint`) and marks status as 'draft' so the
