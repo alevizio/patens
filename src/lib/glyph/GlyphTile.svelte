@@ -1,7 +1,35 @@
 <script lang="ts">
-	import type { ColorPalette, Glyph } from '$lib/font/types';
+	import type { ColorPalette, Glyph, RGBA } from '$lib/font/types';
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
-	import { planColorRender, rgbaToCss } from '$lib/font/color';
+	import { planColorRender, rgbaToCss, sampleColorLine } from '$lib/font/color';
+
+	// SVG sweep-gradient slice approximation — see DrawingCanvas for
+	// rationale. Tile copy uses fewer slices (36) since tiles render
+	// small; 5° resolution is fine at 44–48px.
+	const TILE_SWEEP_SLICES = 36;
+	const tileSweepSlices = (
+		center: { x: number; y: number },
+		startDeg: number,
+		endDeg: number,
+		stops: Array<{ offset: number; color: RGBA }>,
+		radius: number
+	): Array<{ points: string; color: string }> => {
+		const out: Array<{ points: string; color: string }> = [];
+		const span = endDeg - startDeg;
+		for (let i = 0; i < TILE_SWEEP_SLICES; i++) {
+			const t1 = i / TILE_SWEEP_SLICES;
+			const t2 = (i + 1) / TILE_SWEEP_SLICES;
+			const tMid = (t1 + t2) / 2;
+			const color = sampleColorLine(stops, tMid);
+			const a1 = ((startDeg + span * t1) * Math.PI) / 180;
+			const a2 = ((startDeg + span * t2) * Math.PI) / 180;
+			out.push({
+				points: `${center.x},${center.y} ${center.x + Math.cos(a1) * radius},${center.y + Math.sin(a1) * radius} ${center.x + Math.cos(a2) * radius},${center.y + Math.sin(a2) * radius}`,
+				color: rgbaToCss(color)
+			});
+		}
+		return out;
+	};
 	import Pin from '@lucide/svelte/icons/pin';
 	import StickyNote from '@lucide/svelte/icons/sticky-note';
 	import Link2 from '@lucide/svelte/icons/link-2';
@@ -126,6 +154,7 @@
 				aria-hidden="true"
 			>
 				{#if colorRenderPlan.length > 0}
+					{@const tileSweepR = fontSpan * 2}
 					<defs>
 						{#each colorRenderPlan as step (step.layerId)}
 							{#if step.fill.type === 'linearGradient'}
@@ -153,17 +182,29 @@
 										<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
 									{/each}
 								</radialGradient>
+							{:else if step.fill.type === 'sweepGradient'}
+								<clipPath id="gt-clip-{glyph.codepoint}-{step.layerId}">
+									<path d={step.path} />
+								</clipPath>
 							{/if}
 						{/each}
 					</defs>
 					{#each colorRenderPlan as step (step.layerId)}
-						<path
-							d={step.path}
-							fill={step.fill.type === 'solid'
-								? rgbaToCss(step.fill.color)
-								: `url(#gt-grad-${glyph.codepoint}-${step.layerId})`}
-							fill-rule="evenodd"
-						/>
+						{#if step.fill.type === 'sweepGradient'}
+							<g clip-path="url(#gt-clip-{glyph.codepoint}-{step.layerId})">
+								{#each tileSweepSlices(step.fill.center, step.fill.startAngle, step.fill.endAngle, step.fill.stops, tileSweepR) as slice, i (i)}
+									<polygon points={slice.points} fill={slice.color} />
+								{/each}
+							</g>
+						{:else}
+							<path
+								d={step.path}
+								fill={step.fill.type === 'solid'
+									? rgbaToCss(step.fill.color)
+									: `url(#gt-grad-${glyph.codepoint}-${step.layerId})`}
+								fill-rule="evenodd"
+							/>
+						{/if}
 					{/each}
 				{:else}
 					<path d={svgPath} fill="currentColor" fill-rule="evenodd" />

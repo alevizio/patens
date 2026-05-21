@@ -90,6 +90,14 @@ export type PlanV1LayerPaint = {
 				cy: number;
 				r: number;
 				stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
+			}
+		| {
+				kind: 'sweep';
+				cx: number;
+				cy: number;
+				startAngle: number;
+				endAngle: number;
+				stops: Array<{ offset: number; paletteIndex: number; alpha?: number }>;
 			};
 };
 
@@ -175,6 +183,18 @@ export const buildColorFontPlan = (project: Project): ColorFontPlan => {
 							cx: lyr.gradient.center.x,
 							cy: lyr.gradient.center.y,
 							r: lyr.gradient.radius,
+							stops: lyr.gradient.stops
+						}
+					});
+				} else if (lyr.gradient?.type === 'sweep') {
+					v1Layers.push({
+						layerGlyphName,
+						fill: {
+							kind: 'sweep',
+							cx: lyr.gradient.center.x,
+							cy: lyr.gradient.center.y,
+							startAngle: lyr.gradient.startAngle,
+							endAngle: lyr.gradient.endAngle,
 							stops: lyr.gradient.stops
 						}
 					});
@@ -272,17 +292,31 @@ const layerToPaint = (l: PlanV1LayerPaint, layerGlyphID: number): ColrPaint => {
 			}
 		};
 	}
+	if (l.fill.kind === 'radial') {
+		return {
+			kind: 'glyph',
+			glyphID: layerGlyphID,
+			paint: {
+				kind: 'radialGradient',
+				x0: l.fill.cx,
+				y0: l.fill.cy,
+				r0: 0,
+				x1: l.fill.cx,
+				y1: l.fill.cy,
+				r1: l.fill.r,
+				stops: l.fill.stops
+			}
+		};
+	}
 	return {
 		kind: 'glyph',
 		glyphID: layerGlyphID,
 		paint: {
-			kind: 'radialGradient',
-			x0: l.fill.cx,
-			y0: l.fill.cy,
-			r0: 0,
-			x1: l.fill.cx,
-			y1: l.fill.cy,
-			r1: l.fill.r,
+			kind: 'sweepGradient',
+			cx: l.fill.cx,
+			cy: l.fill.cy,
+			startAngle: l.fill.startAngle,
+			endAngle: l.fill.endAngle,
 			stops: l.fill.stops
 		}
 	};

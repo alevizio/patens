@@ -154,6 +154,15 @@ export type Paint =
 			r1: number;
 			stops: ColorStop[];
 	  }
+	| {
+			kind: 'sweepGradient';
+			cx: number;
+			cy: number;
+			/** Degrees CCW from positive x-axis. */
+			startAngle: number;
+			endAngle: number;
+			stops: ColorStop[];
+	  }
 	| { kind: 'glyph'; glyphID: number; paint: Paint };
 
 export type ColorStop = {
@@ -427,6 +436,23 @@ const writePaint = (buf: ByteBuf, paint: Paint): void => {
 		buf.writeInt16(Math.round(paint.x1));
 		buf.writeInt16(Math.round(paint.y1));
 		buf.writeUint16(Math.max(0, Math.round(paint.r1)));
+		writeColorLine(buf, paint.stops);
+		return;
+	}
+	if (paint.kind === 'sweepGradient') {
+		// Format 8: PaintSweepGradient.
+		//   uint8 format = 8
+		//   Offset24 colorLineOffset (from start of this Paint)
+		//   FWORD centerX, centerY
+		//   F2DOT14 startAngle (encoded as degrees / 180)
+		//   F2DOT14 endAngle
+		// Total: 4 + 8 = 12 bytes header + ColorLine.
+		buf.writeUint8(8);
+		writeUint24(buf, 12);
+		buf.writeInt16(Math.round(paint.cx));
+		buf.writeInt16(Math.round(paint.cy));
+		writeF2Dot14(buf, paint.startAngle / 180);
+		writeF2Dot14(buf, paint.endAngle / 180);
 		writeColorLine(buf, paint.stops);
 		return;
 	}

@@ -34,6 +34,42 @@ export const rgbaToHex = (color: RGBA): string => {
 };
 
 /** CSS `rgba(r, g, b, a)` for use as a fill in Canvas2D / inline styles. */
+/**
+ * Linearly interpolate between two RGBA colors at parameter t (0..1).
+ * Used by the SVG sweep-gradient approximation to compute the colour
+ * at each slice's midpoint angle.
+ */
+export const lerpRgba = (a: RGBA, b: RGBA, t: number): RGBA => ({
+	r: Math.round(a.r + (b.r - a.r) * t),
+	g: Math.round(a.g + (b.g - a.g) * t),
+	b: Math.round(a.b + (b.b - a.b) * t),
+	a: a.a + (b.a - a.a) * t
+});
+
+/**
+ * Sample a color line at offset `t` (0..1), interpolating linearly
+ * between adjacent stops. Stops must be sorted by offset ascending;
+ * out-of-range `t` clamps to the nearest stop's color.
+ */
+export const sampleColorLine = (
+	stops: ReadonlyArray<{ offset: number; color: RGBA }>,
+	t: number
+): RGBA => {
+	if (stops.length === 0) return { r: 0, g: 0, b: 0, a: 1 };
+	if (t <= stops[0].offset) return stops[0].color;
+	if (t >= stops[stops.length - 1].offset) return stops[stops.length - 1].color;
+	for (let i = 0; i < stops.length - 1; i++) {
+		const s1 = stops[i];
+		const s2 = stops[i + 1];
+		if (t >= s1.offset && t <= s2.offset) {
+			const range = s2.offset - s1.offset;
+			const local = range === 0 ? 0 : (t - s1.offset) / range;
+			return lerpRgba(s1.color, s2.color, local);
+		}
+	}
+	return stops[stops.length - 1].color;
+};
+
 export const rgbaToCss = (color: RGBA): string => {
 	const c = (n: number) => Math.max(0, Math.min(255, Math.round(n)));
 	const a = Math.max(0, Math.min(1, color.a));
@@ -139,6 +175,14 @@ export type ColorRenderFill =
 			center: { x: number; y: number };
 			radius: number;
 			stops: Array<{ offset: number; color: RGBA }>;
+	  }
+	| {
+			type: 'sweepGradient';
+			center: { x: number; y: number };
+			/** Degrees, CCW from +x axis (font-Y-up convention). */
+			startAngle: number;
+			endAngle: number;
+			stops: Array<{ offset: number; color: RGBA }>;
 	  };
 
 /**
@@ -208,6 +252,20 @@ export const planColorRender = (
 					});
 					continue;
 				}
+				if (layer.gradient.type === 'sweep') {
+					steps.push({
+						path,
+						fill: {
+							type: 'sweepGradient',
+							center: layer.gradient.center,
+							startAngle: layer.gradient.startAngle,
+							endAngle: layer.gradient.endAngle,
+							stops
+						},
+						layerId: layer.id
+					});
+					continue;
+				}
 			}
 		}
 		// Flat fallback — both the COLR v0 export path and renderers
@@ -252,7 +310,7 @@ export const applyColorRenderToCanvas = (
 			);
 			for (const s of step.fill.stops) grad.addColorStop(s.offset, rgbaToCss(s.color));
 			ctx.fillStyle = grad;
-		} else {
+		} else if (step.fill.type === 'radialGradient') {
 			// Radial gradient — single-circle (start radius 0, end at
 			// the configured radius). COLR v1 supports two focal
 			// circles, but for the editor preview a single-focal
@@ -267,6 +325,34 @@ export const applyColorRenderToCanvas = (
 				Math.max(step.fill.radius, 1)
 			);
 			for (const s of step.fill.stops) grad.addColorStop(s.offset, rgbaToCss(s.color));
+			ctx.fillStyle = grad;
+		} else {
+			// Sweep gradient — Canvas2D's createConicGradient angle is in
+			// radians, measured CLOCKWISE from positive x-axis. COLR v1
+			// uses degrees counter-clockwise from positive x-axis. The
+			// canvas is also already y-flipped (caller's scaleY(-1)
+			// transform), which inverts the rotation direction back to
+			// CCW visually. Net: convert deg → rad directly.
+			//
+			// Canvas2D doesn't expose a way to specify an END angle
+			// separately — we approximate by mapping (startAngle..endAngle)
+			// to (0..1) in the gradient's color line.
+			const startRad = (step.fill.startAngle * Math.PI) / 180;
+			const grad = ctx.createConicGradient(
+				startRad,
+				step.fill.center.x,
+				step.fill.center.y
+			);
+			const sweepDeg = step.fill.endAngle - step.fill.startAngle;
+			const fullCircleDeg = 360;
+			for (const s of step.fill.stops) {
+				// Scale stop offset to the actual sweep range (so a sweep
+				// from 0 to 90° puts offset=1 at 90°, not at 360°).
+				const offsetInFullCircle = (s.offset * sweepDeg) / fullCircleDeg;
+				if (offsetInFullCircle >= 0 && offsetInFullCircle <= 1) {
+					grad.addColorStop(offsetInFullCircle, rgbaToCss(s.color));
+				}
+			}
 			ctx.fillStyle = grad;
 		}
 		const path = new Path2D(step.path);

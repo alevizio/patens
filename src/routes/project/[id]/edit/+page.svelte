@@ -1647,16 +1647,29 @@
 									if (g.type === 'linear') {
 										return { ...layer, gradient: { ...g, [endpoint]: coord } };
 									}
-									// Radial: start handle moves the centre; end handle
-									// (sits on the radius circle) updates the radius
-									// based on distance from centre.
+									if (g.type === 'radial') {
+										if (endpoint === 'start') {
+											return { ...layer, gradient: { ...g, center: coord } };
+										}
+										const dx = coord.x - g.center.x;
+										const dy = coord.y - g.center.y;
+										const radius = Math.max(1, Math.round(Math.hypot(dx, dy)));
+										return { ...layer, gradient: { ...g, radius } };
+									}
+									// Sweep: start handle moves the centre. End handle
+									// is on the start-angle ray — dragging it rotates
+									// the whole sweep (preserves the angular span).
 									if (endpoint === 'start') {
 										return { ...layer, gradient: { ...g, center: coord } };
 									}
 									const dx = coord.x - g.center.x;
 									const dy = coord.y - g.center.y;
-									const radius = Math.max(1, Math.round(Math.hypot(dx, dy)));
-									return { ...layer, gradient: { ...g, radius } };
+									const span = g.endAngle - g.startAngle;
+									const newStart = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
+									return {
+										...layer,
+										gradient: { ...g, startAngle: newStart, endAngle: newStart + span }
+									};
 								}
 							)}
 					/>
@@ -2818,9 +2831,11 @@
 																	(layer: ColorLayer) => {
 																		const g = layer.gradient;
 																		if (!g || g.type === 'linear') return layer;
+																		// sweep/radial → linear: use centre as midpoint,
+																		// radius (or default 200) as half-length.
 																		const cx = g.center.x;
 																		const cy = g.center.y;
-																		const r = g.radius;
+																		const r = g.type === 'radial' ? g.radius : 200;
 																		return {
 																			...layer,
 																			gradient: {
@@ -2848,11 +2863,21 @@
 																	(layer: ColorLayer) => {
 																		const g = layer.gradient;
 																		if (!g || g.type === 'radial') return layer;
-																		const cx = (g.start.x + g.end.x) / 2;
-																		const cy = (g.start.y + g.end.y) / 2;
-																		const dx = g.end.x - g.start.x;
-																		const dy = g.end.y - g.start.y;
-																		const radius = Math.max(1, Math.round(Math.hypot(dx, dy) / 2));
+																		let cx: number;
+																		let cy: number;
+																		let radius: number;
+																		if (g.type === 'linear') {
+																			cx = (g.start.x + g.end.x) / 2;
+																			cy = (g.start.y + g.end.y) / 2;
+																			const dx = g.end.x - g.start.x;
+																			const dy = g.end.y - g.start.y;
+																			radius = Math.max(1, Math.round(Math.hypot(dx, dy) / 2));
+																		} else {
+																			// sweep → radial
+																			cx = g.center.x;
+																			cy = g.center.y;
+																			radius = 200;
+																		}
 																		return {
 																			...layer,
 																			gradient: {
@@ -2870,6 +2895,41 @@
 																: 'text-accent-strong hover:bg-accent-soft'}"
 														>
 															Radial
+														</button>
+														<button
+															type="button"
+															onclick={() =>
+																projectStore.updateColorLayer(
+																	glyph.codepoint,
+																	l.id,
+																	(layer: ColorLayer) => {
+																		const g = layer.gradient;
+																		if (!g || g.type === 'sweep') return layer;
+																		const center =
+																			g.type === 'linear'
+																				? {
+																						x: Math.round((g.start.x + g.end.x) / 2),
+																						y: Math.round((g.start.y + g.end.y) / 2)
+																					}
+																				: g.center;
+																		return {
+																			...layer,
+																			gradient: {
+																				type: 'sweep',
+																				center,
+																				startAngle: 0,
+																				endAngle: 360,
+																				stops: g.stops
+																			}
+																		};
+																	}
+																)}
+															class="px-1.5 py-0 text-[10px] {l.gradient.type ===
+															'sweep'
+																? 'bg-accent text-accent-fg'
+																: 'text-accent-strong hover:bg-accent-soft'}"
+														>
+															Sweep
 														</button>
 													</div>
 													<button
@@ -2978,7 +3038,7 @@
 															/>
 														</label>
 													</div>
-												{:else}
+												{:else if l.gradient.type === 'radial'}
 													<div class="grid grid-cols-[auto_1fr] gap-1 font-mono text-[10px] text-fg-muted">
 														<span>centre</span>
 														<div class="flex gap-1">
@@ -3042,6 +3102,106 @@
 																					gradient: {
 																						...layer.gradient,
 																						radius: Math.max(1, Number(e.currentTarget.value))
+																					}
+																				}
+																			: layer
+																)}
+															class="w-16 rounded border border-border bg-surface px-1 text-[10px]"
+														/>
+													</div>
+												{:else}
+													<!-- Sweep: centre + start/end angles in degrees. CCW
+													     from positive x-axis. -->
+													<div class="grid grid-cols-[auto_1fr] gap-1 font-mono text-[10px] text-fg-muted">
+														<span>centre</span>
+														<div class="flex gap-1">
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.center.x}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'sweep'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							center: {
+																								...layer.gradient.center,
+																								x: Number(e.currentTarget.value)
+																							}
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.center.y}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'sweep'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							center: {
+																								...layer.gradient.center,
+																								y: Number(e.currentTarget.value)
+																							}
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+														</div>
+														<span>start °</span>
+														<input
+															type="number"
+															step="5"
+															value={l.gradient.startAngle}
+															oninput={(e) =>
+																projectStore.updateColorLayer(
+																	glyph.codepoint,
+																	l.id,
+																	(layer: ColorLayer) =>
+																		layer.gradient?.type === 'sweep'
+																			? {
+																					...layer,
+																					gradient: {
+																						...layer.gradient,
+																						startAngle: Number(e.currentTarget.value)
+																					}
+																				}
+																			: layer
+																)}
+															class="w-16 rounded border border-border bg-surface px-1 text-[10px]"
+														/>
+														<span>end °</span>
+														<input
+															type="number"
+															step="5"
+															value={l.gradient.endAngle}
+															oninput={(e) =>
+																projectStore.updateColorLayer(
+																	glyph.codepoint,
+																	l.id,
+																	(layer: ColorLayer) =>
+																		layer.gradient?.type === 'sweep'
+																			? {
+																					...layer,
+																					gradient: {
+																						...layer.gradient,
+																						endAngle: Number(e.currentTarget.value)
 																					}
 																				}
 																			: layer

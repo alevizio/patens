@@ -6,7 +6,45 @@
 		type StrokeStyle
 	} from '$lib/font/sketch-to-bezier';
 	import { contoursToSvgPath } from '$lib/font/path';
-	import { planColorRender, rgbaToCss } from '$lib/font/color';
+	import { planColorRender, rgbaToCss, sampleColorLine } from '$lib/font/color';
+	import type { RGBA } from '$lib/font/types';
+
+	// Sweep-gradient SVG slice approximation. SVG has no native
+	// <conicGradient>, so we approximate by emitting N triangular
+	// polygons clipped to the glyph path. Each slice carries a flat
+	// fill sampled from the colour line at the slice's midpoint angle.
+	// N=72 (5° per slice) gives visually-smooth output without a
+	// performance hit at typical glyph counts.
+	const SWEEP_SLICES = 72;
+	const sweepSlices = (
+		center: { x: number; y: number },
+		startDeg: number,
+		endDeg: number,
+		stops: Array<{ offset: number; color: RGBA }>,
+		radius: number
+	): Array<{ points: string; color: string }> => {
+		const slices: Array<{ points: string; color: string }> = [];
+		const span = endDeg - startDeg;
+		for (let i = 0; i < SWEEP_SLICES; i++) {
+			const t1 = i / SWEEP_SLICES;
+			const t2 = (i + 1) / SWEEP_SLICES;
+			const deg1 = startDeg + span * t1;
+			const deg2 = startDeg + span * t2;
+			const tMid = (t1 + t2) / 2;
+			const color = sampleColorLine(stops, tMid);
+			const a1 = (deg1 * Math.PI) / 180;
+			const a2 = (deg2 * Math.PI) / 180;
+			const p1x = center.x + Math.cos(a1) * radius;
+			const p1y = center.y + Math.sin(a1) * radius;
+			const p2x = center.x + Math.cos(a2) * radius;
+			const p2y = center.y + Math.sin(a2) * radius;
+			slices.push({
+				points: `${center.x},${center.y} ${p1x},${p1y} ${p2x},${p2y}`,
+				color: rgbaToCss(color)
+			});
+		}
+		return slices;
+	};
 	import type { ColorPalette } from '$lib/font/types';
 	import MetricsOverlay from './MetricsOverlay.svelte';
 	import VectorPointLayer from './VectorPointLayer.svelte';
@@ -482,6 +520,7 @@
 		     gradient; gradients are emitted as <linearGradient> defs
 		     referenced by url() in the path's fill attribute. -->
 		{#if colorRenderPlan.length > 0}
+			{@const sweepR = (metrics.ascender - metrics.descender) * 2}
 			<defs>
 				{#each colorRenderPlan as step (step.layerId)}
 					{#if step.fill.type === 'linearGradient'}
@@ -509,18 +548,30 @@
 								<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
 							{/each}
 						</radialGradient>
+					{:else if step.fill.type === 'sweepGradient'}
+						<clipPath id="clip-{step.layerId}">
+							<path d={step.path} />
+						</clipPath>
 					{/if}
 				{/each}
 			</defs>
 			<g opacity="0.45" pointer-events="none" aria-hidden="true">
 				{#each colorRenderPlan as step (step.layerId)}
-					<path
-						d={step.path}
-						fill={step.fill.type === 'solid'
-							? rgbaToCss(step.fill.color)
-							: `url(#grad-${step.layerId})`}
-						fill-rule="evenodd"
-					/>
+					{#if step.fill.type === 'sweepGradient'}
+						<g clip-path="url(#clip-{step.layerId})">
+							{#each sweepSlices(step.fill.center, step.fill.startAngle, step.fill.endAngle, step.fill.stops, sweepR) as slice, i (i)}
+								<polygon points={slice.points} fill={slice.color} />
+							{/each}
+						</g>
+					{:else}
+						<path
+							d={step.path}
+							fill={step.fill.type === 'solid'
+								? rgbaToCss(step.fill.color)
+								: `url(#grad-${step.layerId})`}
+							fill-rule="evenodd"
+						/>
+					{/if}
 				{/each}
 			</g>
 			<!-- Gradient endpoint drag handles. Sit ABOVE the colour
@@ -532,14 +583,36 @@
 				{@const handleR = Math.max(12, 10 / Math.max(pixelsPerUnit, 0.01))}
 				{@const lineW = Math.max(2, 2 / Math.max(pixelsPerUnit, 0.01))}
 				{#each colorRenderPlan as step (step.layerId)}
-					{#if step.fill.type === 'linearGradient' || step.fill.type === 'radialGradient'}
-						{@const ptA = step.fill.type === 'linearGradient' ? step.fill.start : step.fill.center}
+					{#if step.fill.type === 'linearGradient' || step.fill.type === 'radialGradient' || step.fill.type === 'sweepGradient'}
+						{@const ptA =
+							step.fill.type === 'linearGradient' ? step.fill.start : step.fill.center}
 						{@const ptB =
 							step.fill.type === 'linearGradient'
 								? step.fill.end
-								: { x: step.fill.center.x + step.fill.radius, y: step.fill.center.y }}
+								: step.fill.type === 'radialGradient'
+									? { x: step.fill.center.x + step.fill.radius, y: step.fill.center.y }
+									: {
+											x:
+												step.fill.center.x +
+												200 * Math.cos((step.fill.startAngle * Math.PI) / 180),
+											y:
+												step.fill.center.y +
+												200 * Math.sin((step.fill.startAngle * Math.PI) / 180)
+										}}
 						<g class="gradient-handles">
 							{#if step.fill.type === 'linearGradient'}
+								<line
+									x1={ptA.x}
+									y1={ptA.y}
+									x2={ptB.x}
+									y2={ptB.y}
+									stroke="var(--color-accent)"
+									stroke-width={lineW}
+									stroke-dasharray="{lineW * 2} {lineW * 2}"
+									opacity="0.7"
+									pointer-events="none"
+								/>
+							{:else if step.fill.type === 'sweepGradient'}
 								<line
 									x1={ptA.x}
 									y1={ptA.y}

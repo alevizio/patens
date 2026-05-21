@@ -109,7 +109,7 @@ export type ColorLayer = {
 	 * deferred; until it ships, gradients are designed in the editor
 	 * but exports flatten to the fallback palette colour.
 	 */
-	gradient?: LinearGradient | RadialGradient;
+	gradient?: LinearGradient | RadialGradient | SweepGradient;
 	/** Per-layer visibility toggle in the editor (does not affect export). */
 	hidden?: boolean;
 };
@@ -144,6 +144,22 @@ export type RadialGradient = {
 	center: { x: number; y: number };
 	/** Radius in font units (offset 1 lives on this circle). */
 	radius: number;
+	stops: GradientStop[];
+};
+
+/**
+ * COLR v1 sweep gradient (aka conic gradient). Colour rotates
+ * around `center` from `startAngle` (degrees) to `endAngle`. Angles
+ * measured counter-clockwise from positive x-axis, font-Y-up:
+ * 0° = east, 90° = north. Used for rainbow effects, color wheels,
+ * radial-stripe accents.
+ */
+export type SweepGradient = {
+	type: 'sweep';
+	center: { x: number; y: number };
+	/** Degrees. 0 = positive-x axis, 90 = positive-y. CCW. */
+	startAngle: number;
+	endAngle: number;
 	stops: GradientStop[];
 };
 

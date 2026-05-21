@@ -274,6 +274,44 @@ describe('writeColrV1', () => {
 		expect(u32(colr, paintOff + 2)).toBe(0); // firstLayerIndex
 	});
 
+	it('PaintSweepGradient (format 8) — center + F2DOT14 angles', () => {
+		const colr = writeColrV1(
+			[],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'glyph',
+						glyphID: 5,
+						paint: {
+							kind: 'sweepGradient',
+							cx: 100,
+							cy: 200,
+							startAngle: 0,
+							endAngle: 180,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1 }
+							]
+						}
+					}
+				}
+			]
+		);
+		const v1BaseListOff = u32(colr, 14);
+		const paintOff = v1BaseListOff + u32(colr, v1BaseListOff + 6);
+		// PaintGlyph header (6 bytes) → nested sweep at +6
+		const sweepOff = paintOff + 6;
+		expect(colr[sweepOff]).toBe(8); // format
+		// FWORD cx/cy at sweepOff+4, +6
+		expect(((colr[sweepOff + 4] << 8) | colr[sweepOff + 5])).toBe(100);
+		expect(((colr[sweepOff + 6] << 8) | colr[sweepOff + 7])).toBe(200);
+		// F2DOT14 startAngle: 0° / 180 = 0.0 → 0x0000
+		expect(((colr[sweepOff + 8] << 8) | colr[sweepOff + 9])).toBe(0x0000);
+		// F2DOT14 endAngle: 180° / 180 = 1.0 → 0x4000
+		expect(((colr[sweepOff + 10] << 8) | colr[sweepOff + 11])).toBe(0x4000);
+	});
+
 	it('PaintSolid (format 2) — uint16 paletteIndex + F2DOT14 alpha', () => {
 		const colr = writeColrV1(
 			[],
