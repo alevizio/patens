@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { detectFeatures, featureLabel } from './feature-detect';
+import { applyDetectedFeatures, detectFeatures, featureLabel } from './feature-detect';
+import type { DetectedFeature } from './feature-detect';
 import type { Glyph } from './types';
 
 const g = (codepoint: number, name: string): Glyph => ({
@@ -198,6 +199,81 @@ describe('detectFeatures — single-sub from suffix conventions', () => {
 			{ from: 'a', to: 'a.sc' },
 			{ from: 'b', to: 'b.sc' }
 		]);
+	});
+});
+
+describe('applyDetectedFeatures', () => {
+	// Mock the opentype.js Font.substitution shape with a recorder so we
+	// can assert on call order without depending on opentype.js itself
+	// (the day-1 smoke test covers the real round-trip).
+	type Call = { feature: string; sub: string; by: string };
+	const mockFont = () => {
+		const calls: Call[] = [];
+		return {
+			calls,
+			font: {
+				substitution: {
+					addSingle: (feature: string, sub: { sub: string; by: string }) => {
+						calls.push({ feature, sub: sub.sub, by: sub.by });
+					}
+				}
+			}
+		};
+	};
+
+	it('emits addSingle calls for every sub in every feature', () => {
+		const { font, calls } = mockFont();
+		const features: DetectedFeature[] = [
+			{
+				feature: 'smcp',
+				kind: 'single',
+				subs: [
+					{ from: 'a', to: 'a.sc' },
+					{ from: 'b', to: 'b.sc' }
+				]
+			},
+			{
+				feature: 'ss01',
+				kind: 'single',
+				subs: [{ from: 'a', to: 'a.ss01' }]
+			}
+		];
+		const count = applyDetectedFeatures(font, features);
+		expect(count).toBe(3);
+		expect(calls).toEqual([
+			{ feature: 'smcp', sub: 'a', by: 'a.sc' },
+			{ feature: 'smcp', sub: 'b', by: 'b.sc' },
+			{ feature: 'ss01', sub: 'a', by: 'a.ss01' }
+		]);
+	});
+
+	it('respects the disabledFeatures gate', () => {
+		const { font, calls } = mockFont();
+		const features: DetectedFeature[] = [
+			{ feature: 'smcp', kind: 'single', subs: [{ from: 'a', to: 'a.sc' }] },
+			{ feature: 'ss01', kind: 'single', subs: [{ from: 'a', to: 'a.ss01' }] },
+			{ feature: 'salt', kind: 'single', subs: [{ from: 'a', to: 'a.salt' }] }
+		];
+		const count = applyDetectedFeatures(font, features, new Set(['ss01', 'salt']));
+		expect(count).toBe(1);
+		expect(calls).toEqual([{ feature: 'smcp', sub: 'a', by: 'a.sc' }]);
+	});
+
+	it('returns 0 on empty input', () => {
+		const { font, calls } = mockFont();
+		expect(applyDetectedFeatures(font, [])).toBe(0);
+		expect(calls).toEqual([]);
+	});
+
+	it('preserves feature order from input (already alphabetical via detectFeatures)', () => {
+		const { font, calls } = mockFont();
+		const features: DetectedFeature[] = [
+			{ feature: 'c2sc', kind: 'single', subs: [{ from: 'A', to: 'A.c2sc' }] },
+			{ feature: 'onum', kind: 'single', subs: [{ from: 'one', to: 'one.osf' }] },
+			{ feature: 'smcp', kind: 'single', subs: [{ from: 'a', to: 'a.sc' }] }
+		];
+		applyDetectedFeatures(font, features);
+		expect(calls.map((c) => c.feature)).toEqual(['c2sc', 'onum', 'smcp']);
 	});
 });
 

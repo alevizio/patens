@@ -11,6 +11,7 @@ import type { BezierContour, Glyph as ProjectGlyph, Project, PathCommand } from 
 import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
+import { applyDetectedFeatures, detectFeatures } from './feature-detect';
 
 type OTPath = InstanceType<typeof opentype.Path>;
 type OTGlyph = InstanceType<typeof opentype.Glyph>;
@@ -164,6 +165,17 @@ export type BuildOptions = {
 	masterId?: string;
 	/** If set, used as a name suffix (e.g. "Bold") in the PostScript subfamily. */
 	styleSuffix?: string;
+	/**
+	 * Auto-detected OpenType features (small caps, stylistic alternates,
+	 * figure variants, …) to apply in addition to `liga` / `kern`.
+	 * Defaults to `false` — opt-in until the Features-tab UI ships. When
+	 * `true`, runs `detectFeatures(project.glyphs)` and emits the
+	 * corresponding GSUB lookups via opentype.js. Specific tags can be
+	 * disabled via `disableAutoFeatures`.
+	 */
+	autoFeatures?: boolean;
+	/** Tags to skip even when `autoFeatures` is true. */
+	disableAutoFeatures?: ReadonlySet<string>;
 };
 
 export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResult => {
@@ -265,6 +277,18 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	// writer — another Pyodide elimination for any project whose feature
 	// surface is just liga + kern (the common case).
 	applyStandardLigatures(font, project, indexByCodepoint);
+
+	// Auto-detected OT features (opt-in). Sorted alphabetically by tag so
+	// opentype.js's `addSingle` doesn't throw — `detectFeatures` does this.
+	// `liga` is already written above; the detector doesn't re-emit it.
+	if (opts.autoFeatures) {
+		const detected = detectFeatures(project.glyphs);
+		applyDetectedFeatures(
+			font as unknown as Parameters<typeof applyDetectedFeatures>[0],
+			detected,
+			opts.disableAutoFeatures
+		);
+	}
 
 	return { font, indexByCodepoint, glyphCount: glyphs.length };
 };

@@ -186,6 +186,44 @@ export const detectFeatures = (
 	return out;
 };
 
+/**
+ * Apply a set of detected features to an opentype.js Font in place.
+ * Writes through `font.substitution.addSingle` per the day-1 smoke
+ * test. Caller is responsible for already-having-sorted the input —
+ * `detectFeatures` does that by default, but if you construct
+ * `DetectedFeature[]` manually you MUST sort by `feature` first or
+ * opentype.js will throw "Features must be added in alphabetical
+ * order."
+ *
+ * `disabledFeatures` lets the UI gate which features actually compile
+ * (e.g. user unchecked Small Caps in the toggle list — don't emit it).
+ *
+ * Returns the number of substitution calls made, for diagnostic /
+ * toast purposes.
+ */
+export const applyDetectedFeatures = (
+	font: {
+		substitution: {
+			addSingle: (
+				feature: string,
+				sub: { sub: string; by: string }
+			) => void;
+		};
+	},
+	features: DetectedFeature[],
+	disabledFeatures: ReadonlySet<string> = new Set()
+): number => {
+	let count = 0;
+	for (const f of features) {
+		if (disabledFeatures.has(f.feature)) continue;
+		for (const pair of f.subs) {
+			font.substitution.addSingle(f.feature, { sub: pair.from, by: pair.to });
+			count++;
+		}
+	}
+	return count;
+};
+
 /** Human-readable description used by the Features-tab UI. */
 export const featureLabel = (tag: string): string => {
 	if (tag.startsWith('ss')) return `Stylistic set ${tag.slice(2)}`;
