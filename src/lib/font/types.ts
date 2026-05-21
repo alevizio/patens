@@ -293,6 +293,29 @@ export type ProjectFeatures = {
 	 * every detected feature is emitted.
 	 */
 	disabledAutoFeatures?: string[];
+	/**
+	 * Auto-kern M2 — fill in kerning pairs at export time using the
+	 * silhouette-distance algorithm from `kerning-suggest.ts`. The
+	 * user's manually-set pairs (in `project.kerning`) are always kept;
+	 * auto-kern only ADDS pairs the user hasn't tuned.
+	 *
+	 * Defaults to `undefined` → treated as `true` for new projects, so
+	 * a freshly-installed Font Studio export feels well-spaced without
+	 * the user having to kern every pair manually.
+	 *
+	 * Gated on at least one reference pair existing in
+	 * `project.kerning` — the algorithm derives the target visual gap
+	 * from a designer-tuned pair, so it needs at least one example to
+	 * work from.
+	 */
+	autoKern?: boolean;
+	/**
+	 * Confidence threshold for export-time auto-kern. Suggestions
+	 * below this float (0..1) are dropped — at higher thresholds the
+	 * kerning is sparser but every emitted value comes from pairs the
+	 * algorithm could measure clearly. Default 0.5 if undefined.
+	 */
+	autoKernConfidence?: number;
 };
 
 /**

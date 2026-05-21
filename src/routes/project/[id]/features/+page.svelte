@@ -353,6 +353,88 @@
 				{/if}
 			</Panel>
 
+			<!-- Auto-kern M2. Fills in kerning at export time using the
+			     silhouette-distance algorithm from kerning-suggest.ts.
+			     Always preserves user-set pairs; auto only ADDS pairs the
+			     user hasn't tuned. Gated on at least one reference pair
+			     existing — the algorithm needs a designer-tuned example
+			     to derive the target visual gap from. -->
+			<Panel>
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Auto-kern at export
+					</h2>
+					<span
+						class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+					>
+						M2
+					</span>
+					<label
+						class="ml-auto inline-flex items-center gap-1.5 text-[12px] text-fg-muted"
+						title="When on, the export pipeline fills in kerning pairs the user hasn't manually set, using the silhouette-distance algorithm."
+					>
+						<input
+							type="checkbox"
+							checked={project?.features.autoKern !== false}
+							onchange={(ev) => projectStore.updateFeatures({ autoKern: ev.currentTarget.checked })}
+							class="size-3.5 accent-accent"
+						/>
+						Enable
+					</label>
+				</div>
+				<p class="mb-2 text-[12px] leading-snug text-fg-muted">
+					At export time, every glyph pair without a manual kerning value
+					gets a suggestion from the silhouette algorithm. User-set pairs
+					always win. Needs at least one manual pair to derive the target
+					visual gap from — pick a clean "no" or "Ho" pair.
+				</p>
+				{#if (project?.kerning ?? []).filter((k) => typeof k.left === 'number' && typeof k.right === 'number').length === 0}
+					<div
+						class="rounded-md border border-dashed border-warn-strong/40 bg-warn/5 px-3 py-2 text-[12px] text-warn-strong"
+					>
+						No manual kerning yet — auto-kern will skip silently at export.
+						Visit the Spacing tab and tune one pair (e.g. <span class="font-mono">A V</span>)
+						to seed the algorithm.
+					</div>
+				{:else}
+					<div class="flex items-center gap-2 text-[11px] text-fg-subtle">
+						<span class="font-mono" data-numeric>
+							{(project?.kerning ?? []).filter(
+								(k) => typeof k.left === 'number' && typeof k.right === 'number'
+							).length}
+						</span>
+						<span>manual pair(s) available as reference</span>
+					</div>
+				{/if}
+				<details class="mt-3 text-[12px] text-fg-muted">
+					<summary class="cursor-pointer text-fg hover:text-fg-strong">
+						Confidence threshold
+					</summary>
+					<div class="mt-2 flex items-center gap-2">
+						<input
+							type="range"
+							min="0.1"
+							max="0.95"
+							step="0.05"
+							value={project?.features.autoKernConfidence ?? 0.5}
+							oninput={(ev) =>
+								projectStore.updateFeatures({
+									autoKernConfidence: Number(ev.currentTarget.value)
+								})}
+							class="flex-1"
+						/>
+						<span class="font-mono text-[11px] text-fg" data-numeric>
+							{((project?.features.autoKernConfidence ?? 0.5) * 100).toFixed(0)}%
+						</span>
+					</div>
+					<p class="mt-2 text-[11px] leading-snug">
+						Higher = sparser kerning, every emitted value is high-signal.
+						Lower = more pairs covered, some may need touch-up. 50% is the
+						sweet spot for monochrome Latin.
+					</p>
+				</details>
+			</Panel>
+
 			<!-- CPAL palette editor — color-fonts M1 day-7. Each palette is
 			     an ordered RGBA list; `ColorLayer.paletteIndex` references
 			     into it. All palettes share length (CPAL invariant). -->

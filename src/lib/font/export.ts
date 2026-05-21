@@ -13,6 +13,7 @@ import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
 import { applyDetectedFeatures, detectFeatures } from './feature-detect';
 import { buildColorFontPlan, resolveColorFontPlan } from './color-build';
+import { buildAutoKern } from './kerning-auto';
 
 type OTPath = InstanceType<typeof opentype.Path>;
 type OTGlyph = InstanceType<typeof opentype.Glyph>;
@@ -274,6 +275,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 
 	if (project.features.kern) {
 		const pairs: Record<string, number> = {};
+		// First: emit user-set pairs. These always win.
 		for (const k of project.kerning) {
 			// Skip class-based pairs — those are handled by the .fea compile step
 			if (typeof k.left === 'string' || typeof k.right === 'string') continue;
@@ -281,6 +283,26 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 			const ri = indexByCodepoint.get(k.right);
 			if (li === undefined || ri === undefined) continue;
 			pairs[`${li},${ri}`] = k.value;
+		}
+		// Auto-kern M2: layer algorithmic suggestions on top, skipping any
+		// pair the user already set (the buildAutoKern helper's userSet
+		// filter handles that). Default-on (undefined → true) so fresh
+		// exports get reasonable kerning without explicit opt-in. Skipped
+		// when no reference pair exists or autoKern is explicitly false.
+		const autoKernEnabled = project.features.autoKern !== false;
+		if (autoKernEnabled && project.kerning.length > 0) {
+			const auto = buildAutoKern(project);
+			for (const p of auto.pairs) {
+				const li = indexByCodepoint.get(p.left);
+				const ri = indexByCodepoint.get(p.right);
+				if (li === undefined || ri === undefined) continue;
+				const key = `${li},${ri}`;
+				// Belt-and-braces double-check (the auto helper already
+				// excluded these, but if a future caller bypasses that
+				// filter we never want to clobber a user value).
+				if (pairs[key] !== undefined) continue;
+				pairs[key] = p.value;
+			}
 		}
 		font.kerningPairs = pairs;
 	}
