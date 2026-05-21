@@ -29,6 +29,47 @@ What's *not* on `main` and is the sprint:
 
 ---
 
+## ⚡ Day 1-3 — DONE on `main` (2026-05-20 session)
+
+Every mutator on `projectStore` now flows through `doc.transact()`.
+The Y.Doc is the source of truth for state mutations; the legacy
+`this.project = { ... }` assignment survives in every mutator as
+defensive fallback for when `load()` is bypassed.
+
+| Day | Scope | Mutators | Commit |
+| --- | --- | --- | --- |
+| 1 | Passive Y.Doc mirror in load() | — | `9a5990b` + `022808f` |
+| 2 | upsertKerningPair on doc | 1 | `ccd7ded` |
+| 3a | Palette mutators | 5 | `04f2eda` |
+| 3b | Single-field Y.Array mutators | 7 | `290e18e` |
+| 3c | Helper-delegating + multi-field | 6 | `ce6b6ba` |
+| 3e | Root-scalar core | 5 | `8ce69e0` |
+| 3f | Root-scalar appends/toggles | 10 | `8a1c453` |
+| 3g | Cold-path glyph map | 5 | `86a56f3` |
+| 3d | Drawing hot path | 2 | `4d4ab71` |
+
+**Total: 40 mutators migrated.**
+
+**Day 3d perf concern resolved:** the round-trip cost was the
+nominal blocker for migrating `updateGlyph` (drawing hot path,
+~60 calls/sec during a brush stroke). The bench in
+`src/lib/sync/yjs-schema.bench.test.ts` (`d9ab393`) measured the
+per-call cost at synthetic project sizes:
+
+```
+[50 glyphs]   projectToYDoc 0.12ms   yDocToProject 0.02ms
+[100 glyphs]  projectToYDoc 0.16ms   yDocToProject 0.02ms
+[200 glyphs]  projectToYDoc 0.21ms   yDocToProject 0.02ms
+[500 glyphs]  projectToYDoc 0.19ms   yDocToProject 0.04ms
+```
+
+`yDocToProject` (the cost paid on every refreshFromDoc) is
+~400× under the 16ms frame budget at 60fps even at 500 glyphs.
+Patch-based reconciliation is therefore deferred indefinitely;
+plain migration through `writeGlyph` works.
+
+---
+
 ## Sprint shape — 5 to 7 days, in this order
 
 ### Day 1 — Y.Doc-backed store internals (additive, no behavioural change)
@@ -103,7 +144,7 @@ This is the bulk of the sprint. ~3-4 hours of repetitive but
 mechanical work. Each mutator gets its own unit test that exercises
 the new transactional path.
 
-### Day 4 — Wire IndexedDB persistence
+### Day 4 — Wire IndexedDB persistence (NEXT)
 
 Once mutators flow through `#doc`, the persistence layer lights up:
 
