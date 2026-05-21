@@ -399,6 +399,140 @@
 		autoKernSuggestions = autoKernSuggestions.filter((s) => s !== sug);
 	};
 
+	// ---------- Audit-kern (collision detector) ----------
+	// Walks existing kerning pairs PLUS the canonical Latin pair list and
+	// computes the visible gap after kerning is applied. Flags pairs whose
+	// gap drops below `threshold * UPM` — by default 1% UPM = 10 fu in a
+	// 1000-UPM font. Severity tiers:
+	//   - collision (gap ≤ 0): ink overlap, fix immediately
+	//   - tight (gap < threshold/2): visually crowded
+	//   - close (gap < threshold): worth a look
+	type AuditFinding = {
+		left: number;
+		right: number;
+		label: string;
+		kerning: number;
+		naturalGap: number;
+		visibleGap: number;
+		severity: 'collision' | 'tight' | 'close';
+	};
+	let auditFindings = $state<AuditFinding[]>([]);
+	let auditRunning = $state(false);
+	let auditLastRun = $state<string | null>(null);
+	let auditThresholdPct = $state(1.0); // % of UPM
+
+	const runAuditKern = () => {
+		if (!project || auditRunning) return;
+		auditRunning = true;
+		try {
+			const metrics = project.metrics;
+			const upm = metrics.unitsPerEm;
+			const threshold = Math.round((upm * auditThresholdPct) / 100);
+			const SAMPLES = 128;
+			const silCache = new Map<number, ReturnType<typeof sampleGlyphSilhouette>>();
+			const getSil = (cp: number) => {
+				let s = silCache.get(cp);
+				if (s) return s;
+				const g = project.glyphs[cp];
+				if (!g || g.contours.length === 0) return null;
+				s = sampleGlyphSilhouette(g.contours, metrics.descender, metrics.ascender, {
+					samples: SAMPLES
+				});
+				silCache.set(cp, s);
+				return s;
+			};
+
+			// Collect candidate pairs: existing kerning + canonical Latin.
+			// Skip class-references (they need a different model).
+			const seen = new Set<string>();
+			const candidates: Array<[number, number, number]> = []; // [L, R, kernValue]
+			for (const k of project.kerning) {
+				if (typeof k.left === 'string' || typeof k.right === 'string') continue;
+				const key = `${k.left}/${k.right}`;
+				if (seen.has(key)) continue;
+				seen.add(key);
+				candidates.push([k.left, k.right, k.value]);
+			}
+			for (const [l, r] of CANONICAL_LATIN_PAIRS) {
+				const key = `${l}/${r}`;
+				if (seen.has(key)) continue;
+				seen.add(key);
+				candidates.push([l, r, 0]); // not kerned yet
+			}
+
+			const findings: AuditFinding[] = [];
+			for (const [l, r, kern] of candidates) {
+				const gL = project.glyphs[l];
+				const gR = project.glyphs[r];
+				if (!gL || !gR || gL.contours.length === 0 || gR.contours.length === 0) continue;
+				const silL = getSil(l);
+				const silR = getSil(r);
+				if (!silL || !silR) continue;
+				// Compute natural gap inline (pairGap formula).
+				let naturalGap: number | null = null;
+				for (let i = 0; i < silL.length; i++) {
+					const lr = silL[i].right;
+					const rl = silR[i].left;
+					if (lr === null || rl === null) continue;
+					const gap = gL.advanceWidth + rl - lr;
+					if (naturalGap === null || gap < naturalGap) naturalGap = gap;
+				}
+				if (naturalGap === null) continue;
+				const visibleGap = naturalGap + kern;
+				if (visibleGap >= threshold) continue;
+				const severity: AuditFinding['severity'] =
+					visibleGap <= 0
+						? 'collision'
+						: visibleGap < threshold / 2
+							? 'tight'
+							: 'close';
+				findings.push({
+					left: l,
+					right: r,
+					label: String.fromCodePoint(l) + String.fromCodePoint(r),
+					kerning: kern,
+					naturalGap,
+					visibleGap,
+					severity
+				});
+			}
+			// Sort: collision first, then by visibleGap ascending (worst first).
+			findings.sort((a, b) => {
+				const sev = { collision: 0, tight: 1, close: 2 } as const;
+				if (sev[a.severity] !== sev[b.severity]) return sev[a.severity] - sev[b.severity];
+				return a.visibleGap - b.visibleGap;
+			});
+			auditFindings = findings;
+			auditLastRun = new Date().toLocaleTimeString();
+			toast.success(
+				`Audit: ${findings.length} pair${findings.length === 1 ? '' : 's'} below ${threshold} fu.`
+			);
+		} catch (err) {
+			toast.error('Audit failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			auditRunning = false;
+		}
+	};
+
+	const auditPairFix = (f: AuditFinding) => {
+		if (!project) return;
+		// Set the kern so the visible gap lands at `threshold` exactly.
+		const upm = project.metrics.unitsPerEm;
+		const threshold = Math.round((upm * auditThresholdPct) / 100);
+		const targetKern = Math.round(threshold - f.naturalGap);
+		projectStore.upsertKerningPair({
+			left: f.left,
+			right: f.right,
+			value: targetKern
+		});
+		toast.success(`Fixed ${f.label} → kern ${targetKern} fu (gap now ≈ ${threshold}).`);
+		auditFindings = auditFindings.filter((x) => x !== f);
+	};
+
+	const dismissAuditFinding = (f: AuditFinding) => {
+		auditFindings = auditFindings.filter((x) => x !== f);
+	};
+
 	// ---------- Sidebearing analyzer ----------
 	type AnalyzerCategory = 'uppercase' | 'lowercase' | 'figure' | 'all';
 	let analyzerCategory = $state<AnalyzerCategory>('lowercase');
@@ -1092,6 +1226,154 @@
 											onclick={() => dismissAutoKernSuggestion(s)}
 											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
 											aria-label="Skip this suggestion"
+											title="Skip"
+										>
+											<X class="size-3.5" />
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</Panel>
+
+	<!-- Audit-kern — collision detector. Walks existing pairs + canonical
+	     Latin and flags any whose visible gap (natural + applied kern)
+	     drops below `threshold * UPM`. Three severity tiers. Each finding
+	     has a one-click "Fix to threshold" that sets the kern to land the
+	     gap exactly at the threshold value. -->
+	<Panel>
+		<div class="mb-3 flex flex-wrap items-center gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Audit kerning
+			</h2>
+			<span
+				class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+			>
+				Local
+			</span>
+			{#if auditLastRun}
+				<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+					last run · {auditLastRun}
+				</span>
+			{/if}
+			<label class="ml-auto inline-flex items-center gap-1.5 text-[11px] text-fg-muted">
+				Threshold
+				<input
+					type="number"
+					bind:value={auditThresholdPct}
+					min="0.1"
+					max="5"
+					step="0.1"
+					class="w-14 rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-fg outline-none focus:border-accent"
+				/>
+				<span class="font-mono text-[10px] text-fg-subtle">% UPM</span>
+			</label>
+		</div>
+		<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+			Flags pairs whose visible gap (natural gap + applied kern) drops below
+			the threshold. Three tiers — <span class="text-danger-strong">collision</span>
+			(ink overlap), <span class="text-warn-strong">tight</span>, and
+			<span class="text-fg-muted">close</span>. One-click fix sets the kern
+			so the gap lands at the threshold.
+		</p>
+
+		<div class="flex flex-wrap items-center gap-2">
+			<Button density="sm" onclick={runAuditKern} loading={auditRunning}>
+				{#snippet icon()}<Wand class="size-3.5" />{/snippet}
+				{auditRunning ? 'Checking…' : 'Run audit'}
+			</Button>
+			{#if auditFindings.length > 0}
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={() => (auditFindings = [])}
+				>
+					Clear
+				</Button>
+			{/if}
+		</div>
+
+		{#if auditFindings.length > 0}
+			<div class="mt-4 overflow-hidden rounded-md border border-border">
+				<table class="w-full text-[12px]">
+					<thead>
+						<tr class="border-b border-border bg-surface-2/40 text-fg-subtle">
+							<th class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Pair
+							</th>
+							<th class="px-2 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Severity
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Kern
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Natural
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Visible
+							</th>
+							<th class="px-2 py-1.5"></th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each auditFindings as f (f.left + '/' + f.right)}
+							<tr class="border-b border-border last:border-b-0">
+								<td class="px-3 py-1.5">
+									<span class="font-mono text-[14px] text-fg">{f.label}</span>
+									<span class="ml-2 font-mono text-[10px] text-fg-subtle" data-numeric>
+										U+{f.left.toString(16).toUpperCase().padStart(4, '0')}
+										/ U+{f.right.toString(16).toUpperCase().padStart(4, '0')}
+									</span>
+								</td>
+								<td class="px-2 py-1.5">
+									<span
+										class="font-mono text-[10px] font-medium tracking-wider uppercase {f.severity ===
+										'collision'
+											? 'text-danger-strong'
+											: f.severity === 'tight'
+												? 'text-warn-strong'
+												: 'text-fg-muted'}"
+									>
+										{f.severity}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-muted" data-numeric>
+									{f.kerning}
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-muted" data-numeric>
+									{Math.round(f.naturalGap)}
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono {f.severity === 'collision'
+										? 'text-danger-strong'
+										: f.severity === 'tight'
+											? 'text-warn-strong'
+											: 'text-fg'}"
+									data-numeric
+								>
+									{Math.round(f.visibleGap)}
+								</td>
+								<td class="px-2 py-1.5 text-right">
+									<div class="flex justify-end gap-1">
+										<button
+											type="button"
+											onclick={() => auditPairFix(f)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-success-strong"
+											aria-label="Fix to threshold"
+											title="Set kern so visible gap = threshold"
+										>
+											<Check class="size-3.5" />
+										</button>
+										<button
+											type="button"
+											onclick={() => dismissAuditFinding(f)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
+											aria-label="Dismiss"
 											title="Skip"
 										>
 											<X class="size-3.5" />
