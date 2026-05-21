@@ -7,6 +7,9 @@
 	import { detectStemWidths } from '$lib/font/stem-detect';
 	import { measureSpacing, suggestSpacingFromReference } from '$lib/font/spacing';
 	import type { SpacingMeasurement } from '$lib/font/spacing';
+	import { sampleGlyphSilhouette } from '$lib/font/silhouette';
+	import { suggestKerning } from '$lib/font/kerning-suggest';
+	import { CANONICAL_LATIN_PAIRS } from '$lib/ai/kerning-suggest-core';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -260,6 +263,140 @@
 
 	const dismissAutoSpaceSuggestion = (sug: AutoSpaceSuggestion) => {
 		autoSpaceSuggestions = autoSpaceSuggestions.filter((s) => s !== sug);
+	};
+
+	// ---------- Auto-kern (silhouette-distance pair suggester) ----------
+	// Walks the canonical Latin problem-pair list and computes a kerning
+	// delta for each pair where both glyphs are drawn. Reference pair:
+	// HH when the left glyph is uppercase, nn when lowercase. Same review
+	// pattern as Auto-space — never auto-applied.
+	type AutoKernSuggestion = {
+		left: number;
+		right: number;
+		label: string; // e.g. "AV"
+		current: number;
+		suggested: number;
+		naturalGap: number;
+		targetGap: number;
+		confidence: number;
+	};
+	let autoKernSuggestions = $state<AutoKernSuggestion[]>([]);
+	let autoKernRunning = $state(false);
+	let autoKernLastRun = $state<string | null>(null);
+
+	const runAutoKern = () => {
+		if (!project || autoKernRunning) return;
+		autoKernRunning = true;
+		try {
+			const metrics = project.metrics;
+			const refH = project.glyphs[0x0048];
+			const refN = project.glyphs[0x006e];
+			const haveH = refH && refH.contours.length > 0;
+			const haveN = refN && refN.contours.length > 0;
+			if (!haveH && !haveN) {
+				toast.error(
+					'Auto-kern needs a reference pair: draw H (caps) or n (lowercase) first.'
+				);
+				return;
+			}
+
+			// Pre-compute silhouettes for the references over the full y-range.
+			const SAMPLES = 128;
+			const yBottom = metrics.descender;
+			const yTop = metrics.ascender;
+			const sampleZone = { samples: SAMPLES };
+			const refHSilhouette = haveH
+				? sampleGlyphSilhouette(refH.contours, yBottom, yTop, sampleZone)
+				: null;
+			const refNSilhouette = haveN
+				? sampleGlyphSilhouette(refN.contours, yBottom, yTop, sampleZone)
+				: null;
+
+			// Cache per-glyph silhouettes since CANONICAL_LATIN_PAIRS reuses
+			// the same glyph across many pairs.
+			const silCache = new Map<number, ReturnType<typeof sampleGlyphSilhouette>>();
+			const getSil = (cp: number) => {
+				let s = silCache.get(cp);
+				if (s) return s;
+				const g = project.glyphs[cp];
+				if (!g || g.contours.length === 0) return null;
+				s = sampleGlyphSilhouette(g.contours, yBottom, yTop, sampleZone);
+				silCache.set(cp, s);
+				return s;
+			};
+
+			const next: AutoKernSuggestion[] = [];
+			for (const [left, right] of CANONICAL_LATIN_PAIRS) {
+				const gL = project.glyphs[left];
+				const gR = project.glyphs[right];
+				if (!gL || !gR || gL.contours.length === 0 || gR.contours.length === 0) continue;
+				const silL = getSil(left);
+				const silR = getSil(right);
+				if (!silL || !silR) continue;
+				// Reference: HH if the left is uppercase, nn otherwise.
+				const isUppercaseLeft = left >= 0x0041 && left <= 0x005a;
+				const refSil = isUppercaseLeft ? refHSilhouette : refNSilhouette;
+				const refGlyph = isUppercaseLeft ? refH : refN;
+				if (!refSil || !refGlyph) continue;
+				const suggestion = suggestKerning(
+					{ silhouette: silL, advanceWidth: gL.advanceWidth },
+					{ silhouette: silR, advanceWidth: gR.advanceWidth },
+					{
+						left: { silhouette: refSil, advanceWidth: refGlyph.advanceWidth },
+						right: { silhouette: refSil, advanceWidth: refGlyph.advanceWidth }
+					}
+				);
+				if (!suggestion) continue;
+				// Find existing kerning value (if any).
+				const existing = project.kerning.find(
+					(k) => k.left === left && k.right === right
+				);
+				const current = existing?.value ?? 0;
+				// Skip suggestions within 2 fu of current — no point asking the
+				// user to confirm tiny adjustments below typical typographic
+				// noise.
+				if (Math.abs(suggestion.delta - current) < 2) continue;
+				next.push({
+					left,
+					right,
+					label: String.fromCodePoint(left) + String.fromCodePoint(right),
+					current,
+					suggested: suggestion.delta,
+					naturalGap: suggestion.naturalGap,
+					targetGap: suggestion.targetGap,
+					confidence: suggestion.confidence
+				});
+			}
+			// Sort by absolute delta from current — biggest changes first.
+			next.sort((a, b) => Math.abs(b.suggested - b.current) - Math.abs(a.suggested - a.current));
+			autoKernSuggestions = next;
+			autoKernLastRun = new Date().toLocaleTimeString();
+			toast.success(`Auto-kern: ${next.length} suggestion${next.length === 1 ? '' : 's'}.`);
+		} catch (err) {
+			toast.error('Auto-kern failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			autoKernRunning = false;
+		}
+	};
+
+	const applyAutoKern = (only?: AutoKernSuggestion[]) => {
+		const toApply = only ?? autoKernSuggestions;
+		if (!project || toApply.length === 0) return;
+		for (const s of toApply) {
+			projectStore.upsertKerningPair({
+				left: s.left,
+				right: s.right,
+				value: s.suggested
+			});
+		}
+		toast.success(
+			`Applied auto-kern to ${toApply.length} pair${toApply.length === 1 ? '' : 's'}.`
+		);
+		autoKernSuggestions = autoKernSuggestions.filter((s) => !toApply.includes(s));
+	};
+
+	const dismissAutoKernSuggestion = (sug: AutoKernSuggestion) => {
+		autoKernSuggestions = autoKernSuggestions.filter((s) => s !== sug);
 	};
 
 	// ---------- Sidebearing analyzer ----------
@@ -811,6 +948,148 @@
 										<button
 											type="button"
 											onclick={() => dismissAutoSpaceSuggestion(s)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
+											aria-label="Skip this suggestion"
+											title="Skip"
+										>
+											<X class="size-3.5" />
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</Panel>
+
+	<!-- Auto-kern — silhouette-distance pair suggester. Walks the canonical
+	     Latin problem-pair list (AV, To, Yo, Pa, …) and proposes a
+	     kerning value derived from the visible-gap formula, normalised
+	     against HH (caps) or nn (lowercase). -->
+	<Panel>
+		<div class="mb-3 flex items-center gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Auto-kern
+			</h2>
+			<span
+				class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+			>
+				Local
+			</span>
+			{#if autoKernLastRun}
+				<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+					last run · {autoKernLastRun}
+				</span>
+			{/if}
+		</div>
+		<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+			Silhouette-distance pair kerning over the canonical Latin problem set —
+			<span class="font-mono">AV · To · Yo · Pa · Ta · …</span>. Target gap matches
+			<span class="font-mono">HH</span> for cap-led pairs and
+			<span class="font-mono">nn</span> for lowercase. Suggestions are never
+			auto-applied.
+		</p>
+
+		<div class="flex flex-wrap items-center gap-2">
+			<Button density="sm" onclick={runAutoKern} loading={autoKernRunning}>
+				{#snippet icon()}<Wand class="size-3.5" />{/snippet}
+				{autoKernRunning ? 'Computing…' : 'Compute suggestions'}
+			</Button>
+			{#if autoKernSuggestions.length > 0}
+				<Button density="sm" variant="primary" onclick={() => applyAutoKern()}>
+					{#snippet icon()}<Check class="size-3.5" />{/snippet}
+					Apply all ({autoKernSuggestions.length})
+				</Button>
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={() => (autoKernSuggestions = [])}
+				>
+					Clear
+				</Button>
+			{/if}
+		</div>
+
+		{#if autoKernSuggestions.length > 0}
+			<div class="mt-4 overflow-hidden rounded-md border border-border">
+				<table class="w-full text-[12px]">
+					<thead>
+						<tr class="border-b border-border bg-surface-2/40 text-fg-subtle">
+							<th class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Pair
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Now
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Suggested
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Gap
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Conf
+							</th>
+							<th class="px-2 py-1.5"></th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each autoKernSuggestions as s (s.left + '/' + s.right)}
+							{@const delta = s.suggested - s.current}
+							<tr class="border-b border-border last:border-b-0">
+								<td class="px-3 py-1.5">
+									<span class="font-mono text-[14px] text-fg">{s.label}</span>
+									<span class="ml-2 font-mono text-[10px] text-fg-subtle" data-numeric>
+										U+{s.left.toString(16).toUpperCase().padStart(4, '0')}
+										/ U+{s.right.toString(16).toUpperCase().padStart(4, '0')}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-muted" data-numeric>
+									{s.current}
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono text-fg {delta < 0
+										? 'text-warn-strong'
+										: delta > 0
+											? 'text-accent-strong'
+											: ''}"
+									data-numeric
+									title="Natural gap: {Math.round(s.naturalGap)} fu · Target gap: {Math.round(s.targetGap)} fu"
+								>
+									{s.suggested}
+									<span class="ml-1 text-[10px] text-fg-subtle">
+										{delta > 0 ? '+' : ''}{delta}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-subtle" data-numeric>
+									{Math.round(s.naturalGap)}→{Math.round(s.targetGap)}
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono text-[11px] {s.confidence < 0.3
+										? 'text-warn-strong'
+										: s.confidence < 0.6
+											? 'text-fg-muted'
+											: 'text-success-strong'}"
+									data-numeric
+								>
+									{(s.confidence * 100).toFixed(0)}%
+								</td>
+								<td class="px-2 py-1.5 text-right">
+									<div class="flex justify-end gap-1">
+										<button
+											type="button"
+											onclick={() => applyAutoKern([s])}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-success-strong"
+											aria-label="Apply this suggestion"
+											title="Apply"
+										>
+											<Check class="size-3.5" />
+										</button>
+										<button
+											type="button"
+											onclick={() => dismissAutoKernSuggestion(s)}
 											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
 											aria-label="Skip this suggestion"
 											title="Skip"
