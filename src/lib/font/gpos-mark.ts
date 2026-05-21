@@ -41,12 +41,33 @@ export class ByteBuf {
 		return this.len;
 	}
 
+	/** Append an unsigned 8-bit integer. */
+	writeUint8(v: number): this {
+		if (!Number.isInteger(v) || v < 0 || v > 0xff)
+			throw new Error(`writeUint8 out of range: ${v}`);
+		this.ensure(1);
+		this.buf[this.len++] = v & 0xff;
+		return this;
+	}
+
 	/** Append a big-endian unsigned 16-bit integer. */
 	writeUint16(v: number): this {
 		if (!Number.isInteger(v) || v < 0 || v > 0xffff)
 			throw new Error(`writeUint16 out of range: ${v}`);
 		this.ensure(2);
 		this.buf[this.len++] = (v >> 8) & 0xff;
+		this.buf[this.len++] = v & 0xff;
+		return this;
+	}
+
+	/** Append a big-endian unsigned 32-bit integer. */
+	writeUint32(v: number): this {
+		if (!Number.isInteger(v) || v < 0 || v > 0xffffffff)
+			throw new Error(`writeUint32 out of range: ${v}`);
+		this.ensure(4);
+		this.buf[this.len++] = (v >>> 24) & 0xff;
+		this.buf[this.len++] = (v >>> 16) & 0xff;
+		this.buf[this.len++] = (v >>> 8) & 0xff;
 		this.buf[this.len++] = v & 0xff;
 		return this;
 	}
