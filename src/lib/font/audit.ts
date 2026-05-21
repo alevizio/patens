@@ -148,6 +148,42 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				break;
 			}
 		}
+
+		// Near-collinear points: three consecutive on-curve points where
+		// the middle one is within 1fu of the line between the outer
+		// two. Removing the middle point simplifies the outline without
+		// changing its visible shape — these are vestiges of editing
+		// that bloat the contour and confuse rasterisers. Only
+		// considers L (lineTo) commands — curves with collinear control
+		// points are a different story (intentional flat segments).
+		let nearCollinearCount = 0;
+		for (const c of glyph.contours) {
+			const pts: Array<{ x: number; y: number }> = [];
+			for (const cmd of c.commands) {
+				if (cmd.type === 'M' || cmd.type === 'L') pts.push({ x: cmd.x, y: cmd.y });
+				// Curves break the L→L→L sequence we're checking for
+				if (cmd.type === 'C' || cmd.type === 'Q') pts.length = 0;
+			}
+			for (let i = 1; i < pts.length - 1; i++) {
+				const a = pts[i - 1];
+				const b = pts[i];
+				const d = pts[i + 1];
+				// Distance from point b to line a→d
+				const num = Math.abs((d.y - a.y) * b.x - (d.x - a.x) * b.y + d.x * a.y - d.y * a.x);
+				const den = Math.hypot(d.x - a.x, d.y - a.y);
+				if (den < 0.001) continue;
+				const distToLine = num / den;
+				if (distToLine < 1) nearCollinearCount++;
+			}
+		}
+		if (nearCollinearCount > 0) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'near-collinear-points',
+				message: `${nearCollinearCount} point${nearCollinearCount === 1 ? '' : 's'} within 1fu of the line between neighbours — safe to remove`
+			});
+		}
 	}
 
 	// Composite references that point to empty base glyphs

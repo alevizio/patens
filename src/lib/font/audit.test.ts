@@ -243,6 +243,51 @@ describe('auditGlyph', () => {
 		expect(issues.find((i) => i.code === 'sidebearing-class-drift-lsb')).toBeUndefined();
 	});
 
+	it('flags near-collinear points (vestigial nodes on a straight segment)', () => {
+		// A "square" with an extra point planted mid-edge — that point is
+		// exactly on the line, so distance = 0 < 1fu threshold.
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100, y: 0 },
+						{ type: 'L', x: 200, y: 0 },  // mid-edge — collinear with neighbours
+						{ type: 'L', x: 200, y: 200 },
+						{ type: 'L', x: 0, y: 200 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		const ncl = issues.find((i) => i.code === 'near-collinear-points');
+		expect(ncl).toBeDefined();
+		expect(ncl?.severity).toBe('info');
+	});
+
+	it('does NOT flag a clean polygon with no near-collinear interior nodes', () => {
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100, y: 50 },  // not on a line with anyone
+						{ type: 'L', x: 200, y: 0 },
+						{ type: 'L', x: 100, y: 150 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'near-collinear-points')).toBeUndefined();
+	});
+
 	it('flags both LSB and RSB drift when both are off', () => {
 		const H = baseGlyph({ codepoint: 0x48, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
 		const L = baseGlyph({ codepoint: 0x4c, contours: [closedSquare(500)], leftSidebearing: 60, rightSidebearing: 60 });
