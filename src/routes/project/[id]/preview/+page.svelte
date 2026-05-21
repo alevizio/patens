@@ -3,6 +3,8 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { buildFont } from '$lib/font/export';
+	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
+	import { shapeText } from '$lib/font/shape';
 	import {
 		ensurePython,
 		buildVariableFont,
@@ -304,6 +306,60 @@ function rgb(hex) {
 
 	// ---------- Variable-font sandbox ----------
 	const project = $derived(projectStore.project);
+
+	// ---------- Live shaping (HarfBuzzJS + auto-features) ----------
+	// Drives the project's own font through HarfBuzz with the
+	// detected auto-features, so the user can SEE the substitutions
+	// fire as they toggle tags — no export round-trip needed.
+	let liveShapeText = $state('Aa Bb 0123 ABC');
+	let liveShapeDisabled = $state<Record<string, boolean>>({});
+	const detectedAutoFeatures = $derived(project ? detectFeatures(project.glyphs) : []);
+	const liveShape = $derived.by(() => {
+		if (!project || detectedAutoFeatures.length === 0) return null;
+		try {
+			const disableSet = new Set<string>(
+				Object.entries(liveShapeDisabled)
+					.filter(([, off]) => off)
+					.map(([tag]) => tag)
+			);
+			const { font } = buildFont(project, {
+				autoFeatures: true,
+				disableAutoFeatures: disableSet
+			});
+			const buffer = font.toArrayBuffer();
+			const shaped = shapeText(buffer, liveShapeText);
+			return { shaped, font, disableSet };
+		} catch (err) {
+			console.warn('Live shape failed:', err);
+			return null;
+		}
+	});
+	const liveShapeRenderSize = 48;
+	const liveShapeSvg = $derived.by(() => {
+		const ls = liveShape;
+		if (!ls || !project) return null;
+		const upm = project.metrics.unitsPerEm;
+		const scale = liveShapeRenderSize / upm;
+		const baselineY = liveShapeRenderSize * 0.85;
+		let cursorX = 4;
+		const paths: Array<{ d: string; advance: number }> = [];
+		for (const g of ls.shaped.glyphs) {
+			const otGlyph = ls.font.glyphs.get(g.glyphID);
+			if (!otGlyph) continue;
+			const x = cursorX + g.xOffset * scale;
+			const y = baselineY - g.yOffset * scale;
+			const p = (otGlyph as unknown as {
+				getPath: (x: number, y: number, fontSize: number) => { toPathData: (n: number) => string };
+			}).getPath(x, y, liveShapeRenderSize);
+			paths.push({ d: p.toPathData(2), advance: g.xAdvance * scale });
+			cursorX += g.xAdvance * scale;
+		}
+		return {
+			paths,
+			width: Math.max(cursorX + 4, 100),
+			height: liveShapeRenderSize * 1.25
+		};
+	});
 	const isVariable = $derived(
 		project ? (project.axes?.length ?? 0) > 0 && (project.masters?.length ?? 0) > 0 : false
 	);
@@ -752,6 +808,88 @@ function rgb(hex) {
 			<div class="mt-2 font-mono text-[11px] text-fg-subtle" data-numeric>
 				font-feature-settings: {featureSettings}
 			</div>
+		</Panel>
+
+		<!-- Live shaping panel. Shapes the project's own font through
+		     HarfBuzzJS with the detected auto-features, so the user can
+		     see substitutions fire in real time without an export hop. -->
+		<Panel>
+			<div class="mb-3 flex flex-wrap items-center gap-2">
+				<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+					Live shape (auto-features)
+				</h2>
+				<span
+					class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+				>
+					HarfBuzz
+				</span>
+			</div>
+			<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+				Toggle each detected feature to see the substitutions land. Uses your
+				project's actual GSUB tables, not the system fallback font.
+			</p>
+
+			{#if detectedAutoFeatures.length === 0}
+				<div
+					class="rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-2.5 text-[12px] text-fg-subtle"
+				>
+					No auto-features detected. Draw a glyph like
+					<span class="font-mono text-fg-muted">a.sc</span>
+					or
+					<span class="font-mono text-fg-muted">A.ss01</span>
+					next to its base — and this panel lights up.
+				</div>
+			{:else}
+				<div class="mb-3 flex flex-wrap gap-1.5">
+					{#each detectedAutoFeatures as f (f.feature)}
+						{@const off = liveShapeDisabled[f.feature]}
+						<button
+							type="button"
+							onclick={() =>
+								(liveShapeDisabled = {
+									...liveShapeDisabled,
+									[f.feature]: !off
+								})}
+							title={featureLabel(f.feature)}
+							class="inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors {off
+								? 'border-border bg-surface-2 text-fg-muted'
+								: 'border-accent bg-accent-soft text-accent-strong'}"
+						>
+							<span class="font-mono">{f.feature}</span>
+						</button>
+					{/each}
+				</div>
+				<input
+					type="text"
+					bind:value={liveShapeText}
+					class="mb-3 w-full rounded-md border border-border bg-surface px-3 py-2 font-mono text-[13px] text-fg outline-none focus:border-accent"
+					placeholder="Type a string to shape…"
+				/>
+				<div class="overflow-hidden rounded-md border border-border bg-canvas">
+					{#if liveShapeSvg}
+						<svg
+							viewBox="0 0 {liveShapeSvg.width} {liveShapeSvg.height}"
+							width="100%"
+							height={liveShapeSvg.height * 1.5}
+							preserveAspectRatio="xMinYMid meet"
+							aria-label="Shaped preview"
+						>
+							{#each liveShapeSvg.paths as p, i (i)}
+								<path d={p.d} fill="currentColor" class="text-fg" />
+							{/each}
+						</svg>
+					{:else}
+						<div class="px-3 py-2 text-[11px] text-fg-subtle">
+							Shape unavailable (HarfBuzz failed to load).
+						</div>
+					{/if}
+				</div>
+				{#if liveShape}
+					<div class="mt-2 font-mono text-[10px] text-fg-subtle" data-numeric>
+						{liveShape.shaped.glyphs.length} glyphs · {Math.round(liveShape.shaped.totalAdvance)} fu advance
+					</div>
+				{/if}
+			{/if}
 		</Panel>
 
 		<Panel>
