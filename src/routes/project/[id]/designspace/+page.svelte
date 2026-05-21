@@ -4,6 +4,7 @@
 	import { STANDARD_AXES } from '$lib/font/types';
 	import { computeMasterWeights, interpolateGlyph } from '$lib/font/interpolate';
 	import { contoursToSvgPath } from '$lib/font/path';
+	import { checkMasterCompatibility } from '$lib/font/vf-compat';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -64,6 +65,29 @@
 	});
 	const previewGlyph = $derived(project?.glyphs[projectStore.selectedCodepoint] ?? null);
 	const previewPath = $derived(previewContours ? contoursToSvgPath(previewContours) : '');
+
+	// Compatibility detail report — runs across every drawn glyph in
+	// every master, returning specific reasons for any incompatibility
+	// (contour-count, point-count, point-type, missing-in-master).
+	// Surfaces the diagnostic info that the binary "incompatible" flag
+	// in the glyph browser doesn't expose.
+	const compatReport = $derived.by(() => {
+		if (!project) return null;
+		if ((project.masters?.length ?? 0) === 0) return null;
+		return checkMasterCompatibility(project);
+	});
+	// Group issues by codepoint so the panel shows "1 issue on Á"
+	// instead of N rows for one glyph with N master mismatches.
+	const compatIssuesByCp = $derived.by(() => {
+		const map = new Map<number, Array<{ master: string; message: string; code: string }>>();
+		if (!compatReport) return map;
+		for (const issue of compatReport.issues) {
+			const arr = map.get(issue.codepoint) ?? [];
+			arr.push({ master: issue.masterName, message: issue.message, code: issue.code });
+			map.set(issue.codepoint, arr);
+		}
+		return map;
+	});
 
 	let newMasterName = $state('Bold');
 	let newMasterLocation = $state<Record<string, number>>({});
@@ -280,6 +304,55 @@
 							</details>
 						</div>
 					</div>
+				</Panel>
+			{/if}
+
+			<!-- Compatibility detail panel. Surfaces specific reasons for any
+			     glyph that fails interpolation compatibility — the binary
+			     "incompatible" flag in the glyph browser doesn't say WHY.
+			     Hidden when there are no issues or no masters. -->
+			{#if compatReport && compatReport.issues.length > 0}
+				<Panel>
+					<h2 class="mb-3 inline-flex items-center gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						<Layers class="size-3" /> Compatibility issues
+						<span
+							class="rounded-full bg-warn/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-warn-strong uppercase"
+						>
+							{compatIssuesByCp.size}
+						</span>
+					</h2>
+					<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+						These glyphs differ structurally between default and one or more
+						masters. The variable-font export will skip interpolation for them
+						and fall back to the default master's shape. Fix by editing the
+						mismatched master to match the default's contour + point count.
+					</p>
+					<ul class="grid gap-2">
+						{#each [...compatIssuesByCp.entries()] as [cp, issues] (cp)}
+							{@const ch = cp > 0x20 && cp < 0x10000 ? String.fromCodePoint(cp) : ''}
+							<li class="rounded-md border border-warn/30 bg-warn/5 p-2">
+								<div class="mb-1 flex items-baseline gap-2">
+									<span class="font-mono text-[13px] text-warn-strong">
+										{ch || `U+${cp.toString(16).toUpperCase().padStart(4, '0')}`}
+									</span>
+									<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+										U+{cp.toString(16).toUpperCase().padStart(4, '0')}
+									</span>
+								</div>
+								<ul class="grid gap-0.5 pl-1 text-[11px] text-fg-muted">
+									{#each issues as iss (iss.master + iss.code)}
+										<li class="flex items-start gap-2">
+											<span class="mt-0.5 inline-block size-1 shrink-0 rounded-full bg-warn-strong/60"></span>
+											<span>
+												<span class="font-medium text-fg">{iss.master}:</span>
+												{iss.message}
+											</span>
+										</li>
+									{/each}
+								</ul>
+							</li>
+						{/each}
+					</ul>
 				</Panel>
 			{/if}
 
