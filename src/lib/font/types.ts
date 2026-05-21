@@ -275,6 +275,24 @@ export type ProjectFeatures = {
 	 * features and is compiled into the font at export time via Pyodide+fontTools.
 	 */
 	feaSource?: string;
+	/**
+	 * Auto-detect OpenType features from glyph name suffixes (`.sc`,
+	 * `.ss01`, `.osf`, …) at export time. Defaults to `true` for new
+	 * projects; existing projects load with `undefined` → also treated
+	 * as `true` to surface the feature once the UI is in place.
+	 *
+	 * The detector runs against `project.glyphs` via
+	 * `detectFeatures()`; the writer emits GSUB lookups via opentype.js
+	 * without a Pyodide hop.
+	 */
+	autoFeatures?: boolean;
+	/**
+	 * Feature tags the user has explicitly disabled from the auto-
+	 * detection list (e.g. they drew `a.salt` glyphs as scratch and
+	 * don't want the `salt` feature shipped). Empty / undefined means
+	 * every detected feature is emitted.
+	 */
+	disabledAutoFeatures?: string[];
 };
 
 /**

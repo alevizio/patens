@@ -137,7 +137,16 @@ body {
 		// applyMarkPositioning (native binary writer + SFNT splice — no
 		// Pyodide). Pyodide is only needed for a user-edited custom .fea
 		// with features beyond the auto-generated set.
-		const { font, indexByCodepoint } = buildFont(project);
+		// Auto-features default ON when undefined (existing projects opt
+		// in implicitly); user can disable per-tag via the Features tab.
+		const autoFeatures = project.features.autoFeatures !== false;
+		const disableAutoFeatures = autoFeatures
+			? new Set(project.features.disabledAutoFeatures ?? [])
+			: undefined;
+		const { font, indexByCodepoint } = buildFont(project, {
+			autoFeatures,
+			disableAutoFeatures
+		});
 		let buffer = font.toArrayBuffer();
 
 		// Native GPOS mark feature — splice anchor positioning straight into

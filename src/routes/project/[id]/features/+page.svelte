@@ -2,6 +2,7 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { autoFeaSource } from '$lib/font/fea';
 	import { buildFont } from '$lib/font/export';
+	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
 	import {
 		ensurePython,
 		compileFeaIntoFont,
@@ -29,6 +30,26 @@
 
 	const autoSource = $derived(project ? autoFeaSource(project) : '');
 	const effectiveSource = $derived(project?.features.feaSource ?? autoSource);
+
+	// Auto-detected features from glyph name suffixes. Sub-millisecond
+	// per call (pure TS, no Pyodide); recomputed reactively when the
+	// glyph set changes.
+	const detectedFeatures = $derived(project ? detectFeatures(project.glyphs) : []);
+	const autoFeaturesEnabled = $derived(project?.features.autoFeatures !== false);
+	const disabledSet = $derived(
+		new Set<string>(project?.features.disabledAutoFeatures ?? [])
+	);
+	const toggleAutoFeature = (tag: string) => {
+		if (!project) return;
+		const current = new Set<string>(project.features.disabledAutoFeatures ?? []);
+		if (current.has(tag)) current.delete(tag);
+		else current.add(tag);
+		projectStore.updateFeatures({ disabledAutoFeatures: Array.from(current).sort() });
+	};
+	const toggleAutoFeaturesMaster = () => {
+		if (!project) return;
+		projectStore.updateFeatures({ autoFeatures: !autoFeaturesEnabled });
+	};
 
 	$effect(() => {
 		// Reset buffer when project or auto-source changes (unless user has unsaved edits)
@@ -167,10 +188,118 @@
 			<header>
 				<h1 class="text-xl font-semibold tracking-tight">OpenType features</h1>
 				<p class="text-sm text-fg-muted">
-					Edit the <code>.fea</code> source compiled into the font at export. Generated from your
-					kerning + ligature settings; customize as needed.
+					Glyph name suffixes auto-detect features at export. Edit the raw
+					<code>.fea</code> source below for anything beyond declarative tags.
 				</p>
 			</header>
+
+			<!-- Auto-detected features. Sourced from glyph name conventions
+			     (.sc / .ss01 / .osf / etc.) via detectFeatures. Each tag has a
+			     toggle; disabled tags are stored in features.disabledAutoFeatures
+			     and skipped at export. -->
+			<Panel>
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Detected features
+					</h2>
+					<span
+						class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+					>
+						Local
+					</span>
+					<label
+						class="ml-auto inline-flex items-center gap-1.5 text-[12px] text-fg-muted"
+						title="Master switch — when off, no auto-detected feature is emitted at export."
+					>
+						<input
+							type="checkbox"
+							checked={autoFeaturesEnabled}
+							onchange={toggleAutoFeaturesMaster}
+							class="size-3.5 accent-accent"
+						/>
+						Enable auto-features
+					</label>
+				</div>
+				<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+					Glyphs ending in <span class="font-mono">.sc</span>,
+					<span class="font-mono">.ss01–.ss20</span>,
+					<span class="font-mono">.osf</span>,
+					<span class="font-mono">.salt</span>, etc. auto-produce GSUB
+					substitutions. Toggle to exclude any tag from the export.
+				</p>
+
+				{#if detectedFeatures.length === 0}
+					<div class="rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-2.5 text-[12px] text-fg-subtle">
+						No suffixed glyphs detected. Draw a glyph like
+						<span class="font-mono text-fg-muted">a.sc</span> or
+						<span class="font-mono text-fg-muted">A.ss01</span> alongside its base
+						(<span class="font-mono text-fg-muted">a</span>,
+						<span class="font-mono text-fg-muted">A</span>) and the corresponding
+						feature appears here.
+					</div>
+				{:else}
+					<div class="overflow-hidden rounded-md border border-border">
+						<table class="w-full text-[12px]">
+							<thead>
+								<tr class="border-b border-border bg-surface-2/40 text-fg-subtle">
+									<th
+										class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase"
+									>
+										Tag
+									</th>
+									<th
+										class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase"
+									>
+										Feature
+									</th>
+									<th
+										class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase"
+									>
+										Members
+									</th>
+									<th
+										class="px-3 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase"
+									>
+										Enabled
+									</th>
+								</tr>
+							</thead>
+							<tbody>
+								{#each detectedFeatures as f (f.feature)}
+									{@const enabled = autoFeaturesEnabled && !disabledSet.has(f.feature)}
+									<tr class="border-b border-border last:border-b-0">
+										<td class="px-3 py-1.5">
+											<span class="font-mono text-[12px] text-fg">{f.feature}</span>
+										</td>
+										<td class="px-3 py-1.5 text-fg-muted">
+											{featureLabel(f.feature)}
+										</td>
+										<td class="px-3 py-1.5">
+											<div class="flex flex-wrap gap-1 font-mono text-[11px] text-fg-subtle">
+												{#each f.subs as s (s.from)}
+													<span title="{s.from} → {s.to}">
+														{s.from}<span class="opacity-40">→</span>{s.to}
+													</span>
+												{/each}
+											</div>
+										</td>
+										<td class="px-3 py-1.5 text-right">
+											<input
+												type="checkbox"
+												checked={enabled}
+												disabled={!autoFeaturesEnabled}
+												onchange={() => toggleAutoFeature(f.feature)}
+												class="size-3.5 accent-accent disabled:opacity-30"
+												aria-label="Enable {f.feature}"
+											/>
+										</td>
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+					</div>
+				{/if}
+			</Panel>
 
 			<Panel padding="none">
 				<div class="flex items-center justify-between border-b border-border px-4 py-2.5">
