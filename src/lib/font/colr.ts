@@ -1,5 +1,5 @@
 /**
- * COLR v0 + CPAL v0 binary writers for color-font export.
+ * COLR v0 + COLR v1 + CPAL v0 binary writers for color-font export.
  *
  * Same pattern as `gpos-mark.ts` — hand-written binary blobs we splice
  * into the SFNT via `sfnt-splice.ts`. Keeps us off opentype.js's
@@ -114,6 +114,295 @@ export const writeColrV0 = (baseGlyphs: BaseGlyphRecord[]): Uint8Array => {
 		throw new Error(`writeColrV0: size mismatch — expected ${totalSize}, got ${out.length}`);
 	}
 	return out;
+};
+
+// ---------------------------------------------------------------- COLR v1
+
+/**
+ * COLR v1 paint tree node. Discriminated union — only the minimum
+ * set of formats needed to ship the editor's gradient layers:
+ *
+ *  - PaintColrLayers (format 1): list of paints to stack
+ *  - PaintLinearGradient (format 4): linear gradient fill
+ *  - PaintRadialGradient (format 6): radial gradient fill
+ *  - PaintGlyph (format 10): clip a paint to a glyph's outline
+ *
+ * Sweep gradients (8), transforms (12+), composite (32), and the
+ * variable variants (3, 5, 7, 9, 13+) are deferred — they can
+ * extend this union without restructuring the writer.
+ */
+export type Paint =
+	| { kind: 'colrLayers'; layers: Paint[] }
+	| {
+			kind: 'linearGradient';
+			x0: number;
+			y0: number;
+			x1: number;
+			y1: number;
+			x2: number;
+			y2: number;
+			stops: ColorStop[];
+	  }
+	| {
+			kind: 'radialGradient';
+			x0: number;
+			y0: number;
+			r0: number;
+			x1: number;
+			y1: number;
+			r1: number;
+			stops: ColorStop[];
+	  }
+	| { kind: 'glyph'; glyphID: number; paint: Paint };
+
+export type ColorStop = {
+	/** 0..1 along the gradient axis. */
+	offset: number;
+	paletteIndex: number;
+	/** 0..1 alpha multiplier. Default 1. */
+	alpha?: number;
+};
+
+export type BaseGlyphPaint = {
+	glyphID: number;
+	paint: Paint;
+};
+
+/**
+ * Write a combined COLR v0 + v1 table. The v0 records remain in
+ * place (older renderers fall back to flat fills); the v1
+ * sections (BaseGlyphList, LayerList) add gradient + clipped-glyph
+ * paints. Modern renderers (CoreText, FreeType 2.13+, Chrome 98+,
+ * Firefox 89+) consume the v1 section.
+ *
+ * Layout produced:
+ *
+ *   COLR Header v1 (34 bytes)
+ *   BaseGlyphRecord[] (v0)        — sorted ascending
+ *   LayerRecord[] (v0)            — flattened in baseGlyphs order
+ *   BaseGlyphList (v1)            — sorted ascending
+ *   LayerList (v1)                — flat list of all paint roots
+ *   <paint sub-tables>            — appended after LayerList
+ *
+ * The Paint formats use Offset24 (3 bytes big-endian) — written
+ * inline below since ByteBuf doesn't have a writeUint24 helper.
+ */
+export const writeColrV1 = (
+	v0BaseGlyphs: BaseGlyphRecord[],
+	v1BaseGlyphs: BaseGlyphPaint[]
+): Uint8Array => {
+	// V0 invariant.
+	for (let i = 1; i < v0BaseGlyphs.length; i++) {
+		if (v0BaseGlyphs[i].glyphID <= v0BaseGlyphs[i - 1].glyphID) {
+			throw new Error(
+				`writeColrV1: v0 baseGlyphs must be sorted ascending by glyphID`
+			);
+		}
+	}
+	// V1 invariant.
+	for (let i = 1; i < v1BaseGlyphs.length; i++) {
+		if (v1BaseGlyphs[i].glyphID <= v1BaseGlyphs[i - 1].glyphID) {
+			throw new Error(
+				`writeColrV1: v1 baseGlyphs must be sorted ascending by glyphID`
+			);
+		}
+	}
+
+	const HEADER = 34;
+	const V0_BASE_REC = 6;
+	const V0_LAYER_REC = 4;
+	const numV0Base = v0BaseGlyphs.length;
+	const totalV0Layers = v0BaseGlyphs.reduce((s, b) => s + b.layers.length, 0);
+
+	// Encode the v1 paint tree into a single sub-table buffer, recording
+	// the offset of each top-level Paint relative to its container.
+	const v1Paints = new ByteBuf();
+	// First pass: layout each top-level paint. Each entry in v1BaseGlyphs
+	// points to its root paint via an Offset32 relative to the
+	// BaseGlyphList start. We allocate paint bytes in v1Paints + track
+	// (paint root index → offset within v1Paints).
+	const paintOffsets: number[] = [];
+	for (const r of v1BaseGlyphs) {
+		paintOffsets.push(v1Paints.length);
+		writePaint(v1Paints, r.paint);
+	}
+
+	const baseV0Off = HEADER;
+	const layerV0Off = baseV0Off + numV0Base * V0_BASE_REC;
+	const v1BaseListOff =
+		v0BaseGlyphs.length === 0 && v1BaseGlyphs.length === 0
+			? 0
+			: layerV0Off + totalV0Layers * V0_LAYER_REC;
+	// BaseGlyphList header: uint32 numRecords + records[6 each]
+	const v1BaseListSize = v1BaseGlyphs.length === 0 ? 0 : 4 + v1BaseGlyphs.length * 6;
+	const v1LayerListOff = v1BaseGlyphs.length === 0 ? 0 : v1BaseListOff + v1BaseListSize;
+	// LayerList header: uint32 numLayers + Offset32[numLayers]
+	// (Empty layer list — paint trees are inline via BaseGlyphPaintRecord.paintOffset.)
+	const v1LayerListSize = v1BaseGlyphs.length === 0 ? 0 : 4;
+	const v1PaintsOff = v1BaseGlyphs.length === 0 ? 0 : v1LayerListOff + v1LayerListSize;
+	const totalSize =
+		v1BaseGlyphs.length === 0
+			? layerV0Off + totalV0Layers * V0_LAYER_REC
+			: v1PaintsOff + v1Paints.length;
+
+	const buf = new ByteBuf();
+	buf.writeUint16(1); // version
+	buf.writeUint16(numV0Base);
+	buf.writeUint32(numV0Base === 0 ? 0 : baseV0Off);
+	buf.writeUint32(totalV0Layers === 0 ? 0 : layerV0Off);
+	buf.writeUint16(totalV0Layers);
+	buf.writeUint32(v1BaseListOff);
+	buf.writeUint32(0); // layerListOffset (we inline paint trees per record, not via LayerList refs)
+	buf.writeUint32(0); // clipListOffset
+	buf.writeUint32(0); // varIndexMapOffset
+	buf.writeUint32(0); // itemVariationStoreOffset
+
+	// V0 base glyph records
+	let layerCursor = 0;
+	for (const b of v0BaseGlyphs) {
+		buf.writeUint16(b.glyphID);
+		buf.writeUint16(layerCursor);
+		buf.writeUint16(b.layers.length);
+		layerCursor += b.layers.length;
+	}
+	// V0 layer records
+	for (const b of v0BaseGlyphs) {
+		for (const l of b.layers) {
+			buf.writeUint16(l.glyphID);
+			buf.writeUint16(l.paletteIndex);
+		}
+	}
+
+	// V1 BaseGlyphList
+	if (v1BaseGlyphs.length > 0) {
+		buf.writeUint32(v1BaseGlyphs.length);
+		// Each record: uint16 glyphID + Offset32 paintOffset (from
+		// BaseGlyphList start). The paint sits in v1Paints, whose offset
+		// from the BaseGlyphList start is v1PaintsOff - v1BaseListOff.
+		const paintsFromBaseList = v1PaintsOff - v1BaseListOff;
+		for (let i = 0; i < v1BaseGlyphs.length; i++) {
+			buf.writeUint16(v1BaseGlyphs[i].glyphID);
+			buf.writeUint32(paintsFromBaseList + paintOffsets[i]);
+		}
+		// V1 LayerList (empty — the spec requires the offset to be present
+		// in the header IF the table has layers referenced by index, but
+		// inline paint trees don't need it. We still write an empty header
+		// so the table reads cleanly; the headerOffset for it is 0 so
+		// renderers skip the empty list.)
+		buf.writeUint32(0);
+		// V1 Paint sub-tables
+		buf.writeBytes(v1Paints.toUint8Array());
+	}
+
+	const out = buf.toUint8Array();
+	if (out.length !== totalSize) {
+		throw new Error(`writeColrV1: size mismatch — expected ${totalSize}, got ${out.length}`);
+	}
+	return out;
+};
+
+// Helpers for the variable-length paint sub-tables. Offset24 is
+// written as 3 bytes big-endian; F2DOT14 is a fixed-point 16-bit
+// 0..1 (or signed) — 0x0000 = 0.0, 0x4000 = 1.0.
+
+const writeUint24 = (buf: ByteBuf, v: number): void => {
+	if (!Number.isInteger(v) || v < 0 || v > 0xffffff) {
+		throw new Error(`writeUint24 out of range: ${v}`);
+	}
+	buf.writeUint8((v >> 16) & 0xff);
+	buf.writeUint8((v >> 8) & 0xff);
+	buf.writeUint8(v & 0xff);
+};
+
+const writeF2Dot14 = (buf: ByteBuf, v: number): void => {
+	// Spec range −2 .. ~1.999.... Clamp to that.
+	const clamped = Math.max(-2, Math.min(1.99993896484375, v));
+	const fixed = Math.round(clamped * 16384);
+	buf.writeInt16(fixed);
+};
+
+const writePaint = (buf: ByteBuf, paint: Paint): void => {
+	if (paint.kind === 'colrLayers') {
+		// Format 1: PaintColrLayers — but to avoid needing a real LayerList,
+		// we DON'T emit format 1 for v1 yet. Single-layer paints are wrapped
+		// in PaintGlyph directly. Multi-layer paths require the LayerList
+		// path which is future work.
+		throw new Error(
+			'writePaint: PaintColrLayers (format 1) not yet supported — wrap single PaintGlyph per layer instead'
+		);
+	}
+	if (paint.kind === 'glyph') {
+		// Format 10: PaintGlyph.
+		//   uint8 format = 10
+		//   Offset24 paintOffset (from start of this Paint)
+		//   uint16 glyphID
+		// Total: 6 bytes header + the nested paint.
+		const startOff = buf.length;
+		buf.writeUint8(10);
+		// Offset24 — paint sits immediately after the 6-byte header
+		writeUint24(buf, 6);
+		buf.writeUint16(paint.glyphID);
+		const after = buf.length;
+		if (after - startOff !== 6) {
+			throw new Error('writePaint glyph: header byte count drift');
+		}
+		writePaint(buf, paint.paint);
+		return;
+	}
+	if (paint.kind === 'linearGradient') {
+		// Format 4: PaintLinearGradient.
+		//   uint8 format = 4
+		//   Offset24 colorLineOffset (from start of this Paint)
+		//   FWORD x0, y0, x1, y1, x2, y2
+		// Total: 4 + 12 = 16 bytes header + ColorLine.
+		buf.writeUint8(4);
+		writeUint24(buf, 16); // ColorLine sits right after the 16-byte header
+		buf.writeInt16(Math.round(paint.x0));
+		buf.writeInt16(Math.round(paint.y0));
+		buf.writeInt16(Math.round(paint.x1));
+		buf.writeInt16(Math.round(paint.y1));
+		buf.writeInt16(Math.round(paint.x2));
+		buf.writeInt16(Math.round(paint.y2));
+		writeColorLine(buf, paint.stops);
+		return;
+	}
+	if (paint.kind === 'radialGradient') {
+		// Format 6: PaintRadialGradient.
+		//   uint8 format = 6
+		//   Offset24 colorLineOffset (from start of this Paint)
+		//   FWORD x0, y0
+		//   UFWORD r0
+		//   FWORD x1, y1
+		//   UFWORD r1
+		// Total: 4 + 12 = 16 bytes header + ColorLine.
+		buf.writeUint8(6);
+		writeUint24(buf, 16);
+		buf.writeInt16(Math.round(paint.x0));
+		buf.writeInt16(Math.round(paint.y0));
+		buf.writeUint16(Math.max(0, Math.round(paint.r0)));
+		buf.writeInt16(Math.round(paint.x1));
+		buf.writeInt16(Math.round(paint.y1));
+		buf.writeUint16(Math.max(0, Math.round(paint.r1)));
+		writeColorLine(buf, paint.stops);
+		return;
+	}
+};
+
+const writeColorLine = (buf: ByteBuf, stops: ColorStop[]): void => {
+	// ColorLine:
+	//   uint8 extend (= 0 pad)
+	//   uint16 numStops
+	//   ColorStop[numStops]:
+	//     F2DOT14 stopOffset
+	//     uint16 paletteIndex
+	//     F2DOT14 alpha
+	buf.writeUint8(0);
+	buf.writeUint16(stops.length);
+	for (const s of stops) {
+		writeF2Dot14(buf, s.offset);
+		buf.writeUint16(s.paletteIndex);
+		writeF2Dot14(buf, s.alpha ?? 1);
+	}
 };
 
 // ---------------------------------------------------------------- CPAL v0

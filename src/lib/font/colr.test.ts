@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { applyColorFontTables, writeColrV0, writeCpalV0 } from './colr';
+import { applyColorFontTables, writeColrV0, writeColrV1, writeCpalV0 } from './colr';
 import { parseSfntDirectory, computeTableChecksum, getTableBytes } from './sfnt-splice';
 import type { ColorPalette } from './types';
 
@@ -108,6 +108,160 @@ describe('writeColrV0', () => {
 				{ glyphID: 50, layers: [{ glyphID: 500, paletteIndex: 0 }] },
 				{ glyphID: 50, layers: [{ glyphID: 501, paletteIndex: 1 }] }
 			])
+		).toThrow();
+	});
+});
+
+describe('writeColrV1', () => {
+	it('emits version 1 header with v1 BaseGlyphList offset when v1 records present', () => {
+		const colr = writeColrV1(
+			[],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'glyph',
+						glyphID: 5,
+						paint: {
+							kind: 'linearGradient',
+							x0: 0,
+							y0: 0,
+							x1: 100,
+							y1: 0,
+							x2: 0,
+							y2: 100,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1 }
+							]
+						}
+					}
+				}
+			]
+		);
+		expect(u16(colr, 0)).toBe(1); // version
+		expect(u16(colr, 2)).toBe(0); // numV0BaseRecords
+		// v1 BaseGlyphList offset at header bytes 14..17
+		const v1BaseListOff = u32(colr, 14);
+		expect(v1BaseListOff).toBeGreaterThan(0);
+		// First 4 bytes of BaseGlyphList = numV1Records (= 1)
+		expect(u32(colr, v1BaseListOff)).toBe(1);
+		// Next: uint16 glyphID, uint32 paintOffset
+		expect(u16(colr, v1BaseListOff + 4)).toBe(5);
+	});
+
+	it('emits PaintGlyph wrapping PaintLinearGradient at the right offset', () => {
+		const colr = writeColrV1(
+			[],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'glyph',
+						glyphID: 5,
+						paint: {
+							kind: 'linearGradient',
+							x0: 10,
+							y0: 20,
+							x1: 30,
+							y1: 40,
+							x2: 50,
+							y2: 60,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1, alpha: 0.5 }
+							]
+						}
+					}
+				}
+			]
+		);
+		// Walk the structure to find the paint
+		const v1BaseListOff = u32(colr, 14);
+		const paintOffFromBaseList = u32(colr, v1BaseListOff + 6);
+		const paintOff = v1BaseListOff + paintOffFromBaseList;
+		// Paint format = 10 (PaintGlyph)
+		expect(colr[paintOff]).toBe(10);
+		// Next 3 bytes: Offset24 to nested paint, = 6 (header is 6 bytes)
+		expect(colr[paintOff + 1]).toBe(0);
+		expect(colr[paintOff + 2]).toBe(0);
+		expect(colr[paintOff + 3]).toBe(6);
+		// uint16 glyphID = 5
+		expect(u16(colr, paintOff + 4)).toBe(5);
+		// Linear gradient at paintOff + 6
+		expect(colr[paintOff + 6]).toBe(4);
+	});
+
+	it('writes BOTH v0 and v1 records when both supplied', () => {
+		const colr = writeColrV1(
+			[{ glyphID: 3, layers: [{ glyphID: 7, paletteIndex: 0 }] }],
+			[
+				{
+					glyphID: 5,
+					paint: {
+						kind: 'glyph',
+						glyphID: 5,
+						paint: {
+							kind: 'linearGradient',
+							x0: 0,
+							y0: 0,
+							x1: 100,
+							y1: 0,
+							x2: 0,
+							y2: 100,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1 }
+							]
+						}
+					}
+				}
+			]
+		);
+		expect(u16(colr, 0)).toBe(1); // version
+		expect(u16(colr, 2)).toBe(1); // numV0BaseRecords
+		expect(u32(colr, 14)).toBeGreaterThan(0); // v1 baseList offset
+	});
+
+	it('rejects v1 records out of glyphID order', () => {
+		expect(() =>
+			writeColrV1(
+				[],
+				[
+					{
+						glyphID: 5,
+						paint: {
+							kind: 'linearGradient',
+							x0: 0,
+							y0: 0,
+							x1: 100,
+							y1: 0,
+							x2: 0,
+							y2: 100,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1 }
+							]
+						}
+					},
+					{
+						glyphID: 3,
+						paint: {
+							kind: 'linearGradient',
+							x0: 0,
+							y0: 0,
+							x1: 100,
+							y1: 0,
+							x2: 0,
+							y2: 100,
+							stops: [
+								{ offset: 0, paletteIndex: 0 },
+								{ offset: 1, paletteIndex: 1 }
+							]
+						}
+					}
+				]
+			)
 		).toThrow();
 	});
 });
