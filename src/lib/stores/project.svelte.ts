@@ -32,6 +32,8 @@ import { aglfnName } from '$lib/font/aglfn';
 import * as Y from 'yjs';
 import { projectToYDoc, yDocToProject } from '$lib/sync/yjs-schema';
 import { bindIndexedDb, type ProjectPersistence } from '$lib/sync/yjs-persistence';
+import { connectToPartyKit, type NetworkConnection } from '$lib/sync/yjs-network';
+import { env } from '$env/dynamic/public';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -74,6 +76,14 @@ class ProjectStore {
 	 * picks up where the previous session left off.
 	 */
 	private persistence: ProjectPersistence | null = null;
+	/**
+	 * Phase C Day 5 — y-partykit network binding for cross-machine
+	 * collab. Only connects when `PUBLIC_PARTYKIT_HOST` is set in the
+	 * environment; without it (current default), this stays null and
+	 * IDB-only sync (cross-tab via BroadcastChannel, persistence
+	 * across reloads) is the only persistence layer.
+	 */
+	private network: NetworkConnection | null = null;
 
 	getDoc(): Y.Doc | null {
 		return this.doc;
@@ -99,6 +109,10 @@ class ProjectStore {
 		if (this.docUpdateUnsubscribe) {
 			this.docUpdateUnsubscribe();
 			this.docUpdateUnsubscribe = null;
+		}
+		if (this.network) {
+			this.network.destroy();
+			this.network = null;
 		}
 		if (this.persistence) {
 			this.persistence.destroy();
@@ -151,6 +165,16 @@ class ProjectStore {
 		// NOW it's safe to subscribe — future writes propagate.
 		d.on('update', this.refreshFromDoc);
 		this.docUpdateUnsubscribe = () => d.off('update', this.refreshFromDoc);
+
+		// Phase C Day 5 — opt-in PartyKit cross-machine sync. Only
+		// connects when PUBLIC_PARTYKIT_HOST is configured; without it
+		// IDB-only persistence is the default. Connection is per-room
+		// keyed by project ID — sharing the same `/share/<id>` URL
+		// joins the same room.
+		const partyKitHost = env.PUBLIC_PARTYKIT_HOST?.trim();
+		if (partyKitHost) {
+			this.network = connectToPartyKit(d, project.id, { host: partyKitHost });
+		}
 
 		const finalProject = this.project!;
 		const codepoints = Object.keys(finalProject.glyphs).map(Number);
@@ -246,6 +270,10 @@ class ProjectStore {
 		if (this.docUpdateUnsubscribe) {
 			this.docUpdateUnsubscribe();
 			this.docUpdateUnsubscribe = null;
+		}
+		if (this.network) {
+			this.network.destroy();
+			this.network = null;
 		}
 		if (this.persistence) {
 			this.persistence.destroy();

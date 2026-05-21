@@ -35,6 +35,7 @@
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
+	import Share2 from '@lucide/svelte/icons/share-2';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -650,6 +651,23 @@
 					</button>
 					<StatsPopover open={statsOpen} onclose={() => (statsOpen = false)} />
 				</div>
+				<button
+					type="button"
+					onclick={async () => {
+						const url = `${location.origin}/share/${id}`;
+						try {
+							await navigator.clipboard.writeText(url);
+							t.success('Share link copied');
+						} catch {
+							t.warn('Could not copy — link: ' + url);
+						}
+					}}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Copy share link"
+					title="Copy share link (read-only viewer)"
+				>
+					<Share2 class="size-3.5" />
+				</button>
 				<button
 					type="button"
 					onclick={() => projectStore.toggleLock()}
