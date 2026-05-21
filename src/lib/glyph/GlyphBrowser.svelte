@@ -3,11 +3,13 @@
 	import { toast } from '$lib/stores/toast.svelte';
 	import { CATEGORY_LABELS, CATEGORY_ORDER, type GlyphCategory } from '$lib/font/glyph-set';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
+	import { findComposableCandidates } from '$lib/font/decompose';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
+	import Wand from '@lucide/svelte/icons/wand-sparkles';
 
 	let query = $state('');
 	let showAddForm = $state(false);
@@ -49,6 +51,26 @@
 
 	let bulkMode = $state(false);
 	let selectedCodepoints = $state<Set<number>>(new Set());
+
+	// Composable-glyph scan — runs against the current project state.
+	// Reactive: re-evaluates whenever glyphs change (e.g. user drew the
+	// missing combining mark, suddenly more accented forms become
+	// composable).
+	const composableCandidates = $derived.by(() => {
+		if (!projectStore.project) return [];
+		return findComposableCandidates(projectStore.project);
+	});
+
+	const runAutoCompose = () => {
+		const cands = composableCandidates;
+		if (cands.length === 0) return;
+		for (const c of cands) {
+			projectStore.applyComposite(c.codepoint, c.references);
+		}
+		toast.success(
+			`Auto-composed ${cands.length} accented glyph${cands.length === 1 ? '' : 's'}.`
+		);
+	};
 
 	const toggleSelect = (cp: number) => {
 		const next = new Set(selectedCodepoints);
@@ -345,6 +367,18 @@
 					</div>
 				{/if}
 			</div>
+			{#if composableCandidates.length > 0}
+				<button
+					type="button"
+					onclick={runAutoCompose}
+					class="inline-flex h-6 items-center gap-1 rounded-md border border-accent/40 bg-accent-soft/60 px-1.5 text-[11px] font-medium text-accent-strong transition-colors hover:bg-accent-soft"
+					aria-label="Auto-compose accented glyphs from base + marks"
+					title="Auto-compose {composableCandidates.length} accented glyph{composableCandidates.length === 1 ? '' : 's'} from existing base + combining marks"
+				>
+					<Wand class="size-3" />
+					Compose {composableCandidates.length}
+				</button>
+			{/if}
 			<button
 				type="button"
 				onclick={() => {
