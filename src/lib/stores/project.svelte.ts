@@ -324,13 +324,10 @@ class ProjectStore {
 	}
 
 	updateTags(tags: string[]) {
-		if (!this.project) return;
-		if (this.project.locked) return;
 		const cleaned = Array.from(
 			new Set(tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0))
 		);
-		this.project = { ...this.project, tags: cleaned };
-		this.touch();
+		this.withRootScalar('tags', cleaned);
 	}
 
 	updateGlyph(codepoint: number, mut: (g: Glyph) => Glyph) {
@@ -434,100 +431,68 @@ class ProjectStore {
 
 	addChangelogEntry(entry: { version: string; notes: string }) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const next: import('$lib/font/types').ChangelogEntry = {
 			id: crypto.randomUUID(),
 			version: entry.version.trim() || this.project.metadata.version,
 			date: new Date().toISOString(),
 			notes: entry.notes.trim()
 		};
-		this.project = {
-			...this.project,
-			changelog: [next, ...(this.project.changelog ?? [])]
-		};
-		this.touch();
+		this.withRootScalar('changelog', [next, ...(this.project.changelog ?? [])]);
 	}
 
 	addDecision(entry: { decision: string; rationale: string }) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const next: import('$lib/font/types').DecisionEntry = {
 			id: crypto.randomUUID(),
 			date: new Date().toISOString(),
 			decision: entry.decision.trim(),
 			rationale: entry.rationale.trim()
 		};
-		this.project = {
-			...this.project,
-			decisions: [next, ...(this.project.decisions ?? [])]
-		};
-		this.touch();
+		this.withRootScalar('decisions', [next, ...(this.project.decisions ?? [])]);
 	}
 
 	removeDecision(id: string) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			decisions: (this.project.decisions ?? []).filter((e) => e.id !== id)
-		};
-		this.touch();
+		this.withRootScalar(
+			'decisions',
+			(this.project.decisions ?? []).filter((e) => e.id !== id)
+		);
 	}
 
 	removeChangelogEntry(id: string) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			changelog: (this.project.changelog ?? []).filter((e) => e.id !== id)
-		};
-		this.touch();
+		this.withRootScalar(
+			'changelog',
+			(this.project.changelog ?? []).filter((e) => e.id !== id)
+		);
 	}
 
 	updateSamples(mut: Partial<import('$lib/font/types').ProjectSamples>) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			samples: { ...(this.project.samples ?? {}), ...mut }
-		};
-		this.touch();
+		this.withRootScalar('samples', { ...(this.project.samples ?? {}), ...mut });
 	}
 
 	toggleSpecimenSection(id: string) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const cur = this.project.specimenSections ?? {};
 		// undefined means "on"; once toggled, store explicit boolean
-		const next = { ...cur, [id]: !(cur[id] ?? true) };
-		this.project = { ...this.project, specimenSections: next };
-		this.touch();
+		this.withRootScalar('specimenSections', { ...cur, [id]: !(cur[id] ?? true) });
 	}
 
 	resetReleaseChecks() {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = { ...this.project, releaseChecks: {} };
-		this.touch();
+		this.withRootScalar('releaseChecks', {});
 	}
 
 	toggleReleaseCheck(id: string) {
 		if (!this.project) return;
-		if (this.project.locked) return;
 		const next = { ...(this.project.releaseChecks ?? {}) };
 		next[id] = !next[id];
-		this.project = { ...this.project, releaseChecks: next };
-		this.touch();
+		this.withRootScalar('releaseChecks', next);
 	}
 
 	updateBrief(mut: Partial<import('$lib/font/types').ProjectBrief>) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			brief: { ...(this.project.brief ?? {}), ...mut }
-		};
-		this.touch();
+		this.withRootScalar('brief', { ...(this.project.brief ?? {}), ...mut });
 	}
 
 	/**
