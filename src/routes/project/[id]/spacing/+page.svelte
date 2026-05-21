@@ -5,6 +5,8 @@
 	import { isClassRef, type KerningSide } from '$lib/font/types';
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
 	import { detectStemWidths } from '$lib/font/stem-detect';
+	import { measureSpacing, suggestSpacingFromReference } from '$lib/font/spacing';
+	import type { SpacingMeasurement } from '$lib/font/spacing';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -132,6 +134,133 @@
 	const playgroundFeatures = $derived(
 		`'kern' ${playgroundKern ? 1 : 0}, 'liga' ${playgroundLiga ? 1 : 0}`
 	);
+
+	// ---------- Auto-space (silhouette-area suggester) ----------
+	// Uses the deterministic spacing.ts algorithm (HTLetterSpacer-style
+	// area-normalised method). References: 'H' for caps, 'n' for lowercase.
+	// Suggestions are NEVER auto-applied — the user reviews + confirms.
+	type AutoSpaceSuggestion = {
+		codepoint: number;
+		char: string;
+		category: 'uppercase' | 'lowercase';
+		currentLsb: number;
+		currentRsb: number;
+		suggestedLsb: number;
+		suggestedRsb: number;
+		confidence: number;
+	};
+	let autoSpaceSuggestions = $state<AutoSpaceSuggestion[]>([]);
+	let autoSpaceRunning = $state(false);
+	let autoSpaceLastRun = $state<string | null>(null);
+
+	const runAutoSpace = () => {
+		if (!project || autoSpaceRunning) return;
+		autoSpaceRunning = true;
+		try {
+			const metrics = project.metrics;
+			const refH = project.glyphs[0x0048]; // H
+			const refN = project.glyphs[0x006e]; // n
+			const haveH = refH && refH.contours.length > 0;
+			const haveN = refN && refN.contours.length > 0;
+			if (!haveH && !haveN) {
+				toast.error(
+					'Auto-space needs a reference glyph drawn first — H for uppercase, n for lowercase.'
+				);
+				return;
+			}
+
+			// Measure references in their respective zones.
+			let refMeasurementCaps: SpacingMeasurement | null = null;
+			if (haveH) {
+				refMeasurementCaps = measureSpacing(refH.contours, {
+					bottom: 0,
+					top: metrics.capHeight
+				});
+			}
+			let refMeasurementLower: SpacingMeasurement | null = null;
+			if (haveN) {
+				refMeasurementLower = measureSpacing(refN.contours, {
+					bottom: 0,
+					top: metrics.xHeight
+				});
+			}
+
+			const next: AutoSpaceSuggestion[] = [];
+			for (const g of Object.values(project.glyphs)) {
+				if (g.contours.length === 0) continue;
+				if (g.codepoint === 0x0048 || g.codepoint === 0x006e) continue; // skip refs
+				// Categorise by codepoint range — basic Latin only.
+				let category: 'uppercase' | 'lowercase' | null = null;
+				if (g.codepoint >= 0x0041 && g.codepoint <= 0x005a) category = 'uppercase';
+				else if (g.codepoint >= 0x0061 && g.codepoint <= 0x007a) category = 'lowercase';
+				if (!category) continue;
+				const ref = category === 'uppercase' ? refMeasurementCaps : refMeasurementLower;
+				const refGlyph = category === 'uppercase' ? refH : refN;
+				if (!ref || !refGlyph) continue;
+				const zoneTop = category === 'uppercase' ? metrics.capHeight : metrics.xHeight;
+				const m = measureSpacing(g.contours, { bottom: 0, top: zoneTop });
+				if (!m) continue;
+				const suggestion = suggestSpacingFromReference(m, {
+					measurement: ref,
+					leftSidebearing: refGlyph.leftSidebearing,
+					rightSidebearing: refGlyph.rightSidebearing
+				});
+				// Skip suggestions that match current sidebearings within 1 fu — no
+				// point asking the user to confirm a no-op.
+				if (
+					Math.abs(suggestion.leftSidebearing - g.leftSidebearing) < 1 &&
+					Math.abs(suggestion.rightSidebearing - g.rightSidebearing) < 1
+				) {
+					continue;
+				}
+				next.push({
+					codepoint: g.codepoint,
+					char: String.fromCodePoint(g.codepoint),
+					category,
+					currentLsb: g.leftSidebearing,
+					currentRsb: g.rightSidebearing,
+					suggestedLsb: suggestion.leftSidebearing,
+					suggestedRsb: suggestion.rightSidebearing,
+					confidence: suggestion.confidence
+				});
+			}
+			next.sort((a, b) => a.codepoint - b.codepoint);
+			autoSpaceSuggestions = next;
+			autoSpaceLastRun = new Date().toLocaleTimeString();
+			toast.success(`Auto-space: ${next.length} suggestion${next.length === 1 ? '' : 's'}.`);
+		} catch (err) {
+			toast.error('Auto-space failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			autoSpaceRunning = false;
+		}
+	};
+
+	const applyAutoSpace = (only?: AutoSpaceSuggestion[]) => {
+		const toApply = only ?? autoSpaceSuggestions;
+		if (!project || toApply.length === 0) return;
+		for (const s of toApply) {
+			projectStore.updateGlyph(s.codepoint, (gg) => {
+				const bboxW = Math.max(
+					0,
+					gg.advanceWidth - gg.leftSidebearing - gg.rightSidebearing
+				);
+				return {
+					...gg,
+					leftSidebearing: s.suggestedLsb,
+					rightSidebearing: s.suggestedRsb,
+					advanceWidth: s.suggestedLsb + bboxW + s.suggestedRsb
+				};
+			});
+		}
+		toast.success(
+			`Applied auto-space to ${toApply.length} glyph${toApply.length === 1 ? '' : 's'}.`
+		);
+		autoSpaceSuggestions = autoSpaceSuggestions.filter((s) => !toApply.includes(s));
+	};
+
+	const dismissAutoSpaceSuggestion = (sug: AutoSpaceSuggestion) => {
+		autoSpaceSuggestions = autoSpaceSuggestions.filter((s) => s !== sug);
+	};
 
 	// ---------- Sidebearing analyzer ----------
 	type AnalyzerCategory = 'uppercase' | 'lowercase' | 'figure' | 'all';
@@ -540,6 +669,163 @@
 			Per-glyph sidebearings are edited in the glyph editor. Set kerning pairs here.
 		</p>
 	</header>
+
+	<!-- Auto-space — silhouette-area suggester. Uses 'H' as the cap
+	     reference and 'n' as the lowercase reference; computes a target
+	     sidebearing per glyph that makes its visible whitespace match
+	     the reference. The user always reviews and applies. -->
+	<Panel>
+		<div class="mb-3 flex items-center gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Auto-space
+			</h2>
+			<span
+				class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+			>
+				Local
+			</span>
+			{#if autoSpaceLastRun}
+				<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+					last run · {autoSpaceLastRun}
+				</span>
+			{/if}
+		</div>
+		<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+			Silhouette-area sidebearings, normalised against
+			<span class="font-mono">H</span> (caps) and
+			<span class="font-mono">n</span> (lowercase). Pure-local algorithm — no API
+			calls, sub-millisecond per glyph. Suggestions are never auto-applied; review and
+			confirm.
+		</p>
+
+		<div class="flex flex-wrap items-center gap-2">
+			<Button density="sm" onclick={runAutoSpace} loading={autoSpaceRunning}>
+				{#snippet icon()}<Wand class="size-3.5" />{/snippet}
+				{autoSpaceRunning ? 'Computing…' : 'Compute suggestions'}
+			</Button>
+			{#if autoSpaceSuggestions.length > 0}
+				<Button density="sm" variant="primary" onclick={() => applyAutoSpace()}>
+					{#snippet icon()}<Check class="size-3.5" />{/snippet}
+					Apply all ({autoSpaceSuggestions.length})
+				</Button>
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={() => (autoSpaceSuggestions = [])}
+				>
+					Clear
+				</Button>
+			{/if}
+		</div>
+
+		{#if autoSpaceSuggestions.length > 0}
+			<div class="mt-4 overflow-hidden rounded-md border border-border">
+				<table class="w-full text-[12px]">
+					<thead>
+						<tr class="border-b border-border bg-surface-2/40 text-fg-subtle">
+							<th class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Glyph
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								LSB
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								→ LSB
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								RSB
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								→ RSB
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Conf
+							</th>
+							<th class="px-2 py-1.5"></th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each autoSpaceSuggestions as s (s.codepoint)}
+							{@const dLsb = s.suggestedLsb - s.currentLsb}
+							{@const dRsb = s.suggestedRsb - s.currentRsb}
+							<tr class="border-b border-border last:border-b-0">
+								<td class="px-3 py-1.5">
+									<span class="mr-2 font-mono text-[14px] text-fg">{s.char}</span>
+									<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+										U+{s.codepoint.toString(16).toUpperCase().padStart(4, '0')}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-muted" data-numeric>
+									{s.currentLsb}
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono text-fg {dLsb < 0
+										? 'text-warn-strong'
+										: dLsb > 0
+											? 'text-accent-strong'
+											: ''}"
+									data-numeric
+								>
+									{s.suggestedLsb}
+									<span class="ml-1 text-[10px] text-fg-subtle">
+										{dLsb > 0 ? '+' : ''}{dLsb}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-muted" data-numeric>
+									{s.currentRsb}
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono text-fg {dRsb < 0
+										? 'text-warn-strong'
+										: dRsb > 0
+											? 'text-accent-strong'
+											: ''}"
+									data-numeric
+								>
+									{s.suggestedRsb}
+									<span class="ml-1 text-[10px] text-fg-subtle">
+										{dRsb > 0 ? '+' : ''}{dRsb}
+									</span>
+								</td>
+								<td
+									class="px-2 py-1.5 text-right font-mono text-[11px] {s.confidence < 0.3
+										? 'text-warn-strong'
+										: s.confidence < 0.6
+											? 'text-fg-muted'
+											: 'text-success-strong'}"
+									data-numeric
+								>
+									{(s.confidence * 100).toFixed(0)}%
+								</td>
+								<td class="px-2 py-1.5 text-right">
+									<div class="flex justify-end gap-1">
+										<button
+											type="button"
+											onclick={() => applyAutoSpace([s])}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-success-strong"
+											aria-label="Apply this suggestion"
+											title="Apply"
+										>
+											<Check class="size-3.5" />
+										</button>
+										<button
+											type="button"
+											onclick={() => dismissAutoSpaceSuggestion(s)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
+											aria-label="Skip this suggestion"
+											title="Skip"
+										>
+											<X class="size-3.5" />
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</Panel>
 
 	<Panel>
 		<div class="mb-3 flex items-center gap-2">
