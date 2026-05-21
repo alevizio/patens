@@ -66,6 +66,55 @@
 	const previewGlyph = $derived(project?.glyphs[projectStore.selectedCodepoint] ?? null);
 	const previewPath = $derived(previewContours ? contoursToSvgPath(previewContours) : '');
 
+	// Sample-word preview: typesets a designer-controlled string at
+	// the same axis location, so the designer can see how multiple
+	// glyphs interpolate together (kerning + side-by-side rhythm,
+	// not just one glyph in isolation).
+	let sampleText = $state('Hello');
+	const interpolateGlyphAt = (cp: number): { path: string; advance: number } | null => {
+		if (!project) return null;
+		const defaultGlyph = project.glyphs[cp];
+		if (!defaultGlyph || defaultGlyph.contours.length === 0) return null;
+		if (previewWeights.length <= 1) {
+			return {
+				path: contoursToSvgPath(defaultGlyph.contours),
+				advance: defaultGlyph.advanceWidth
+			};
+		}
+		const samples = previewWeights
+			.map((w) => {
+				const g = w.id
+					? (project.masters ?? []).find((m) => m.id === w.id)?.glyphs?.[cp] ?? defaultGlyph
+					: defaultGlyph;
+				return { glyph: g, weight: w.weight };
+			})
+			.filter((s) => s.weight > 0);
+		const out = interpolateGlyph(samples);
+		return {
+			path: contoursToSvgPath(out ?? defaultGlyph.contours),
+			advance: defaultGlyph.advanceWidth
+		};
+	};
+	const sampleTypeset = $derived.by(() => {
+		if (!project) return { glyphs: [], width: 0 };
+		const out: Array<{ char: string; path: string; x: number; w: number }> = [];
+		let x = 0;
+		for (const ch of [...sampleText]) {
+			const cp = ch.codePointAt(0) ?? 0;
+			const g = interpolateGlyphAt(cp);
+			if (!g) {
+				// Missing glyph — render a hollow box at half-em width.
+				const w = Math.round(project.metrics.unitsPerEm * 0.5);
+				out.push({ char: ch, path: '', x, w });
+				x += w;
+				continue;
+			}
+			out.push({ char: ch, path: g.path, x, w: g.advance });
+			x += g.advance;
+		}
+		return { glyphs: out, width: x };
+	});
+
 	// Compatibility detail report — runs across every drawn glyph in
 	// every master, returning specific reasons for any incompatibility
 	// (contour-count, point-count, point-type, missing-in-master).
@@ -303,6 +352,64 @@
 								</div>
 							</details>
 						</div>
+					</div>
+					<!-- Sample-word preview: same axis location as the slider
+					     above, but typesets a full string so the designer can
+					     see how multiple glyphs interpolate together (rhythm,
+					     side-by-side spacing) rather than just one in isolation. -->
+					<div class="mt-4 border-t border-border pt-4">
+						<div class="mb-2 flex items-baseline justify-between gap-2">
+							<label
+								for="sample-text"
+								class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+							>
+								Sample word
+							</label>
+							<input
+								id="sample-text"
+								type="text"
+								bind:value={sampleText}
+								maxlength="40"
+								placeholder="Type to preview…"
+								class="rounded-md border border-border bg-surface px-2 py-0.5 text-[12px] outline-none focus:border-accent"
+								style="width: 16ch;"
+							/>
+						</div>
+						{#if sampleTypeset.glyphs.length > 0}
+							<div
+								class="overflow-x-auto rounded-md border border-border bg-canvas px-3 py-3"
+							>
+								<svg
+									viewBox="0 {project.metrics.descender} {Math.max(sampleTypeset.width, 100)} {project.metrics.ascender - project.metrics.descender}"
+									preserveAspectRatio="xMinYMid meet"
+									style="height: 80px; width: auto; transform: scaleY(-1); display: block;"
+									aria-label="Interpolated sample word: {sampleText}"
+								>
+									{#each sampleTypeset.glyphs as g, i (i + '-' + g.char)}
+										{#if g.path}
+											<path
+												d={g.path}
+												transform="translate({g.x} 0)"
+												fill="currentColor"
+												class="text-fg"
+											/>
+										{:else}
+											<rect
+												x={g.x + 20}
+												y={project.metrics.descender + 20}
+												width={g.w - 40}
+												height={project.metrics.ascender - project.metrics.descender - 40}
+												fill="none"
+												stroke="currentColor"
+												stroke-width="20"
+												stroke-dasharray="40 40"
+												class="text-fg-subtle"
+											/>
+										{/if}
+									{/each}
+								</svg>
+							</div>
+						{/if}
 					</div>
 				</Panel>
 			{/if}
