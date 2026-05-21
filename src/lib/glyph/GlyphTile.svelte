@@ -1,6 +1,7 @@
 <script lang="ts">
-	import type { Glyph } from '$lib/font/types';
+	import type { ColorPalette, Glyph } from '$lib/font/types';
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
+	import { planColorRender, rgbaToCss } from '$lib/font/color';
 	import Pin from '@lucide/svelte/icons/pin';
 	import StickyNote from '@lucide/svelte/icons/sticky-note';
 	import Link2 from '@lucide/svelte/icons/link-2';
@@ -13,6 +14,13 @@
 		ascender?: number;
 		descender?: number;
 		incompatible?: boolean;
+		/**
+		 * When provided, the tile renders the glyph's colorLayers
+		 * (including any linear/radial gradients) using this palette
+		 * instead of the monochrome contours. The mono contours render
+		 * below the color overlay as a fallback / outline.
+		 */
+		colorPalette?: ColorPalette | null;
 		onclick?: () => void;
 		oncontextmenu?: (ev: MouseEvent) => void;
 	};
@@ -25,9 +33,20 @@
 		ascender = 800,
 		descender = -200,
 		incompatible = false,
+		colorPalette = null,
 		onclick,
 		oncontextmenu
 	}: Props = $props();
+
+	// Color render plan — only used when a palette is supplied AND the
+	// glyph has visible color layers. Same machinery the DrawingCanvas
+	// uses for the editor's color overlay, so gradients render
+	// identically in the tile and on the canvas.
+	const colorRenderPlan = $derived(
+		colorPalette && glyph.colorLayers && glyph.colorLayers.length > 0
+			? planColorRender(glyph.colorLayers, colorPalette)
+			: []
+	);
 
 	const char = $derived(
 		glyph.codepoint > 0 && glyph.codepoint < 0x10000 && glyph.codepoint > 0x20
@@ -97,7 +116,7 @@
 		class="relative flex items-center justify-center overflow-hidden rounded bg-canvas"
 		style="width: {size}px; height: {size}px;"
 	>
-		{#if svgPath}
+		{#if svgPath || colorRenderPlan.length > 0}
 			<svg
 				viewBox={viewBox}
 				width={size}
@@ -106,7 +125,49 @@
 				style="transform: scaleY(-1);"
 				aria-hidden="true"
 			>
-				<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
+				{#if colorRenderPlan.length > 0}
+					<defs>
+						{#each colorRenderPlan as step (step.layerId)}
+							{#if step.fill.type === 'linearGradient'}
+								<linearGradient
+									id="gt-grad-{glyph.codepoint}-{step.layerId}"
+									gradientUnits="userSpaceOnUse"
+									x1={step.fill.start.x}
+									y1={step.fill.start.y}
+									x2={step.fill.end.x}
+									y2={step.fill.end.y}
+								>
+									{#each step.fill.stops as s (s.offset)}
+										<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+									{/each}
+								</linearGradient>
+							{:else if step.fill.type === 'radialGradient'}
+								<radialGradient
+									id="gt-grad-{glyph.codepoint}-{step.layerId}"
+									gradientUnits="userSpaceOnUse"
+									cx={step.fill.center.x}
+									cy={step.fill.center.y}
+									r={Math.max(step.fill.radius, 1)}
+								>
+									{#each step.fill.stops as s (s.offset)}
+										<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+									{/each}
+								</radialGradient>
+							{/if}
+						{/each}
+					</defs>
+					{#each colorRenderPlan as step (step.layerId)}
+						<path
+							d={step.path}
+							fill={step.fill.type === 'solid'
+								? rgbaToCss(step.fill.color)
+								: `url(#gt-grad-${glyph.codepoint}-${step.layerId})`}
+							fill-rule="evenodd"
+						/>
+					{/each}
+				{:else}
+					<path d={svgPath} fill="currentColor" fill-rule="evenodd" />
+				{/if}
 			</svg>
 		{:else if char}
 			<!-- System-font fallback. Font-size scales with the tile so an

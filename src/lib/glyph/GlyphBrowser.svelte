@@ -4,6 +4,7 @@
 	import { CATEGORY_LABELS, CATEGORY_ORDER, type GlyphCategory } from '$lib/font/glyph-set';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import { findComposableCandidates } from '$lib/font/decompose';
+	import { defaultPalette } from '$lib/font/color';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -60,6 +61,11 @@
 		if (!projectStore.project) return [];
 		return findComposableCandidates(projectStore.project);
 	});
+
+	// Default palette for color-aware tile rendering. When null, tiles
+	// fall back to monochrome outlines (existing behaviour for
+	// non-color projects).
+	const browserPalette = $derived(defaultPalette(projectStore.project?.palettes));
 
 	const runAutoCompose = () => {
 		const cands = composableCandidates;
@@ -524,6 +530,7 @@
 							ascender={projectStore.project?.metrics.ascender ?? 800}
 							descender={projectStore.project?.metrics.descender ?? -200}
 							incompatible={incompatibleCodepoints.has(g.codepoint)}
+							colorPalette={browserPalette}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
 							oncontextmenu={(ev) => {
 								ev.preventDefault();
@@ -550,6 +557,7 @@
 							ascender={projectStore.project?.metrics.ascender ?? 800}
 							descender={projectStore.project?.metrics.descender ?? -200}
 							incompatible={incompatibleCodepoints.has(g.codepoint)}
+							colorPalette={browserPalette}
 							onclick={() => projectStore.selectGlyph(g.codepoint)}
 							oncontextmenu={(ev) => {
 								ev.preventDefault();
@@ -593,6 +601,7 @@
 								ascender={projectStore.project?.metrics.ascender ?? 800}
 								descender={projectStore.project?.metrics.descender ?? -200}
 								incompatible={incompatibleCodepoints.has(g.codepoint)}
+							colorPalette={browserPalette}
 								onclick={() =>
 									bulkMode
 										? toggleSelect(g.codepoint)

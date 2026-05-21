@@ -1,11 +1,16 @@
 <script lang="ts">
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import { contoursToSvgPath } from '$lib/font/path';
+	import { defaultPalette } from '$lib/font/color';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
 	let { data } = $props();
 	const project = $derived(data.project);
+	// Pass the project's default palette so color/gradient layers
+	// render in the glyph tiles. When no palette exists, tiles fall
+	// back to monochrome outlines.
+	const palette = $derived(defaultPalette(project.palettes));
 
 	// Glyph grid: only show drawn glyphs (skip empty placeholders),
 	// sorted by codepoint for a stable order.
@@ -172,6 +177,7 @@
 						showLabel={false}
 						{ascender}
 						{descender}
+						colorPalette={palette}
 					/>
 				{/each}
 			</div>
