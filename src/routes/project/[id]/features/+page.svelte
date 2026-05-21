@@ -4,6 +4,13 @@
 	import { buildFont } from '$lib/font/export';
 	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
 	import {
+		createDefaultPalette,
+		hexToRgba,
+		rgbaToHex,
+		palettesAgreeOnLength
+	} from '$lib/font/color';
+	import type { ColorPalette, RGBA } from '$lib/font/types';
+	import {
 		ensurePython,
 		compileFeaIntoFont,
 		subscribeToPython,
@@ -49,6 +56,51 @@
 	const toggleAutoFeaturesMaster = () => {
 		if (!project) return;
 		projectStore.updateFeatures({ autoFeatures: !autoFeaturesEnabled });
+	};
+
+	// ---------- CPAL palette editor ----------
+	const palettes = $derived<ColorPalette[]>(project?.palettes ?? []);
+	const palettesLength = $derived(palettesAgreeOnLength(palettes) ?? 0);
+
+	const addPalette = () => {
+		if (!project) return;
+		// New palette inherits the existing length so the CPAL invariant
+		// (all palettes same size) is maintained automatically.
+		const referenceLength = palettesLength > 0 ? palettesLength : 4;
+		const fresh = createDefaultPalette(
+			`Palette ${palettes.length + 1}`,
+			palettes.length === 0 ? 'default' : undefined
+		);
+		// Pad / truncate the default to match.
+		if (fresh.colors.length > referenceLength) {
+			fresh.colors = fresh.colors.slice(0, referenceLength);
+		} else while (fresh.colors.length < referenceLength) {
+			fresh.colors.push({ r: 26, g: 26, b: 26, a: 1 });
+		}
+		projectStore.addPalette(fresh);
+	};
+	const removePalette = (id: string) => {
+		projectStore.removePalette(id);
+	};
+	const renamePalette = (id: string, name: string) => {
+		projectStore.updatePalette(id, (p) => ({ ...p, name }));
+	};
+	const setPaletteVariant = (id: string, variant: ColorPalette['variant'] | '') => {
+		projectStore.updatePalette(id, (p) => ({
+			...p,
+			variant: variant === '' ? undefined : variant
+		}));
+	};
+	const setSlotColor = (paletteId: string, index: number, hex: string) => {
+		const c = hexToRgba(hex);
+		projectStore.setPaletteColor(paletteId, index, c);
+	};
+	const addColorSlot = () => {
+		projectStore.resizePalettes(palettesLength + 1);
+	};
+	const removeColorSlot = () => {
+		if (palettesLength <= 1) return;
+		projectStore.resizePalettes(palettesLength - 1);
 	};
 
 	$effect(() => {
@@ -297,6 +349,124 @@
 								{/each}
 							</tbody>
 						</table>
+					</div>
+				{/if}
+			</Panel>
+
+			<!-- CPAL palette editor — color-fonts M1 day-7. Each palette is
+			     an ordered RGBA list; `ColorLayer.paletteIndex` references
+			     into it. All palettes share length (CPAL invariant). -->
+			<Panel>
+				<div class="mb-3 flex flex-wrap items-center gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Color palettes
+					</h2>
+					<span
+						class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+					>
+						CPAL v0
+					</span>
+					{#if palettes.length > 0}
+						<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+							{palettes.length} palette{palettes.length === 1 ? '' : 's'} · {palettesLength}
+							colour{palettesLength === 1 ? '' : 's'}
+						</span>
+					{/if}
+					<div class="ml-auto flex items-center gap-1.5">
+						{#if palettes.length > 0}
+							<Button
+								density="sm"
+								variant="ghost"
+								onclick={removeColorSlot}
+								disabled={palettesLength <= 1}
+							>
+								−
+							</Button>
+							<Button density="sm" variant="ghost" onclick={addColorSlot}>
+								+ colour
+							</Button>
+						{/if}
+						<Button density="sm" onclick={addPalette}>+ palette</Button>
+					</div>
+				</div>
+				<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+					Palettes drive color-font (COLR v0) layered glyph rendering. Tag a
+					palette as <span class="font-mono">light</span> or
+					<span class="font-mono">dark</span>
+					to drive the CSS <code>font-palette</code> selector. All palettes
+					share length — adding a colour adds it to every palette.
+				</p>
+
+				{#if palettes.length === 0}
+					<div
+						class="rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-3 text-[12px] text-fg-subtle"
+					>
+						No palettes yet. Click <span class="font-mono">+ palette</span> to
+						start a default 4-colour palette (ink, paper, accent, warm).
+					</div>
+				{:else}
+					<div class="grid gap-3">
+						{#each palettes as p (p.id)}
+							<div class="rounded-md border border-border bg-surface-2/30 p-3">
+								<div class="mb-2 flex flex-wrap items-center gap-2">
+									<input
+										type="text"
+										value={p.name}
+										onchange={(e) => renamePalette(p.id, e.currentTarget.value)}
+										class="flex-1 rounded border border-border bg-surface px-2 py-0.5 text-[12px] text-fg outline-none focus:border-accent"
+										aria-label="Palette name"
+									/>
+									<select
+										value={p.variant ?? ''}
+										onchange={(e) =>
+											setPaletteVariant(
+												p.id,
+												e.currentTarget.value as ColorPalette['variant'] | ''
+											)}
+										class="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-fg outline-none focus:border-accent"
+										aria-label="Palette variant"
+									>
+										<option value="">(no variant)</option>
+										<option value="default">default</option>
+										<option value="light">light</option>
+										<option value="dark">dark</option>
+										<option value="brand">brand</option>
+									</select>
+									<button
+										type="button"
+										onclick={() => removePalette(p.id)}
+										class="rounded p-1 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
+										aria-label="Remove palette"
+										title="Remove palette"
+									>
+										<span class="font-mono text-[14px]">×</span>
+									</button>
+								</div>
+								<div class="flex flex-wrap gap-1.5">
+									{#each p.colors as c, idx (idx)}
+										{@const hex = rgbaToHex(c).slice(0, 7)}
+										<label
+											class="group flex flex-col items-center gap-0.5"
+											title="Index {idx} · {rgbaToHex(c)}"
+										>
+											<input
+												type="color"
+												value={hex}
+												onchange={(e) => setSlotColor(p.id, idx, e.currentTarget.value)}
+												class="size-7 cursor-pointer rounded border border-border bg-transparent"
+												aria-label="Palette colour {idx}"
+											/>
+											<span
+												class="font-mono text-[9px] text-fg-subtle group-hover:text-fg-muted"
+												data-numeric
+											>
+												{idx}
+											</span>
+										</label>
+									{/each}
+								</div>
+							</div>
+						{/each}
 					</div>
 				{/if}
 			</Panel>
