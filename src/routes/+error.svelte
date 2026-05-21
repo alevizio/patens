@@ -56,6 +56,20 @@
 			<p class="mx-auto max-w-md text-sm text-fg-muted">
 				{page.error?.message ?? 'An unexpected error.'}
 			</p>
+			<!-- Diagnostic detail to help report errors. Only the message
+			     is shown by default; the stack lives in a details block
+			     so the page reads clean for non-developer users. -->
+			{#if page.error && JSON.stringify(page.error) !== '{}'}
+				<details
+					class="mx-auto mt-6 max-w-xl rounded-md border border-border bg-surface-2/40 p-3 text-left"
+				>
+					<summary class="cursor-pointer text-[11px] font-mono text-fg-muted">
+						Diagnostic detail
+					</summary>
+					<pre
+						class="mt-2 overflow-auto whitespace-pre-wrap break-words font-mono text-[11px] text-fg-subtle">{JSON.stringify(page.error, null, 2)}</pre>
+				</details>
+			{/if}
 		{/if}
 
 		<a
