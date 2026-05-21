@@ -5,12 +5,15 @@
 
 import type {
 	Axis,
+	ColorLayer,
+	ColorPalette,
 	Glyph,
 	KerningClass,
 	KerningPair,
 	KerningSide,
 	Master,
 	Project,
+	RGBA,
 	VariableInstance
 } from '$lib/font/types';
 import {
@@ -654,6 +657,113 @@ class ProjectStore {
 		}
 		this.project = { ...this.project, glyphs: nextGlyphs };
 		this.touch();
+	}
+
+	// ---------- Color palettes (CPAL) ----------
+
+	/** Add a fresh palette to the project. Returns the new palette's id. */
+	addPalette(palette: ColorPalette): string {
+		if (!this.project) return palette.id;
+		if (this.project.locked) return palette.id;
+		this.project = {
+			...this.project,
+			palettes: [...(this.project.palettes ?? []), palette]
+		};
+		this.touch();
+		return palette.id;
+	}
+
+	removePalette(id: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		this.project = {
+			...this.project,
+			palettes: (this.project.palettes ?? []).filter((p) => p.id !== id)
+		};
+		this.touch();
+	}
+
+	updatePalette(id: string, mut: (p: ColorPalette) => ColorPalette) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		this.project = {
+			...this.project,
+			palettes: (this.project.palettes ?? []).map((p) => (p.id === id ? mut(p) : p))
+		};
+		this.touch();
+	}
+
+	/**
+	 * Set a single colour in a palette by index. Out-of-range indexes are
+	 * a no-op (CPAL requires all palettes share a length; resize via
+	 * `resizePalettes` instead of writing past the end).
+	 */
+	setPaletteColor(id: string, index: number, color: RGBA) {
+		this.updatePalette(id, (p) => {
+			if (index < 0 || index >= p.colors.length) return p;
+			const colors = [...p.colors];
+			colors[index] = color;
+			return { ...p, colors };
+		});
+	}
+
+	/**
+	 * Resize every palette to `length` entries. Truncates or pads with the
+	 * given fill colour (default: opaque ink). CPAL invariant: all
+	 * palettes must agree on length.
+	 */
+	resizePalettes(length: number, fill: RGBA = { r: 26, g: 26, b: 26, a: 1 }) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		if (length < 0) return;
+		const next = (this.project.palettes ?? []).map((p) => {
+			if (p.colors.length === length) return p;
+			if (p.colors.length > length) return { ...p, colors: p.colors.slice(0, length) };
+			const padding = new Array(length - p.colors.length).fill(0).map(() => ({ ...fill }));
+			return { ...p, colors: [...p.colors, ...padding] };
+		});
+		this.project = { ...this.project, palettes: next };
+		this.touch();
+	}
+
+	// ---------- Color layers (COLR v0) ----------
+
+	addColorLayer(codepoint: number, layer: ColorLayer) {
+		this.updateGlyph(codepoint, (g) => ({
+			...g,
+			colorLayers: [...(g.colorLayers ?? []), layer]
+		}));
+	}
+
+	removeColorLayer(codepoint: number, layerId: string) {
+		this.updateGlyph(codepoint, (g) => ({
+			...g,
+			colorLayers: (g.colorLayers ?? []).filter((l) => l.id !== layerId)
+		}));
+	}
+
+	updateColorLayer(codepoint: number, layerId: string, mut: (l: ColorLayer) => ColorLayer) {
+		this.updateGlyph(codepoint, (g) => ({
+			...g,
+			colorLayers: (g.colorLayers ?? []).map((l) => (l.id === layerId ? mut(l) : l))
+		}));
+	}
+
+	/**
+	 * Reorder a glyph's color layers by listing layer IDs in their new
+	 * bottom-up order. Layers not in the order list are dropped from the
+	 * glyph — pass every existing id to avoid data loss.
+	 */
+	reorderColorLayers(codepoint: number, layerIds: string[]) {
+		this.updateGlyph(codepoint, (g) => {
+			const byId = new Map((g.colorLayers ?? []).map((l) => [l.id, l]));
+			const next: ColorLayer[] = [];
+			for (const id of layerIds) {
+				const l = byId.get(id);
+				if (l) next.push(l);
+			}
+			return { ...g, colorLayers: next };
+		});
 	}
 
 	/** Named instances CRUD */
