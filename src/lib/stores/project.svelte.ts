@@ -29,7 +29,7 @@ import {
 import type { ScriptPack } from '$lib/font/charsets';
 import { aglfnName } from '$lib/font/aglfn';
 import * as Y from 'yjs';
-import { projectToYDoc } from '$lib/sync/yjs-schema';
+import { projectToYDoc, yDocToProject } from '$lib/sync/yjs-schema';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -64,19 +64,41 @@ class ProjectStore {
 	 * tags along.
 	 */
 	private doc: Y.Doc | null = null;
+	private docUpdateUnsubscribe: (() => void) | null = null;
 
 	getDoc(): Y.Doc | null {
 		return this.doc;
 	}
+
+	/**
+	 * Decodes the current Y.Doc state back into the legacy
+	 * `project = $state(...)` field. Fired automatically on any Y.Doc
+	 * update once we start writing through transactions in Day 2.
+	 *
+	 * Cheap-enough today (~ms on real projects); future optimisation
+	 * is patch-based reconciliation if it ever shows up in profiling.
+	 */
+	private refreshFromDoc = () => {
+		if (!this.doc) return;
+		this.project = yDocToProject(this.doc);
+	};
 
 	load(project: Project) {
 		this.project = project;
 		this.dirty = false;
 		// Phase C Day 1: initialise the Y.Doc mirror. Replaces any
 		// existing doc on project switch so we never accidentally
-		// carry state across projects.
+		// carry state across projects. The subscription on 'update'
+		// is wired in but no-ops until Day 2 starts writing through
+		// transactions (nothing fires the event until then).
+		if (this.docUpdateUnsubscribe) {
+			this.docUpdateUnsubscribe();
+			this.docUpdateUnsubscribe = null;
+		}
 		if (this.doc) this.doc.destroy();
 		this.doc = projectToYDoc(project);
+		this.doc.on('update', this.refreshFromDoc);
+		this.docUpdateUnsubscribe = () => this.doc?.off('update', this.refreshFromDoc);
 		const codepoints = Object.keys(project.glyphs).map(Number);
 		// Restore last-selected glyph from localStorage if it's still in the set;
 		// otherwise default to the first uppercase Latin glyph that exists.
@@ -165,6 +187,10 @@ class ProjectStore {
 		this.saveTimer = null;
 		this.project = null;
 		this.dirty = false;
+		if (this.docUpdateUnsubscribe) {
+			this.docUpdateUnsubscribe();
+			this.docUpdateUnsubscribe = null;
+		}
 		if (this.doc) {
 			this.doc.destroy();
 			this.doc = null;
