@@ -391,38 +391,45 @@ class ProjectStore {
 		}
 	}
 
-	updateMetadata(mut: Partial<Project['metadata']>) {
+	/**
+	 * Day 3e helper for root-scalar fields stored as plain values on
+	 * the project Y.Map (metadata, metrics, features, name, etc.).
+	 * The doc path is a single `root.set(key, next)` inside a
+	 * transact(); the legacy fallback writes `this.project` directly.
+	 */
+	private withRootScalar<K extends keyof Project>(
+		key: K,
+		next: Project[K]
+	): void {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			metadata: { ...this.project.metadata, ...mut }
-		};
+		if (!this.doc) {
+			this.project = { ...this.project, [key]: next } as Project;
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			this.doc!.getMap('project').set(key as string, next as unknown);
+		});
 		this.touch();
+	}
+
+	updateMetadata(mut: Partial<Project['metadata']>) {
+		if (!this.project) return;
+		this.withRootScalar('metadata', { ...this.project.metadata, ...mut });
 	}
 
 	updateMetrics(mut: Partial<Project['metrics']>) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			metrics: { ...this.project.metrics, ...mut }
-		};
-		this.touch();
+		this.withRootScalar('metrics', { ...this.project.metrics, ...mut });
 	}
 
 	updateName(name: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = { ...this.project, name };
-		this.touch();
+		this.withRootScalar('name', name);
 	}
 
 	updateDescription(description: string) {
-		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = { ...this.project, description };
-		this.touch();
+		this.withRootScalar('description', description);
 	}
 
 	addChangelogEntry(entry: { version: string; notes: string }) {
@@ -583,12 +590,7 @@ class ProjectStore {
 
 	updateFeatures(mut: Partial<Project['features']>) {
 		if (!this.project) return;
-		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			features: { ...this.project.features, ...mut }
-		};
-		this.touch();
+		this.withRootScalar('features', { ...this.project.features, ...mut });
 	}
 
 	upsertKerningPair(pair: KerningPair) {
