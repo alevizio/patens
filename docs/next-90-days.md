@@ -72,26 +72,37 @@ The remaining algorithmic + UI work:
 
 Closes color-fonts M1. Users can ship layered color fonts.
 
-#### A3. Auto-kerning Inter corpus integration (1 week)
+#### A3. Auto-kerning regression gate — shipped 2026-05-21 ✓
 
-The auto-kern quality harness ships with synthetic test data;
-gating regressions in CI requires a real Inter corpus.
+The Inter-corpus plan changed in flight: committing Inter's binaries
+(~300 KB) failed the "keep it cheap" constraint, and fetching at CI
+time would make the build flaky. Re-scoped to a **snapshot regression
+gate against the demo font**.
 
-1. **Fixture script** (2 d). Node script that processes Inter's UFO
-   (cloned at build time, not committed) into `kerning-quality-inter.json`:
-   silhouettes + advance widths for ~80 representative glyphs + Inter's
-   shipped kerning for the top-200 Latin pairs. JSON ≤ 100 KB,
-   committed.
-2. **CI test** (1 d). New vitest test loads the fixture, runs
-   `evaluateKerningSuggester`, gates `mae ≤ 20 % of mean(|expected|)`
-   per the research target.
-3. **Quality-score UI surface** (2 d). On the Spacing tab, "Quality
-   score" badge: when the user applies auto-kern suggestions, show
-   "MAE vs Inter reference: N fu" so they have a sense of how their
-   kerning compares to a foundry's. Memoised; doesn't recompute
-   every keystroke.
+What shipped (`src/lib/font/kerning-quality-demo.test.ts`):
+- Loads the already-committed `StudioGeometric-Regular.otf`
+- Walks the canonical Latin pair list, builds silhouettes via
+  opentype.js for every pair the font supports (currently just `To`
+  — the demo font is sparse)
+- Runs `suggestKerning` for each, snapshots the resulting deltas via
+  `toMatchInlineSnapshot`
+- Future runs fail if any value drifts; reviewer reads the diff in
+  the PR and either approves with `vitest -u` or chases the
+  regression
 
-Wraps the auto-kerning milestone-1 from a *built* to a *gated* state.
+Catches the same class of regressions as a "real Inter MAE gate"
+without committing binaries or hitting the network in CI.
+
+**Still on the TODO** when a richer corpus is needed:
+- A real Inter-derived corpus would meaningfully expand the snapshot
+  from 1 pair to 50+. Path: fetch Inter UFO at fixture-build time
+  (one-shot script, not CI), process into a small committed JSON
+  (~50-100 KB). Defer until the auto-kerner is shipped to users and
+  regression noise from typographic-intuition disagreements becomes
+  the real cost.
+- "Quality score" UI badge on the Spacing tab (the original day-10
+  plan): "MAE vs reference: N fu". Defer until a richer corpus
+  exists.
 
 ---
 
