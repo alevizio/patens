@@ -668,12 +668,28 @@ class ProjectStore {
 	removeKerningClass(name: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = {
-			...this.project,
-			classes: (this.project.classes ?? []).filter((c) => c.name !== name),
-			// Also drop any kerning pairs that reference this class
-			kerning: this.project.kerning.filter((p) => p.left !== name && p.right !== name)
-		};
+		// Two-array atomic update: drop the class itself AND any kerning
+		// pairs that reference it. Both writes share one transact() so
+		// observers see a single update event (and remote peers don't
+		// briefly observe orphan pairs).
+		const nextClasses = (this.project.classes ?? []).filter((c) => c.name !== name);
+		const nextKerning = this.project.kerning.filter(
+			(p) => p.left !== name && p.right !== name
+		);
+		if (!this.doc) {
+			this.project = { ...this.project, classes: nextClasses, kerning: nextKerning };
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			const root = this.doc!.getMap('project');
+			const cls = root.get('classes') as Y.Array<KerningClass>;
+			cls.delete(0, cls.length);
+			cls.insert(0, nextClasses);
+			const kern = root.get('kerning') as Y.Array<KerningPair>;
+			kern.delete(0, kern.length);
+			kern.insert(0, nextKerning);
+		});
 		this.touch();
 	}
 
@@ -1191,14 +1207,37 @@ class ProjectStore {
 	addAxis(tag: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = addAxisHelper(this.project, tag);
-		this.touch();
+		const next = addAxisHelper(this.project, tag);
+		this.withYArray<Axis>(
+			'axes',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, next.axes ?? []);
+			},
+			() => next.axes ?? []
+		);
 	}
 
 	removeAxis(tag: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = removeAxisHelper(this.project, tag);
+		// removeAxis also cleans up the dropped tag from every master's
+		// location, so it's a two-array atomic update (axes + masters).
+		const next = removeAxisHelper(this.project, tag);
+		if (!this.doc) {
+			this.project = next;
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			const root = this.doc!.getMap('project');
+			const axesArr = root.get('axes') as Y.Array<Axis>;
+			axesArr.delete(0, axesArr.length);
+			axesArr.insert(0, next.axes ?? []);
+			const mastersArr = root.get('masters') as Y.Array<Master>;
+			mastersArr.delete(0, mastersArr.length);
+			mastersArr.insert(0, next.masters ?? []);
+		});
 		this.touch();
 	}
 
@@ -1219,24 +1258,45 @@ class ProjectStore {
 	async addMaster(name: string, location: Record<string, number>) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = addMasterHelper(this.project, { name, location });
-		this.touch();
+		const next = addMasterHelper(this.project, { name, location });
+		this.withYArray<Master>(
+			'masters',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, next.masters ?? []);
+			},
+			() => next.masters ?? []
+		);
 		await this.flush();
 	}
 
 	removeMaster(masterId: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = removeMasterHelper(this.project, masterId);
+		const next = removeMasterHelper(this.project, masterId);
+		this.withYArray<Master>(
+			'masters',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, next.masters ?? []);
+			},
+			() => next.masters ?? []
+		);
 		if (this.selectedMasterId === masterId) this.selectedMasterId = undefined;
-		this.touch();
 	}
 
 	updateMaster(masterId: string, mut: (m: Master) => Master) {
 		if (!this.project) return;
 		if (this.project.locked) return;
-		this.project = updateMasterHelper(this.project, masterId, mut);
-		this.touch();
+		const next = updateMasterHelper(this.project, masterId, mut);
+		this.withYArray<Master>(
+			'masters',
+			(arr) => {
+				arr.delete(0, arr.length);
+				arr.insert(0, next.masters ?? []);
+			},
+			() => next.masters ?? []
+		);
 	}
 
 	/**
