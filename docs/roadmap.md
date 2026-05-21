@@ -143,26 +143,109 @@ Sources: [caniuse COLR v1](https://caniuse.com/colr-v1) ·
 [fontTools colorLib.builder](https://fonttools.readthedocs.io/en/stable/colorLib/index.html) ·
 [opentype.js PR #490](https://github.com/opentypejs/opentype.js/pull/490).
 
-### 8. Auto-spacing / auto-kerning
-The single biggest "Glyphs / FontLab have it, browser editors don't"
-gap. Daily-use pro feature.
+### 8. Auto-spacing / auto-kerning — researched 2026-05-21
 
-Research questions:
+**Verdict from research:** tractable for milestone-1 if scoped as
+*"optical/silhouette-based suggestions with a confirm-each-pair UX,"*
+not as a black-box solver. Pure TypeScript, no Pyodide hop for the
+inner loop. Single biggest "Glyphs / FontLab have it, browser editors
+don't" gap to close.
 
-- The HZ Program (Hermann Zapf, '70s) — still the canonical algorithm?
-- Modern alternatives: Tal Leming's "MetricsMachine," Tim Ahrens's
-  approaches, "AutoSpacer" (Toshi Omagari), various ML attempts.
-- Which one suits browser execution? (Pure JS algorithm preferred — no
-  Pyodide hop on every kern-update.)
-- UI model — confirm-each pairs, run-the-whole-batch, or interactive
-  edit-as-you-go.
+**Key landscape findings:**
 
-Then a multi-commit implementation arc:
+- **HZ Program is a justification engine, not a kerning generator** —
+  frequently mis-cited. Patent expired July 2010 anyway. Skip.
+- **ML kerning fails in practice.** Simon Cozens' multi-year retrospective
+  ([atokern](https://simoncozens.github.io/neural-kerning-log/)): "even
+  98% accuracy on 300×300 pairs = 1800 errors, too many to verify
+  manually." Don't pursue for milestone-1.
+- **HTLetterSpacer** ([Huerta Tipográfica, GPL-3.0](https://github.com/huertatipografica/HTLetterspacer)) is
+  the best implementable starting point. Pure Python ~500 LOC; samples
+  glyph outlines at scan-line heights between reference zones,
+  normalises to a reference glyph (`H` and `o`), assigns sidebearings.
+  Authors claim ~95-98% acceptable on Latin / Cyrillic / Greek / Devanagari.
+  **GPL caveat** — port via clean-room re-implementation from the
+  documented method (algorithmic ideas aren't copyrightable, expression
+  is) rather than copying code.
+- **BubbleKern** ([Tosche, Apache-2.0](https://github.com/Tosche/BubbleKern))
+  for silhouette-distance kerning: walks scan-heights, finds first
+  contact between two glyph silhouettes, kerns by that distance.
+- **CounterSpace** ([Cozens, Apache-2.0](https://github.com/simoncozens/CounterSpace))
+  — author labels experimental; useful reference, not for shipping.
+- **Kern On** ([Tim Ahrens, proprietary](https://kern-on.com/manual/))
+  is the dominant pro UX: designer sets 30-100 "model pairs," engine
+  extrapolates. Algorithm closed; UX is the model to imitate.
 
-1. Sidebearing inference from glyph silhouettes
-2. Class-based kerning suggestion
-3. Optical pair correction
-4. Confirm / reject UX on the Spacing tab
+**Pure-JS feasibility: confirmed.** Silhouette-distance per pair is
+`O(N)` with `N ≈ 128` scan-heights. Sub-1ms per pair on a 2024-era
+laptop — three orders of magnitude under the 50ms target. Inputs come
+from opentype.js path data we already have. Pyodide-via-fontTools is
+optional for a "deep audit" batch pass (milestone-2).
+
+**Reference data**: Inter ships its kerning publicly
+([rsms/inter](https://github.com/rsms/inter), with `kernsample.py`).
+Run our auto-kerner against an unkerned copy of Inter, diff against
+shipped kerning, target ≤20% mean absolute error on top-200 pairs.
+
+**Milestone 1** (1-2 weeks) — "Optical auto-space + suggest queue":
+
+Week 1 (algorithm, pure TS):
+1. Contour-sampling utility: 128 scan-heights between descender and
+   ascender per glyph side; cache on glyph save.
+2. Port HTLetterSpacer's auto-spacing logic (clean-room) — reference
+   glyph normalisation, assign left/right sidebearings. ~400-600 LOC.
+3. Silhouette-distance kerning: given two glyph IDs, return suggested
+   kern delta in <10ms. Drive from existing kerning-pair data model.
+4. Sidebearing-class auto-suggest: cluster glyphs with sidebearings
+   within ±5 units AND same script/category.
+
+Week 2 (UX + integration):
+1. "Auto-space" button on glyph view → preview overlay → apply.
+2. "Suggest kerning" queue panel: pair-of-the-moment, current vs
+   suggested value, ±slider, **Apply / Skip / Apply-to-class**.
+3. Audit-kerning view: flag pairs with distance < 1% UPM in red.
+4. Hook into existing kerning-class model: when a pair is approved,
+   offer to apply to all glyph pairs sharing class membership.
+5. Quality score: run against unkerned Inter on commit, gate
+   regressions.
+
+**Data model changes** (minimal):
+- per-glyph `autoSidebearings: { l, r, confidence }` (optional)
+- per-pair "suggestion" entity `{ pair, current, suggested, source, status }`
+
+No schema break.
+
+**Risks**:
+- **GPL contamination** — clean-room only, no code copy from HTLetterSpacer.
+- **Italics / obliques** — silhouette methods need shear correction; punt
+  to milestone-2.
+- **VF cross-master divergence** — warn when same-pair kerning differs
+  >50 units between masters after auto-suggest.
+- **Uncanny-valley UX** — auto-suggestions that are 90% right but
+  visibly wrong frustrate beginners more than no suggestions. Mitigate
+  with explicit confidence scores; only surface when measurement
+  variance is low.
+- **Non-Latin scripts** — gate auto-spacing behind a script-category
+  check, show "experimental" badge for unsupported scripts.
+
+**Milestone 2** (later):
+- Kern On-style model-pair extrapolation (user defines ~30-50 reference
+  pairs; nearest-neighbour fit in contour-feature space).
+- Per-master kerning + design-space interpolation (mirrors fontmake).
+- Pyodide-backed "deep audit" — full-font HTLetterSpacer batch +
+  CounterSpace cross-check, surfaced as pre-export QA pass.
+- Stem-rhythm-driven sidebearing classes wired into the existing
+  Spacing-tab rhythm view ("see the rhythm → click 'make consistent'").
+
+Sources: [HTLetterSpacer](https://github.com/huertatipografica/HTLetterspacer) ·
+[BubbleKern](https://github.com/Tosche/BubbleKern) ·
+[CounterSpace](https://github.com/simoncozens/CounterSpace) ·
+[Kern On manual](https://kern-on.com/manual/) ·
+[Cozens — neural-kerning retrospective](https://simoncozens.github.io/neural-kerning-log/) ·
+[Learning to Kern (arXiv 2024)](https://arxiv.org/abs/2402.14313) ·
+[FontLab 8 metrics & kerning](https://help.fontlab.com/fontlab/8/whats-new/whats-new-06-metrics-kerning/) ·
+[Inter font + kerning data](https://github.com/rsms/inter) ·
+[kernall research survey](https://github.com/n8willis/kernall).
 
 ### 9. Manual TT hint editor
 Glyphs has it; FontLab has it. Niche but real for pros. After Phase
