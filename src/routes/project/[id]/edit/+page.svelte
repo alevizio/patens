@@ -575,6 +575,89 @@
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, anchors }));
 	};
 
+	/**
+	 * One-click fixes for fixable audit issues. Maps each issue's
+	 * code to the right cleanup operation:
+	 *
+	 * - self-intersecting → boolean union (polygon-clipping resolves
+	 *   self-crosses as a side effect of running any boolean op).
+	 * - duplicate-points → walk commands, drop any L/M command within
+	 *   0.5fu of the previous on-curve point.
+	 * - near-collinear-points → drop any L-command whose middle point
+	 *   is within 1fu of the line between its neighbours.
+	 */
+	const fixIssue = (code: string) => {
+		if (!glyph) return;
+		const cp = glyph.codepoint;
+		if (code === 'self-intersecting') {
+			const cleaned = booleanContours(glyph.contours, 'union');
+			handleContoursChange(cleaned);
+			toast.success('Cleaned self-intersections via boolean union.');
+			return;
+		}
+		if (code === 'duplicate-points') {
+			const cleaned = glyph.contours.map((c) => {
+				const out: typeof c.commands = [];
+				let prevX: number | null = null;
+				let prevY: number | null = null;
+				for (const cmd of c.commands) {
+					if (cmd.type === 'Z') {
+						out.push(cmd);
+						prevX = null;
+						prevY = null;
+						continue;
+					}
+					if (
+						prevX !== null &&
+						prevY !== null &&
+						cmd.type !== 'M' &&
+						Math.abs(cmd.x - prevX) < 0.5 &&
+						Math.abs(cmd.y - prevY) < 0.5
+					) {
+						// Drop this command — it's a duplicate of the previous point.
+						continue;
+					}
+					out.push(cmd);
+					prevX = cmd.x;
+					prevY = cmd.y;
+				}
+				return { ...c, commands: out };
+			});
+			handleContoursChange(cleaned);
+			toast.success('Removed duplicate points.');
+			return;
+		}
+		if (code === 'near-collinear-points') {
+			const cleaned = glyph.contours.map((c) => {
+				// Build the index of L/M points only (curves break the
+				// L-sequence and aren't considered for collinearity).
+				const cmds = [...c.commands];
+				const drop = new Set<number>();
+				for (let i = 1; i < cmds.length - 1; i++) {
+					const a = cmds[i - 1];
+					const b = cmds[i];
+					const d = cmds[i + 1];
+					if (
+						a.type !== 'M' && a.type !== 'L'
+						|| b.type !== 'L'
+						|| d.type !== 'L'
+					)
+						continue;
+					const num = Math.abs(
+						(d.y - a.y) * b.x - (d.x - a.x) * b.y + d.x * a.y - d.y * a.x
+					);
+					const den = Math.hypot(d.x - a.x, d.y - a.y);
+					if (den < 0.001) continue;
+					if (num / den < 1) drop.add(i);
+				}
+				if (drop.size === 0) return c;
+				return { ...c, commands: cmds.filter((_, i) => !drop.has(i)) };
+			});
+			handleContoursChange(cleaned);
+			toast.success('Removed near-collinear points.');
+		}
+	};
+
 	type DeriveTransform = 'copy' | 'flipH' | 'flipV' | 'rotate180';
 	let deriveSourceCp = $state<number | null>(null);
 	let deriveTransform = $state<DeriveTransform>('flipH');
@@ -2509,6 +2592,10 @@
 					{:else}
 						<ul class="grid gap-1">
 							{#each issues as issue (issue.code)}
+								{@const fixable =
+									issue.code === 'self-intersecting' ||
+									issue.code === 'duplicate-points' ||
+									issue.code === 'near-collinear-points'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
@@ -2518,7 +2605,17 @@
 											: 'bg-surface-2 text-fg-muted'}"
 								>
 									<AlertCircle class="mt-0.5 size-3 shrink-0" />
-									<span>{issue.message}</span>
+									<span class="flex-1">{issue.message}</span>
+									{#if fixable}
+										<button
+											type="button"
+											onclick={() => fixIssue(issue.code)}
+											class="shrink-0 rounded border border-current/30 bg-canvas/50 px-1.5 py-0.5 text-[10px] font-medium hover:bg-canvas/80"
+											title="Apply automatic fix for this issue"
+										>
+											Fix
+										</button>
+									{/if}
 								</li>
 							{/each}
 						</ul>
