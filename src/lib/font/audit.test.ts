@@ -297,6 +297,36 @@ describe('auditGlyph', () => {
 		expect(issues.find((i) => i.code === 'sharp-kink')).toBeUndefined();
 	});
 
+	it('flags self-intersecting contours (bowtie shape)', () => {
+		// Classic bowtie — two triangles that share an X-crossing.
+		// The edges (0,0)-(100,100) and (100,0)-(0,100) cross.
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100, y: 100 },
+						{ type: 'L', x: 100, y: 0 },
+						{ type: 'L', x: 0, y: 100 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		const si = issues.find((i) => i.code === 'self-intersecting');
+		expect(si).toBeDefined();
+		expect(si?.severity).toBe('warn');
+	});
+
+	it('does NOT flag a simple convex polygon', () => {
+		const glyph = baseGlyph({ contours: [closedSquare(500)] });
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'self-intersecting')).toBeUndefined();
+	});
+
 	it('does NOT flag a clean polygon with no near-collinear interior nodes', () => {
 		const glyph = baseGlyph({
 			contours: [

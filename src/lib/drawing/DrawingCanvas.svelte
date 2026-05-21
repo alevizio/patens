@@ -51,6 +51,18 @@
 		 * can edit contours with full colour context.
 		 */
 		colorPalette?: ColorPalette | null;
+		/**
+		 * Called when the user drags a gradient endpoint handle on the
+		 * canvas. Receives the layerId and which endpoint moved (start /
+		 * end) + the new font-unit coordinate. The parent updates the
+		 * layer's gradient field. When omitted, gradient handles render
+		 * as static dots (no drag).
+		 */
+		onGradientEndpointChange?: (
+			layerId: string,
+			endpoint: 'start' | 'end',
+			coord: { x: number; y: number }
+		) => void;
 	};
 
 	let {
@@ -73,8 +85,17 @@
 		onContoursChange,
 		onAnchorsChange,
 		onZoomChange,
-		colorPalette = null
+		colorPalette = null,
+		onGradientEndpointChange
 	}: Props = $props();
+
+	// Drag state for gradient endpoint handles. Tracked separately
+	// from the contour/anchor drag state so the modes don't conflict.
+	let gradientDrag = $state<{
+		layerId: string;
+		endpoint: 'start' | 'end';
+		pointerId: number;
+	} | null>(null);
 
 	// Translucent color-composite behind the monochrome outline. Skipped
 	// when no palette + no layers exist (typical monochrome case).
@@ -490,6 +511,108 @@
 					/>
 				{/each}
 			</g>
+			<!-- Gradient endpoint drag handles. Sit ABOVE the colour
+			     overlay so they're hit-testable; sized in font-units so
+			     they stay visually consistent across zoom levels. -->
+			{#if onGradientEndpointChange}
+				{@const handleR = Math.max(12, 10 / Math.max(pixelsPerUnit, 0.01))}
+				{@const lineW = Math.max(2, 2 / Math.max(pixelsPerUnit, 0.01))}
+				{#each colorRenderPlan as step (step.layerId)}
+					{#if step.fill.type === 'linearGradient'}
+						<g class="gradient-handles">
+							<line
+								x1={step.fill.start.x}
+								y1={step.fill.start.y}
+								x2={step.fill.end.x}
+								y2={step.fill.end.y}
+								stroke="var(--color-accent)"
+								stroke-width={lineW}
+								stroke-dasharray="{lineW * 2} {lineW * 2}"
+								opacity="0.7"
+								pointer-events="none"
+							/>
+							{#each [
+								{ ep: 'start' as const, pt: step.fill.start, label: 'A' },
+								{ ep: 'end' as const, pt: step.fill.end, label: 'B' }
+							] as h (step.layerId + '-' + h.ep)}
+								<g
+									role="slider"
+									aria-label="Gradient {h.ep} handle"
+									aria-valuenow={Math.round(h.pt.x)}
+									tabindex="0"
+									onpointerdown={(ev) => {
+										ev.stopPropagation();
+										ev.preventDefault();
+										const target = ev.currentTarget as Element;
+										try {
+											target.setPointerCapture(ev.pointerId);
+										} catch {
+											/* ignore */
+										}
+										gradientDrag = {
+											layerId: step.layerId,
+											endpoint: h.ep,
+											pointerId: ev.pointerId
+										};
+									}}
+									onpointermove={(ev) => {
+										if (
+											!gradientDrag ||
+											gradientDrag.pointerId !== ev.pointerId
+										)
+											return;
+										const fp = eventToFont(ev);
+										if (!fp || !onGradientEndpointChange) return;
+										ev.stopPropagation();
+										onGradientEndpointChange(
+											gradientDrag.layerId,
+											gradientDrag.endpoint,
+											{ x: Math.round(fp.x), y: Math.round(fp.y) }
+										);
+									}}
+									onpointerup={(ev) => {
+										if (
+											!gradientDrag ||
+											gradientDrag.pointerId !== ev.pointerId
+										)
+											return;
+										try {
+											(ev.currentTarget as Element).releasePointerCapture(
+												ev.pointerId
+											);
+										} catch {
+											/* ignore */
+										}
+										gradientDrag = null;
+									}}
+									style="cursor: grab;"
+								>
+									<circle
+										cx={h.pt.x}
+										cy={h.pt.y}
+										r={handleR}
+										fill="white"
+										stroke="var(--color-accent)"
+										stroke-width={lineW}
+									/>
+									<text
+										x={h.pt.x}
+										y={h.pt.y}
+										text-anchor="middle"
+										dominant-baseline="central"
+										font-size={handleR * 1.2}
+										fill="var(--color-accent)"
+										font-weight="600"
+										transform="scale(1 -1)"
+										transform-origin="{h.pt.x} {h.pt.y}"
+										pointer-events="none"
+									>{h.label}</text>
+								</g>
+							{/each}
+						</g>
+					{/if}
+				{/each}
+			{/if}
 		{/if}
 
 		<!-- Vector layer (final) -->

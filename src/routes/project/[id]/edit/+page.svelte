@@ -1554,6 +1554,21 @@
 						onAnchorsChange={handleAnchorsChange}
 						onZoomChange={(p) => (zoomPercent = p)}
 						colorPalette={defaultPalette(projectStore.project?.palettes)}
+						onGradientEndpointChange={(layerId, endpoint, coord) =>
+							projectStore.updateColorLayer(
+								glyph.codepoint,
+								layerId,
+								(layer: ColorLayer) =>
+									layer.gradient
+										? {
+												...layer,
+												gradient: {
+													...layer.gradient,
+													[endpoint]: coord
+												}
+											}
+										: layer
+							)}
 					/>
 				</div>
 			</div>

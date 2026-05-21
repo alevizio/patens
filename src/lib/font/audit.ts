@@ -225,6 +225,61 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				message: `${kinkCount} sharp-but-not-quite-corner${kinkCount === 1 ? '' : 's'} (5–25° turn) — likely intended as a curve or a sharper corner`
 			});
 		}
+
+		// Self-intersecting contours: a contour whose own line segments
+		// cross each other. Common from boolean op artefacts or rough
+		// edits. Rasterisers handle these via fill-rule (non-zero /
+		// even-odd) but the rendered shape is rarely what the designer
+		// intended. O(n²) segment-segment intersection per contour;
+		// fine at typical glyph point counts (<200 per contour).
+		let selfIntCount = 0;
+		for (const c of glyph.contours) {
+			const segs: Array<{ x1: number; y1: number; x2: number; y2: number }> = [];
+			let lastX: number | null = null;
+			let lastY: number | null = null;
+			let startX: number | null = null;
+			let startY: number | null = null;
+			for (const cmd of c.commands) {
+				if (cmd.type === 'M') {
+					lastX = cmd.x;
+					lastY = cmd.y;
+					startX = cmd.x;
+					startY = cmd.y;
+					continue;
+				}
+				if (cmd.type === 'Z') {
+					if (lastX !== null && lastY !== null && startX !== null && startY !== null) {
+						segs.push({ x1: lastX, y1: lastY, x2: startX, y2: startY });
+					}
+					lastX = startX;
+					lastY = startY;
+					continue;
+				}
+				if (lastX === null || lastY === null) continue;
+				segs.push({ x1: lastX, y1: lastY, x2: cmd.x, y2: cmd.y });
+				lastX = cmd.x;
+				lastY = cmd.y;
+			}
+			// Test each pair of non-adjacent segments for proper intersection.
+			for (let i = 0; i < segs.length; i++) {
+				for (let j = i + 2; j < segs.length; j++) {
+					// Adjacent segments share an endpoint — skip them; also
+					// skip the wraparound (last + first) for closed contours.
+					if (i === 0 && j === segs.length - 1) continue;
+					if (segmentsCross(segs[i], segs[j])) {
+						selfIntCount++;
+					}
+				}
+			}
+		}
+		if (selfIntCount > 0) {
+			issues.push({
+				codepoint: cp,
+				severity: 'warn',
+				code: 'self-intersecting',
+				message: `Contour crosses itself in ${selfIntCount} place${selfIntCount === 1 ? '' : 's'} — rasterisers fill unpredictably`
+			});
+		}
 	}
 
 	// Composite references that point to empty base glyphs
@@ -846,3 +901,32 @@ export const SEVERITY_ORDER: Record<AuditSeverity, number> = {
 
 export const sortBySeverity = (issues: AuditIssue[]): AuditIssue[] =>
 	[...issues].sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
+
+/**
+ * Proper segment intersection test using the orientation method.
+ * Returns true when two segments cross each other STRICTLY in
+ * their interiors (excludes the case where they merely touch at
+ * an endpoint — that's a legitimate shared corner).
+ */
+const orient = (
+	a: { x: number; y: number },
+	b: { x: number; y: number },
+	c: { x: number; y: number }
+): number => (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+
+const segmentsCross = (
+	s1: { x1: number; y1: number; x2: number; y2: number },
+	s2: { x1: number; y1: number; x2: number; y2: number }
+): boolean => {
+	const a = { x: s1.x1, y: s1.y1 };
+	const b = { x: s1.x2, y: s1.y2 };
+	const c = { x: s2.x1, y: s2.y1 };
+	const d = { x: s2.x2, y: s2.y2 };
+	const o1 = orient(a, b, c);
+	const o2 = orient(a, b, d);
+	const o3 = orient(c, d, a);
+	const o4 = orient(c, d, b);
+	// Strict crossing — all four orientations non-zero with opposite signs
+	// pairwise. The endpoint-touch case (o == 0 for any one) is excluded.
+	return o1 * o2 < 0 && o3 * o4 < 0;
+};
