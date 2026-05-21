@@ -79,6 +79,75 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				message: `${openContours.length} open contour${openContours.length === 1 ? '' : 's'}`
 			});
 		}
+
+		// Quality checks (M2 audit expansion) — these catch drawing
+		// artefacts that ship through the basic-bounds + open-contour pass:
+		// duplicate points (vestigial node from an abandoned edit),
+		// off-grid coordinates (rendered fuzzy at small sizes), tiny
+		// contours (artefact dot left from a Boolean op).
+		let offGridCount = 0;
+		let dupCount = 0;
+		for (const c of glyph.contours) {
+			let prevX: number | null = null;
+			let prevY: number | null = null;
+			for (const cmd of c.commands) {
+				if (cmd.type === 'Z') {
+					prevX = null;
+					prevY = null;
+					continue;
+				}
+				const x = cmd.x;
+				const y = cmd.y;
+				if (!Number.isInteger(x) || !Number.isInteger(y)) offGridCount++;
+				if (
+					prevX !== null &&
+					prevY !== null &&
+					cmd.type !== 'M' &&
+					Math.abs(x - prevX) < 0.5 &&
+					Math.abs(y - prevY) < 0.5
+				) {
+					dupCount++;
+				}
+				prevX = x;
+				prevY = y;
+			}
+		}
+		if (offGridCount > 0) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'off-grid-points',
+				message: `${offGridCount} point${offGridCount === 1 ? '' : 's'} on fractional coordinates`
+			});
+		}
+		if (dupCount > 0) {
+			issues.push({
+				codepoint: cp,
+				severity: 'warn',
+				code: 'duplicate-points',
+				message: `${dupCount} duplicate point${dupCount === 1 ? '' : 's'} (consecutive nodes within 0.5fu)`
+			});
+		}
+
+		// Tiny contours: closed contour with bbox <8fu in BOTH axes is
+		// almost always an artefact dot left from a boolean operation.
+		// 8fu is ~1% of em at 1000 UPM.
+		for (let i = 0; i < glyph.contours.length; i++) {
+			const c = glyph.contours[i];
+			if (!c.closed) continue;
+			const cb = glyphBounds([c]);
+			const w = cb.maxX - cb.minX;
+			const h = cb.maxY - cb.minY;
+			if (w < 8 && h < 8) {
+				issues.push({
+					codepoint: cp,
+					severity: 'warn',
+					code: 'tiny-contour',
+					message: `Contour ${i + 1} is ${Math.round(w)}×${Math.round(h)} — likely a stray artefact`
+				});
+				break;
+			}
+		}
 	}
 
 	// Composite references that point to empty base glyphs

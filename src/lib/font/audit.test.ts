@@ -127,4 +127,77 @@ describe('auditGlyph', () => {
 		// which is well within default metrics) — main thing: no error-severity issues.
 		expect(issues.filter((i) => i.severity === 'error')).toHaveLength(0);
 	});
+
+	// M2 audit expansion — quality checks for drawing artefacts.
+
+	it('flags off-grid points (fractional coordinates)', () => {
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100.5, y: 0 },
+						{ type: 'L', x: 100.5, y: 100 },
+						{ type: 'L', x: 0, y: 100 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		const og = issues.find((i) => i.code === 'off-grid-points');
+		expect(og).toBeDefined();
+		expect(og?.severity).toBe('info');
+	});
+
+	it('flags duplicate points (consecutive nodes < 0.5fu apart)', () => {
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100, y: 0 },
+						{ type: 'L', x: 100.3, y: 0.2 }, // duplicate of previous (within 0.5fu)
+						{ type: 'L', x: 100, y: 100 },
+						{ type: 'L', x: 0, y: 100 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'duplicate-points')).toBeDefined();
+	});
+
+	it('flags tiny artefact contours (<8fu in both axes)', () => {
+		const glyph = baseGlyph({
+			contours: [
+				closedSquare(500),
+				// Stray 5×3 fu blob — boolean-op artefact
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 700, y: 0 },
+						{ type: 'L', x: 705, y: 0 },
+						{ type: 'L', x: 705, y: 3 },
+						{ type: 'L', x: 700, y: 3 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'tiny-contour')).toBeDefined();
+	});
+
+	it('does NOT flag a large contour as tiny', () => {
+		const glyph = baseGlyph({ contours: [closedSquare(500)] });
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'tiny-contour')).toBeUndefined();
+	});
 });
