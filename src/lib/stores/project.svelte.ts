@@ -33,7 +33,14 @@ import * as Y from 'yjs';
 import { projectToYDoc, yDocToProject } from '$lib/sync/yjs-schema';
 import { bindIndexedDb, type ProjectPersistence } from '$lib/sync/yjs-persistence';
 import { connectToPartyKit, type NetworkConnection } from '$lib/sync/yjs-network';
-import { env } from '$env/dynamic/public';
+// PartyKit host read via Vite's import.meta.env rather than
+// $env/dynamic/public — the dynamic variant relies on a server-
+// populated env object that doesn't exist on ssr=false routes
+// (crashes with "Cannot read properties of undefined (reading
+// 'env')"). $env/static/public would also fail at typecheck time
+// because PUBLIC_PARTYKIT_HOST isn't set in the current env.
+// import.meta.env is the universal escape hatch.
+const PUBLIC_PARTYKIT_HOST = import.meta.env.PUBLIC_PARTYKIT_HOST as string | undefined;
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -171,7 +178,7 @@ class ProjectStore {
 		// IDB-only persistence is the default. Connection is per-room
 		// keyed by project ID — sharing the same `/share/<id>` URL
 		// joins the same room.
-		const partyKitHost = env.PUBLIC_PARTYKIT_HOST?.trim();
+		const partyKitHost = PUBLIC_PARTYKIT_HOST?.trim();
 		if (partyKitHost) {
 			this.network = connectToPartyKit(d, project.id, { host: partyKitHost });
 		}
