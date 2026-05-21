@@ -23,12 +23,16 @@ from urllib.parse import urlparse, parse_qs
 
 try:
     from ttfautohint import ttfautohint as _ttfautohint  # type: ignore
-    from ttfautohint.info import version as _hinter_version  # type: ignore
     _LOAD_ERROR: str | None = None
 except Exception as e:  # pragma: no cover — only fires when the dep is missing
     _ttfautohint = None
-    _hinter_version = None
     _LOAD_ERROR = str(e)
+
+# Version readback was previously via `from ttfautohint.info import version`,
+# but that submodule isn't part of ttfautohint-py 0.6.0's public surface and
+# broke imports on Vercel. The /api/hint-font GET handler now reports a
+# generic "available" status without a version string.
+_hinter_version = None
 
 # Match the Node route's safety caps.
 MAX_BYTES = 8 * 1024 * 1024  # 8 MB
