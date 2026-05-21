@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Font Studio">
+	<title>Font Studio</title>
+	<style>
+		path { fill: #111111; }
+		@media (prefers-color-scheme: dark) {
+			path { fill: #f5f5f5; }
+		}
+	</style>
+	<!-- A bold geometric H — same proportions as the demo project's
+	     letter H (the studio's flagship glyph): two solid stems with a
+	     crossbar at optical centre. The cap-height takes the full
+	     visible square so the favicon reads at 16×16. -->
+	<path d="M6 5 H12 V14 H20 V5 H26 V27 H20 V18 H12 V27 H6 Z"/>
+</svg>
