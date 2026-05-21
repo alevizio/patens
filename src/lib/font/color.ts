@@ -11,6 +11,7 @@
  * Safari blocker on COLR v1).
  */
 
+import { contoursToSvgPath } from './path';
 import type { ColorLayer, ColorPalette, RGBA, BezierContour } from './types';
 
 /** Parse a CSS `#rrggbb` or `#rrggbbaa` hex string into an `RGBA` tuple. */
@@ -105,4 +106,75 @@ export const hasVisibleColorLayers = (layers: ColorLayer[] | undefined): boolean
 const makeId = (): string => {
 	if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
 	return `cl-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+};
+
+/**
+ * A single drawable step for the color-glyph renderer: an SVG path
+ * string + the RGBA fill colour. Steps are ordered bottom-up; the
+ * caller fills them in array order so later layers paint on top.
+ */
+export type ColorRenderStep = {
+	/** SVG-path `d` string (same format as `contoursToSvgPath`). */
+	path: string;
+	color: RGBA;
+	/** Source layer id, for hit-testing / hover state. */
+	layerId: string;
+};
+
+/**
+ * Plan a color-glyph render: produce an ordered list of (path, color)
+ * steps the UI can apply to Canvas2D / SVG / anywhere. Pure data —
+ * doesn't touch the DOM, so it's testable without a canvas mock.
+ *
+ * Skipped silently:
+ * - Layers marked `hidden` (export uses the same rule).
+ * - Layers whose `paletteIndex` falls outside the palette's range —
+ *   prevents export errors at the cost of dropping the layer.
+ * - Empty contour layers — nothing to paint.
+ *
+ * Returns an empty array when there are no layers, no palette, or
+ * every layer was filtered.
+ */
+export const planColorRender = (
+	layers: ColorLayer[] | undefined,
+	palette: ColorPalette | null | undefined
+): ColorRenderStep[] => {
+	if (!layers || layers.length === 0) return [];
+	if (!palette) return [];
+	const steps: ColorRenderStep[] = [];
+	for (const layer of layers) {
+		if (layer.hidden) continue;
+		if (layer.paletteIndex < 0 || layer.paletteIndex >= palette.colors.length) continue;
+		if (layer.contours.length === 0) continue;
+		const path = contoursToSvgPath(layer.contours);
+		if (!path) continue;
+		steps.push({
+			path,
+			color: palette.colors[layer.paletteIndex],
+			layerId: layer.id
+		});
+	}
+	return steps;
+};
+
+/**
+ * Apply a render plan to a Canvas2D context. Caller is responsible
+ * for setting up the transform (scaleY(-1), translate, scale) so the
+ * font's y-up coords map correctly to canvas space — same convention
+ * as the monochrome renderer.
+ *
+ * Separated from `planColorRender` so the planner stays pure /
+ * testable and the canvas-touching wrapper is a thin shim.
+ */
+export const applyColorRenderToCanvas = (
+	ctx: CanvasRenderingContext2D,
+	steps: ColorRenderStep[]
+): void => {
+	for (const step of steps) {
+		ctx.save();
+		ctx.fillStyle = rgbaToCss(step.color);
+		const path = new Path2D(step.path);
+		ctx.fill(path, 'evenodd');
+		ctx.restore();
+	}
 };

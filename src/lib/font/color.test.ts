@@ -7,9 +7,22 @@ import {
 	createColorLayer,
 	defaultPalette,
 	palettesAgreeOnLength,
-	hasVisibleColorLayers
+	hasVisibleColorLayers,
+	planColorRender
 } from './color';
-import type { BezierContour, ColorPalette } from './types';
+import type { BezierContour, ColorLayer, ColorPalette } from './types';
+
+const tri: BezierContour = {
+	closed: true,
+	winding: 'cw',
+	commands: [
+		{ type: 'M', x: 0, y: 0 },
+		{ type: 'L', x: 100, y: 0 },
+		{ type: 'L', x: 50, y: 100 },
+		{ type: 'L', x: 0, y: 0 },
+		{ type: 'Z' }
+	]
+};
 
 describe('hexToRgba / rgbaToHex round-trip', () => {
 	it('round-trips opaque colours', () => {
@@ -183,5 +196,81 @@ describe('hasVisibleColorLayers', () => {
 				{ id: '2', contours: c, paletteIndex: 1, hidden: true }
 			])
 		).toBe(false);
+	});
+});
+
+describe('planColorRender', () => {
+	const palette: ColorPalette = {
+		id: 'p',
+		name: 'Test',
+		colors: [
+			{ r: 0, g: 0, b: 0, a: 1 }, // ink
+			{ r: 255, g: 0, b: 0, a: 1 }, // red
+			{ r: 0, g: 0, b: 255, a: 1 } //  blue
+		]
+	};
+
+	it('returns empty array on missing inputs', () => {
+		expect(planColorRender(undefined, palette)).toEqual([]);
+		expect(planColorRender([], palette)).toEqual([]);
+		expect(planColorRender([{ id: 'a', contours: [tri], paletteIndex: 0 }], null)).toEqual([]);
+	});
+
+	it('emits one step per visible layer, bottom-up', () => {
+		const layers: ColorLayer[] = [
+			{ id: 'bottom', contours: [tri], paletteIndex: 0 },
+			{ id: 'top', contours: [tri], paletteIndex: 1 }
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(2);
+		expect(steps[0].layerId).toBe('bottom');
+		expect(steps[0].color).toEqual({ r: 0, g: 0, b: 0, a: 1 });
+		expect(steps[1].layerId).toBe('top');
+		expect(steps[1].color).toEqual({ r: 255, g: 0, b: 0, a: 1 });
+		// SVG path string non-empty for both
+		expect(steps[0].path.length).toBeGreaterThan(0);
+	});
+
+	it('skips hidden layers', () => {
+		const layers: ColorLayer[] = [
+			{ id: 'visible', contours: [tri], paletteIndex: 0 },
+			{ id: 'hidden', contours: [tri], paletteIndex: 1, hidden: true }
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(1);
+		expect(steps[0].layerId).toBe('visible');
+	});
+
+	it('skips layers with out-of-range paletteIndex', () => {
+		const layers: ColorLayer[] = [
+			{ id: 'in-range', contours: [tri], paletteIndex: 0 },
+			{ id: 'too-big', contours: [tri], paletteIndex: 99 },
+			{ id: 'negative', contours: [tri], paletteIndex: -1 }
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(1);
+		expect(steps[0].layerId).toBe('in-range');
+	});
+
+	it('skips layers with empty contours', () => {
+		const layers: ColorLayer[] = [
+			{ id: 'has', contours: [tri], paletteIndex: 0 },
+			{ id: 'empty', contours: [], paletteIndex: 1 }
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(1);
+		expect(steps[0].layerId).toBe('has');
+	});
+
+	it('preserves layer order even when filtering', () => {
+		const layers: ColorLayer[] = [
+			{ id: 'a', contours: [tri], paletteIndex: 0 },
+			{ id: 'b', contours: [tri], paletteIndex: 99 }, // dropped
+			{ id: 'c', contours: [tri], paletteIndex: 1 },
+			{ id: 'd', contours: [tri], paletteIndex: 0, hidden: true }, // dropped
+			{ id: 'e', contours: [tri], paletteIndex: 2 }
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps.map((s) => s.layerId)).toEqual(['a', 'c', 'e']);
 	});
 });
