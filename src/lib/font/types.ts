@@ -62,7 +62,71 @@ export type Glyph = {
 	metricsLocked?: boolean;
 	/** Saved snapshots of the contour state — for iteration / undo at a coarse level. */
 	revisions?: GlyphRevision[];
+	/**
+	 * Optional COLR v0 color layers. Each layer references its own
+	 * contour shape (independent of the monochrome `contours` array)
+	 * and a palette index. Rendered bottom-up: index 0 is drawn first,
+	 * subsequent layers paint on top. When undefined or empty, the
+	 * glyph is treated as monochrome (using `contours`).
+	 */
+	colorLayers?: ColorLayer[];
 	updatedAt: string;
+};
+
+/**
+ * A single layer of a COLR v0 color glyph: a contour-set + a palette
+ * reference. Multiple layers per glyph stack bottom-up to form the
+ * composite color glyph (e.g. a heart icon: layer 0 = white stroke at
+ * palette idx 1, layer 1 = red fill at palette idx 0).
+ *
+ * COLR v0 supports only flat-color fills — no gradients, no transforms.
+ * Gradient + transform support belongs to COLR v1 and is deferred to
+ * Milestone 2.
+ */
+export type ColorLayer = {
+	/** Stable identifier within the glyph (uuid). Lets the UI re-order layers safely. */
+	id: string;
+	/** Designer-supplied label shown in the layer panel (e.g. "shadow", "fill", "outline"). */
+	name?: string;
+	/** Contour shape for this layer — independent of the glyph's monochrome `contours`. */
+	contours: BezierContour[];
+	/**
+	 * Index into the project's palettes. Each palette is an array of
+	 * RGBA tuples, so `paletteIndex` looks up a colour in the
+	 * currently-active palette (default / light / dark variants).
+	 */
+	paletteIndex: number;
+	/** Per-layer visibility toggle in the editor (does not affect export). */
+	hidden?: boolean;
+};
+
+/** A single RGBA colour in 0..255 channel range with float alpha 0..1. */
+export type RGBA = {
+	r: number;
+	g: number;
+	b: number;
+	a: number;
+};
+
+/**
+ * A CPAL palette: a named, ordered list of RGBA colours that
+ * `ColorLayer.paletteIndex` indexes into. A project can carry multiple
+ * palettes — typically `default` + optional `light` + `dark` variants
+ * to support the CSS `font-palette` selector. Index `0` is the
+ * canonical default that ships unconditionally.
+ */
+export type ColorPalette = {
+	/** Stable identifier — uuid. */
+	id: string;
+	/** Designer-supplied name shown in the palette picker. */
+	name: string;
+	/**
+	 * Optional CPAL palette type label — drives `font-palette: light/dark`
+	 * selection in CSS. Untagged palettes ship without that flag.
+	 */
+	variant?: 'default' | 'light' | 'dark' | 'brand';
+	/** Ordered colour list. Same length across all palettes in a project. */
+	colors: RGBA[];
 };
 
 export type GlyphRevision = {
@@ -336,6 +400,13 @@ export type Project = {
 	classes?: KerningClass[];
 	/** Sidebearing groups — linked LSB/RSB across members. */
 	sidebearingClasses?: SidebearingClass[];
+	/**
+	 * Color-font palettes. Each palette is an array of RGBA entries
+	 * indexed by `ColorLayer.paletteIndex`. Multiple palettes (default
+	 * / light / dark / brand variants) get baked into the CPAL table on
+	 * export. Undefined or empty means the project is monochrome.
+	 */
+	palettes?: ColorPalette[];
 	features: ProjectFeatures;
 	/** Variable font axes. Undefined / empty = static font. */
 	axes?: Axis[];
