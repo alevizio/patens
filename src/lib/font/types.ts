@@ -109,7 +109,7 @@ export type ColorLayer = {
 	 * deferred; until it ships, gradients are designed in the editor
 	 * but exports flatten to the fallback palette colour.
 	 */
-	gradient?: LinearGradient;
+	gradient?: LinearGradient | RadialGradient;
 	/** Per-layer visibility toggle in the editor (does not affect export). */
 	hidden?: boolean;
 };
@@ -129,14 +129,31 @@ export type LinearGradient = {
 	/** Gradient end point in font units. */
 	end: { x: number; y: number };
 	/** Color stops along the gradient. Must have ≥2 stops. */
-	stops: Array<{
-		/** Position along the gradient: 0 = start, 1 = end. */
-		offset: number;
-		/** Palette index for this stop's colour. */
-		paletteIndex: number;
-		/** Optional alpha multiplier (0..1) applied on top of the palette colour. */
-		alpha?: number;
-	}>;
+	stops: GradientStop[];
+};
+
+/**
+ * COLR v1 radial gradient. Defined by a centre + radius — colour
+ * radiates outward from offset 0 at the centre to offset 1 at the
+ * radius circle. Used for highlights, circular vignettes, and any
+ * "spot" colour effect in glyphs.
+ */
+export type RadialGradient = {
+	type: 'radial';
+	/** Gradient centre in font units. */
+	center: { x: number; y: number };
+	/** Radius in font units (offset 1 lives on this circle). */
+	radius: number;
+	stops: GradientStop[];
+};
+
+export type GradientStop = {
+	/** Position along the gradient: 0 = start/centre, 1 = end/radius. */
+	offset: number;
+	/** Palette index for this stop's colour. */
+	paletteIndex: number;
+	/** Optional alpha multiplier (0..1) applied on top of the palette colour. */
+	alpha?: number;
 };
 
 /** A single RGBA colour in 0..255 channel range with float alpha 0..1. */

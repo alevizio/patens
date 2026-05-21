@@ -327,6 +327,33 @@ describe('planColorRender', () => {
 		}
 	});
 
+	it('emits a radialGradient fill step when layer has a radial gradient', () => {
+		const layers: ColorLayer[] = [
+			{
+				id: 'radial-fill',
+				contours: [tri],
+				paletteIndex: 0,
+				gradient: {
+					type: 'radial',
+					center: { x: 50, y: 50 },
+					radius: 100,
+					stops: [
+						{ offset: 0, paletteIndex: 1 },
+						{ offset: 1, paletteIndex: 0 }
+					]
+				}
+			}
+		];
+		const steps = planColorRender(layers, palette);
+		expect(steps).toHaveLength(1);
+		expect(steps[0].fill.type).toBe('radialGradient');
+		if (steps[0].fill.type === 'radialGradient') {
+			expect(steps[0].fill.center).toEqual({ x: 50, y: 50 });
+			expect(steps[0].fill.radius).toBe(100);
+			expect(steps[0].fill.stops).toHaveLength(2);
+		}
+	});
+
 	it('falls back to solid fill when gradient has <2 valid stops', () => {
 		const layers: ColorLayer[] = [
 			{

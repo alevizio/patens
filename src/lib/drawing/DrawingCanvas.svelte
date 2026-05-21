@@ -497,6 +497,18 @@
 								<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
 							{/each}
 						</linearGradient>
+					{:else if step.fill.type === 'radialGradient'}
+						<radialGradient
+							id="grad-{step.layerId}"
+							gradientUnits="userSpaceOnUse"
+							cx={step.fill.center.x}
+							cy={step.fill.center.y}
+							r={Math.max(step.fill.radius, 1)}
+						>
+							{#each step.fill.stops as s (s.offset)}
+								<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+							{/each}
+						</radialGradient>
 					{/if}
 				{/each}
 			</defs>
@@ -513,27 +525,48 @@
 			</g>
 			<!-- Gradient endpoint drag handles. Sit ABOVE the colour
 			     overlay so they're hit-testable; sized in font-units so
-			     they stay visually consistent across zoom levels. -->
+			     they stay visually consistent across zoom levels. For
+			     linear gradients: A = start, B = end. For radial: A =
+			     centre, B = a point on the radius circle. -->
 			{#if onGradientEndpointChange}
 				{@const handleR = Math.max(12, 10 / Math.max(pixelsPerUnit, 0.01))}
 				{@const lineW = Math.max(2, 2 / Math.max(pixelsPerUnit, 0.01))}
 				{#each colorRenderPlan as step (step.layerId)}
-					{#if step.fill.type === 'linearGradient'}
+					{#if step.fill.type === 'linearGradient' || step.fill.type === 'radialGradient'}
+						{@const ptA = step.fill.type === 'linearGradient' ? step.fill.start : step.fill.center}
+						{@const ptB =
+							step.fill.type === 'linearGradient'
+								? step.fill.end
+								: { x: step.fill.center.x + step.fill.radius, y: step.fill.center.y }}
 						<g class="gradient-handles">
-							<line
-								x1={step.fill.start.x}
-								y1={step.fill.start.y}
-								x2={step.fill.end.x}
-								y2={step.fill.end.y}
-								stroke="var(--color-accent)"
-								stroke-width={lineW}
-								stroke-dasharray="{lineW * 2} {lineW * 2}"
-								opacity="0.7"
-								pointer-events="none"
-							/>
+							{#if step.fill.type === 'linearGradient'}
+								<line
+									x1={ptA.x}
+									y1={ptA.y}
+									x2={ptB.x}
+									y2={ptB.y}
+									stroke="var(--color-accent)"
+									stroke-width={lineW}
+									stroke-dasharray="{lineW * 2} {lineW * 2}"
+									opacity="0.7"
+									pointer-events="none"
+								/>
+							{:else}
+								<circle
+									cx={ptA.x}
+									cy={ptA.y}
+									r={step.fill.radius}
+									fill="none"
+									stroke="var(--color-accent)"
+									stroke-width={lineW}
+									stroke-dasharray="{lineW * 2} {lineW * 2}"
+									opacity="0.7"
+									pointer-events="none"
+								/>
+							{/if}
 							{#each [
-								{ ep: 'start' as const, pt: step.fill.start, label: 'A' },
-								{ ep: 'end' as const, pt: step.fill.end, label: 'B' }
+								{ ep: 'start' as const, pt: ptA, label: 'A' },
+								{ ep: 'end' as const, pt: ptB, label: 'B' }
 							] as h (step.layerId + '-' + h.ep)}
 								<g
 									role="slider"

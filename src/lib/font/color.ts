@@ -133,6 +133,12 @@ export type ColorRenderFill =
 			start: { x: number; y: number };
 			end: { x: number; y: number };
 			stops: Array<{ offset: number; color: RGBA }>;
+	  }
+	| {
+			type: 'radialGradient';
+			center: { x: number; y: number };
+			radius: number;
+			stops: Array<{ offset: number; color: RGBA }>;
 	  };
 
 /**
@@ -163,9 +169,10 @@ export const planColorRender = (
 		const path = contoursToSvgPath(layer.contours);
 		if (!path) continue;
 		// Color-fonts M2 gradient resolution: when the layer has a
-		// gradient, each stop's palette colour gets looked up and
-		// optionally alpha-multiplied. Invalid stops (out-of-range
-		// palette index) silently fall through to the flat fallback.
+		// gradient (linear OR radial), each stop's palette colour gets
+		// looked up and optionally alpha-multiplied. Invalid stops
+		// (out-of-range palette index) silently fall through to the
+		// flat fallback.
 		if (layer.gradient && layer.gradient.stops.length >= 2) {
 			const stops = layer.gradient.stops
 				.filter((s) => s.paletteIndex >= 0 && s.paletteIndex < palette.colors.length)
@@ -175,17 +182,32 @@ export const planColorRender = (
 					return { offset: s.offset, color: { ...base, a } };
 				});
 			if (stops.length >= 2) {
-				steps.push({
-					path,
-					fill: {
-						type: 'linearGradient',
-						start: layer.gradient.start,
-						end: layer.gradient.end,
-						stops
-					},
-					layerId: layer.id
-				});
-				continue;
+				if (layer.gradient.type === 'linear') {
+					steps.push({
+						path,
+						fill: {
+							type: 'linearGradient',
+							start: layer.gradient.start,
+							end: layer.gradient.end,
+							stops
+						},
+						layerId: layer.id
+					});
+					continue;
+				}
+				if (layer.gradient.type === 'radial') {
+					steps.push({
+						path,
+						fill: {
+							type: 'radialGradient',
+							center: layer.gradient.center,
+							radius: layer.gradient.radius,
+							stops
+						},
+						layerId: layer.id
+					});
+					continue;
+				}
 			}
 		}
 		// Flat fallback — both the COLR v0 export path and renderers
@@ -216,7 +238,7 @@ export const applyColorRenderToCanvas = (
 		ctx.save();
 		if (step.fill.type === 'solid') {
 			ctx.fillStyle = rgbaToCss(step.fill.color);
-		} else {
+		} else if (step.fill.type === 'linearGradient') {
 			// Linear gradient — Canvas2D's createLinearGradient takes
 			// coordinates in the post-transform space, and our caller
 			// has already set up the font-units-to-canvas-pixels
@@ -227,6 +249,22 @@ export const applyColorRenderToCanvas = (
 				step.fill.start.y,
 				step.fill.end.x,
 				step.fill.end.y
+			);
+			for (const s of step.fill.stops) grad.addColorStop(s.offset, rgbaToCss(s.color));
+			ctx.fillStyle = grad;
+		} else {
+			// Radial gradient — single-circle (start radius 0, end at
+			// the configured radius). COLR v1 supports two focal
+			// circles, but for the editor preview a single-focal
+			// gradient covers the common designer intent (highlight,
+			// vignette, spot).
+			const grad = ctx.createRadialGradient(
+				step.fill.center.x,
+				step.fill.center.y,
+				0,
+				step.fill.center.x,
+				step.fill.center.y,
+				Math.max(step.fill.radius, 1)
 			);
 			for (const s of step.fill.stops) grad.addColorStop(s.offset, rgbaToCss(s.color));
 			ctx.fillStyle = grad;

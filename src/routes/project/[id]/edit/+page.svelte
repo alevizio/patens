@@ -1558,16 +1558,23 @@
 							projectStore.updateColorLayer(
 								glyph.codepoint,
 								layerId,
-								(layer: ColorLayer) =>
-									layer.gradient
-										? {
-												...layer,
-												gradient: {
-													...layer.gradient,
-													[endpoint]: coord
-												}
-											}
-										: layer
+								(layer: ColorLayer) => {
+									const g = layer.gradient;
+									if (!g) return layer;
+									if (g.type === 'linear') {
+										return { ...layer, gradient: { ...g, [endpoint]: coord } };
+									}
+									// Radial: start handle moves the centre; end handle
+									// (sits on the radius circle) updates the radius
+									// based on distance from centre.
+									if (endpoint === 'start') {
+										return { ...layer, gradient: { ...g, center: coord } };
+									}
+									const dx = coord.x - g.center.x;
+									const dy = coord.y - g.center.y;
+									const radius = Math.max(1, Math.round(Math.hypot(dx, dy)));
+									return { ...layer, gradient: { ...g, radius } };
+								}
 							)}
 					/>
 				</div>
@@ -2700,8 +2707,74 @@
 										     — on-canvas drag handles are future work. -->
 										{#if l.gradient}
 											<div class="col-span-4 mt-1 grid gap-1 rounded border border-accent/30 bg-accent-soft/30 p-1.5">
-												<div class="flex items-baseline justify-between text-[10px] text-accent-strong">
-													<span class="font-medium">Linear gradient</span>
+												<div class="flex items-baseline justify-between gap-2 text-[10px] text-accent-strong">
+													<!-- Type switcher: linear ↔ radial. Converts geometry
+													     when toggling so the gradient stays usable: linear
+													     centre = midpoint, radius = half length / vice versa. -->
+													<div class="inline-flex rounded border border-accent/40 overflow-hidden">
+														<button
+															type="button"
+															onclick={() =>
+																projectStore.updateColorLayer(
+																	glyph.codepoint,
+																	l.id,
+																	(layer: ColorLayer) => {
+																		const g = layer.gradient;
+																		if (!g || g.type === 'linear') return layer;
+																		const cx = g.center.x;
+																		const cy = g.center.y;
+																		const r = g.radius;
+																		return {
+																			...layer,
+																			gradient: {
+																				type: 'linear',
+																				start: { x: cx - r, y: cy },
+																				end: { x: cx + r, y: cy },
+																				stops: g.stops
+																			}
+																		};
+																	}
+																)}
+															class="px-1.5 py-0 text-[10px] {l.gradient.type ===
+															'linear'
+																? 'bg-accent text-accent-fg'
+																: 'text-accent-strong hover:bg-accent-soft'}"
+														>
+															Linear
+														</button>
+														<button
+															type="button"
+															onclick={() =>
+																projectStore.updateColorLayer(
+																	glyph.codepoint,
+																	l.id,
+																	(layer: ColorLayer) => {
+																		const g = layer.gradient;
+																		if (!g || g.type === 'radial') return layer;
+																		const cx = (g.start.x + g.end.x) / 2;
+																		const cy = (g.start.y + g.end.y) / 2;
+																		const dx = g.end.x - g.start.x;
+																		const dy = g.end.y - g.start.y;
+																		const radius = Math.max(1, Math.round(Math.hypot(dx, dy) / 2));
+																		return {
+																			...layer,
+																			gradient: {
+																				type: 'radial',
+																				center: { x: cx, y: cy },
+																				radius,
+																				stops: g.stops
+																			}
+																		};
+																	}
+																)}
+															class="px-1.5 py-0 text-[10px] {l.gradient.type ===
+															'radial'
+																? 'bg-accent text-accent-fg'
+																: 'text-accent-strong hover:bg-accent-soft'}"
+														>
+															Radial
+														</button>
+													</div>
 													<button
 														type="button"
 														onclick={() =>
@@ -2712,85 +2785,174 @@
 															)}
 														class="text-[10px] underline hover:text-warn-strong"
 													>
-														Remove gradient
+														Remove
 													</button>
 												</div>
-												<div class="grid grid-cols-2 gap-1 font-mono text-[10px] text-fg-muted">
-													<label class="flex items-center gap-1">
-														<span>start</span>
+												{#if l.gradient.type === 'linear'}
+													<div class="grid grid-cols-2 gap-1 font-mono text-[10px] text-fg-muted">
+														<label class="flex items-center gap-1">
+															<span>start</span>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.start.x}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'linear'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							start: { ...layer.gradient.start, x: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.start.y}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'linear'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							start: { ...layer.gradient.start, y: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+														</label>
+														<label class="flex items-center gap-1">
+															<span>end</span>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.end.x}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'linear'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							end: { ...layer.gradient.end, x: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.end.y}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'linear'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							end: { ...layer.gradient.end, y: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+														</label>
+													</div>
+												{:else}
+													<div class="grid grid-cols-[auto_1fr] gap-1 font-mono text-[10px] text-fg-muted">
+														<span>centre</span>
+														<div class="flex gap-1">
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.center.x}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'radial'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							center: { ...layer.gradient.center, x: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+															<input
+																type="number"
+																step="10"
+																value={l.gradient.center.y}
+																oninput={(e) =>
+																	projectStore.updateColorLayer(
+																		glyph.codepoint,
+																		l.id,
+																		(layer: ColorLayer) =>
+																			layer.gradient?.type === 'radial'
+																				? {
+																						...layer,
+																						gradient: {
+																							...layer.gradient,
+																							center: { ...layer.gradient.center, y: Number(e.currentTarget.value) }
+																						}
+																					}
+																				: layer
+																	)}
+																class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															/>
+														</div>
+														<span>radius</span>
 														<input
 															type="number"
 															step="10"
-															value={l.gradient.start.x}
+															min="1"
+															value={l.gradient.radius}
 															oninput={(e) =>
 																projectStore.updateColorLayer(
 																	glyph.codepoint,
 																	l.id,
-																	(layer: ColorLayer) => ({
-																		...layer,
-																		gradient: layer.gradient
-																			? { ...layer.gradient, start: { ...layer.gradient.start, x: Number(e.currentTarget.value) } }
-																			: layer.gradient
-																	})
+																	(layer: ColorLayer) =>
+																		layer.gradient?.type === 'radial'
+																			? {
+																					...layer,
+																					gradient: {
+																						...layer.gradient,
+																						radius: Math.max(1, Number(e.currentTarget.value))
+																					}
+																				}
+																			: layer
 																)}
-															class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
+															class="w-16 rounded border border-border bg-surface px-1 text-[10px]"
 														/>
-														<input
-															type="number"
-															step="10"
-															value={l.gradient.start.y}
-															oninput={(e) =>
-																projectStore.updateColorLayer(
-																	glyph.codepoint,
-																	l.id,
-																	(layer: ColorLayer) => ({
-																		...layer,
-																		gradient: layer.gradient
-																			? { ...layer.gradient, start: { ...layer.gradient.start, y: Number(e.currentTarget.value) } }
-																			: layer.gradient
-																	})
-																)}
-															class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
-														/>
-													</label>
-													<label class="flex items-center gap-1">
-														<span>end</span>
-														<input
-															type="number"
-															step="10"
-															value={l.gradient.end.x}
-															oninput={(e) =>
-																projectStore.updateColorLayer(
-																	glyph.codepoint,
-																	l.id,
-																	(layer: ColorLayer) => ({
-																		...layer,
-																		gradient: layer.gradient
-																			? { ...layer.gradient, end: { ...layer.gradient.end, x: Number(e.currentTarget.value) } }
-																			: layer.gradient
-																	})
-																)}
-															class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
-														/>
-														<input
-															type="number"
-															step="10"
-															value={l.gradient.end.y}
-															oninput={(e) =>
-																projectStore.updateColorLayer(
-																	glyph.codepoint,
-																	l.id,
-																	(layer: ColorLayer) => ({
-																		...layer,
-																		gradient: layer.gradient
-																			? { ...layer.gradient, end: { ...layer.gradient.end, y: Number(e.currentTarget.value) } }
-																			: layer.gradient
-																	})
-																)}
-															class="w-12 rounded border border-border bg-surface px-1 text-[10px]"
-														/>
-													</label>
-												</div>
+													</div>
+												{/if}
 												<!-- Gradient stops — each row: editable offset %, palette
 												     picker, swatch, remove button. The minimum of 2 stops
 												     is enforced by disabling the remove button when only
