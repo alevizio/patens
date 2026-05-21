@@ -43,10 +43,12 @@
 		"harfbuzzjs": "^1.2.0",
 		"idb-keyval": "^6.2.2",
 		"opentype.js": "^2.0.0",
+		"partysocket": "^1.1.19",
 		"perfect-freehand": "^1.2.3",
 		"polygon-clipping": "^0.15.7",
 		"woff2-encoder": "^2.0.0",
 		"y-indexeddb": "^9.0.12",
+		"y-partykit": "^0.0.33",
 		"yjs": "^13.6.30"
 	}
 }

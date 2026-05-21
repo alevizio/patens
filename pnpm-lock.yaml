@@ -29,6 +29,9 @@ importers:
       opentype.js:
         specifier: ^2.0.0
         version: 2.0.0
+      partysocket:
+        specifier: ^1.1.19
+        version: 1.1.19
       perfect-freehand:
         specifier: ^1.2.3
         version: 1.2.3
@@ -41,6 +44,9 @@ importers:
       y-indexeddb:
         specifier: ^9.0.12
         version: 9.0.12(yjs@13.6.30)
+      y-partykit:
+        specifier: ^0.0.33
+        version: 0.0.33(y-protocols@1.0.7(yjs@13.6.30))(yjs@13.6.30)
       yjs:
         specifier: ^13.6.30
         version: 13.6.30
@@ -871,6 +877,9 @@ packages:
   estree-walker@3.0.3:
     resolution: {integrity: sha512-7RUKfXgSMMkzt6ZuXmqapOurLGPPfgj6l9uRZ7lRGolvk0y2yocc35LdcxKC5PQZdn2DMqioAQ2NoWcrTKmm6g==}
 
+  event-target-polyfill@0.0.4:
+    resolution: {integrity: sha512-Gs6RLjzlLRdT8X9ZipJdIZI/Y6/HhRLyq9RdDlCsnpxr/+Nn6bU2EFGuC94GjxqhM+Nmij2Vcq98yoHrU8uNFQ==}
+
   expect-type@1.3.0:
     resolution: {integrity: sha512-knvyeauYhqjOYvQ66MznSMs83wmHrCycNEN6Ao+2AeYEfxUIkuiVxdEa1qlGEPK+We3n0THiDciYSsCcgW/DoA==}
     engines: {node: '>=12.0.0'}
@@ -1026,6 +1035,9 @@ packages:
   locate-character@3.0.0:
     resolution: {integrity: sha512-SW13ws7BjaeJ6p7Q6CO2nchbYEc3X3J6WrmTTDto7yMPqVSZTUyY5Tjbid+Ab8gLnATtygYtiDIJGQRRn2ZOiA==}
 
+  lodash.debounce@4.0.8:
+    resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
+
   lru-cache@11.3.6:
     resolution: {integrity: sha512-Gf/KoL3C/MlI7Bt0PGI9I+TeTC/I6r/csU58N4BSNc4lppLBeKsOdFYkK+dX0ABDUMJNfCHTyPpzwwO21Awd3A==}
     engines: {node: 20 || >=22}
@@ -1091,6 +1103,14 @@ packages:
 
   parse-css-color@0.2.1:
     resolution: {integrity: sha512-bwS/GGIFV3b6KS4uwpzCFj4w297Yl3uqnSgIPsoQkx7GMLROXfMnWvxfNkL0oh8HVhZA4hvJoEoEIqonfJ3BWg==}
+
+  partysocket@1.1.19:
+    resolution: {integrity: sha512-hPwsXSdUc8PKNCinET6TD3JQOxzQ2JaP0bUZQXBVl6UM8UuLn1odgf1LcJXHy4UHSQwWL/RU3AnyhEsGM+W+sg==}
+    peerDependencies:
+      react: '>=17'
+    peerDependenciesMeta:
+      react:
+        optional: true
 
   path-scurry@2.0.2:
     resolution: {integrity: sha512-3O/iVVsJAPsOnpwWIeD+d6z/7PmqApyQePUtCndjatj/9I5LylHvt5qluFaBT3I5h3r1ejfR056c+FCv+NnNXg==}
@@ -1356,6 +1376,22 @@ packages:
 
   y-indexeddb@9.0.12:
     resolution: {integrity: sha512-9oCFRSPPzBK7/w5vOkJBaVCQZKHXB/v6SIT+WYhnJxlEC61juqG0hBrAf+y3gmSMLFLwICNH9nQ53uscuse6Hg==}
+    engines: {node: '>=16.0.0', npm: '>=8.0.0'}
+    peerDependencies:
+      yjs: ^13.0.0
+
+  y-partykit@0.0.33:
+    resolution: {integrity: sha512-TqM2H/C1fBZbFjL9kpBLC3EWWaizBUYdFzW5DMGmcZYfQv5tYYIBTqUW4eCZOXHkhNLTEA+s2ydSKGYi8u1+sg==}
+    peerDependencies:
+      react: '*'
+      y-protocols: ^1.0.6
+      yjs: ^13.6.16
+    peerDependenciesMeta:
+      react:
+        optional: true
+
+  y-protocols@1.0.7:
+    resolution: {integrity: sha512-YSVsLoXxO67J6eE/nV4AtFtT3QEotZf5sK5BHxFBXso7VDUT3Tx07IfA6hsu5Q5OmBdMkQVmFZ9QOA7fikWvnw==}
     engines: {node: '>=16.0.0', npm: '>=8.0.0'}
     peerDependencies:
       yjs: ^13.0.0
@@ -1978,6 +2014,8 @@ snapshots:
     dependencies:
       '@types/estree': 1.0.9
 
+  event-target-polyfill@0.0.4: {}
+
   expect-type@1.3.0: {}
 
   fdir@6.5.0(picomatch@4.0.4):
@@ -2089,6 +2127,8 @@ snapshots:
 
   locate-character@3.0.0: {}
 
+  lodash.debounce@4.0.8: {}
+
   lru-cache@11.3.6: {}
 
   magic-string@0.30.21:
@@ -2133,6 +2173,10 @@ snapshots:
     dependencies:
       color-name: 1.1.4
       hex-rgb: 4.3.0
+
+  partysocket@1.1.19:
+    dependencies:
+      event-target-polyfill: 0.0.4
 
   path-scurry@2.0.2:
     dependencies:
@@ -2367,6 +2411,18 @@ snapshots:
   woff2-encoder@2.0.0: {}
 
   y-indexeddb@9.0.12(yjs@13.6.30):
+    dependencies:
+      lib0: 0.2.117
+      yjs: 13.6.30
+
+  y-partykit@0.0.33(y-protocols@1.0.7(yjs@13.6.30))(yjs@13.6.30):
+    dependencies:
+      lib0: 0.2.117
+      lodash.debounce: 4.0.8
+      y-protocols: 1.0.7(yjs@13.6.30)
+      yjs: 13.6.30
+
+  y-protocols@1.0.7(yjs@13.6.30):
     dependencies:
       lib0: 0.2.117
       yjs: 13.6.30

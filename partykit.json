@@ -1,0 +1,6 @@
+{
+	"$schema": "https://www.partykit.io/schema.json",
+	"name": "font-studio",
+	"main": "partykit/font-studio.ts",
+	"compatibilityDate": "2025-11-12"
+}
