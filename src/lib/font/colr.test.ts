@@ -1,6 +1,18 @@
 import { describe, expect, it } from 'vitest';
-import { writeColrV0, writeCpalV0 } from './colr';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { applyColorFontTables, writeColrV0, writeCpalV0 } from './colr';
+import { parseSfntDirectory, computeTableChecksum, getTableBytes } from './sfnt-splice';
 import type { ColorPalette } from './types';
+
+const loadDemoOtf = async (): Promise<Uint8Array> => {
+	const p = path.join(
+		process.cwd(),
+		'static/demo-fonts/StudioGeometric-Regular.otf'
+	);
+	const buf = await fs.readFile(p);
+	return new Uint8Array(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength));
+};
 
 // Read a big-endian uint16 from a Uint8Array at an offset.
 const u16 = (b: Uint8Array, off: number) => (b[off] << 8) | b[off + 1];
@@ -181,3 +193,112 @@ describe('writeCpalV0', () => {
 		expect(() => writeCpalV0([empty])).toThrow();
 	});
 });
+
+describe('applyColorFontTables', () => {
+	it('no-op on empty inputs', async () => {
+		const otf = await loadDemoOtf();
+		expect(applyColorFontTables(otf, [], [])).toBe(otf); // same reference
+		expect(applyColorFontTables(otf, [{ glyphID: 5, layers: [] }], [])).toBe(otf);
+		expect(
+			applyColorFontTables(
+				otf,
+				[],
+				[
+					{
+						id: 'p',
+						name: 'P',
+						colors: [{ r: 0, g: 0, b: 0, a: 1 }]
+					}
+				]
+			)
+		).toBe(otf);
+	});
+
+	it('produces a buffer that parses as a valid SFNT with COLR + CPAL', async () => {
+		const otf = await loadDemoOtf();
+		const palettes: ColorPalette[] = [
+			{
+				id: 'default',
+				name: 'Default',
+				variant: 'default',
+				colors: [
+					{ r: 26, g: 26, b: 26, a: 1 },
+					{ r: 255, g: 100, b: 100, a: 1 }
+				]
+			}
+		];
+		const baseGlyphs = [
+			{
+				glyphID: 5,
+				layers: [
+					{ glyphID: 10, paletteIndex: 0 },
+					{ glyphID: 11, paletteIndex: 1 }
+				]
+			}
+		];
+		const out = applyColorFontTables(otf, baseGlyphs, palettes);
+		// New buffer, different reference
+		expect(out).not.toBe(otf);
+		// Parses as a valid SFNT
+		const dir = parseSfntDirectory(out);
+		// Has both new tables
+		const tags = dir.tables.map((t) => t.tag);
+		expect(tags).toContain('COLR');
+		expect(tags).toContain('CPAL');
+		// Tables remain alphabetically sorted (SFNT spec)
+		for (let i = 1; i < tags.length; i++) {
+			expect(tags[i] >= tags[i - 1]).toBe(true);
+		}
+		// Each table's checksum matches its bytes (whole-file invariant)
+		for (const rec of dir.tables) {
+			const data = getTableBytes(out, dir, rec.tag);
+			if (!data) continue;
+			// Padded checksum should equal the recorded checksum (head is
+			// special — its checkSumAdjustment is masked during compute).
+			const checksum = computeTableChecksum(padFor(data));
+			if (rec.tag === 'head') {
+				// head's checksum is computed over the table with the
+				// checkSumAdjustment field treated as 0 — spliceTable
+				// already does that work; we just verify the table is
+				// present and sized correctly.
+				expect(data.length).toBeGreaterThanOrEqual(54);
+			} else {
+				expect(checksum).toBe(rec.checksum);
+			}
+		}
+	});
+
+	it('preserves the original font tables (kerning, cmap, etc.)', async () => {
+		const otf = await loadDemoOtf();
+		const beforeDir = parseSfntDirectory(otf);
+		const beforeTags = new Set(beforeDir.tables.map((t) => t.tag));
+		const palettes: ColorPalette[] = [
+			{
+				id: 'p',
+				name: 'P',
+				colors: [{ r: 0, g: 0, b: 0, a: 1 }]
+			}
+		];
+		const baseGlyphs = [
+			{ glyphID: 5, layers: [{ glyphID: 10, paletteIndex: 0 }] }
+		];
+		const out = applyColorFontTables(otf, baseGlyphs, palettes);
+		const afterDir = parseSfntDirectory(out);
+		const afterTags = new Set(afterDir.tables.map((t) => t.tag));
+		// Every original table still exists.
+		for (const tag of beforeTags) {
+			expect(afterTags.has(tag)).toBe(true);
+		}
+		// Plus COLR + CPAL.
+		expect(afterTags.has('COLR')).toBe(true);
+		expect(afterTags.has('CPAL')).toBe(true);
+	});
+});
+
+const padFor = (data: Uint8Array): Uint8Array => {
+	const padLen = (4 - (data.length % 4)) % 4;
+	if (padLen === 0) return data;
+	const out = new Uint8Array(data.length + padLen);
+	out.set(data);
+	return out;
+};

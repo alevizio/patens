@@ -48,6 +48,7 @@
  */
 
 import { ByteBuf } from './gpos-mark';
+import { spliceTable } from './sfnt-splice';
 import type { ColorPalette, RGBA } from './types';
 
 // ---------------------------------------------------------------- COLR v0
@@ -178,4 +179,34 @@ const writeColorRecord = (buf: ByteBuf, c: RGBA): void => {
 	buf.writeUint8(clamp(c.g));
 	buf.writeUint8(clamp(c.r));
 	buf.writeUint8(clamp(c.a * 255));
+};
+
+// ---------------------------------------------------------------- Integration
+
+/**
+ * Splice a COLR v0 + CPAL v0 pair into an existing OTF / TTF buffer.
+ * Returns the augmented buffer. The original is not mutated.
+ *
+ * The caller is responsible for:
+ *   - Creating the synthetic per-layer glyphs in the source font BEFORE
+ *     calling this (each `LayerRecord.glyphID` must already exist).
+ *   - Sorting `baseGlyphs` ascending by glyphID (enforced by writeColrV0).
+ *   - Making palettes agree on length (enforced by writeCpalV0).
+ *
+ * No-op (returns the input as-is) when there are no base glyphs OR no
+ * palettes — both tables are useless without their counterpart.
+ */
+export const applyColorFontTables = (
+	sfntBuf: Uint8Array,
+	baseGlyphs: BaseGlyphRecord[],
+	palettes: ColorPalette[]
+): Uint8Array => {
+	if (baseGlyphs.length === 0 || palettes.length === 0) return sfntBuf;
+	const cpal = writeCpalV0(palettes);
+	const colr = writeColrV0(baseGlyphs);
+	// Splice order doesn't matter for correctness; alphabetical for the
+	// SFNT directory is handled inside `spliceTable`. We splice CPAL
+	// first so a partial failure leaves an orderly file.
+	const withCpal = spliceTable(sfntBuf, 'CPAL', cpal);
+	return spliceTable(withCpal, 'COLR', colr);
 };
