@@ -958,6 +958,36 @@ class ProjectStore {
 		await this.flush();
 	}
 
+	/**
+	 * Day 3g helper for cold-path single-glyph writes (addCustomGlyph,
+	 * resetGlyph, saveRevision, restoreRevision, deleteRevision). The
+	 * drawing-hot-path `updateGlyph` deliberately does NOT use this
+	 * yet — see Day 3d note for the perf-profiling rationale.
+	 *
+	 * Doc path: stash the next glyph into the Y.Map keyed by string
+	 * codepoint, inside a transact() so the 'update' event fires once
+	 * and refreshFromDoc rebuilds the project once.
+	 *
+	 * Legacy path: assign the next glyphs record onto this.project.
+	 */
+	private writeGlyph(codepoint: number, next: Glyph): void {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		if (!this.doc) {
+			this.project = {
+				...this.project,
+				glyphs: { ...this.project.glyphs, [codepoint]: next }
+			};
+			this.touch();
+			return;
+		}
+		this.doc.transact(() => {
+			const glyphMap = this.doc!.getMap('project').get('glyphs') as Y.Map<unknown>;
+			glyphMap.set(String(codepoint), next);
+		});
+		this.touch();
+	}
+
 	addCustomGlyph(codepoint: number, name?: string) {
 		if (!this.project) return false;
 		if (this.project.locked) return false;
@@ -965,23 +995,16 @@ class ProjectStore {
 		const auto = name?.trim() || aglfnName(codepoint);
 		const sb = this.project.metrics.defaultSidebearing;
 		const advance = Math.round(this.project.metrics.unitsPerEm * 0.6);
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: {
-					codepoint,
-					name: auto,
-					status: 'empty',
-					advanceWidth: advance,
-					leftSidebearing: sb,
-					rightSidebearing: sb,
-					contours: [],
-					updatedAt: new Date().toISOString()
-				}
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			codepoint,
+			name: auto,
+			status: 'empty',
+			advanceWidth: advance,
+			leftSidebearing: sb,
+			rightSidebearing: sb,
+			contours: [],
+			updatedAt: new Date().toISOString()
+		});
 		return true;
 	}
 
@@ -992,27 +1015,20 @@ class ProjectStore {
 		if (!current) return;
 		const sb = this.project.metrics.defaultSidebearing;
 		const advance = Math.round(this.project.metrics.unitsPerEm * 0.6);
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: {
-					...current,
-					status: 'empty',
-					contours: [],
-					sketch: [],
-					components: [],
-					anchors: [],
-					notes: undefined,
-					referenceImage: undefined,
-					advanceWidth: advance,
-					leftSidebearing: sb,
-					rightSidebearing: sb,
-					updatedAt: new Date().toISOString()
-				}
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			status: 'empty',
+			contours: [],
+			sketch: [],
+			components: [],
+			anchors: [],
+			notes: undefined,
+			referenceImage: undefined,
+			advanceWidth: advance,
+			leftSidebearing: sb,
+			rightSidebearing: sb,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	saveRevision(codepoint: number, label?: string) {
@@ -1032,14 +1048,11 @@ class ProjectStore {
 		const next = [...(current.revisions ?? []), rev];
 		// Cap at 8 most-recent revisions to keep the project file lean.
 		const trimmed = next.length > 8 ? next.slice(-8) : next;
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: { ...current, revisions: trimmed, updatedAt: new Date().toISOString() }
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			revisions: trimmed,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	restoreRevision(codepoint: number, revisionId: string) {
@@ -1049,21 +1062,14 @@ class ProjectStore {
 		if (!current) return;
 		const rev = (current.revisions ?? []).find((r) => r.id === revisionId);
 		if (!rev) return;
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: {
-					...current,
-					contours: JSON.parse(JSON.stringify(rev.contours)),
-					advanceWidth: rev.advanceWidth,
-					leftSidebearing: rev.leftSidebearing,
-					rightSidebearing: rev.rightSidebearing,
-					updatedAt: new Date().toISOString()
-				}
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			contours: JSON.parse(JSON.stringify(rev.contours)),
+			advanceWidth: rev.advanceWidth,
+			leftSidebearing: rev.leftSidebearing,
+			rightSidebearing: rev.rightSidebearing,
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	deleteRevision(codepoint: number, revisionId: string) {
@@ -1071,18 +1077,11 @@ class ProjectStore {
 		if (this.project.locked) return;
 		const current = this.project.glyphs[codepoint];
 		if (!current?.revisions) return;
-		this.project = {
-			...this.project,
-			glyphs: {
-				...this.project.glyphs,
-				[codepoint]: {
-					...current,
-					revisions: current.revisions.filter((r) => r.id !== revisionId),
-					updatedAt: new Date().toISOString()
-				}
-			}
-		};
-		this.touch();
+		this.writeGlyph(codepoint, {
+			...current,
+			revisions: current.revisions.filter((r) => r.id !== revisionId),
+			updatedAt: new Date().toISOString()
+		});
 	}
 
 	toggleGlyphFlag(codepoint: number) {
