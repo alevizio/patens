@@ -31,6 +31,7 @@ import type { ScriptPack } from '$lib/font/charsets';
 import { aglfnName } from '$lib/font/aglfn';
 import * as Y from 'yjs';
 import { projectToYDoc, yDocToProject } from '$lib/sync/yjs-schema';
+import { bindIndexedDb, type ProjectPersistence } from '$lib/sync/yjs-persistence';
 
 class ProjectStore {
 	project = $state<Project | null>(null);
@@ -66,6 +67,13 @@ class ProjectStore {
 	 */
 	private doc: Y.Doc | null = null;
 	private docUpdateUnsubscribe: (() => void) | null = null;
+	/**
+	 * Phase C Day 4 — y-indexeddb persistence binding. Created in
+	 * `load()` (browser only); destroyed in `clear()` and on project
+	 * switch. Survives reloads — re-mounting on the same project ID
+	 * picks up where the previous session left off.
+	 */
+	private persistence: ProjectPersistence | null = null;
 
 	getDoc(): Y.Doc | null {
 		return this.doc;
@@ -84,31 +92,78 @@ class ProjectStore {
 		this.project = yDocToProject(this.doc);
 	};
 
-	load(project: Project) {
-		this.project = project;
+	async load(project: Project) {
 		this.dirty = false;
-		// Phase C Day 1: initialise the Y.Doc mirror. Replaces any
-		// existing doc on project switch so we never accidentally
-		// carry state across projects. The subscription on 'update'
-		// is wired in but no-ops until Day 2 starts writing through
-		// transactions (nothing fires the event until then).
+		// Tear down any state from a previous project before binding the
+		// new one — these can outlive route navigations otherwise.
 		if (this.docUpdateUnsubscribe) {
 			this.docUpdateUnsubscribe();
 			this.docUpdateUnsubscribe = null;
 		}
+		if (this.persistence) {
+			this.persistence.destroy();
+			this.persistence = null;
+		}
 		if (this.doc) this.doc.destroy();
-		this.doc = projectToYDoc(project);
-		this.doc.on('update', this.refreshFromDoc);
-		this.docUpdateUnsubscribe = () => this.doc?.off('update', this.refreshFromDoc);
-		const codepoints = Object.keys(project.glyphs).map(Number);
+
+		// Phase C Day 4 — migration-safe load.
+		//
+		// Start with an EMPTY Y.Doc. Bind y-indexeddb, await sync. If
+		// IDB had stored state (returning user), the doc is now hydrated
+		// — read it back via the schema bridge. Otherwise (fresh user
+		// on this project) seed the doc from the legacy Project
+		// parameter so subsequent writes layer on top.
+		//
+		// Critical: subscribe to the doc's 'update' event AFTER seeding,
+		// not before. The seed phase triggers one update per Y.Map.set
+		// and Y.Array.insert — wiring refreshFromDoc before then would
+		// cause many redundant rebuilds of `this.project` against
+		// partial doc state.
+		//
+		// Avoids the duplicate-Y.Array-entry trap: seeding into an
+		// already-hydrated doc would re-insert kerning pairs / palettes
+		// / etc on every reload, producing N-fold duplicates over N
+		// sessions. The hydration check (`root.size > 0`) gates the
+		// seed correctly.
+		const d = new Y.Doc();
+		this.doc = d;
+		this.persistence = bindIndexedDb(d, project.id);
+		if (this.persistence) {
+			try {
+				await this.persistence.whenSynced;
+			} catch {
+				/* IDB unavailable — fall through to the seed branch */
+			}
+		}
+		const wasHydrated = d.getMap('project').size > 0;
+		if (!wasHydrated) {
+			// First-time load (or IDB unavailable / disabled). Seed from
+			// the legacy Project. The doc 'update' event isn't subscribed
+			// yet, so this doesn't fire N partial-state refreshFromDocs.
+			projectToYDoc(project, d);
+			this.project = project;
+		} else {
+			// Returning user on this project — the doc state in IDB is
+			// the source of truth. The legacy Project from `data.project`
+			// may be stale (autosave still runs but is best-effort).
+			this.project = yDocToProject(d);
+		}
+		// NOW it's safe to subscribe — future writes propagate.
+		d.on('update', this.refreshFromDoc);
+		this.docUpdateUnsubscribe = () => d.off('update', this.refreshFromDoc);
+
+		const finalProject = this.project!;
+		const codepoints = Object.keys(finalProject.glyphs).map(Number);
 		// Restore last-selected glyph from localStorage if it's still in the set;
 		// otherwise default to the first uppercase Latin glyph that exists.
+		// Uses `finalProject` (the actual loaded state from IDB or seed)
+		// rather than the `project` parameter, in case those diverge.
 		let initial: number | undefined;
 		try {
 			const stored = localStorage.getItem(`font-studio:last-cp:${project.id}`);
 			if (stored) {
 				const cp = Number(stored);
-				if (Number.isFinite(cp) && project.glyphs[cp]) initial = cp;
+				if (Number.isFinite(cp) && finalProject.glyphs[cp]) initial = cp;
 			}
 		} catch {
 			/* ignore */
@@ -117,7 +172,7 @@ class ProjectStore {
 		this.selectedCodepoint = initial ?? upper ?? codepoints[0] ?? 0x0041;
 		try {
 			const masterId = localStorage.getItem(`font-studio:last-master:${project.id}`);
-			if (masterId && (project.masters ?? []).some((m) => m.id === masterId)) {
+			if (masterId && (finalProject.masters ?? []).some((m) => m.id === masterId)) {
 				this.selectedMasterId = masterId;
 			} else {
 				this.selectedMasterId = undefined;
@@ -125,8 +180,8 @@ class ProjectStore {
 		} catch {
 			this.selectedMasterId = undefined;
 		}
-		// Seed history with the loaded state
-		this.undoStack = [JSON.parse(JSON.stringify(project)) as Project];
+		// Seed history with the loaded state (post-IDB-hydration if applicable)
+		this.undoStack = [JSON.parse(JSON.stringify(finalProject)) as Project];
 		this.redoStack = [];
 		this.updateUndoFlags();
 	}
@@ -191,6 +246,10 @@ class ProjectStore {
 		if (this.docUpdateUnsubscribe) {
 			this.docUpdateUnsubscribe();
 			this.docUpdateUnsubscribe = null;
+		}
+		if (this.persistence) {
+			this.persistence.destroy();
+			this.persistence = null;
 		}
 		if (this.doc) {
 			this.doc.destroy();

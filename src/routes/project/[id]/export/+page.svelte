@@ -832,7 +832,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 		if (!file) return;
 		const text = await file.text();
 		const data = JSON.parse(text);
-		projectStore.load(data);
+		await projectStore.load(data);
 		input.value = '';
 	};
 

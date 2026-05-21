@@ -42,10 +42,15 @@
 	let { data, children } = $props();
 
 	// Load project into store on mount / when route ID changes.
+	// As of Phase C Day 4, load() is async — it awaits y-indexeddb sync
+	// so the doc reflects any locally-persisted Y.Doc state before the
+	// UI starts driving mutations. Reference-font loading depends on
+	// brief.references which only exists post-hydration.
 	$effect(() => {
 		if (projectStore.project?.id !== data.project.id) {
-			projectStore.load(data.project);
-			projectStore.loadAllReferenceFonts();
+			void projectStore.load(data.project).then(() => {
+				projectStore.loadAllReferenceFonts();
+			});
 		}
 	});
 
