@@ -10,6 +10,11 @@
 	import { sampleGlyphSilhouette } from '$lib/font/silhouette';
 	import { suggestKerning } from '$lib/font/kerning-suggest';
 	import { CANONICAL_LATIN_PAIRS } from '$lib/ai/kerning-suggest-core';
+	import {
+		suggestSidebearingClasses,
+		type SidebearingMeasurement,
+		type SuggestedSidebearingClass
+	} from '$lib/font/sb-classes';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -531,6 +536,74 @@
 
 	const dismissAuditFinding = (f: AuditFinding) => {
 		auditFindings = auditFindings.filter((x) => x !== f);
+	};
+
+	// ---------- Sidebearing-class suggester ----------
+	// Clusters drawn Latin glyphs whose current LSB or RSB values agree
+	// within a tolerance AND share a category. Each cluster is a candidate
+	// sidebearing class — adopting it lets the designer drive spacing for
+	// the whole group through one slider.
+	let sbClassSuggestions = $state<SuggestedSidebearingClass[]>([]);
+	let sbClassRunning = $state(false);
+	let sbClassLastRun = $state<string | null>(null);
+	let sbClassTolerance = $state(10);
+
+	const runSbClassSuggest = () => {
+		if (!project || sbClassRunning) return;
+		sbClassRunning = true;
+		try {
+			const existingMembers = new Set<number>();
+			for (const cls of project.sidebearingClasses ?? []) {
+				for (const m of cls.members) existingMembers.add(m);
+			}
+			const measurements: SidebearingMeasurement[] = [];
+			for (const g of Object.values(project.glyphs)) {
+				if (g.contours.length === 0) continue;
+				// Skip glyphs already in a sidebearing class — they're spoken for.
+				if (existingMembers.has(g.codepoint)) continue;
+				let category: SidebearingMeasurement['category'] | null = null;
+				if (g.codepoint >= 0x0041 && g.codepoint <= 0x005a) category = 'uppercase';
+				else if (g.codepoint >= 0x0061 && g.codepoint <= 0x007a) category = 'lowercase';
+				else if (g.codepoint >= 0x0030 && g.codepoint <= 0x0039) category = 'figure';
+				if (!category) continue;
+				measurements.push({
+					codepoint: g.codepoint,
+					category,
+					leftSidebearing: g.leftSidebearing,
+					rightSidebearing: g.rightSidebearing
+				});
+			}
+			const next = suggestSidebearingClasses(measurements, {
+				tolerance: sbClassTolerance,
+				minMembers: 2
+			});
+			sbClassSuggestions = next;
+			sbClassLastRun = new Date().toLocaleTimeString();
+			toast.success(
+				`Sidebearing classes: ${next.length} cluster${next.length === 1 ? '' : 's'}.`
+			);
+		} catch (err) {
+			toast.error(
+				'Sidebearing-class suggest failed: ' + (err instanceof Error ? err.message : String(err))
+			);
+		} finally {
+			sbClassRunning = false;
+		}
+	};
+
+	const adoptSbClassSuggestion = (sug: SuggestedSidebearingClass) => {
+		if (!project) return;
+		const sideLabel = sug.side === 'left' ? 'L' : 'R';
+		const baseName = `${sug.category}-${sug.value}${sideLabel}`;
+		projectStore.addSidebearingClass(baseName, sug.members);
+		toast.success(
+			`Adopted ${baseName} (${sug.members.length} glyph${sug.members.length === 1 ? '' : 's'}).`
+		);
+		sbClassSuggestions = sbClassSuggestions.filter((s) => s !== sug);
+	};
+
+	const dismissSbClassSuggestion = (sug: SuggestedSidebearingClass) => {
+		sbClassSuggestions = sbClassSuggestions.filter((s) => s !== sug);
 	};
 
 	// ---------- Sidebearing analyzer ----------
@@ -1374,6 +1447,138 @@
 											onclick={() => dismissAuditFinding(f)}
 											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
 											aria-label="Dismiss"
+											title="Skip"
+										>
+											<X class="size-3.5" />
+										</button>
+									</div>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</Panel>
+
+	<!-- Sidebearing-class suggester. Clusters drawn glyphs whose current
+	     sidebearings sit within a tolerance and share a category. Each
+	     cluster becomes a candidate sidebearing class — one click adopts. -->
+	<Panel>
+		<div class="mb-3 flex flex-wrap items-center gap-2">
+			<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Suggest sidebearing classes
+			</h2>
+			<span
+				class="rounded-full bg-success/15 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wider text-success-strong uppercase"
+			>
+				Local
+			</span>
+			{#if sbClassLastRun}
+				<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+					last run · {sbClassLastRun}
+				</span>
+			{/if}
+			<label class="ml-auto inline-flex items-center gap-1.5 text-[11px] text-fg-muted">
+				Tolerance
+				<input
+					type="number"
+					bind:value={sbClassTolerance}
+					min="1"
+					max="50"
+					step="1"
+					class="w-14 rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[11px] text-fg outline-none focus:border-accent"
+				/>
+				<span class="font-mono text-[10px] text-fg-subtle">fu</span>
+			</label>
+		</div>
+		<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+			Clusters glyphs whose current sidebearings agree within tolerance and
+			share a category (uppercase / lowercase / figure). Glyphs already in a
+			class are skipped. Adopting a cluster collapses many per-glyph
+			sidebearings into one class slider — fewer numbers to maintain.
+		</p>
+
+		<div class="flex flex-wrap items-center gap-2">
+			<Button density="sm" onclick={runSbClassSuggest} loading={sbClassRunning}>
+				{#snippet icon()}<Group class="size-3.5" />{/snippet}
+				{sbClassRunning ? 'Clustering…' : 'Find clusters'}
+			</Button>
+			{#if sbClassSuggestions.length > 0}
+				<Button
+					density="sm"
+					variant="secondary"
+					onclick={() => (sbClassSuggestions = [])}
+				>
+					Clear
+				</Button>
+			{/if}
+		</div>
+
+		{#if sbClassSuggestions.length > 0}
+			<div class="mt-4 overflow-hidden rounded-md border border-border">
+				<table class="w-full text-[12px]">
+					<thead>
+						<tr class="border-b border-border bg-surface-2/40 text-fg-subtle">
+							<th class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Cluster
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Value
+							</th>
+							<th class="px-2 py-1.5 text-right font-mono text-[10px] tracking-wider uppercase">
+								Spread
+							</th>
+							<th class="px-3 py-1.5 text-left font-mono text-[10px] tracking-wider uppercase">
+								Members
+							</th>
+							<th class="px-2 py-1.5"></th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each sbClassSuggestions as s, i (i)}
+							<tr class="border-b border-border last:border-b-0">
+								<td class="px-3 py-1.5">
+									<span class="font-mono text-[11px] text-fg">
+										{s.category}
+									</span>
+									<span
+										class="ml-1 font-mono text-[10px] tracking-wider text-fg-subtle uppercase"
+									>
+										{s.side}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg" data-numeric>
+									{s.value}
+								</td>
+								<td class="px-2 py-1.5 text-right font-mono text-fg-subtle" data-numeric>
+									±{Math.ceil(s.spread / 2)}
+								</td>
+								<td class="px-3 py-1.5 font-mono text-[13px] text-fg">
+									{s.members.map((cp) => String.fromCodePoint(cp)).join(' ')}
+									<span
+										class="ml-1.5 font-mono text-[10px] text-fg-subtle"
+										data-numeric
+									>
+										· {s.members.length}
+									</span>
+								</td>
+								<td class="px-2 py-1.5 text-right">
+									<div class="flex justify-end gap-1">
+										<button
+											type="button"
+											onclick={() => adoptSbClassSuggestion(s)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-success-strong"
+											aria-label="Adopt as sidebearing class"
+											title="Adopt as new class"
+										>
+											<Check class="size-3.5" />
+										</button>
+										<button
+											type="button"
+											onclick={() => dismissSbClassSuggestion(s)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 hover:text-warn-strong"
+											aria-label="Skip"
 											title="Skip"
 										>
 											<X class="size-3.5" />
