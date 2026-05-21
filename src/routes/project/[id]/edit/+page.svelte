@@ -4,7 +4,8 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
-	import type { Anchor, BezierContour, Glyph, SketchStroke } from '$lib/font/types';
+	import type { Anchor, BezierContour, ColorLayer, ColorPalette, Glyph, SketchStroke } from '$lib/font/types';
+	import { createColorLayer, defaultPalette, rgbaToCss } from '$lib/font/color';
 	import { glyphBounds, contoursToSvgPath } from '$lib/font/path';
 	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
 	import {
@@ -2537,6 +2538,124 @@
 					{/if}
 				</div>
 			</Accordion>
+
+			<!-- Color layers — color-fonts M1 day-8. Per-glyph stack of
+			     ColorLayers; bottom-up render order. Active palette swatches
+			     come from the project's `default` palette. -->
+			{#if projectStore.project}
+				{@const activePalette = defaultPalette(projectStore.project.palettes)}
+				{@const layers = glyph.colorLayers ?? []}
+				<div class="border-b border-border p-4">
+					<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						<span>Color layers</span>
+						{#if layers.length > 0}
+							<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+								{layers.length}
+							</span>
+						{/if}
+					</h3>
+
+					{#if !activePalette}
+						<div class="rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-2.5 text-[11px] text-fg-subtle">
+							No palettes yet. Create one on the
+							<a
+								href="/project/{projectStore.project.id}/features"
+								class="underline-offset-2 hover:underline hover:text-fg"
+							>
+								Features tab
+							</a>
+							to start layering colors.
+						</div>
+					{:else}
+						<button
+							type="button"
+							onclick={() => {
+								if (!activePalette) return;
+								// Copy the current monochrome contours into a fresh layer
+								// — most common workflow: draw, layer, recolor, draw next.
+								const newLayer = createColorLayer(
+									glyph.contours,
+									0,
+									`Layer ${layers.length + 1}`
+								);
+								projectStore.addColorLayer(glyph.codepoint, newLayer);
+							}}
+							class="mb-2 w-full rounded-md border border-dashed border-border bg-surface-2/30 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+						>
+							+ Add layer from current contours
+						</button>
+
+						{#if layers.length === 0}
+							<p class="text-[11px] leading-snug text-fg-subtle">
+								No layers yet. Click "Add layer" — copies the monochrome
+								outline into a new layer; pick a palette colour from the
+								row below.
+							</p>
+						{:else}
+							<ol class="grid gap-1.5">
+								{#each layers as l, idx (l.id)}
+									{@const color = activePalette.colors[l.paletteIndex]}
+									<li
+										class="grid grid-cols-[auto_auto_1fr_auto] items-center gap-2 rounded-md border border-border bg-surface-2/30 px-2 py-1.5 text-[11px]"
+									>
+										<span
+											class="size-4 shrink-0 rounded border border-border"
+											style="background: {color
+												? rgbaToCss(color)
+												: 'transparent'};"
+											title="Palette index {l.paletteIndex}"
+										></span>
+										<button
+											type="button"
+											onclick={() =>
+												projectStore.updateColorLayer(
+													glyph.codepoint,
+													l.id,
+													(layer: ColorLayer) => ({ ...layer, hidden: !layer.hidden })
+												)}
+											class="font-mono text-[10px] {l.hidden
+												? 'text-fg-subtle'
+												: 'text-fg'} hover:text-accent"
+											aria-label={l.hidden ? 'Show layer' : 'Hide layer'}
+											title={l.hidden ? 'Show layer' : 'Hide layer'}
+										>
+											{l.hidden ? '○' : '●'}
+										</button>
+										<select
+											value={l.paletteIndex}
+											onchange={(e) =>
+												projectStore.updateColorLayer(
+													glyph.codepoint,
+													l.id,
+													(layer: ColorLayer) => ({
+														...layer,
+														paletteIndex: Number(e.currentTarget.value)
+													})
+												)}
+											class="rounded border border-border bg-surface px-1 py-0 font-mono text-[10px] text-fg outline-none focus:border-accent"
+											aria-label="Palette colour for layer {idx}"
+										>
+											{#each activePalette.colors as _c, i (i)}
+												<option value={i}>{i}</option>
+											{/each}
+										</select>
+										<button
+											type="button"
+											onclick={() =>
+												projectStore.removeColorLayer(glyph.codepoint, l.id)}
+											class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
+											aria-label="Delete layer"
+											title="Delete layer"
+										>
+											<span class="font-mono text-[12px]">×</span>
+										</button>
+									</li>
+								{/each}
+							</ol>
+						{/if}
+					{/if}
+				</div>
+			{/if}
 
 			<div class="mt-auto p-4 text-[11px] text-fg-subtle">
 				<p class="mb-1 font-medium">Shortcuts</p>
