@@ -367,8 +367,14 @@
 									{/if}
 								</span>
 								<div class="min-w-0 flex-1">
-									<div class="text-[12px] text-fg">{i.message}</div>
-									<div class="mt-0.5 font-mono text-[10px] text-fg-subtle" data-numeric>
+									<div class="text-[12px] text-fg" title={describeAuditCode(i.code)}>
+										{i.message}
+									</div>
+									<div
+										class="mt-0.5 font-mono text-[10px] text-fg-subtle"
+										data-numeric
+										title={describeAuditCode(i.code)}
+									>
 										{i.code}
 										{#if i.codepoint > 0}
 											· {labelFor(i.codepoint)}
@@ -512,7 +518,9 @@
 												{/if}
 											</span>
 											<div class="min-w-0 flex-1">
-												<div class="text-[12px] text-fg">{i.message}</div>
+												<div class="text-[12px] text-fg" title={describeAuditCode(i.code)}>
+													{i.message}
+												</div>
 											</div>
 											{#if FIXABLE_CODES.has(i.code)}
 												<button
@@ -585,8 +593,13 @@
 												{/if}
 											</span>
 											<div class="min-w-0 flex-1">
-												<div class="text-[12px] text-fg">{i.message}</div>
-												<div class="mt-0.5 font-mono text-[10px] text-fg-subtle">
+												<div class="text-[12px] text-fg" title={describeAuditCode(i.code)}>
+													{i.message}
+												</div>
+												<div
+													class="mt-0.5 font-mono text-[10px] text-fg-subtle"
+													title={describeAuditCode(i.code)}
+												>
 													{i.code}
 												</div>
 											</div>
