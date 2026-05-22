@@ -150,11 +150,11 @@
 		{ id: 'attention', label: 'Needs review', title: 'Has audit warnings or errors' }
 	];
 
-	// Lazily compute the audit-flagged set — only when the filter is active,
-	// since auditGlyph is O(contours × points) and we don't want to pay that
-	// every keystroke for every glyph if the user doesn't care.
+	// Always-on audit-flag set — drives both the "Needs review" filter and
+	// the count badge on the chip. $derived memoises against project changes,
+	// so we only re-run when glyphs actually change; per-keystroke filter
+	// edits don't trigger a recompute.
 	const attentionCodepoints = $derived.by(() => {
-		if (statusFilter !== 'attention') return null;
 		const project = projectStore.project;
 		if (!project) return new Set<number>();
 		const flagged = new Set<number>();
@@ -166,6 +166,7 @@
 		}
 		return flagged;
 	});
+	const attentionCount = $derived(attentionCodepoints.size);
 
 	const parseCodepoint = (s: string): number | null => {
 		const trimmed = s.trim();
@@ -223,7 +224,7 @@
 				return Number.isFinite(t) && t >= Date.now() - 24 * 3600 * 1000;
 			}
 			case 'attention':
-				return attentionCodepoints?.has(g.codepoint) ?? false;
+				return attentionCodepoints.has(g.codepoint);
 			default:
 				return g.status === statusFilter;
 		}
@@ -362,13 +363,24 @@
 				<button
 					type="button"
 					onclick={() => (statusFilter = opt.id)}
-					class="rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
+					class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
 					opt.id
 						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
 					title={opt.title}
 				>
 					{opt.label}
+					{#if opt.id === 'attention' && attentionCount > 0}
+						<!-- Passive indicator: the chip itself reports how many glyphs
+						     need review, so designers see it without engaging the filter.
+						     Hidden at zero so a clean font doesn't shout for attention. -->
+						<span
+							class="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-amber-500/20 px-1 text-[9px] font-semibold text-amber-700 dark:text-amber-300"
+							data-numeric
+						>
+							{attentionCount}
+						</span>
+					{/if}
 				</button>
 			{/each}
 		</div>
