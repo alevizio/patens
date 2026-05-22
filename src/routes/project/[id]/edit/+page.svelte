@@ -1198,7 +1198,8 @@
 	const handleKeyDown = (ev: KeyboardEvent) => {
 		if (ev.target instanceof HTMLInputElement) return;
 		if (ev.target instanceof HTMLTextAreaElement) return;
-		const allGlyphs = projectStore.project?.glyphs ?? {};
+		const project = projectStore.project;
+		const allGlyphs = project?.glyphs ?? {};
 		const allCodepoints = Object.keys(allGlyphs)
 			.map(Number)
 			.sort((a, b) => a - b);
@@ -1210,6 +1211,51 @@
 				)
 			: allCodepoints;
 		const idx = codepoints.indexOf(projectStore.selectedCodepoint);
+		// Shift+]/Shift+[ — jump to next/prev glyph that the audit module flags
+		// with warn or error. Lets a designer step through the punch list
+		// without leaving the editor. Computed on-demand so we only pay the
+		// audit cost when the user actually presses the shortcut.
+		if ((ev.key === '}' || (ev.key === ']' && ev.shiftKey)) && project) {
+			ev.preventDefault();
+			const attention = codepoints.filter((cp) => {
+				const g = allGlyphs[cp];
+				if (!g) return false;
+				return auditGlyph(g, project).some(
+					(i) => i.severity === 'warn' || i.severity === 'error'
+				);
+			});
+			if (attention.length === 0) {
+				toast.info('No glyphs need attention', 1500);
+			} else {
+				const aIdx = attention.indexOf(projectStore.selectedCodepoint);
+				const next = aIdx >= 0 ? attention[(aIdx + 1) % attention.length] : attention[0];
+				projectStore.selectGlyph(next);
+				toast.info(`Next attention: ${allGlyphs[next]?.name ?? 'glyph'}`, 1200);
+			}
+			return;
+		}
+		if ((ev.key === '{' || (ev.key === '[' && ev.shiftKey)) && project) {
+			ev.preventDefault();
+			const attention = codepoints.filter((cp) => {
+				const g = allGlyphs[cp];
+				if (!g) return false;
+				return auditGlyph(g, project).some(
+					(i) => i.severity === 'warn' || i.severity === 'error'
+				);
+			});
+			if (attention.length === 0) {
+				toast.info('No glyphs need attention', 1500);
+			} else {
+				const aIdx = attention.indexOf(projectStore.selectedCodepoint);
+				const prev =
+					aIdx >= 0
+						? attention[(aIdx - 1 + attention.length) % attention.length]
+						: attention[attention.length - 1];
+				projectStore.selectGlyph(prev);
+				toast.info(`Prev attention: ${allGlyphs[prev]?.name ?? 'glyph'}`, 1200);
+			}
+			return;
+		}
 		if (ev.key === ']') {
 			ev.preventDefault();
 			const next = codepoints[Math.min(idx + 1, codepoints.length - 1)];
