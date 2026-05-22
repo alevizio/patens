@@ -53,9 +53,14 @@
 		return allIssues.filter((i) => {
 			if (severityFilter !== 'all' && i.severity !== severityFilter) return false;
 			if (!q) return true;
+			// Match against message, code, hex, AND the curated description —
+			// so "donut", "hole", "rasteriser" find contour-winding-collision
+			// without the designer needing to remember the exact code name.
+			const desc = describeAuditCode(i.code)?.toLowerCase() ?? '';
 			return (
 				i.message.toLowerCase().includes(q) ||
 				i.code.toLowerCase().includes(q) ||
+				desc.includes(q) ||
 				(i.codepoint > 0 && i.codepoint.toString(16).toLowerCase().includes(q))
 			);
 		});
@@ -461,7 +466,7 @@
 							/>
 							<input
 								bind:value={query}
-								placeholder="Search by message, code, hex…"
+								placeholder="Search message, code, hex, description…"
 								class="w-64 rounded-md border border-border bg-surface px-3 py-1.5 pl-8 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 							/>
 						</div>
