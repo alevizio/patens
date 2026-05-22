@@ -326,6 +326,38 @@ function rgb(hex) {
 
 	const FEATURE_SAMPLE = 'fi fl 0123 12/34 — Office 1029 — affluent';
 
+	// Per-feature mini-samples — when the designer focuses a feature chip,
+	// the sample swaps to text that actually exercises that feature so the
+	// substitution is visible. Falls back to FEATURE_SAMPLE when no focused
+	// feature or no specific sample for the focused tag.
+	const FEATURE_FOCUS_SAMPLES: Record<string, string> = {
+		kern: 'AVATAR Wave To Yo La',
+		liga: 'fi fl ffi ffl Pacific officer',
+		dlig: 'ct st sp — discretion',
+		calt: 'flowing handwriting — script',
+		onum: '0123456789 mixed 1024 with text',
+		lnum: '0123456789 mixed 1024 with text',
+		tnum: '0123 4567 8901 — column',
+		pnum: '0123 4567 8901 — proportional',
+		smcp: 'small caps from lowercase',
+		c2sc: 'CAPS TO SMALL CAPS',
+		zero: 'Code: 0 vs O 80',
+		ss01: 'a g 0 — stylistic alt',
+		swsh: 'Quick Brown Y P R',
+		case: 'A(B)C — D[E]F',
+		frac: '1/2 3/4 7/8 fractions',
+		ordn: '1ª 2º 3rd ordinals',
+		sups: 'x² + y³ = z⁴',
+		subs: 'H₂O + CO₂',
+		titl: 'TITLE CASE Display',
+		unic: 'Unicase forms',
+		hist: 'Historical ʃ ſ',
+		ornm: '✦ ✶ ❀ ✱'
+	};
+	const activeSample = $derived(
+		(focusedFeature && FEATURE_FOCUS_SAMPLES[focusedFeature]) || FEATURE_SAMPLE
+	);
+
 	// ---------- Variable-font sandbox ----------
 	const project = $derived(projectStore.project);
 
@@ -822,10 +854,10 @@ function rgb(hex) {
 				</div>
 			{/if}
 			<div
-				class="preview-font rounded-lg border border-border bg-canvas p-6 text-3xl leading-snug"
+				class="preview-font rounded-lg border border-border bg-canvas p-6 text-3xl leading-snug transition-opacity"
 				style="font-feature-settings: {featureSettings};"
 			>
-				{FEATURE_SAMPLE}
+				{activeSample}
 			</div>
 			<div class="mt-2 font-mono text-[11px] text-fg-subtle" data-numeric>
 				font-feature-settings: {featureSettings}
