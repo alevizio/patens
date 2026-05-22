@@ -293,6 +293,35 @@
 
 	const drawnPct = $derived(totalGlyphs > 0 ? Math.round((totalDrawn / totalGlyphs) * 100) : 0);
 
+	// Coverage for each non-Latin script pack the project has any presence
+	// in. Shows only after the designer has added at least one glyph from
+	// the pack — silent for projects that don't care about that script.
+	const scriptCoverage = $derived.by(() => {
+		const out: Array<{ id: string; label: string; drawn: number; total: number; pct: number }> = [];
+		if (!projectStore.project) return out;
+		const glyphs = projectStore.project.glyphs;
+		for (const pack of SCRIPT_PACKS) {
+			let drawn = 0;
+			let present = 0;
+			for (const spec of pack.glyphs) {
+				const g = glyphs[spec.codepoint];
+				if (!g) continue;
+				present++;
+				if (g.contours.length > 0 || (g.components?.length ?? 0) > 0) drawn++;
+			}
+			if (present === 0) continue;
+			const total = pack.glyphs.length;
+			out.push({
+				id: pack.id,
+				label: pack.label,
+				drawn,
+				total,
+				pct: total > 0 ? Math.round((drawn / total) * 100) : 0
+			});
+		}
+		return out;
+	});
+
 	const incompatibleCodepoints = $derived.by(() => {
 		const out = new Set<number>();
 		if (!projectStore.project) return out;
@@ -545,6 +574,32 @@
 					</button>
 				{/each}
 			</div>
+			{#if scriptCoverage.length > 0}
+				<!-- Coverage chips for non-Latin scripts the project already includes.
+				     Silent when no script-pack glyphs exist (typical Latin-only project).
+				     Mirrors the audit-count badge pattern: passive indicator, not a verb. -->
+				<div class="mt-1.5 flex flex-wrap gap-1 text-[10px]">
+					<span class="text-fg-subtle">Coverage:</span>
+					{#each scriptCoverage as cov (cov.id)}
+						<span
+							class="inline-flex items-center gap-1 rounded border px-1.5 py-0.5 {cov.pct === 100
+								? 'border-success/40 bg-success/10 text-success-strong'
+								: cov.pct >= 50
+									? 'border-border bg-surface text-fg-muted'
+									: 'border-warn/40 bg-warn/10 text-warn-strong'}"
+							title="{cov.drawn} / {cov.total} {cov.label} glyphs drawn"
+							data-numeric
+						>
+							{cov.label}
+							{#if cov.pct === 100}
+								✓
+							{:else}
+								{cov.pct}%
+							{/if}
+						</span>
+					{/each}
+				</div>
+			{/if}
 		{/if}
 	</div>
 	<div class="min-h-0 flex-1 overflow-y-auto p-2">
