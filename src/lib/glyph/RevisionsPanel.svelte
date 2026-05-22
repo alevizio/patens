@@ -49,6 +49,15 @@
 		if (!glyph) return;
 		projectStore.toggleRevisionPin(glyph.codepoint, revId);
 	};
+
+	// The active ghost: most-recent pinned snapshot. Mirrors the logic in
+	// the editor's pinnedSnapshotGhost derivation so the label here matches
+	// what's painted on the canvas.
+	const activeGhost = $derived.by(() => {
+		const pins = revisions.filter((r) => r.pinned);
+		if (pins.length === 0) return null;
+		return pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
+	});
 </script>
 
 {#if glyph}
@@ -81,6 +90,17 @@
 			}}
 			class="mb-2 w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent disabled:opacity-40"
 		/>
+		{#if activeGhost}
+			<!-- Tells the designer which pinned snapshot is being rendered as
+			     the canvas ghost. Pinning multiple? Most-recent wins; this
+			     line confirms which one. -->
+			<div class="mb-2 flex items-center gap-1.5 rounded bg-warn/10 px-2 py-1 text-[10px] text-warn-strong">
+				<span class="inline-block size-1.5 rounded-full bg-warn"></span>
+				<span class="truncate">
+					Ghost: {activeGhost.label ?? formatTime(activeGhost.takenAt)}
+				</span>
+			</div>
+		{/if}
 		{#if revisions.length === 0}
 			<p class="text-[11px] text-fg-subtle">
 				Capture iterations as you go — restore any of the last 8.
