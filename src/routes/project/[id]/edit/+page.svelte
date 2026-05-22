@@ -403,7 +403,36 @@
 		Y: ['Yacht', 'YESTERDAY', 'Yearly'],
 		y: ['yearly', 'symphony', 'beyond'],
 		Z: ['Zigzag', 'ZENITH', 'Zephyr'],
-		z: ['zigzag', 'pizza', 'puzzle']
+		z: ['zigzag', 'pizza', 'puzzle'],
+		// Digits — show in column + mixed context. Tabular vs proportional
+		// figure decisions are most visible here.
+		'0': ['1029384756', 'Year 2026', 'Code 007'],
+		'1': ['11/11 11:11', '1024 KB', 'One in 100'],
+		'2': ['22 February 2022', '1024 × 768', 'Two for 22'],
+		'3': ['33⅓ rpm', '3.14159', 'Three minus 3'],
+		'4': ['Front-end 4.0', '4444 forty-four', 'For 4-year-olds'],
+		'5': ['$55.55', '5/5 stars', 'Top 5 of 555'],
+		'6': ['6.6.66 number', '60 fps', 'Six 6s in 6666'],
+		'7': ['Mach 7.7', '777 jet', 'Seven of 77'],
+		'8': ['8 of 88 days', '88.8°', '8/8 done'],
+		'9': ['9 lives, 99 cats', '999 ohms', 'Nine of 99'],
+		// Punctuation — show in real sentence context so kerning + spacing
+		// problems are visible.
+		'.': ['e.g. or i.e. Dr. Jr.', 'A.M. or P.M.', 'Sentence. Another.'],
+		',': ['1,234,567 commas', 'apples, oranges, pears', 'However, despite that,'],
+		';': ['list; another; final', 'so; therefore', 'one; two; three'],
+		':': ['12:34 PM', 'Note: read this', 'time: 6:30'],
+		'!': ['Hello! Surprise!', 'Watch out!', 'Wow!! Really??!'],
+		'?': ['Why? When? How?', 'Hello? Anyone?', 'Sure? Really??'],
+		"'": ["it's, don't, can't", "'80s, '90s", "the dog's bone"],
+		'"': ['"hello," she said', '"quoted text"', 'the "best" answer'],
+		'(': ['(parenthetical)', '(see note)', '(a + b)'],
+		')': ['ok (yes)', '(done)', '(2 + 3) × 4'],
+		'-': ['well-known dash', 'thirty-three', 'state-of-the-art'],
+		'/': ['1/2 + 3/4', 'and/or both', 'true/false'],
+		'@': ['name@host.com', '@user mention', 'reply@here'],
+		'#': ['#hashtag rules', '#1 ranked', '#000 in CSS'],
+		'&': ['Tom & Jerry', 'AT&T Inc.', 'rock & roll']
 	};
 	let sampleIndex = $state(0);
 	const smartSample = () => {
