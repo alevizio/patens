@@ -1196,6 +1196,12 @@
 		if (!glyph || glyph.contours.length === 0 || autoCleaning) return;
 		autoCleaning = true;
 		try {
+			// Same auto-snapshot policy as audit fixes — Auto-clean reshapes
+			// the outline (simplify + grid-snap), so deposit a labelled
+			// snapshot first when the most-recent one is older than 30s.
+			const latest = glyph.revisions?.[glyph.revisions.length - 1];
+			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
+			if (!recent) projectStore.saveRevision(glyph.codepoint, 'pre-auto-clean');
 			// 1. Simplify (re-sample, DP, refit cubics) for noise reduction
 			const simplified = await simplifyContours(glyph.contours);
 			if (simplified.length === 0) {
