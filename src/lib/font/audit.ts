@@ -964,6 +964,71 @@ export const sortBySeverity = (issues: AuditIssue[]): AuditIssue[] =>
 	[...issues].sort((a, b) => SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity]);
 
 /**
+ * Plain-English description of each audit code — what it means and why it
+ * matters. Surfaced as tooltips and help text in the audit UI so designers
+ * learning the craft don't need an external reference.
+ *
+ * Returns undefined for codes without a curated description (newly added,
+ * external, or codes whose `message` field is already self-explanatory).
+ */
+export const describeAuditCode = (code: string): string | undefined => {
+	const descriptions: Record<string, string> = {
+		// Contour shape
+		'empty':
+			'Glyph has no outlines yet. Draw at least one contour (or set components) before export.',
+		'off-grid-points':
+			'Point coordinates are fractional. Most renderers round to integer font units anyway — snapping explicitly avoids subpixel surprises.',
+		'duplicate-points':
+			'Two consecutive on-curve points sit within 0.5fu of each other — the second adds no information and may cause hinting noise.',
+		'self-intersecting':
+			'A contour crosses itself. Rasterisers fill the overlap unpredictably depending on fill-rule (even-odd vs non-zero).',
+		'contour-winding-collision':
+			'A nested counter shares its outer contour\'s direction. Inner contours must run opposite for the counter to render as a hole.',
+		'near-collinear-points':
+			'A point sits within 1fu of the line between its neighbours — a vestigial node, safe to remove.',
+		'sharp-kink':
+			'A 5–25° turn between line segments. Probably meant to be a smooth curve or a clean corner.',
+		'open-contour':
+			'A contour lacks its closing Z command. Open paths still rasterise but break boolean ops and many shaping tools.',
+		'tiny-contour':
+			'A contour smaller than 8fu in both dimensions — usually a stray artefact from a boolean op or imported SVG.',
+		// Spacing & metrics
+		'zero-advance':
+			'The glyph\'s advance width is 0. Text containing this glyph will have all following glyphs stacked at the same position.',
+		'overflows-advance':
+			'The drawn glyph extends past its advance width. Adjacent glyphs will overlap — bump the advance or pull the right edge in.',
+		'extends-above-ascender':
+			'The glyph\'s bbox extends above the OS/2 ascender. Some renderers will clip the top stroke.',
+		'extends-below-descender':
+			'The glyph\'s bbox extends below the OS/2 descender. Some renderers will clip the bottom stroke.',
+		'sidebearing-class-drift-lsb':
+			'This glyph\'s left sidebearing has drifted from the median of its sidebearing-class peers. Either re-apply the class or remove this glyph from it.',
+		'sidebearing-class-drift-rsb':
+			'This glyph\'s right sidebearing has drifted from the median of its sidebearing-class peers.',
+		// Composites & references
+		'composite-missing-base':
+			'A composite reference points at a glyph with no outlines. The reference will render as nothing.',
+		// Variable-font compatibility
+		'master-contour-count':
+			'The number of contours differs across masters. VF interpolation requires identical contour count and order in every master.',
+		'master-point-count':
+			'A specific contour has different point counts across masters. Same constraint as master-contour-count, one level deeper.',
+		// Notes / flags / naming
+		'notes-todo':
+			'The glyph\'s notes field contains TODO or FIXME — an unresolved work item the designer left for future iteration.',
+		'flagged-for-review':
+			'A designer hit Shift+F on this glyph to mark it for follow-up review.',
+		'glyph-name-empty':
+			'Glyph name field is empty. PostScript glyph names are required for OpenType feature substitutions.',
+		'glyph-name-invalid':
+			'Glyph name contains characters outside the allowed set (A-Za-z0-9._-) or starts with a digit. The PostScript spec forbids it.',
+		'glyph-name-too-long':
+			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps it there.'
+	};
+	return descriptions[code];
+};
+
+/**
  * Proper segment intersection test using the orientation method.
  * Returns true when two segments cross each other STRICTLY in
  * their interiors (excludes the case where they merely touch at

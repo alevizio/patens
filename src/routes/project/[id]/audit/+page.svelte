@@ -6,6 +6,7 @@
 		auditProject,
 		preflightProject,
 		auditCompatibility,
+		describeAuditCode,
 		sortBySeverity,
 		type AuditIssue,
 		type AuditSeverity
@@ -476,15 +477,26 @@
 				{:else if groupMode === 'code'}
 					<div class="grid gap-4">
 						{#each grouped as [code, issues] (code)}
+							{@const desc = describeAuditCode(code)}
 							<div>
 								<div class="mb-1.5 flex items-baseline justify-between gap-2">
-									<h3 class="font-mono text-[11px] font-semibold text-fg">
+									<h3
+										class="font-mono text-[11px] font-semibold text-fg"
+										title={desc}
+									>
 										{code}
 									</h3>
 									<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 										{issues.length} occurrence{issues.length === 1 ? '' : 's'}
 									</span>
 								</div>
+								{#if desc}
+									<!-- Inline help under each code heading. Designers learning
+									     the craft don't need to leave the page to look up what
+									     "self-intersecting" means. Curated dictionary lives
+									     next to the audit module so they can't drift apart. -->
+									<p class="mb-1.5 text-[11px] leading-snug text-fg-subtle">{desc}</p>
+								{/if}
 								<ul class="grid gap-1">
 									{#each issues as i (`${i.codepoint}:${i.code}:${i.message}`)}
 										<li
