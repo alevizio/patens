@@ -19,6 +19,7 @@
 	} from '$lib/font/path-edit';
 	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
 	import { suggestAnchors } from '$lib/font/anchors-suggest';
+	import { aglfnName } from '$lib/font/aglfn';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -180,6 +181,18 @@
 		// Newest pinned first — most recently chosen baseline wins.
 		const newest = pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
 		return newest.contours;
+	});
+
+	// AGLFN name suggestion. Returns the canonical Adobe Glyph List for
+	// New Fonts name for the current codepoint when (a) one exists, (b) it
+	// differs from the current name, and (c) it's a valid PostScript
+	// glyph name. Null otherwise — no suggestion to surface.
+	const aglfnSuggestion = $derived.by(() => {
+		if (!glyph) return null;
+		const aglfn = aglfnName(glyph.codepoint);
+		if (!aglfn || aglfn === glyph.name) return null;
+		if (!/^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(aglfn)) return null;
+		return aglfn;
 	});
 
 	// Persist editor toggles. Single $effect with explicit untrack on the
@@ -2147,6 +2160,20 @@
 						onchange={(e) => projectStore.renameGlyph(glyph.codepoint, e.currentTarget.value)}
 						class="font-mono text-[12px]"
 					/>
+					{#if aglfnSuggestion}
+						<!-- AGLFN suggestion — the canonical Adobe Glyph List for New Fonts
+						     name for this codepoint. One-click apply keeps the glyph
+						     compatible with everything downstream (PostScript naming,
+						     OpenType feature substitutions, color emoji lookup tables). -->
+						<button
+							type="button"
+							onclick={() => projectStore.renameGlyph(glyph.codepoint, aglfnSuggestion)}
+							class="mt-1 inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft/40 px-1.5 py-0.5 text-[10px] font-mono text-accent-strong hover:bg-accent-soft"
+							title="Rename to the AGLFN canonical name for U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}"
+						>
+							→ {aglfnSuggestion}
+						</button>
+					{/if}
 				</Field>
 				{#if anatomyTip}
 					<div class="mt-2 flex items-start gap-2 rounded-md border border-warn/30 bg-warn/5 px-2 py-1.5">
