@@ -17,7 +17,7 @@
 		type AffineMatrix,
 		type PathOp
 	} from '$lib/font/path-edit';
-	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
+	import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
 	import { suggestAnchors } from '$lib/font/anchors-suggest';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Button from '$lib/ui/Button.svelte';
@@ -181,6 +181,20 @@
 		// Newest pinned first — most recently chosen baseline wins.
 		const newest = pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
 		return newest.contours;
+	});
+
+	// Combined audit + compatibility issues for the current glyph. Lifted
+	// from the template so the O(masters × glyphs × contours) compatibility
+	// scan only re-runs when the project actually changes — not on every
+	// accordion render.
+	const currentGlyphIssues = $derived.by(() => {
+		if (!glyph || !projectStore.project) return [];
+		return sortBySeverity([
+			...auditGlyph(glyph, projectStore.project),
+			...auditCompatibility(projectStore.project).filter(
+				(i) => i.codepoint === glyph.codepoint
+			)
+		]);
 	});
 
 	// AGLFN name suggestion. Returns the canonical Adobe Glyph List for
@@ -2809,7 +2823,7 @@
 			</Accordion>
 
 			{#if projectStore.project}
-				{@const issues = sortBySeverity(auditGlyph(glyph, projectStore.project))}
+				{@const issues = currentGlyphIssues}
 				<Accordion id="edit-audit" label="Audit" defaultOpen={issues.length > 0}>
 					{#snippet badge()}
 						{#if issues.length > 0}
