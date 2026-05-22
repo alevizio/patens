@@ -173,8 +173,30 @@
 		toast.success(`Applied ${fixableInList.length} fixes (${summary})`);
 	};
 
+	// Mirrors the editor's auto-snapshot-before-fix: contour-mutating fixes
+	// save a labelled snapshot first when the most-recent snapshot for that
+	// glyph is older than 30 seconds. Same insurance the editor's per-glyph
+	// Fix button provides — Fix-all-visible on the audit page can run
+	// dozens of these in one click, so the protection matters even more here.
+	const CONTOUR_MUTATING = new Set([
+		'self-intersecting',
+		'contour-winding-collision',
+		'off-grid-points',
+		'duplicate-points',
+		'near-collinear-points'
+	]);
+	const snapshotIfNeeded = (codepoint: number, code: string) => {
+		if (!project || !CONTOUR_MUTATING.has(code)) return;
+		const g = project.glyphs[codepoint];
+		if (!g || g.contours.length === 0) return;
+		const latest = g.revisions?.[g.revisions.length - 1];
+		const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
+		if (!recent) projectStore.saveRevision(codepoint, `pre-fix: ${code}`);
+	};
+
 	const fixIssue = (issue: AuditIssue) => {
 		if (!project) return;
+		snapshotIfNeeded(issue.codepoint, issue.code);
 		switch (issue.code) {
 			case 'open-contour': {
 				projectStore.updateGlyph(issue.codepoint, (g) => ({
