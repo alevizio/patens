@@ -2740,7 +2740,13 @@
 						<span class="text-fg">right</span>. Counts include class-based pairs.
 					</p>
 					<a
-						href={projectStore.project ? `/project/${projectStore.project.id}/spacing` : '#'}
+						href={projectStore.project
+							? `/project/${projectStore.project.id}/spacing${
+									glyph.codepoint > 0x20 && glyph.codepoint < 0x10000
+										? `?left=${encodeURIComponent(String.fromCodePoint(glyph.codepoint))}`
+										: ''
+								}`
+							: '#'}
 						class="mt-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
 					>
 						Edit on Spacing page →

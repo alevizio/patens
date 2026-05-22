@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { page } from '$app/state';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
@@ -54,7 +55,16 @@
 		['F', 'a'], ['F', 'o'], ['Y', 'o'], ['Y', 'a']
 	];
 
-	let leftChar = $state('A');
+	// URL ?left=X seed lets other surfaces deep-link the spacing page to a
+	// specific glyph context (e.g. the editor's Kerning panel passing the
+	// current glyph). Only honoured when the query value is a single
+	// printable character — guards against junk URLs setting bad state.
+	const initLeftChar = (): string => {
+		const q = page.url.searchParams.get('left');
+		if (q && [...q].length === 1 && (q.codePointAt(0) ?? 0) > 0x20) return q;
+		return 'A';
+	};
+	let leftChar = $state(initLeftChar());
 	let rightChar = $state('V');
 
 	// ---------- Sidebearing classes ----------
