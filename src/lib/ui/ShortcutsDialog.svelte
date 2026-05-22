@@ -74,7 +74,7 @@
 				{ keys: '⌘Z', label: 'Undo' },
 				{ keys: '⌘⇧Z', label: 'Redo' },
 				{ keys: '⌘⇧C', label: 'Copy glyph' },
-				{ keys: '⌘⇧V', label: 'Paste glyph' }
+				{ keys: '⌘⇧V', label: 'Paste glyph (or SVG path from Figma / Illustrator)' }
 			]
 		},
 		{

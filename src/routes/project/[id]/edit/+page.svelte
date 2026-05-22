@@ -2048,7 +2048,8 @@
 					variant="ghost"
 					density="sm"
 					onclick={pasteGlyph}
-					aria-label="Paste glyph (⌘⇧V)"
+					aria-label="Paste glyph or SVG path (⌘⇧V)"
+					title="Paste a Font Studio glyph or SVG path data — try copying a shape from Figma / Illustrator"
 				>
 					{#snippet icon()}<ClipboardPaste class="size-3.5" />{/snippet}
 					Paste

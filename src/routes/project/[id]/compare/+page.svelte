@@ -306,9 +306,9 @@
 				<div>
 					<h1 class="text-xl font-semibold tracking-tight">Compare</h1>
 					<p class="text-sm text-fg-muted">
-						Overlay glyph outlines across your project, family siblings, and any
-						reference font. Drop an <code>.otf</code> / <code>.ttf</code> anywhere on
-						this page to add it as a layer.
+						Overlay glyph outlines across your project, pinned snapshots, family
+						siblings, and any reference font. Drop an <code>.otf</code> /
+						<code>.ttf</code> anywhere on this page to add it as a layer.
 					</p>
 				</div>
 			</header>
