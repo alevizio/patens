@@ -7,6 +7,8 @@
 import type { Project } from './types';
 import { USE_CASE_LABELS } from './types';
 import { detectFeatures, featureLabel } from './feature-detect';
+import { auditProject, auditCompatibility, preflightProject } from './audit';
+import { SCRIPT_PACKS } from './charsets';
 
 const fmtDate = (iso: string): string => {
 	const d = new Date(iso);
@@ -64,6 +66,51 @@ export const generateDesignMd = (project: Project): string => {
 		facts.push(
 			`- **Sidebearing classes**: ${project.sidebearingClasses.length} (${project.sidebearingClasses.map((c) => c.name).join(', ')})`
 		);
+	}
+	if (project.palettes && project.palettes.length > 0) {
+		const totalColors = project.palettes.reduce((sum, p) => sum + p.colors.length, 0);
+		facts.push(
+			`- **Color palettes**: ${project.palettes.length} (${totalColors} colour entries — COLR/CPAL emitted at export)`
+		);
+	}
+	// Per-script coverage — only mention scripts the project has any
+	// presence in. Silent for Latin-only projects (the default case).
+	const scriptLines: string[] = [];
+	for (const pack of SCRIPT_PACKS) {
+		let drawnCount = 0;
+		let presentCount = 0;
+		for (const spec of pack.glyphs) {
+			const g = project.glyphs[spec.codepoint];
+			if (!g) continue;
+			presentCount++;
+			if (g.contours.length > 0 || (g.components?.length ?? 0) > 0) drawnCount++;
+		}
+		if (presentCount === 0) continue;
+		const pct = Math.round((drawnCount / pack.glyphs.length) * 100);
+		scriptLines.push(
+			`${pack.label} ${drawnCount}/${pack.glyphs.length} (${pct}%)`
+		);
+	}
+	if (scriptLines.length > 0) {
+		facts.push(`- **Script coverage**: ${scriptLines.join(', ')}`);
+	}
+	// Audit summary — counts only, no per-issue detail (the audit page is
+	// the place for that). Helps a foundry doc record "shipped at 0 errors"
+	// or "known 3 warnings" as part of the release context.
+	const allIssues = [
+		...auditProject(project),
+		...auditCompatibility(project),
+		...preflightProject(project)
+	];
+	const errors = allIssues.filter((i) => i.severity === 'error').length;
+	const warns = allIssues.filter((i) => i.severity === 'warn').length;
+	const infos = allIssues.filter((i) => i.severity === 'info').length;
+	if (allIssues.length > 0) {
+		facts.push(
+			`- **Audit**: ${errors} error${errors === 1 ? '' : 's'}, ${warns} warning${warns === 1 ? '' : 's'}, ${infos} info`
+		);
+	} else {
+		facts.push(`- **Audit**: all checks pass`);
 	}
 	lines.push(...facts);
 	lines.push('');
