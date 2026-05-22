@@ -1304,6 +1304,21 @@ class ProjectStore {
 		});
 	}
 
+	renameRevision(codepoint: number, revisionId: string, label: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current?.revisions) return;
+		const trimmed = label.trim();
+		this.writeGlyph(codepoint, {
+			...current,
+			revisions: current.revisions.map((r) =>
+				r.id === revisionId ? { ...r, label: trimmed || undefined } : r
+			),
+			updatedAt: new Date().toISOString()
+		});
+	}
+
 	restoreRevision(codepoint: number, revisionId: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;

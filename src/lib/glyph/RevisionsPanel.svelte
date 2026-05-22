@@ -50,6 +50,27 @@
 		projectStore.toggleRevisionPin(glyph.codepoint, revId);
 	};
 
+	// Inline rename state — only one row is editable at a time.
+	let editingRevId = $state<string | null>(null);
+	let editingLabel = $state('');
+	const startEdit = (revId: string, currentLabel: string | undefined) => {
+		editingRevId = revId;
+		editingLabel = currentLabel ?? '';
+	};
+	const commitEdit = () => {
+		if (!glyph || !editingRevId) return;
+		projectStore.renameRevision(glyph.codepoint, editingRevId, editingLabel);
+		editingRevId = null;
+		editingLabel = '';
+	};
+	const cancelEdit = () => {
+		editingRevId = null;
+		editingLabel = '';
+	};
+	const focusOnMount = (node: HTMLInputElement) => {
+		queueMicrotask(() => node.focus());
+	};
+
 	// The active ghost: most-recent pinned snapshot. Mirrors the logic in
 	// the editor's pinnedSnapshotGhost derivation so the label here matches
 	// what's painted on the canvas.
@@ -128,13 +149,44 @@
 							/>
 						</svg>
 						<span class="flex-1 min-w-0 truncate text-[11px] text-fg-muted">
-							{#if r.label}
-								<span class="block truncate text-fg" title={r.label}>{r.label}</span>
+							{#if editingRevId === r.id}
+								<!-- Inline rename input. Enter commits, Escape cancels,
+								     blur commits (so clicking elsewhere saves too). Focus
+								     via an action since entering edit mode is an explicit
+								     designer click — a11y linter accepts this over autofocus. -->
+								<input
+									type="text"
+									bind:value={editingLabel}
+									use:focusOnMount
+									placeholder="Label"
+									onkeydown={(e) => {
+										if (e.key === 'Enter') commitEdit();
+										else if (e.key === 'Escape') cancelEdit();
+									}}
+									onblur={commitEdit}
+									class="block w-full rounded border border-accent bg-surface px-1.5 py-0.5 text-[11px] text-fg outline-none"
+								/>
 								<span class="block text-[10px] text-fg-subtle" data-numeric>
 									{formatTime(r.takenAt)}
 								</span>
 							{:else}
-								<span data-numeric>{formatTime(r.takenAt)}</span>
+								<button
+									type="button"
+									onclick={() => startEdit(r.id, r.label)}
+									class="block w-full truncate text-left hover:text-accent"
+									title="Click to rename"
+								>
+									{#if r.label}
+										<span class="block truncate text-fg">{r.label}</span>
+										<span class="block text-[10px] text-fg-subtle" data-numeric>
+											{formatTime(r.takenAt)}
+										</span>
+									{:else}
+										<span class="text-fg-subtle italic" data-numeric>
+											{formatTime(r.takenAt)} · click to label
+										</span>
+									{/if}
+								</button>
 							{/if}
 						</span>
 						<button
