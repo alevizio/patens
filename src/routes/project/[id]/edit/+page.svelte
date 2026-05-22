@@ -601,6 +601,24 @@
 	const fixIssue = (code: string) => {
 		if (!glyph) return;
 		const cp = glyph.codepoint;
+		// Auto-snapshot before any contour-mutating fix when the most
+		// recent snapshot is older than 30s or the list is empty.
+		// Cheap insurance — ⌘Z still works, but a labelled snapshot
+		// also stays in the panel so the designer can compare or
+		// restore later. The 30s window prevents spam if the user
+		// runs multiple fixes back-to-back.
+		const contourFix =
+			code === 'self-intersecting' ||
+			code === 'contour-winding-collision' ||
+			code === 'duplicate-points' ||
+			code === 'near-collinear-points';
+		if (contourFix && glyph.contours.length > 0) {
+			const latest = glyph.revisions?.[glyph.revisions.length - 1];
+			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
+			if (!recent) {
+				projectStore.saveRevision(cp, `pre-fix: ${code}`);
+			}
+		}
 		if (code === 'self-intersecting' || code === 'contour-winding-collision') {
 			const cleaned = booleanContours(glyph.contours, 'union');
 			handleContoursChange(cleaned);
