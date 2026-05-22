@@ -229,10 +229,33 @@ export const featureLabel = (tag: string): string => {
 	if (tag.startsWith('ss')) return `Stylistic set ${tag.slice(2)}`;
 	if (tag.startsWith('cv')) return `Character variant ${tag.slice(2)}`;
 	const labels: Record<string, string> = {
+		// Letter/case substitutions
 		smcp: 'Small caps',
 		c2sc: 'Caps to small caps',
+		case: 'Case-sensitive forms',
+		unic: 'Unicase',
+		titl: 'Titling',
+		hist: 'Historical forms',
+		// Alternates
 		salt: 'Stylistic alternates',
+		aalt: 'Access all alternates',
+		nalt: 'Alternate annotation',
 		swsh: 'Swashes',
+		ornm: 'Ornaments',
+		// Ligatures
+		liga: 'Standard ligatures',
+		dlig: 'Discretionary ligatures',
+		hlig: 'Historical ligatures',
+		rlig: 'Required ligatures',
+		clig: 'Contextual ligatures',
+		calt: 'Contextual alternates',
+		// Positioning
+		kern: 'Kerning',
+		mark: 'Mark positioning',
+		mkmk: 'Mark-to-mark positioning',
+		ccmp: 'Glyph composition / decomposition',
+		locl: 'Localized forms',
+		// Figures
 		onum: 'Oldstyle figures',
 		lnum: 'Lining figures',
 		tnum: 'Tabular figures',
@@ -241,10 +264,23 @@ export const featureLabel = (tag: string): string => {
 		dnom: 'Denominators',
 		sups: 'Superscript',
 		subs: 'Subscript',
+		frac: 'Fractions',
+		afrc: 'Alternative fractions',
+		ordn: 'Ordinals',
+		zero: 'Slashed zero',
+		// Arabic
 		init: 'Arabic initial form',
 		medi: 'Arabic medial form',
 		fina: 'Arabic final form',
-		isol: 'Arabic isolated form'
+		isol: 'Arabic isolated form',
+		// Vertical
+		vert: 'Vertical writing',
+		vrt2: 'Vertical alternates and rotation',
+		// Width
+		fwid: 'Full widths',
+		hwid: 'Half widths',
+		pwid: 'Proportional widths',
+		palt: 'Proportional alternate widths'
 	};
 	return labels[tag] ?? tag;
 };

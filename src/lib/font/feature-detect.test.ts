@@ -285,6 +285,16 @@ describe('featureLabel', () => {
 		expect(featureLabel('onum')).toBe('Oldstyle figures');
 	});
 
+	it('covers the common Latin layout tags', () => {
+		expect(featureLabel('liga')).toBe('Standard ligatures');
+		expect(featureLabel('kern')).toBe('Kerning');
+		expect(featureLabel('calt')).toBe('Contextual alternates');
+		expect(featureLabel('frac')).toBe('Fractions');
+		expect(featureLabel('case')).toBe('Case-sensitive forms');
+		expect(featureLabel('zero')).toBe('Slashed zero');
+		expect(featureLabel('locl')).toBe('Localized forms');
+	});
+
 	it('expands indexed sets and variants', () => {
 		expect(featureLabel('ss01')).toBe('Stylistic set 01');
 		expect(featureLabel('cv05')).toBe('Character variant 05');
