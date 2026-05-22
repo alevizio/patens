@@ -1,9 +1,30 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
+	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 
 	const project = $derived(projectStore.project);
+
+	// OpenType features for the colophon. Auto-features that aren't disabled
+	// + the kern/liga toggles, surfaced with their plain-English labels.
+	// Empty when nothing's detected and both toggles are off, so the colophon
+	// row hides cleanly.
+	const colophonFeatures = $derived.by(() => {
+		if (!project) return [];
+		const out: Array<{ tag: string; label: string; count?: number }> = [];
+		if (project.features.kern) out.push({ tag: 'kern', label: 'Kerning' });
+		if (project.features.liga) out.push({ tag: 'liga', label: 'Standard ligatures' });
+		const autoOn = project.features.autoFeatures !== false;
+		if (autoOn) {
+			const disabled = new Set(project.features.disabledAutoFeatures ?? []);
+			for (const f of detectFeatures(project)) {
+				if (disabled.has(f.feature)) continue;
+				out.push({ tag: f.feature, label: featureLabel(f.feature), count: f.subs.length });
+			}
+		}
+		return out;
+	});
 
 	const drawnGlyphs = $derived.by(() => {
 		if (!project) return [];
@@ -342,6 +363,24 @@
 					{#if (project.instances ?? []).length > 0}
 						<dt class="text-neutral-500">Instances</dt>
 						<dd>{project.instances?.map((i) => i.styleName).join(', ')}</dd>
+					{/if}
+					{#if colophonFeatures.length > 0}
+						<dt class="text-neutral-500">OpenType features</dt>
+						<dd>
+							<!-- One feature per line — tag in mono, label as the
+							     human-facing description. Matches the design-md
+							     formatting so the same content reads consistently
+							     across foundry doc and specimen sheet. -->
+							{#each colophonFeatures as f (f.tag)}
+								<div class="leading-tight">
+									<span class="font-mono text-[12px] text-neutral-700">{f.tag}</span>
+									<span class="text-neutral-500"> · {f.label}</span>
+									{#if f.count !== undefined}
+										<span class="text-neutral-400" data-numeric> · {f.count}</span>
+									{/if}
+								</div>
+							{/each}
+						</dd>
 					{/if}
 				</dl>
 
