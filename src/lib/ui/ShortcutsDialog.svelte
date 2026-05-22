@@ -41,6 +41,8 @@
 			rows: [
 				{ keys: '[', label: 'Previous glyph' },
 				{ keys: ']', label: 'Next glyph' },
+				{ keys: '⇧[', label: 'Previous attention glyph (audit warn/error)' },
+				{ keys: '⇧]', label: 'Next attention glyph (audit warn/error)' },
 				{ keys: '/', label: 'Open glyph palette' },
 				{ keys: '⌘K', label: 'Open glyph palette' }
 			]
