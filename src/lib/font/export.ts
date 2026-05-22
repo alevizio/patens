@@ -6,7 +6,7 @@
  * lazy-load Pyodide + fontTools and run that step there.
  */
 
-import opentype from 'opentype.js';
+import { Font, Glyph as OTGlyphClass, Path } from 'opentype.js';
 import type { BezierContour, Glyph as ProjectGlyph, Project, PathCommand } from './types';
 import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
@@ -17,8 +17,8 @@ import { buildAutoKern } from './kerning-auto';
 import { expandKerningClasses } from './kerning-classes';
 import { expandSubset, filterKerningToSubset } from './subset';
 
-type OTPath = InstanceType<typeof opentype.Path>;
-type OTGlyph = InstanceType<typeof opentype.Glyph>;
+type OTPath = InstanceType<typeof Path>;
+type OTGlyph = InstanceType<typeof OTGlyphClass>;
 
 const applyCommandsToPath = (path: OTPath, commands: PathCommand[]): void => {
 	for (const c of commands) {
@@ -43,7 +43,7 @@ const applyCommandsToPath = (path: OTPath, commands: PathCommand[]): void => {
 };
 
 const contoursToOpenTypePath = (contours: BezierContour[]): OTPath => {
-	const path = new opentype.Path();
+	const path = new Path();
 	for (const contour of contours) {
 		applyCommandsToPath(path, roundToFontUnits(contour.commands));
 	}
@@ -159,7 +159,7 @@ const effectiveAdvanceWidth = (
 };
 
 export type BuildResult = {
-	font: InstanceType<typeof opentype.Font>;
+	font: InstanceType<typeof Font>;
 	indexByCodepoint: Map<number, number>;
 	glyphCount: number;
 	/**
@@ -231,7 +231,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 
 	// .notdef is always glyph index 0.
 	const notdefPath = contoursToOpenTypePath(buildNotdefContours(metrics));
-	const notdef = new opentype.Glyph({
+	const notdef = new OTGlyphClass({
 		name: '.notdef',
 		unicode: 0,
 		advanceWidth: NOTDEF_ADVANCE_WIDTH,
@@ -253,7 +253,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 		const advanceWidth = effectiveAdvanceWidth(g, eff);
 		const path = contoursToOpenTypePath(eff);
 		const name = g.name || `uni${cp.toString(16).toUpperCase().padStart(4, '0')}`;
-		const otGlyph = new opentype.Glyph({
+		const otGlyph = new OTGlyphClass({
 			name,
 			unicode: cp,
 			advanceWidth,
@@ -270,7 +270,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	const colorPlan = buildColorFontPlan(project);
 	for (const syn of colorPlan.syntheticGlyphs) {
 		const path = contoursToOpenTypePath(syn.contours);
-		const otGlyph = new opentype.Glyph({
+		const otGlyph = new OTGlyphClass({
 			name: syn.name,
 			advanceWidth: syn.advanceWidth,
 			path
@@ -281,7 +281,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	const colorBaseGlyphs = resolveColorFontPlan(colorPlan, glyphIdByName);
 	const colorV1BaseGlyphs = resolveV1ColorFontPlan(colorPlan, glyphIdByName);
 
-	const font = new opentype.Font({
+	const font = new Font({
 		familyName: metadata.familyName || 'Untitled',
 		styleName,
 		unitsPerEm: metrics.unitsPerEm,
@@ -391,7 +391,7 @@ export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResul
 	};
 };
 
-export const fontToArrayBuffer = (font: InstanceType<typeof opentype.Font>): ArrayBuffer =>
+export const fontToArrayBuffer = (font: InstanceType<typeof Font>): ArrayBuffer =>
 	font.toArrayBuffer();
 
 /** The four standard Latin ligatures the auto-fea generator emits. */
@@ -412,7 +412,7 @@ const STANDARD_LIGATURES: Array<{ result: number; parts: number[] }> = [
  * Pyodide-generated .fea was producing.
  */
 export const applyStandardLigatures = (
-	font: InstanceType<typeof opentype.Font>,
+	font: InstanceType<typeof Font>,
 	project: Project,
 	indexByCodepoint: Map<number, number>
 ): void => {
@@ -480,7 +480,7 @@ export const hasMarkAnchors = (project: Project): boolean => {
  * so the writes land in the serialized binary.
  */
 export const applyVerticalMetrics = (
-	font: InstanceType<typeof opentype.Font>,
+	font: InstanceType<typeof Font>,
 	vm: {
 		typoAscender: number;
 		typoDescender: number;
@@ -537,7 +537,7 @@ export const applyVerticalMetrics = (
 
 /** Trigger a browser download of the font as OTF. */
 export const downloadFont = (
-	font: InstanceType<typeof opentype.Font>,
+	font: InstanceType<typeof Font>,
 	filename: string
 ): void => {
 	const buffer = font.toArrayBuffer();

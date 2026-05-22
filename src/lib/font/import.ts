@@ -3,7 +3,7 @@
  * Adopts the source font's UPM, metrics, naming, and glyph outlines.
  */
 
-import opentype from 'opentype.js';
+import { parse as parseFont } from 'opentype.js';
 import type { BezierContour, FontMetrics, Glyph, PathCommand, Project } from './types';
 import { DEFAULT_FEATURES } from './types';
 import { DEFAULT_GLYPH_SET } from './glyph-set';
@@ -75,8 +75,8 @@ const safeStr = (v: unknown, fallback: string): string => {
 
 export const importFromOtf = async (file: File): Promise<ImportResult> => {
 	const buffer = await file.arrayBuffer();
-	// opentype.parse expects an ArrayBuffer
-	const font = opentype.parse(buffer) as unknown as {
+	// parseFont expects an ArrayBuffer
+	const font = parseFont(buffer) as unknown as {
 		unitsPerEm: number;
 		ascender: number;
 		descender: number;

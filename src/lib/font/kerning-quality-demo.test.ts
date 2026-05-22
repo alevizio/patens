@@ -25,7 +25,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import opentype from 'opentype.js';
+import { parse as parseFont, Font } from 'opentype.js';
 import { sampleGlyphSilhouette } from './silhouette';
 import { suggestKerning } from './kerning-suggest';
 
@@ -123,7 +123,7 @@ const otGlyphToContours = (g: OtGlyph) => {
 };
 
 const findGlyphByChar = (
-	font: InstanceType<typeof opentype.Font>,
+	font: InstanceType<typeof Font>,
 	ch: string
 ): OtGlyph | null => {
 	const cp = ch.codePointAt(0);
@@ -140,7 +140,7 @@ const findGlyphByChar = (
 
 describe('auto-kern regression vs demo font', () => {
 	it('produces deterministic suggestions snapshotted in this test', async () => {
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const H = findGlyphByChar(font, 'H');
 		expect(H, 'demo font must have an H glyph').not.toBeNull();
 		const HContours = otGlyphToContours(H!);

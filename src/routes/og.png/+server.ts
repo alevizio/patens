@@ -15,7 +15,7 @@
 import type { RequestHandler } from './$types';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import opentype from 'opentype.js';
+import { parse as parseFont } from 'opentype.js';
 import { Resvg } from '@resvg/resvg-js';
 
 let cachedPng: Buffer | null = null;
@@ -33,7 +33,7 @@ const SUBTLE = '#8C8378';
 type PathWithToPathData = { toPathData(decimals: number): string };
 
 const textToPath = (
-	font: ReturnType<typeof opentype.parse>,
+	font: ReturnType<typeof parseFont>,
 	text: string,
 	x: number,
 	y: number,
@@ -46,7 +46,7 @@ const buildPng = async (): Promise<Buffer> => {
 		'static/demo-fonts/StudioGeometric-Regular.otf'
 	);
 	const buf = await fs.readFile(fontPath);
-	const font = opentype.parse(
+	const font = parseFont(
 		buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
 	);
 

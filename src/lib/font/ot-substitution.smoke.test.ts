@@ -19,7 +19,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import opentype from 'opentype.js';
+import { parse as parseFont } from 'opentype.js';
 
 const loadDemoOtf = async (): Promise<ArrayBuffer> => {
 	const p = path.join(
@@ -35,7 +35,7 @@ const loadDemoOtf = async (): Promise<ArrayBuffer> => {
 
 describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 	it('addSingle for `salt` survives save → reparse cycle', async () => {
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 
 		// Verify the test font has the glyphs we need.
 		const aSet = font.glyphs;
@@ -56,7 +56,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 		// Reparse via the round-trip.
 		const buf = font.toArrayBuffer();
 		expect(buf.byteLength).toBeGreaterThan(0);
-		const reparsed = opentype.parse(buf);
+		const reparsed = parseFont(buf);
 
 		// The substitution should come back symmetric.
 		const recovered = reparsed.substitution.getSingle('salt');
@@ -67,7 +67,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 	});
 
 	it('addSingle for `smcp` survives save → reparse cycle', async () => {
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const aSetUnknown = font.glyphs as unknown as {
 			glyphs?: Record<string, { name?: string }>;
 		};
@@ -79,13 +79,13 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 
 		font.substitution.addSingle('smcp', { sub, by });
 		const buf = font.toArrayBuffer();
-		const reparsed = opentype.parse(buf);
+		const reparsed = parseFont(buf);
 		const recovered = reparsed.substitution.getSingle('smcp');
 		expect(recovered.length).toBeGreaterThan(0);
 	});
 
 	it('addAlternate for `aalt` survives save → reparse cycle', async () => {
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const aSetUnknown = font.glyphs as unknown as {
 			glyphs?: Record<string, { name?: string }>;
 		};
@@ -98,7 +98,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 
 		font.substitution.addAlternate('aalt', { sub: baseSub, by: [alt1, alt2] });
 		const buf = font.toArrayBuffer();
-		const reparsed = opentype.parse(buf);
+		const reparsed = parseFont(buf);
 		const recovered = reparsed.substitution.getAlternates('aalt');
 		expect(recovered.length).toBeGreaterThan(0);
 		expect(recovered[0].by.length).toBeGreaterThan(0);
@@ -111,7 +111,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 		// detected-features list before invoking addSingle / addAlternate.
 		// Within a single feature, subsequent calls are fine; the order
 		// rule is BETWEEN distinct features.
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const aSetUnknown = font.glyphs as unknown as {
 			glyphs?: Record<string, { name?: string }>;
 		};
@@ -132,7 +132,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 		font.substitution.addSingle('smcp', { sub: a, by: A });
 
 		const buf = font.toArrayBuffer();
-		const reparsed = opentype.parse(buf);
+		const reparsed = parseFont(buf);
 		expect(reparsed.substitution.getSingle('c2sc').length).toBeGreaterThan(0);
 		expect(reparsed.substitution.getSingle('salt').length).toBeGreaterThanOrEqual(2);
 		expect(reparsed.substitution.getSingle('smcp').length).toBeGreaterThan(0);
@@ -141,7 +141,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 	it('out-of-order feature additions throw a clear error', async () => {
 		// Pinning the constraint so a future refactor that drops sorting
 		// fails loudly here instead of in the export path.
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const aSetUnknown = font.glyphs as unknown as {
 			glyphs?: Record<string, { name?: string }>;
 		};
@@ -159,7 +159,7 @@ describe('opentype.js substitution write API — smoke test (M1 day-1)', () => {
 	});
 
 	it('written features end up in the GSUB table (binary check)', async () => {
-		const font = opentype.parse(await loadDemoOtf());
+		const font = parseFont(await loadDemoOtf());
 		const aSetUnknown = font.glyphs as unknown as {
 			glyphs?: Record<string, { name?: string }>;
 		};
