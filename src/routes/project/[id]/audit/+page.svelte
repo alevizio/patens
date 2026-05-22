@@ -10,7 +10,7 @@
 		type AuditIssue,
 		type AuditSeverity
 	} from '$lib/font/audit';
-	import { glyphBounds } from '$lib/font/path';
+	import { glyphBounds, roundToFontUnits } from '$lib/font/path';
 	import { booleanContours } from '$lib/font/path-edit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
@@ -127,7 +127,9 @@
 		'near-collinear-points',
 		// Winding-collision fix is the same polygon-union routine as the
 		// self-intersecting fix — clipping normalises nested winding too.
-		'contour-winding-collision'
+		'contour-winding-collision',
+		// Fractional coordinates from SVG paste / Figma — round to int.
+		'off-grid-points'
 	]);
 
 	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
@@ -235,6 +237,16 @@
 				const g = project.glyphs[issue.codepoint];
 				if (!g) return;
 				const cleaned = booleanContours(g.contours, 'union');
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
+				return;
+			}
+			case 'off-grid-points': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				const cleaned = g.contours.map((c) => ({
+					...c,
+					commands: roundToFontUnits(c.commands)
+				}));
 				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
 				return;
 			}

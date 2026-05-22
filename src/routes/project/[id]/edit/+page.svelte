@@ -6,7 +6,7 @@
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { Anchor, BezierContour, ColorLayer, ColorPalette, Glyph, SketchStroke } from '$lib/font/types';
 	import { createColorLayer, defaultPalette, rgbaToCss } from '$lib/font/color';
-	import { glyphBounds, contoursToSvgPath } from '$lib/font/path';
+	import { glyphBounds, contoursToSvgPath, roundToFontUnits } from '$lib/font/path';
 	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
 	import {
 		chaikinSmooth,
@@ -611,13 +611,23 @@
 			code === 'self-intersecting' ||
 			code === 'contour-winding-collision' ||
 			code === 'duplicate-points' ||
-			code === 'near-collinear-points';
+			code === 'near-collinear-points' ||
+			code === 'off-grid-points';
 		if (contourFix && glyph.contours.length > 0) {
 			const latest = glyph.revisions?.[glyph.revisions.length - 1];
 			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
 			if (!recent) {
 				projectStore.saveRevision(cp, `pre-fix: ${code}`);
 			}
+		}
+		if (code === 'off-grid-points') {
+			const cleaned = glyph.contours.map((c) => ({
+				...c,
+				commands: roundToFontUnits(c.commands)
+			}));
+			handleContoursChange(cleaned);
+			toast.success('Snapped all points to integer font units.');
+			return;
 		}
 		if (code === 'self-intersecting' || code === 'contour-winding-collision') {
 			const cleaned = booleanContours(glyph.contours, 'union');
@@ -2767,7 +2777,8 @@
 									issue.code === 'self-intersecting' ||
 									issue.code === 'duplicate-points' ||
 									issue.code === 'near-collinear-points' ||
-									issue.code === 'contour-winding-collision'}
+									issue.code === 'contour-winding-collision' ||
+									issue.code === 'off-grid-points'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
