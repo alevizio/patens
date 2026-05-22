@@ -21,10 +21,15 @@
 		return new Date(iso).toLocaleDateString();
 	};
 
+	// Label state for the next snapshot. Cleared after Snap so the
+	// input doesn't carry stale text across glyphs / sessions.
+	let pendingLabel = $state('');
 	const takeSnapshot = () => {
 		if (!glyph || glyph.contours.length === 0) return;
-		projectStore.saveRevision(glyph.codepoint);
-		toast.success('Snapshot saved');
+		const label = pendingLabel.trim() || undefined;
+		projectStore.saveRevision(glyph.codepoint, label);
+		toast.success(label ? `Snapshot: "${label}"` : 'Snapshot saved');
+		pendingLabel = '';
 	};
 
 	const restore = (revId: string) => {
@@ -56,6 +61,19 @@
 				Snap
 			</button>
 		</h3>
+		<!-- Optional label for the next snapshot — useful for marking
+		     "before redrawing the bowl" / "v2 with serif" / etc. Cleared
+		     after each save so the input stays fresh. -->
+		<input
+			type="text"
+			bind:value={pendingLabel}
+			placeholder="Label (optional) — Enter to snap"
+			disabled={glyph.contours.length === 0}
+			onkeydown={(e) => {
+				if (e.key === 'Enter') takeSnapshot();
+			}}
+			class="mb-2 w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent disabled:opacity-40"
+		/>
 		{#if revisions.length === 0}
 			<p class="text-[11px] text-fg-subtle">
 				Capture iterations as you go — restore any of the last 8.
@@ -78,8 +96,15 @@
 								fill-rule="evenodd"
 							/>
 						</svg>
-						<span class="flex-1 truncate text-[11px] text-fg-muted" data-numeric>
-							{formatTime(r.takenAt)}
+						<span class="flex-1 min-w-0 truncate text-[11px] text-fg-muted">
+							{#if r.label}
+								<span class="block truncate text-fg" title={r.label}>{r.label}</span>
+								<span class="block text-[10px] text-fg-subtle" data-numeric>
+									{formatTime(r.takenAt)}
+								</span>
+							{:else}
+								<span data-numeric>{formatTime(r.takenAt)}</span>
+							{/if}
 						</span>
 						<button
 							type="button"
