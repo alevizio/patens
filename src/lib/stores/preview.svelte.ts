@@ -10,6 +10,7 @@
 
 import { browser } from '$app/environment';
 import { buildFont } from '$lib/font/export';
+import { applyColorFontTables } from '$lib/font/colr';
 import { projectStore } from './project.svelte';
 
 const BASE_FAMILY = 'PreviewFont';
@@ -42,10 +43,30 @@ class PreviewStore {
 		this.error = null;
 		const start = performance.now();
 		try {
-			const { font, glyphCount } = buildFont(project, {
+			const { font, glyphCount, colorBaseGlyphs, colorV1BaseGlyphs } = buildFont(project, {
 				masterId: projectStore.selectedMasterId
 			});
-			const buffer = font.toArrayBuffer();
+			let buffer: ArrayBuffer = font.toArrayBuffer();
+			// Splice color tables when the project has color layers + palettes.
+			// Modern browsers render COLR v0/v1 natively for CSS-applied text,
+			// so the Specimen tab + any other preview-font surface will show
+			// gradients in colour the moment this lands.
+			if (
+				(colorBaseGlyphs.length > 0 || colorV1BaseGlyphs.length > 0) &&
+				project.palettes &&
+				project.palettes.length > 0
+			) {
+				const spliced = applyColorFontTables(
+					new Uint8Array(buffer),
+					colorBaseGlyphs,
+					project.palettes,
+					colorV1BaseGlyphs
+				);
+				buffer = spliced.buffer.slice(
+					spliced.byteOffset,
+					spliced.byteOffset + spliced.byteLength
+				) as ArrayBuffer;
+			}
 			const family = `${BASE_FAMILY}_${++this.buildSeq}`;
 			const blob = new Blob([buffer], { type: 'font/otf' });
 			const url = URL.createObjectURL(blob);
