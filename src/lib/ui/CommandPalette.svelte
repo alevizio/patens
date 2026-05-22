@@ -22,6 +22,7 @@
 		const name = g.name.toLowerCase();
 		const char = String.fromCodePoint(g.codepoint).toLowerCase();
 		const hex = g.codepoint.toString(16).toLowerCase();
+		const notes = (g.notes ?? '').toLowerCase();
 		if (char === lower) return 100;
 		if (name === lower) return 95;
 		if (hex === lower) return 90;
@@ -29,6 +30,10 @@
 		if (hex.startsWith(lower)) return 75;
 		if (name.includes(lower)) return 50;
 		if (hex.includes(lower)) return 40;
+		// Note search — lower score so explicit name/codepoint matches
+		// always win, but lets users find "the glyph I wrote TODO in"
+		// or "the one tagged 'WIP'" via the command palette.
+		if (notes.includes(lower)) return 30;
 		return 0;
 	};
 
@@ -146,6 +151,14 @@
 								U+{g.codepoint.toString(16).toUpperCase().padStart(4, '0')}
 								{#if g.contours.length === 0}· empty{/if}
 							</span>
+							{#if query.trim() && g.notes && g.notes.toLowerCase().includes(query.trim().toLowerCase())}
+								<!-- Surface matching notes context so the user sees WHY
+								     this glyph matched — particularly useful when
+								     searching for a tag like "TODO" or a domain term. -->
+								<span class="block truncate text-[10px] italic text-fg-muted">
+									{g.notes.split('\n')[0]}
+								</span>
+							{/if}
 						</span>
 						<span class="font-mono text-[10px] uppercase text-fg-subtle">{g.status}</span>
 					</button>
