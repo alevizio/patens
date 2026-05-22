@@ -5,6 +5,7 @@
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import { findComposableCandidates } from '$lib/font/decompose';
 	import { defaultPalette } from '$lib/font/color';
+	import { auditGlyph } from '$lib/font/audit';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -134,7 +135,8 @@
 		| 'draft'
 		| 'final'
 		| 'flagged'
-		| 'recent';
+		| 'recent'
+		| 'attention';
 	let statusFilter = $state<StatusFilter>('all');
 	const STATUS_OPTIONS: Array<{ id: StatusFilter; label: string; title: string }> = [
 		{ id: 'all', label: 'All', title: 'Show every glyph' },
@@ -144,8 +146,26 @@
 		{ id: 'draft', label: 'Draft', title: 'Status = draft' },
 		{ id: 'final', label: 'Final', title: 'Status = final' },
 		{ id: 'flagged', label: 'Flagged', title: 'Flagged for review (Shift+F)' },
-		{ id: 'recent', label: 'Recent', title: 'Edited in the last 24 hours' }
+		{ id: 'recent', label: 'Recent', title: 'Edited in the last 24 hours' },
+		{ id: 'attention', label: 'Needs review', title: 'Has audit warnings or errors' }
 	];
+
+	// Lazily compute the audit-flagged set — only when the filter is active,
+	// since auditGlyph is O(contours × points) and we don't want to pay that
+	// every keystroke for every glyph if the user doesn't care.
+	const attentionCodepoints = $derived.by(() => {
+		if (statusFilter !== 'attention') return null;
+		const project = projectStore.project;
+		if (!project) return new Set<number>();
+		const flagged = new Set<number>();
+		for (const g of Object.values(projectStore.activeGlyphs)) {
+			const issues = auditGlyph(g, project);
+			if (issues.some((i) => i.severity === 'warn' || i.severity === 'error')) {
+				flagged.add(g.codepoint);
+			}
+		}
+		return flagged;
+	});
 
 	const parseCodepoint = (s: string): number | null => {
 		const trimmed = s.trim();
@@ -202,6 +222,8 @@
 				const t = Date.parse(g.updatedAt);
 				return Number.isFinite(t) && t >= Date.now() - 24 * 3600 * 1000;
 			}
+			case 'attention':
+				return attentionCodepoints?.has(g.codepoint) ?? false;
 			default:
 				return g.status === statusFilter;
 		}
