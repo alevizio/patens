@@ -1195,6 +1195,40 @@
 		}));
 	};
 
+	const jumpAttention = (
+		direction: 'next' | 'prev',
+		codepoints: number[],
+		allGlyphs: Record<number, Glyph>,
+		project: NonNullable<typeof projectStore.project>
+	) => {
+		const attention: Array<{ cp: number; firstMessage: string }> = [];
+		for (const cp of codepoints) {
+			const g = allGlyphs[cp];
+			if (!g) continue;
+			const issues = sortBySeverity(auditGlyph(g, project)).filter(
+				(i) => i.severity === 'warn' || i.severity === 'error'
+			);
+			if (issues.length > 0) attention.push({ cp, firstMessage: issues[0].message });
+		}
+		if (attention.length === 0) {
+			toast.info('No glyphs need attention', 1500);
+			return;
+		}
+		const aIdx = attention.findIndex((a) => a.cp === projectStore.selectedCodepoint);
+		const targetIdx =
+			direction === 'next'
+				? aIdx >= 0
+					? (aIdx + 1) % attention.length
+					: 0
+				: aIdx >= 0
+					? (aIdx - 1 + attention.length) % attention.length
+					: attention.length - 1;
+		const target = attention[targetIdx];
+		projectStore.selectGlyph(target.cp);
+		const name = allGlyphs[target.cp]?.name ?? 'glyph';
+		toast.info(`${name} — ${target.firstMessage}`, 2200);
+	};
+
 	const handleKeyDown = (ev: KeyboardEvent) => {
 		if (ev.target instanceof HTMLInputElement) return;
 		if (ev.target instanceof HTMLTextAreaElement) return;
@@ -1217,43 +1251,12 @@
 		// audit cost when the user actually presses the shortcut.
 		if ((ev.key === '}' || (ev.key === ']' && ev.shiftKey)) && project) {
 			ev.preventDefault();
-			const attention = codepoints.filter((cp) => {
-				const g = allGlyphs[cp];
-				if (!g) return false;
-				return auditGlyph(g, project).some(
-					(i) => i.severity === 'warn' || i.severity === 'error'
-				);
-			});
-			if (attention.length === 0) {
-				toast.info('No glyphs need attention', 1500);
-			} else {
-				const aIdx = attention.indexOf(projectStore.selectedCodepoint);
-				const next = aIdx >= 0 ? attention[(aIdx + 1) % attention.length] : attention[0];
-				projectStore.selectGlyph(next);
-				toast.info(`Next attention: ${allGlyphs[next]?.name ?? 'glyph'}`, 1200);
-			}
+			jumpAttention('next', codepoints, allGlyphs, project);
 			return;
 		}
 		if ((ev.key === '{' || (ev.key === '[' && ev.shiftKey)) && project) {
 			ev.preventDefault();
-			const attention = codepoints.filter((cp) => {
-				const g = allGlyphs[cp];
-				if (!g) return false;
-				return auditGlyph(g, project).some(
-					(i) => i.severity === 'warn' || i.severity === 'error'
-				);
-			});
-			if (attention.length === 0) {
-				toast.info('No glyphs need attention', 1500);
-			} else {
-				const aIdx = attention.indexOf(projectStore.selectedCodepoint);
-				const prev =
-					aIdx >= 0
-						? attention[(aIdx - 1 + attention.length) % attention.length]
-						: attention[attention.length - 1];
-				projectStore.selectGlyph(prev);
-				toast.info(`Prev attention: ${allGlyphs[prev]?.name ?? 'glyph'}`, 1200);
-			}
+			jumpAttention('prev', codepoints, allGlyphs, project);
 			return;
 		}
 		if (ev.key === ']') {
