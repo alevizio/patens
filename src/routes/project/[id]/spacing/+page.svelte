@@ -55,17 +55,18 @@
 		['F', 'a'], ['F', 'o'], ['Y', 'o'], ['Y', 'a']
 	];
 
-	// URL ?left=X seed lets other surfaces deep-link the spacing page to a
-	// specific glyph context (e.g. the editor's Kerning panel passing the
-	// current glyph). Only honoured when the query value is a single
-	// printable character — guards against junk URLs setting bad state.
-	const initLeftChar = (): string => {
-		const q = page.url.searchParams.get('left');
+	// URL ?left=X / ?right=Y seeds let other surfaces deep-link the spacing
+	// page to a specific pair context (e.g. the editor's Kerning panel
+	// passing the current glyph). Only honoured when the query value is a
+	// single printable character — guards against junk URLs setting bad
+	// state.
+	const initChar = (key: string, fallback: string): string => {
+		const q = page.url.searchParams.get(key);
 		if (q && [...q].length === 1 && (q.codePointAt(0) ?? 0) > 0x20) return q;
-		return 'A';
+		return fallback;
 	};
-	let leftChar = $state(initLeftChar());
-	let rightChar = $state('V');
+	let leftChar = $state(initChar('left', 'A'));
+	let rightChar = $state(initChar('right', 'V'));
 
 	// ---------- Sidebearing classes ----------
 	let newSbName = $state('');
