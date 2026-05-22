@@ -342,6 +342,35 @@
 		);
 	});
 
+	// Kerning pairs that involve the current glyph — either directly via
+	// codepoint or via membership in a kerning class. Useful inline so the
+	// designer knows whether spacing edits ripple into pairs, without
+	// jumping to the spacing page.
+	const involvedKerning = $derived.by(() => {
+		const p = projectStore.project;
+		if (!p || !glyph) return { asLeft: 0, asRight: 0 };
+		const cp = glyph.codepoint;
+		const classes = p.classes ?? [];
+		const memberClassNames = new Set(
+			classes.filter((c) => c.members.includes(cp)).map((c) => c.name)
+		);
+		let asLeft = 0;
+		let asRight = 0;
+		const matches = (side: import('$lib/font/types').KerningSide, role: 'left' | 'right') => {
+			const hit =
+				(typeof side === 'number' && side === cp) ||
+				(typeof side === 'string' && memberClassNames.has(side));
+			if (!hit) return;
+			if (role === 'left') asLeft++;
+			else asRight++;
+		};
+		for (const pair of p.kerning) {
+			matches(pair.left, 'left');
+			matches(pair.right, 'right');
+		}
+		return { asLeft, asRight };
+	});
+
 	const spacingSuggestion = $derived.by(() => {
 		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
 		// Pick a peer in the same category (upper/lower/figure) with the
@@ -2591,6 +2620,39 @@
 							</button>
 						{/each}
 					</div>
+				</Accordion>
+			{/if}
+
+			{#if involvedKerning.asLeft + involvedKerning.asRight > 0}
+				<!-- Kerning pair count panel — surfaced inline so spacing edits
+				     in the editor make clear how many pairs are affected. Click
+				     anywhere on the panel body to jump to the spacing page
+				     filtered by this glyph. -->
+				<Accordion id="edit-kerning" label="Kerning" defaultOpen={false}>
+					{#snippet badge()}
+						<span
+							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent-strong"
+							data-numeric
+							title="{involvedKerning.asLeft} as left side · {involvedKerning.asRight} as right side"
+						>
+							{involvedKerning.asLeft + involvedKerning.asRight}
+						</span>
+					{/snippet}
+					<p class="text-[11px] text-fg-muted">
+						<span data-numeric>{involvedKerning.asLeft}</span> pair{involvedKerning.asLeft ===
+						1
+							? ''
+							: 's'} with this glyph on the
+						<span class="text-fg">left</span>,
+						<span data-numeric>{involvedKerning.asRight}</span> on the
+						<span class="text-fg">right</span>. Counts include class-based pairs.
+					</p>
+					<a
+						href={projectStore.project ? `/project/${projectStore.project.id}/spacing` : '#'}
+						class="mt-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+					>
+						Edit on Spacing page →
+					</a>
 				</Accordion>
 			{/if}
 
