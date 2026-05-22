@@ -6,6 +6,7 @@
 
 import type { Project } from './types';
 import { USE_CASE_LABELS } from './types';
+import { detectFeatures, featureLabel } from './feature-detect';
 
 const fmtDate = (iso: string): string => {
 	const d = new Date(iso);
@@ -104,10 +105,25 @@ export const generateDesignMd = (project: Project): string => {
 		lines.push(section('References studied', refLines.join('\n')));
 	}
 
-	// Features
+	// Features — kern/liga toggles + every auto-detected feature pulled from
+	// glyph-name suffixes (.sc, .ss01, .osf, etc.) + any custom .fea source.
+	// Detected features carry their plain-English label so the doc reads
+	// "smcp — Small caps · 26 substitutions" instead of just "smcp".
 	const featLines: string[] = [];
-	if (project.features.kern) featLines.push('- `kern` — pair-based kerning');
-	if (project.features.liga) featLines.push('- `liga` — standard ligatures (fi, fl, ffi)');
+	if (project.features.kern) featLines.push('- `kern` — Kerning');
+	if (project.features.liga) featLines.push('- `liga` — Standard ligatures (fi, fl, ffi)');
+	const disabled = new Set(project.features.disabledAutoFeatures ?? []);
+	const autoOn = project.features.autoFeatures !== false;
+	if (autoOn) {
+		const detected = detectFeatures(project);
+		for (const f of detected) {
+			if (disabled.has(f.feature)) continue;
+			const count = f.subs.length;
+			featLines.push(
+				`- \`${f.feature}\` — ${featureLabel(f.feature)} · ${count} substitution${count === 1 ? '' : 's'}`
+			);
+		}
+	}
 	if (project.features.feaSource?.trim()) {
 		featLines.push('- Custom `.fea` source compiled at export');
 	}
