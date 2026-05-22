@@ -1,7 +1,14 @@
 <script lang="ts">
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import { contoursToSvgPath } from '$lib/font/path';
-	import { defaultPalette } from '$lib/font/color';
+	import {
+		defaultPalette,
+		planColorRender,
+		rgbaToCss,
+		sampleColorLine,
+		type ColorRenderStep
+	} from '$lib/font/color';
+	import type { RGBA } from '$lib/font/types';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
@@ -11,6 +18,33 @@
 	// render in the glyph tiles. When no palette exists, tiles fall
 	// back to monochrome outlines.
 	const palette = $derived(defaultPalette(project.palettes));
+
+	// Sweep slice approximation for the typeset preview (SVG has no
+	// native conic gradient). Same approach as GlyphTile/DrawingCanvas.
+	const TYPESET_SWEEP_SLICES = 48;
+	const typesetSweepSlices = (
+		center: { x: number; y: number },
+		startDeg: number,
+		endDeg: number,
+		stops: Array<{ offset: number; color: RGBA }>,
+		radius: number
+	): Array<{ points: string; color: string }> => {
+		const out: Array<{ points: string; color: string }> = [];
+		const span = endDeg - startDeg;
+		for (let i = 0; i < TYPESET_SWEEP_SLICES; i++) {
+			const t1 = i / TYPESET_SWEEP_SLICES;
+			const t2 = (i + 1) / TYPESET_SWEEP_SLICES;
+			const tMid = (t1 + t2) / 2;
+			const color = sampleColorLine(stops, tMid);
+			const a1 = ((startDeg + span * t1) * Math.PI) / 180;
+			const a2 = ((startDeg + span * t2) * Math.PI) / 180;
+			out.push({
+				points: `${center.x},${center.y} ${center.x + Math.cos(a1) * radius},${center.y + Math.sin(a1) * radius} ${center.x + Math.cos(a2) * radius},${center.y + Math.sin(a2) * radius}`,
+				color: rgbaToCss(color)
+			});
+		}
+		return out;
+	};
 
 	// Glyph grid: only show drawn glyphs (skip empty placeholders),
 	// sorted by codepoint for a stable order.
@@ -37,7 +71,14 @@
 		return map;
 	});
 	const typeset = $derived.by(() => {
-		const out: Array<{ char: string; path: string; advance: number; x: number }> = [];
+		const out: Array<{
+			id: string;
+			char: string;
+			path: string;
+			advance: number;
+			x: number;
+			colorPlan: ColorRenderStep[];
+		}> = [];
 		let x = 0;
 		const codepoints = [...typeText];
 		for (let i = 0; i < codepoints.length; i++) {
@@ -47,13 +88,26 @@
 			if (!g || g.contours.length === 0) {
 				// Missing glyph — render as a hollow box at half-em width.
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
-				out.push({ char: ch, path: '', advance: w, x });
+				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
 				x += w;
 				continue;
 			}
-			out.push({ char: ch, path: contoursToSvgPath(g.contours), advance: g.advanceWidth, x });
+			// Compute the color render plan when the glyph has color
+			// layers + the project has a palette; otherwise renderColorPlan
+			// is empty and we fall back to monochrome contours.
+			const colorPlan =
+				palette && g.colorLayers && g.colorLayers.length > 0
+					? planColorRender(g.colorLayers, palette)
+					: [];
+			out.push({
+				id: `${i}-${cp}`,
+				char: ch,
+				path: contoursToSvgPath(g.contours),
+				advance: g.advanceWidth,
+				x,
+				colorPlan
+			});
 			x += g.advanceWidth;
-			// Apply kerning if there's a next character
 			if (i + 1 < codepoints.length) {
 				const nextCp = codepoints[i + 1].codePointAt(0) ?? 0;
 				const kv = kerningLookup.get(`${cp},${nextCp}`);
@@ -64,6 +118,8 @@
 	});
 
 	const fontSpan = $derived(ascender - descender);
+
+	const sweepRadiusTypeset = $derived(fontSpan * 2);
 </script>
 
 <svelte:head>
@@ -122,8 +178,66 @@
 				style="height: 96px; width: auto; transform: scaleY(-1); display: block;"
 				aria-label="Typeset preview of {project.metadata.familyName}"
 			>
-				{#each typeset.glyphs as g, i (i + '-' + g.char)}
-					{#if g.path}
+				<!-- Color/gradient defs per glyph instance. Each gradient
+				     def's id is scoped by glyph index so multiple
+				     occurrences of the same letter don't collide. -->
+				<defs>
+					{#each typeset.glyphs as g (g.id)}
+						{#each g.colorPlan as step (step.layerId)}
+							{#if step.fill.type === 'linearGradient'}
+								<linearGradient
+									id="ts-{g.id}-{step.layerId}"
+									gradientUnits="userSpaceOnUse"
+									x1={step.fill.start.x + g.x}
+									y1={step.fill.start.y}
+									x2={step.fill.end.x + g.x}
+									y2={step.fill.end.y}
+								>
+									{#each step.fill.stops as s (s.offset)}
+										<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+									{/each}
+								</linearGradient>
+							{:else if step.fill.type === 'radialGradient'}
+								<radialGradient
+									id="ts-{g.id}-{step.layerId}"
+									gradientUnits="userSpaceOnUse"
+									cx={step.fill.center.x + g.x}
+									cy={step.fill.center.y}
+									r={Math.max(step.fill.radius, 1)}
+								>
+									{#each step.fill.stops as s (s.offset)}
+										<stop offset={s.offset} stop-color={rgbaToCss(s.color)} />
+									{/each}
+								</radialGradient>
+							{:else if step.fill.type === 'sweepGradient'}
+								<clipPath id="ts-clip-{g.id}-{step.layerId}">
+									<path d={step.path} transform="translate({g.x} 0)" />
+								</clipPath>
+							{/if}
+						{/each}
+					{/each}
+				</defs>
+				{#each typeset.glyphs as g (g.id)}
+					{#if g.colorPlan.length > 0}
+						{#each g.colorPlan as step (step.layerId)}
+							{#if step.fill.type === 'sweepGradient'}
+								<g clip-path="url(#ts-clip-{g.id}-{step.layerId})">
+									{#each typesetSweepSlices({ x: step.fill.center.x + g.x, y: step.fill.center.y }, step.fill.startAngle, step.fill.endAngle, step.fill.stops, sweepRadiusTypeset) as slice, i (i)}
+										<polygon points={slice.points} fill={slice.color} />
+									{/each}
+								</g>
+							{:else}
+								<path
+									d={step.path}
+									transform="translate({g.x} 0)"
+									fill={step.fill.type === 'solid'
+										? rgbaToCss(step.fill.color)
+										: `url(#ts-${g.id}-${step.layerId})`}
+									fill-rule="evenodd"
+								/>
+							{/if}
+						{/each}
+					{:else if g.path}
 						<path
 							d={g.path}
 							transform="translate({g.x} 0)"
