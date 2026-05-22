@@ -128,7 +128,31 @@
 				colorIdx++;
 			}
 		}
-		// 3. Preserved reference layers — recolor sequentially
+		// 3. Pinned snapshots of the current glyph — visible-by-default
+		// overlays that mirror the in-editor ghost. Lets a designer
+		// compare a pinned baseline against the live glyph at compare-page
+		// resolution, alongside siblings and reference fonts.
+		const pinned = (ownGlyph?.revisions ?? []).filter((r) => r.pinned);
+		// Newest pinned first — same ordering as the editor ghost selector.
+		pinned.sort((a, b) => (a.takenAt > b.takenAt ? -1 : 1));
+		for (const r of pinned) {
+			next.push({
+				id: `snapshot-${r.id}`,
+				label: r.label ?? 'Pinned snapshot',
+				sublabel: new Date(r.takenAt).toLocaleString(),
+				color: 'var(--color-warn)',
+				pathD: contoursToSvgPath(r.contours),
+				advanceWidth: r.advanceWidth,
+				upm: metrics.unitsPerEm,
+				ascender: metrics.ascender,
+				descender: metrics.descender,
+				visible: true,
+				opacity: 0.55,
+				mode: 'stroke',
+				yDir: 'up'
+			});
+		}
+		// 4. Preserved reference layers — recolor sequentially
 		for (let i = 0; i < preserved.length; i++) {
 			preserved[i] = {
 				...preserved[i],
