@@ -18,7 +18,7 @@
 		const autoOn = project.features.autoFeatures !== false;
 		if (autoOn) {
 			const disabled = new Set(project.features.disabledAutoFeatures ?? []);
-			for (const f of detectFeatures(project)) {
+			for (const f of detectFeatures(project.glyphs)) {
 				if (disabled.has(f.feature)) continue;
 				out.push({ tag: f.feature, label: featureLabel(f.feature), count: f.subs.length });
 			}

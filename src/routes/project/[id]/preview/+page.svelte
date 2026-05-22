@@ -298,8 +298,30 @@ function rgb(hex) {
 	);
 	let focusedFeature = $state<string | null>(null);
 
+	// Extend the curated FEATURES list with anything the project actually has
+	// that isn't in the curated list — typically ss02+ / cv01+ / salt /
+	// custom sets the designer built. Each gets a default label from
+	// featureLabel() and a generic blurb so the toggle UI is consistent.
+	const allFeatures = $derived.by(() => {
+		const curatedTags = new Set(FEATURES.map((f) => f.tag));
+		const extras: typeof FEATURES = [];
+		if (projectStore.project) {
+			for (const f of detectFeatures(projectStore.project.glyphs)) {
+				if (curatedTags.has(f.feature)) continue;
+				extras.push({
+					tag: f.feature,
+					label: f.feature,
+					desc: featureLabel(f.feature),
+					long: `Auto-detected from glyph name suffixes. ${f.subs.length} substitution${f.subs.length === 1 ? '' : 's'}.`,
+					default: false
+				});
+			}
+		}
+		return [...FEATURES, ...extras];
+	});
+
 	const featureSettings = $derived(
-		FEATURES.map((f) => `'${f.tag}' ${featureState[f.tag] ? 1 : 0}`).join(', ')
+		allFeatures.map((f) => `'${f.tag}' ${featureState[f.tag] ? 1 : 0}`).join(', ')
 	);
 
 	const FEATURE_SAMPLE = 'fi fl 0123 12/34 — Office 1029 — affluent';
@@ -764,7 +786,7 @@ function rgb(hex) {
 				Compile the font to see them really work.
 			</p>
 			<div class="mb-3 flex flex-wrap gap-1.5">
-				{#each FEATURES as f (f.tag)}
+				{#each allFeatures as f (f.tag)}
 					<button
 						type="button"
 						onclick={() => {
@@ -785,7 +807,7 @@ function rgb(hex) {
 				{/each}
 			</div>
 			{#if focusedFeature}
-				{@const f = FEATURES.find((x) => x.tag === focusedFeature)}
+				{@const f = allFeatures.find((x) => x.tag === focusedFeature)}
 				{#if f}
 					<div class="mb-3 rounded-md border border-border bg-surface-2/40 px-3 py-2 text-[11px] text-fg-muted">
 						<span class="font-mono text-fg">{f.tag}</span>

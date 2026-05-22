@@ -115,7 +115,7 @@ export const generateDesignMd = (project: Project): string => {
 	const disabled = new Set(project.features.disabledAutoFeatures ?? []);
 	const autoOn = project.features.autoFeatures !== false;
 	if (autoOn) {
-		const detected = detectFeatures(project);
+		const detected = detectFeatures(project.glyphs);
 		for (const f of detected) {
 			if (disabled.has(f.feature)) continue;
 			const count = f.subs.length;
