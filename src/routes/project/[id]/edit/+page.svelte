@@ -170,6 +170,18 @@
 		return same && same.contours.length > 0 ? same : null;
 	});
 
+	// When any snapshot is pinned for the current glyph, render the most-recent
+	// pinned one as a ghost overlay on the canvas. Turns "pin" from a passive
+	// safe-keep marker into an active comparison tool: pin the version you
+	// like, iterate, see the delta in real time.
+	const pinnedSnapshotGhost = $derived.by(() => {
+		const pins = glyph?.revisions?.filter((r) => r.pinned) ?? [];
+		if (pins.length === 0) return null;
+		// Newest pinned first — most recently chosen baseline wins.
+		const newest = pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
+		return newest.contours;
+	});
+
 	// Persist editor toggles. Single $effect with explicit untrack on the
 	// write side so the loop never bounces back through the store's $state.
 	$effect(() => {
@@ -1676,6 +1688,7 @@
 						{showAnatomy}
 						reference={referenceGlyph}
 						familyReference={familyReferenceGlyph}
+						snapshotGhost={pinnedSnapshotGhost}
 						onionPrev={onionGlyphs.prev}
 						onionNext={onionGlyphs.next}
 						{snapToMetrics}

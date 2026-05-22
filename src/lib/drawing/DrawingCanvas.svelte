@@ -65,6 +65,9 @@
 		reference?: Glyph | null;
 		/** Family Regular sibling's same-codepoint glyph rendered as a coloured ghost. */
 		familyReference?: Glyph | null;
+		/** Snapshot contours rendered as a comparison ghost — typically the
+		 *  pinned baseline the designer wants to compare against. */
+		snapshotGhost?: BezierContour[] | null;
 		/** Optional onion-skin previous/next glyphs (rendered translucent flanking the current advance). */
 		onionPrev?: Glyph | null;
 		onionNext?: Glyph | null;
@@ -114,6 +117,7 @@
 		showAnatomy = false,
 		reference = null,
 		familyReference = null,
+		snapshotGhost = null,
 		onionPrev = null,
 		onionNext = null,
 		snapToMetrics = true,
@@ -449,6 +453,15 @@
 		{#if familyReference && familyReference.contours.length > 0}
 			<g fill="var(--color-accent)" opacity="0.16" fill-rule="evenodd" pointer-events="none">
 				<path d={contoursToSvgPath(familyReference.contours)} />
+			</g>
+		{/if}
+
+		<!-- Snapshot ghost: a pinned snapshot rendered as a comparison overlay.
+		     Magenta-ish tint distinguishes it from the cross-glyph reference
+		     (neutral gray) and the family-Regular ghost (accent blue). -->
+		{#if snapshotGhost && snapshotGhost.length > 0}
+			<g fill="var(--color-warn, #c026d3)" opacity="0.18" fill-rule="evenodd" pointer-events="none">
+				<path d={contoursToSvgPath(snapshotGhost)} />
 			</g>
 		{/if}
 
