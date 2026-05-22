@@ -354,9 +354,36 @@ function rgb(hex) {
 		hist: 'Historical ʃ ſ',
 		ornm: '✦ ✶ ❀ ✱'
 	};
-	const activeSample = $derived(
-		(focusedFeature && FEATURE_FOCUS_SAMPLES[focusedFeature]) || FEATURE_SAMPLE
-	);
+	const activeSample = $derived.by(() => {
+		if (!focusedFeature) return FEATURE_SAMPLE;
+		const canned = FEATURE_FOCUS_SAMPLES[focusedFeature];
+		if (canned) return canned;
+		// For ssNN / cvNN sets, build a sample from the actual detected
+		// substitutions so the designer sees their custom set in action.
+		// Walk the glyph names back to codepoints via the project glyph map
+		// so we render the *characters* (which font-feature-settings can
+		// substitute), not the glyph-name strings.
+		if (/^(ss|cv)\d\d$/.test(focusedFeature) && projectStore.project) {
+			const detected = detectFeatures(projectStore.project.glyphs).find(
+				(f) => f.feature === focusedFeature
+			);
+			if (detected && detected.subs.length > 0) {
+				const nameToCp = new Map<string, number>();
+				for (const g of Object.values(projectStore.project.glyphs)) {
+					if (g.name) nameToCp.set(g.name, g.codepoint);
+				}
+				const chars: string[] = [];
+				for (const s of detected.subs.slice(0, 12)) {
+					const cp = nameToCp.get(s.from);
+					if (cp && cp > 0x20 && cp < 0x10000) {
+						chars.push(String.fromCodePoint(cp));
+					}
+				}
+				if (chars.length > 0) return chars.join(' ');
+			}
+		}
+		return FEATURE_SAMPLE;
+	});
 
 	// ---------- Variable-font sandbox ----------
 	const project = $derived(projectStore.project);
