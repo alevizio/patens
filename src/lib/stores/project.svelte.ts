@@ -1269,11 +1269,37 @@ class ProjectStore {
 			rightSidebearing: current.rightSidebearing
 		};
 		const next = [...(current.revisions ?? []), rev];
-		// Cap at 8 most-recent revisions to keep the project file lean.
-		const trimmed = next.length > 8 ? next.slice(-8) : next;
+		// Cap at 8 revisions to keep the project file lean. Pinned revisions
+		// are exempt from the rotation — when we'd otherwise evict, we drop
+		// the oldest *unpinned* revision instead. If every slot is pinned,
+		// nothing is evicted and the count grows past 8 until the designer
+		// unpins or deletes one.
+		let trimmed = next;
+		while (trimmed.length > 8) {
+			const oldestUnpinnedIdx = trimmed.findIndex((r) => !r.pinned);
+			if (oldestUnpinnedIdx === -1) break;
+			trimmed = [
+				...trimmed.slice(0, oldestUnpinnedIdx),
+				...trimmed.slice(oldestUnpinnedIdx + 1)
+			];
+		}
 		this.writeGlyph(codepoint, {
 			...current,
 			revisions: trimmed,
+			updatedAt: new Date().toISOString()
+		});
+	}
+
+	toggleRevisionPin(codepoint: number, revisionId: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current?.revisions) return;
+		this.writeGlyph(codepoint, {
+			...current,
+			revisions: current.revisions.map((r) =>
+				r.id === revisionId ? { ...r, pinned: !r.pinned } : r
+			),
 			updatedAt: new Date().toISOString()
 		});
 	}

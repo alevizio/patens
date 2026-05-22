@@ -206,6 +206,8 @@ export type GlyphRevision = {
 	takenAt: string;
 	/** Optional designer-supplied label. */
 	label?: string;
+	/** When true, this revision is exempt from the 8-cap eviction rotation. */
+	pinned?: boolean;
 	contours: BezierContour[];
 	advanceWidth: number;
 	leftSidebearing: number;

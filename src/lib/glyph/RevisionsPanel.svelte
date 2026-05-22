@@ -5,6 +5,8 @@
 	import Camera from '@lucide/svelte/icons/camera';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
+	import Pin from '@lucide/svelte/icons/pin';
+	import PinOff from '@lucide/svelte/icons/pin-off';
 
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);
@@ -41,6 +43,11 @@
 	const remove = (revId: string) => {
 		if (!glyph) return;
 		projectStore.deleteRevision(glyph.codepoint, revId);
+	};
+
+	const togglePin = (revId: string) => {
+		if (!glyph) return;
+		projectStore.toggleRevisionPin(glyph.codepoint, revId);
 	};
 </script>
 
@@ -81,7 +88,11 @@
 		{:else}
 			<ul class="grid gap-1">
 				{#each revisions as r (r.id)}
-					<li class="flex items-center gap-2 rounded-md border border-border bg-surface-2/40 px-2 py-1.5">
+					<li
+						class="flex items-center gap-2 rounded-md border px-2 py-1.5 {r.pinned
+							? 'border-accent/40 bg-accent-soft/20'
+							: 'border-border bg-surface-2/40'}"
+					>
 						<svg
 							viewBox="0 {metrics?.descender ?? -200} {Math.max(r.advanceWidth, 100)} {(metrics?.ascender ?? 800) - (metrics?.descender ?? -200)}"
 							width="32"
@@ -106,6 +117,21 @@
 								<span data-numeric>{formatTime(r.takenAt)}</span>
 							{/if}
 						</span>
+						<button
+							type="button"
+							onclick={() => togglePin(r.id)}
+							class="rounded p-0.5 {r.pinned
+								? 'text-accent-strong hover:bg-accent/10'
+								: 'text-fg-subtle hover:bg-accent/10 hover:text-accent-strong'}"
+							aria-label={r.pinned ? 'Unpin this snapshot' : 'Pin this snapshot'}
+							title={r.pinned ? 'Unpin — let it rotate out' : 'Pin — exempt from the 8-cap rotation'}
+						>
+							{#if r.pinned}
+								<PinOff class="size-3" />
+							{:else}
+								<Pin class="size-3" />
+							{/if}
+						</button>
 						<button
 							type="button"
 							onclick={() => restore(r.id)}
