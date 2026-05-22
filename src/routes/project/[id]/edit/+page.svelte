@@ -435,9 +435,53 @@
 		'&': ['Tom & Jerry', 'AT&T Inc.', 'rock & roll']
 	};
 	let sampleIndex = $state(0);
+	// Build a sample string from the current glyph's actual kerning pairs.
+	// Returns null when no pairs involve this glyph as a codepoint pair —
+	// class-based pairs are excluded since their members are spread across
+	// many glyphs and a sample string from them isn't necessarily relevant.
+	const kerningSample = (): string | null => {
+		const p = projectStore.project;
+		if (!p || !glyph) return null;
+		const cp = glyph.codepoint;
+		const others: string[] = [];
+		for (const pair of p.kerning) {
+			if (typeof pair.left === 'number' && typeof pair.right === 'number') {
+				if (pair.left === cp && pair.right > 0x20 && pair.right < 0x10000) {
+					others.push(String.fromCodePoint(pair.right));
+				} else if (pair.right === cp && pair.left > 0x20 && pair.left < 0x10000) {
+					others.push(String.fromCodePoint(pair.left));
+				}
+			}
+		}
+		if (others.length === 0) return null;
+		const ch = String.fromCodePoint(cp);
+		// Render pair-context bigrams: V → "Va Vo Ve" / "aV oV eV" mixed.
+		// Up to 6 pairs to keep the preview from overflowing the bottom bar.
+		return others
+			.slice(0, 6)
+			.map((o) => {
+				// Show which side this glyph is on — if pair.left was cp,
+				// glyph goes first; if cp was pair.right, glyph goes second.
+				return `${ch}${o}`;
+			})
+			.join(' ');
+	};
+
 	const smartSample = () => {
 		if (!glyph) return;
 		const cp = glyph.codepoint;
+		// First click prefers a pair-exercising sample when the current
+		// glyph has codepoint-based kerning pairs. Subsequent clicks cycle
+		// back into the curated word list so designers can still see
+		// regular-text samples by clicking again.
+		if (sampleIndex === 0) {
+			const ks = kerningSample();
+			if (ks) {
+				metricsText = ks;
+				sampleIndex++;
+				return;
+			}
+		}
 		if (cp <= 0x20 || cp > 0x7e) return;
 		const ch = String.fromCodePoint(cp);
 		const words = SAMPLE_WORDS[ch];
@@ -453,6 +497,14 @@
 		metricsText = words[sampleIndex % words.length];
 		sampleIndex++;
 	};
+
+	// Reset the sample cycle when the active glyph changes — so the first
+	// click on a freshly-selected glyph always picks the kerning sample
+	// (if applicable), not a stale word from the previous glyph's cycle.
+	$effect(() => {
+		void glyph?.codepoint;
+		untrack(() => (sampleIndex = 0));
+	});
 
 	// Kerning pairs that involve the current glyph — either directly via
 	// codepoint or via membership in a kerning class. Useful inline so the
