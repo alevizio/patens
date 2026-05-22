@@ -17,7 +17,12 @@
 		type AffineMatrix,
 		type PathOp
 	} from '$lib/font/path-edit';
-	import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
+	import {
+		auditGlyph,
+		auditCompatibility,
+		describeAuditCode,
+		sortBySeverity
+	} from '$lib/font/audit';
 	import { suggestAnchors } from '$lib/font/anchors-suggest';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Button from '$lib/ui/Button.svelte';
@@ -3020,7 +3025,9 @@
 											: 'bg-surface-2 text-fg-muted'}"
 								>
 									<AlertCircle class="mt-0.5 size-3 shrink-0" />
-									<span class="flex-1">{issue.message}</span>
+									<span class="flex-1" title={describeAuditCode(issue.code)}>
+										{issue.message}
+									</span>
 									{#if fixable}
 										<button
 											type="button"
