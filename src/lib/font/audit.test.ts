@@ -359,4 +359,103 @@ describe('auditGlyph', () => {
 		expect(issues.find((i) => i.code === 'sidebearing-class-drift-lsb')).toBeDefined();
 		expect(issues.find((i) => i.code === 'sidebearing-class-drift-rsb')).toBeDefined();
 	});
+
+	it('flags nested contours sharing winding (donut with no hole)', () => {
+		// Outer 500-unit square + inner 200-unit square, BOTH CCW. The
+		// inner should be CW to render as a counter; same direction
+		// means the rasteriser will fill it solid.
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 500, y: 0 },
+						{ type: 'L', x: 500, y: 500 },
+						{ type: 'L', x: 0, y: 500 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				},
+				{
+					closed: true,
+					winding: 'ccw', // wrong! should be cw to be a counter
+					commands: [
+						{ type: 'M', x: 150, y: 150 },
+						{ type: 'L', x: 350, y: 150 },
+						{ type: 'L', x: 350, y: 350 },
+						{ type: 'L', x: 150, y: 350 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		const wc = issues.find((i) => i.code === 'contour-winding-collision');
+		expect(wc).toBeDefined();
+		expect(wc?.severity).toBe('warn');
+	});
+
+	it('does NOT flag a proper donut (outer CCW + inner CW)', () => {
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 500, y: 0 },
+						{ type: 'L', x: 500, y: 500 },
+						{ type: 'L', x: 0, y: 500 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				},
+				{
+					closed: true,
+					winding: 'cw',
+					commands: [
+						{ type: 'M', x: 150, y: 150 },
+						{ type: 'L', x: 150, y: 350 },
+						{ type: 'L', x: 350, y: 350 },
+						{ type: 'L', x: 350, y: 150 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'contour-winding-collision')).toBeUndefined();
+	});
+
+	it('does NOT flag two side-by-side contours sharing winding', () => {
+		// "ii" — two stems, both CCW outers, neither nested. No collision.
+		const glyph = baseGlyph({
+			contours: [
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 0, y: 0 },
+						{ type: 'L', x: 100, y: 0 },
+						{ type: 'L', x: 100, y: 400 },
+						{ type: 'L', x: 0, y: 400 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				},
+				{
+					closed: true,
+					winding: 'ccw',
+					commands: [
+						{ type: 'M', x: 200, y: 0 },
+						{ type: 'L', x: 300, y: 0 },
+						{ type: 'L', x: 300, y: 400 },
+						{ type: 'L', x: 200, y: 400 },
+						{ type: 'Z' }
+					] as PathCommand[]
+				}
+			]
+		});
+		const issues = auditGlyph(glyph, baseProject());
+		expect(issues.find((i) => i.code === 'contour-winding-collision')).toBeUndefined();
+	});
 });

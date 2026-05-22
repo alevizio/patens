@@ -5,7 +5,7 @@
 
 import type { Glyph, Project } from './types';
 import { resolveVerticalMetrics } from './types';
-import { glyphBounds } from './path';
+import { glyphBounds, signedArea, sampleContour } from './path';
 import { auditPeers } from './peer-audit';
 
 export type AuditSeverity = 'info' | 'warn' | 'error';
@@ -279,6 +279,67 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				code: 'self-intersecting',
 				message: `Contour crosses itself in ${selfIntCount} place${selfIntCount === 1 ? '' : 's'} — rasterisers fill unpredictably`
 			});
+		}
+
+		// Nested-contour winding: an outer contour that contains another
+		// should have opposite winding to its interior (the classic donut /
+		// counter). If both have the same direction, the rasteriser will
+		// fill the counter solid — the most common cause of "my O looks
+		// like a solid disc" or "my a's bowl has no hole." We only audit
+		// nested pairs (genuine outer-counter relationships); two
+		// side-by-side contours with the same winding is correct.
+		if (glyph.contours.length > 1) {
+			const sampled: Array<{ pts: { x: number; y: number }[]; area: number }> = glyph.contours.map(
+				(c) => ({
+					pts: sampleContour(c.commands, 12),
+					area: signedArea(c.commands)
+				})
+			);
+			// Ray-casting point-in-polygon test.
+			const contains = (poly: { x: number; y: number }[], px: number, py: number): boolean => {
+				let inside = false;
+				for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+					const xi = poly[i].x,
+						yi = poly[i].y;
+					const xj = poly[j].x,
+						yj = poly[j].y;
+					if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi + 1e-9) + xi) {
+						inside = !inside;
+					}
+				}
+				return inside;
+			};
+			let badNestCount = 0;
+			for (let i = 0; i < sampled.length; i++) {
+				if (sampled[i].pts.length === 0) continue;
+				const probe = sampled[i].pts[0];
+				let depth = 0;
+				let directParent = -1;
+				for (let j = 0; j < sampled.length; j++) {
+					if (j === i || sampled[j].pts.length === 0) continue;
+					if (contains(sampled[j].pts, probe.x, probe.y)) {
+						depth++;
+						directParent = j;
+					}
+				}
+				if (directParent !== -1) {
+					// signedArea positive = CCW, negative = CW. Nested
+					// contours must alternate signs.
+					const aSign = Math.sign(sampled[i].area);
+					const pSign = Math.sign(sampled[directParent].area);
+					if (aSign !== 0 && pSign !== 0 && aSign === pSign) {
+						badNestCount++;
+					}
+				}
+			}
+			if (badNestCount > 0) {
+				issues.push({
+					codepoint: cp,
+					severity: 'warn',
+					code: 'contour-winding-collision',
+					message: `${badNestCount} nested contour${badNestCount === 1 ? '' : 's'} share winding with the enclosing outer — counters will fill solid`
+				});
+			}
 		}
 	}
 

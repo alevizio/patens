@@ -124,7 +124,10 @@
 		// Contour-shape fixers (parity with the Edit-tab audit panel).
 		'self-intersecting',
 		'duplicate-points',
-		'near-collinear-points'
+		'near-collinear-points',
+		// Winding-collision fix is the same polygon-union routine as the
+		// self-intersecting fix — clipping normalises nested winding too.
+		'contour-winding-collision'
 	]);
 
 	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
@@ -227,7 +230,8 @@
 				return;
 			}
 			// Contour-shape fixers — same logic as the Edit-tab audit panel.
-			case 'self-intersecting': {
+			case 'self-intersecting':
+			case 'contour-winding-collision': {
 				const g = project.glyphs[issue.codepoint];
 				if (!g) return;
 				const cleaned = booleanContours(g.contours, 'union');

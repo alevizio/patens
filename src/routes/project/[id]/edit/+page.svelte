@@ -601,10 +601,14 @@
 	const fixIssue = (code: string) => {
 		if (!glyph) return;
 		const cp = glyph.codepoint;
-		if (code === 'self-intersecting') {
+		if (code === 'self-intersecting' || code === 'contour-winding-collision') {
 			const cleaned = booleanContours(glyph.contours, 'union');
 			handleContoursChange(cleaned);
-			toast.success('Cleaned self-intersections via boolean union.');
+			toast.success(
+				code === 'self-intersecting'
+					? 'Cleaned self-intersections via boolean union.'
+					: 'Re-oriented nested contours via boolean union.'
+			);
 			return;
 		}
 		if (code === 'duplicate-points') {
@@ -2670,7 +2674,8 @@
 								{@const fixable =
 									issue.code === 'self-intersecting' ||
 									issue.code === 'duplicate-points' ||
-									issue.code === 'near-collinear-points'}
+									issue.code === 'near-collinear-points' ||
+									issue.code === 'contour-winding-collision'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
