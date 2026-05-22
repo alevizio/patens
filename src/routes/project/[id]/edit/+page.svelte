@@ -712,6 +712,23 @@
 			});
 			handleContoursChange(cleaned);
 			toast.success('Removed near-collinear points.');
+			return;
+		}
+		// Non-contour fixes that nonetheless make sense per-glyph in the editor.
+		if (code === 'open-contour') {
+			const cleaned = glyph.contours.map((c) => (c.closed ? c : { ...c, closed: true }));
+			handleContoursChange(cleaned);
+			toast.success('Closed open contours.');
+			return;
+		}
+		if (code === 'zero-advance' || code === 'overflows-advance') {
+			if (glyph.contours.length === 0 || !projectStore.project) return;
+			const b = glyphBounds(glyph.contours);
+			const sb = projectStore.project.metrics.defaultSidebearing;
+			const target = Math.max(1, Math.round(b.maxX) + sb);
+			projectStore.updateGlyph(cp, (g) => ({ ...g, advanceWidth: target }));
+			toast.success(`Set advance to ${target}.`);
+			return;
 		}
 	};
 
@@ -2827,7 +2844,10 @@
 									issue.code === 'duplicate-points' ||
 									issue.code === 'near-collinear-points' ||
 									issue.code === 'contour-winding-collision' ||
-									issue.code === 'off-grid-points'}
+									issue.code === 'off-grid-points' ||
+									issue.code === 'open-contour' ||
+									issue.code === 'zero-advance' ||
+									issue.code === 'overflows-advance'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
