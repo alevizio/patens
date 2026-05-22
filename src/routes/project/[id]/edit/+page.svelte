@@ -342,6 +342,84 @@
 		);
 	});
 
+	// Per-glyph sample words for the bottom-bar metrics input. Designers
+	// click "Sample" to fill with a word that exercises the current glyph
+	// in real context — kerning pairs, joins, ascender/descender behaviour.
+	// Multiple samples per glyph so repeat clicks cycle through variety.
+	const SAMPLE_WORDS: Record<string, string[]> = {
+		A: ['HAMBURGEVONS', 'Avocado', 'AVALANCHE', 'Allegro'],
+		a: ['Hamburgevons', 'avocado', 'apricot', 'arrival'],
+		B: ['Bouquet', 'Bilbao', 'BRAVADO'],
+		b: ['rabbit', 'habit', 'bobbing'],
+		C: ['Concentric', 'Calcium', 'CASCADE'],
+		c: ['echelon', 'crescent', 'cycle'],
+		D: ['DODGE', 'Diamond', 'Dragonfly'],
+		d: ['standard', 'doodle', 'paddle'],
+		E: ['Epsilon', 'EVEREST', 'Echo'],
+		e: ['element', 'reverence', 'esteem'],
+		F: ['Fjord', 'Effort', 'FORTUNE'],
+		f: ['effort', 'fluffy', 'official'],
+		G: ['Glacier', 'GIGABYTE', 'Genuine'],
+		g: ['rugged', 'glowing', 'engaging'],
+		H: ['Hamburgevons', 'HORIZON', 'Helium'],
+		h: ['highlight', 'hashish', 'thatch'],
+		I: ['Iris', 'Italic', 'INCISIVE'],
+		i: ['incidence', 'minimum', 'finishing'],
+		J: ['Jovial', 'JACKDAW', 'Jasmine'],
+		j: ['banjo', 'jovial', 'enjoy'],
+		K: ['Kayak', 'KILOWATT', 'Kingdom'],
+		k: ['skipping', 'knocked', 'token'],
+		L: ['Lullaby', 'LATITUDE', 'Lantern'],
+		l: ['lulling', 'willow', 'distill'],
+		M: ['Mammoth', 'MOSAIC', 'Meridian'],
+		m: ['mammal', 'common', 'simmer'],
+		N: ['Nominal', 'NOCTURNE', 'Nebula'],
+		n: ['minimum', 'inning', 'cannon'],
+		O: ['Orbit', 'OCTAVE', 'Oolong'],
+		o: ['cocoon', 'moon', 'cooperation'],
+		P: ['Plateau', 'PYRAMID', 'Phantom'],
+		p: ['apple', 'puppy', 'pepper'],
+		Q: ['Quartz', 'QUEUE', 'Quiver'],
+		q: ['quick', 'queue', 'quaint'],
+		R: ['Rhythm', 'REVERIE', 'Radius'],
+		r: ['murmur', 'mirror', 'narrator'],
+		S: ['Sussex', 'SUSPENSE', 'Sirius'],
+		s: ['essence', 'sussex', 'glass'],
+		T: ['Trinity', 'TANGENT', 'Tabular'],
+		t: ['tattoo', 'titanic', 'attempt'],
+		U: ['Uplift', 'UMBRELLA', 'Unique'],
+		u: ['unusual', 'museum', 'curfew'],
+		V: ['Velvet', 'VIVID', 'Vacuum'],
+		v: ['velvet', 'survey', 'civilian'],
+		W: ['Willow', 'WORKFLOW', 'Whirlwind'],
+		w: ['willow', 'window', 'wallow'],
+		X: ['Xenon', 'EXAMPLE', 'Xylophone'],
+		x: ['oxide', 'exotic', 'maximum'],
+		Y: ['Yacht', 'YESTERDAY', 'Yearly'],
+		y: ['yearly', 'symphony', 'beyond'],
+		Z: ['Zigzag', 'ZENITH', 'Zephyr'],
+		z: ['zigzag', 'pizza', 'puzzle']
+	};
+	let sampleIndex = $state(0);
+	const smartSample = () => {
+		if (!glyph) return;
+		const cp = glyph.codepoint;
+		if (cp <= 0x20 || cp > 0x7e) return;
+		const ch = String.fromCodePoint(cp);
+		const words = SAMPLE_WORDS[ch];
+		if (!words || words.length === 0) {
+			// Digits / punctuation fallback: build a short context string.
+			if (cp >= 0x30 && cp <= 0x39) {
+				metricsText = `${ch}${ch}${ch} 1029384756`;
+			} else {
+				metricsText = `Aa ${ch} Bb`;
+			}
+			return;
+		}
+		metricsText = words[sampleIndex % words.length];
+		sampleIndex++;
+	};
+
 	// Kerning pairs that involve the current glyph — either directly via
 	// codepoint or via membership in a kerning class. Useful inline so the
 	// designer knows whether spacing edits ripple into pairs, without
@@ -2051,6 +2129,15 @@
 							placeholder="Type to preview…"
 							class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 						/>
+						<button
+							type="button"
+							onclick={smartSample}
+							class="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+							title="Fill with a word that exercises the current glyph (click again for another)"
+						>
+							<Wand class="size-3" />
+							Sample
+						</button>
 						<label class="flex items-center gap-1.5">
 							<span class="text-[11px] text-fg-muted">Size</span>
 							<input
