@@ -39,6 +39,7 @@ export const KIND_PRESETS: Record<
 	}
 };
 import { DEFAULT_GLYPH_SET } from './glyph-set';
+import { auditProject, auditCompatibility, preflightProject } from './audit';
 
 const store = createStore('font-studio', 'projects');
 const INDEX_KEY = '__index__';
@@ -68,6 +69,12 @@ export type ProjectIndexEntry = {
 	kerningCount?: number;
 	/** Edits per day for the last 14 days (index 0 = 14 days ago, index 13 = today). */
 	editsByDay?: number[];
+	/** Error count from auditProject + auditCompatibility + preflightProject
+	 *  at index-build time. Drives the home-page card badge so designers see
+	 *  at a glance which projects need attention. Recomputed on save. */
+	auditErrorCount?: number;
+	/** Warn count from the same combined audit run. */
+	auditWarnCount?: number;
 	/** Most recent changelog entry's version, when any has been sealed. */
 	lastSealedVersion?: string;
 	/** ISO date of the most recent changelog entry. */
@@ -294,6 +301,19 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 			lastEditedGlyphEntry = { codepoint: g.codepoint, name: g.name };
 		}
 	}
+	// Audit roll-up — combined error / warn count across the full
+	// per-glyph + compatibility + preflight checks. Run at index-build
+	// time (on save) so the home page never recomputes. Typical projects
+	// (<300 glyphs) take a few ms total; large fonts may take 20-30ms
+	// here, which is fine for a debounced-on-save path.
+	const allIssues = [
+		...auditProject(p),
+		...auditCompatibility(p),
+		...preflightProject(p)
+	];
+	const auditErrorCount = allIssues.filter((i) => i.severity === 'error').length;
+	const auditWarnCount = allIssues.filter((i) => i.severity === 'warn').length;
+
 	return {
 		id: p.id,
 		name: p.name,
@@ -310,6 +330,8 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		editsToday,
 		editsThisWeek,
 		editsByDay,
+		auditErrorCount,
+		auditWarnCount,
 		locked: p.locked,
 		kerningCount: p.kerning.length,
 		lastSealedVersion: p.changelog?.[0]?.version,

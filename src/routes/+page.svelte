@@ -1068,6 +1068,27 @@
 											? ` · sealed v${p.lastSealedVersion} ${formatRelative(p.lastSealedAt ?? p.updatedAt)}`
 											: ''}
 									</div>
+									{#if (p.auditErrorCount ?? 0) > 0 || (p.auditWarnCount ?? 0) > 0}
+										<!-- Audit roll-up chip — surfaces at-rest counts so
+										     designers see which projects need attention from
+										     the home page without opening each. Links into
+										     the audit page via the context menu's Open audit
+										     entry. -->
+										<div class="mt-0.5 inline-flex items-center gap-1.5 text-[11px]" data-numeric>
+											{#if (p.auditErrorCount ?? 0) > 0}
+												<span class="font-medium text-danger-strong">
+													{p.auditErrorCount}e
+												</span>
+											{/if}
+											{#if (p.auditWarnCount ?? 0) > 0}
+												<span class="font-medium text-warn-strong">
+													{p.auditWarnCount}w
+												</span>
+											{/if}
+										</div>
+									{:else if p.glyphCount > 0}
+										<div class="mt-0.5 text-[10px] text-success">✓ audit clean</div>
+									{/if}
 									{#if p.tagline}
 										<div
 											class="mt-0.5 truncate text-[11px] text-fg-subtle"
