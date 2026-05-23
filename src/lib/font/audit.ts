@@ -438,6 +438,30 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				});
 			}
 		}
+
+		// Composite cycle detection — DFS through component references
+		// starting from this glyph. A cycle would infinite-loop the renderer.
+		const visited = new Set<number>();
+		const stack: number[] = [cp];
+		while (stack.length > 0) {
+			const current = stack.pop()!;
+			if (visited.has(current)) continue;
+			visited.add(current);
+			const cg = project.glyphs[current];
+			for (const r of cg?.components ?? []) {
+				if (r.baseCodepoint === cp) {
+					issues.push({
+						codepoint: cp,
+						severity: 'error',
+						code: 'composite-cycle',
+						message: `Composite references itself transitively (via U+${current.toString(16).toUpperCase().padStart(4, '0')}) — rendering would loop forever`
+					});
+					stack.length = 0;
+					break;
+				}
+				if (!visited.has(r.baseCodepoint)) stack.push(r.baseCodepoint);
+			}
+		}
 	}
 
 	// Sidebearing-class drift (M2 audit). Sidebearing classes exist to
@@ -1205,6 +1229,8 @@ export const describeAuditCode = (code: string): string | undefined => {
 		// Composites & references
 		'composite-missing-base':
 			'A composite reference points at a glyph with no outlines. The reference will render as nothing.',
+		'composite-cycle':
+			'A composite glyph references itself transitively (A → B → A). Rendering would loop forever — exports break. Remove one link in the chain.',
 		// Anchor naming
 		'anchor-naming-mark-no-prefix':
 			'GPOS mark-positioning convention: marks (combining diacritics) carry anchors prefixed with "_" so they pair up with same-named base anchors. Without the prefix, this anchor never enters the mark feature.',
