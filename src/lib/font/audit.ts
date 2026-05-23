@@ -87,6 +87,26 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 			}
 		}
 
+		// Deeply-negative sidebearing — modest negative is intentional for
+		// italics (top-right of f, V) but anything beyond -100 is almost
+		// always accidental, often from a mass-spacing bug.
+		if (glyph.leftSidebearing < -100) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'sidebearing-deeply-negative-lsb',
+				message: `LSB ${Math.round(glyph.leftSidebearing)} is unusually negative — check this isn't a spacing-pass bug`
+			});
+		}
+		if (glyph.rightSidebearing < -100) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'sidebearing-deeply-negative-rsb',
+				message: `RSB ${Math.round(glyph.rightSidebearing)} is unusually negative — check this isn't a spacing-pass bug`
+			});
+		}
+
 		// Advance width zero or smaller than bbox
 		if (glyph.advanceWidth <= 0) {
 			issues.push({
@@ -1058,6 +1078,10 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'A lowercase letter that should reach x-height is sitting noticeably below it. Uneven tops across letters give text a wobbly rhythm; consistent x-height alignment is what makes type read smoothly.',
 		'capheight-misaligned':
 			'An uppercase letter that should reach cap-height is sitting noticeably below it. Caps lines lose their crisp baseline-and-cap rhythm when individual letters fall short.',
+		'sidebearing-deeply-negative-lsb':
+			'Left sidebearing is more negative than -100fu — usually a bug from a mass-spacing pass. Modest negatives (e.g. -20) are normal for italic letters that lean.',
+		'sidebearing-deeply-negative-rsb':
+			'Right sidebearing is more negative than -100fu — usually a bug from a mass-spacing pass.',
 		// Spacing & metrics
 		'zero-advance':
 			'The glyph\'s advance width is 0. Text containing this glyph will have all following glyphs stacked at the same position.',
