@@ -45,6 +45,7 @@
 	import HardDrive from '@lucide/svelte/icons/hard-drive';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
+	import Share2 from '@lucide/svelte/icons/share-2';
 	import StorageDialog from '$lib/ui/StorageDialog.svelte';
 	// createDemoProject is no longer imported here — the project layout's
 	// load function builds the demo on the fly for /project/demo/edit.
@@ -1200,6 +1201,23 @@
 									{/if}
 								</button>
 								<div class="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+									<Button
+										variant="ghost"
+										density="sm"
+										onclick={async () => {
+											const url = `${location.origin}/share/${p.id}`;
+											try {
+												await navigator.clipboard.writeText(url);
+												toast.success(`Share link copied — ${p.familyName}`);
+											} catch {
+												toast.info(`Link: ${url}`);
+											}
+										}}
+										aria-label="Copy share link"
+										title="Copy share link — read-only foundry view"
+									>
+										{#snippet icon()}<Share2 class="size-3.5" />{/snippet}
+									</Button>
 									<Button
 										variant="ghost"
 										density="sm"
