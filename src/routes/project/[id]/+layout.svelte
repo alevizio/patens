@@ -136,6 +136,35 @@
 	let projectSwitcherOpen = $state(false);
 	let projectSwitcherEl = $state<HTMLDivElement | null>(null);
 
+	// Project file export — writes the project as a single .font.json the
+	// recipient can drop on their home page to import. This is the
+	// portable async-share path that DOESN'T rely on the recipient having
+	// the project already in their IndexedDB (the way /share/{id} does).
+	const exportProjectFile = () => {
+		const p = projectStore.project;
+		if (!p) {
+			t.warn('No project loaded');
+			return;
+		}
+		const safe = (s: string) => s.replace(/[^A-Za-z0-9_-]/g, '') || 'project';
+		const filename = `${safe(p.metadata.familyName)}-${safe(p.metadata.styleName)}.font.json`;
+		// Strip the project id so importing creates a new project rather
+		// than colliding with an existing record on the recipient's machine.
+		// Schema version is preserved so migrate() runs if needed.
+		const payload = { ...p, id: undefined };
+		const json = JSON.stringify(payload, null, 2);
+		const blob = new Blob([json], { type: 'application/json' });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+		t.success(`Exported ${filename}`);
+	};
+
 	// Sliding tab underline. A single absolutely-positioned bar inside the nav
 	// translates+scales between tabs on route change. Transform-only so the
 	// canvas-drawing surface keeps its frame budget; first paint skips the
@@ -678,6 +707,15 @@
 					title="Print specimen — opens share view + browser print dialog"
 				>
 					<Printer class="size-3.5" />
+				</button>
+				<button
+					type="button"
+					onclick={exportProjectFile}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Export project as .font.json"
+					title="Export project file — single .font.json a friend can drop on their home page to import"
+				>
+					<Download class="size-3.5" />
 				</button>
 				<button
 					type="button"

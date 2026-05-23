@@ -511,7 +511,33 @@
 		importError = null;
 		importWarning = null;
 		try {
-			if (name.endsWith('.zip') || name.endsWith('.ufo.zip')) {
+			if (name.endsWith('.font.json') || name.endsWith('.json')) {
+				// Native Font Studio project file. The editor's header has a
+				// matching "Export project" action that produces these. Lets
+				// designer-friends exchange whole projects asynchronously
+				// (email/Drive/etc.) without UFO+Pyodide or screen-sharing.
+				importing = true;
+				const text = await file.text();
+				const parsed = JSON.parse(text);
+				if (!parsed || typeof parsed !== 'object' || !parsed.metadata?.familyName) {
+					throw new Error('Not a Font Studio project file — missing metadata.familyName.');
+				}
+				const ts = new Date().toISOString();
+				const project: Parameters<typeof saveProject>[0] = {
+					...parsed,
+					id: crypto.randomUUID(),
+					createdAt: ts,
+					updatedAt: ts,
+					// Clear any familyId — the import is a fresh standalone project;
+					// the recipient's family registry doesn't have the original family.
+					familyId: undefined
+				};
+				importWarning = checkReservedName(project.metadata.familyName);
+				await saveProject(project);
+				toast.success(`Imported ${project.metadata.familyName}`);
+				if (importWarning) toast.warn(importWarning);
+				await goto(`/project/${project.id}/edit`);
+			} else if (name.endsWith('.zip') || name.endsWith('.ufo.zip')) {
 				ufoImporting = true;
 				await ensurePython();
 				const buffer = await file.arrayBuffer();
