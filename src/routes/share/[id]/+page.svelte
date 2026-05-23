@@ -1,6 +1,7 @@
 <script lang="ts">
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
-	import { contoursToSvgPath } from '$lib/font/path';
+	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
+	import X from '@lucide/svelte/icons/x';
 	import {
 		defaultPalette,
 		planColorRender,
@@ -79,6 +80,12 @@
 	// these toggles are tangible. kern is always on; liga isn't a single
 	// sub so it's not yet wired here.
 	let activeFeatures = $state<Set<string>>(new Set());
+	// Inspector — click a tile in the glyph grid to open a detailed view.
+	// Shows the glyph at a readable size with metric guides + the data
+	// designer-friends actually want to see: advance, sidebearings,
+	// anchors, tags, layer count. Indexed by codepoint into drawnGlyphs
+	// so arrow keys navigate the grid.
+	let inspectedIndex = $state<number | null>(null);
 	// Resolve a glyph in the context of a chosen master — overrides win,
 	// project glyph is the fallback. Mirrors the export pipeline's lookup
 	// so what visitors preview matches what they'd download. Hoisted up
@@ -146,6 +153,38 @@
 		if (next.has(tag)) next.delete(tag);
 		else next.add(tag);
 		activeFeatures = next;
+	};
+
+	// Inspector — derived view of the currently-inspected glyph.
+	const inspectedGlyph = $derived(
+		inspectedIndex !== null ? (drawnGlyphs[inspectedIndex] ?? null) : null
+	);
+	const inspectedBounds = $derived(
+		inspectedGlyph ? glyphBounds(inspectedGlyph.contours) : null
+	);
+	const openInspector = (cp: number) => {
+		const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
+		if (idx >= 0) inspectedIndex = idx;
+	};
+	const closeInspector = () => (inspectedIndex = null);
+	const stepInspector = (delta: number) => {
+		if (inspectedIndex === null) return;
+		const n = drawnGlyphs.length;
+		if (n === 0) return;
+		inspectedIndex = (inspectedIndex + delta + n) % n;
+	};
+	const onInspectorKey = (e: KeyboardEvent) => {
+		if (inspectedIndex === null) return;
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			closeInspector();
+		} else if (e.key === 'ArrowRight') {
+			e.preventDefault();
+			stepInspector(1);
+		} else if (e.key === 'ArrowLeft') {
+			e.preventDefault();
+			stepInspector(-1);
+		}
 	};
 	const kerningLookup = $derived.by(() => {
 		const map = new Map<string, number>();
@@ -1147,9 +1186,13 @@ body {
 						{ascender}
 						{descender}
 						colorPalette={palette}
+						onclick={() => openInspector(g.codepoint)}
 					/>
 				{/each}
 			</div>
+			<p class="mt-2 text-[11px] text-fg-subtle">
+				Click any glyph to inspect — see the contours at size with metric guides, sidebearings, anchors, and notes.
+			</p>
 		{/if}
 	</section>
 
@@ -1191,3 +1234,210 @@ body {
 		</a>
 	</div>
 </div>
+
+<!-- Glyph inspector — modal-style sheet that opens when a tile is
+     clicked. Big render with metric guides + everything a designer
+     wants to see about the drawing. Arrow keys to step through the
+     drawn glyphs, Esc closes. -->
+<svelte:window onkeydown={onInspectorKey} />
+{#if inspectedGlyph && inspectedBounds}
+	{@const advance = inspectedGlyph.advanceWidth}
+	{@const lsb = inspectedBounds.minX}
+	{@const rsb = advance - inspectedBounds.maxX}
+	{@const anchorCount = inspectedGlyph.anchors?.length ?? 0}
+	{@const layerCount = inspectedGlyph.colorLayers?.length ?? 0}
+	{@const inspectorPad = Math.max(48, Math.round(advance * 0.05))}
+	<button
+		type="button"
+		class="fixed inset-0 z-40 cursor-default bg-canvas/70 backdrop-blur-sm"
+		onclick={closeInspector}
+		aria-label="Close inspector"
+		tabindex="-1"
+	></button>
+	<div
+		role="dialog"
+		aria-modal="true"
+		aria-label="Glyph {inspectedGlyph.name} inspector"
+		class="fixed left-1/2 top-1/2 z-50 w-[min(820px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface shadow-2xl"
+	>
+		<header class="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
+			<div class="min-w-0">
+				<h3 class="truncate text-[14px] font-semibold text-fg">{inspectedGlyph.name}</h3>
+				<p class="font-mono text-[11px] text-fg-subtle" data-numeric>
+					U+{inspectedGlyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}
+					{#if inspectedGlyph.codepoint >= 0x20 && inspectedGlyph.codepoint < 0x10000}
+						· {String.fromCodePoint(inspectedGlyph.codepoint)}
+					{/if}
+					· {inspectedIndex !== null ? inspectedIndex + 1 : '?'}/{drawnGlyphs.length}
+				</p>
+			</div>
+			<div class="flex items-center gap-1">
+				<button
+					type="button"
+					onclick={() => stepInspector(-1)}
+					class="rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					title="Previous glyph (←)"
+				>
+					←
+				</button>
+				<button
+					type="button"
+					onclick={() => stepInspector(1)}
+					class="rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					title="Next glyph (→)"
+				>
+					→
+				</button>
+				<button
+					type="button"
+					onclick={closeInspector}
+					class="rounded border border-border bg-surface p-1.5 text-fg-muted hover:border-accent hover:text-fg"
+					title="Close (Esc)"
+					aria-label="Close inspector"
+				>
+					<X class="size-3.5" />
+				</button>
+			</div>
+		</header>
+		<div class="grid gap-5 px-5 py-5 sm:grid-cols-[2fr_1fr]">
+			<!-- Big render with metric guides. Sidebearings tinted to make
+			     them legible against the contour fill. -->
+			<div class="rounded-md border border-border bg-canvas px-4 py-4">
+				<svg
+					viewBox="{-inspectorPad} {descender - 80} {advance + inspectorPad * 2} {fontSpan + 160}"
+					preserveAspectRatio="xMidYMid meet"
+					style="width: 100%; height: auto; transform: scaleY(-1); display: block;"
+					aria-label="{inspectedGlyph.name} large render"
+				>
+					<!-- Metric guides -->
+					<g stroke="currentColor" stroke-width="2" class="text-fg-subtle/40">
+						<line x1={-inspectorPad} y1={0} x2={advance + inspectorPad} y2={0} />
+						<line
+							x1={-inspectorPad}
+							y1={ascender}
+							x2={advance + inspectorPad}
+							y2={ascender}
+						/>
+						<line
+							x1={-inspectorPad}
+							y1={descender}
+							x2={advance + inspectorPad}
+							y2={descender}
+						/>
+						{#if project.metrics.capHeight}
+							<line
+								x1={-inspectorPad}
+								y1={project.metrics.capHeight}
+								x2={advance + inspectorPad}
+								y2={project.metrics.capHeight}
+								stroke-dasharray="20 20"
+							/>
+						{/if}
+						{#if project.metrics.xHeight}
+							<line
+								x1={-inspectorPad}
+								y1={project.metrics.xHeight}
+								x2={advance + inspectorPad}
+								y2={project.metrics.xHeight}
+								stroke-dasharray="20 20"
+							/>
+						{/if}
+					</g>
+					<!-- Advance box -->
+					<g stroke="currentColor" stroke-width="2" fill="none" class="text-accent/40">
+						<line x1={0} y1={descender - 60} x2={0} y2={ascender + 60} />
+						<line
+							x1={advance}
+							y1={descender - 60}
+							x2={advance}
+							y2={ascender + 60}
+						/>
+					</g>
+					<!-- Sidebearing shading -->
+					{#if lsb > 0}
+						<rect
+							x={0}
+							y={descender}
+							width={lsb}
+							height={fontSpan}
+							fill="currentColor"
+							class="text-accent/5"
+						/>
+					{/if}
+					{#if rsb > 0}
+						<rect
+							x={inspectedBounds.maxX}
+							y={descender}
+							width={rsb}
+							height={fontSpan}
+							fill="currentColor"
+							class="text-accent/5"
+						/>
+					{/if}
+					<!-- The glyph itself -->
+					<path
+						d={contoursToSvgPath(inspectedGlyph.contours)}
+						fill="currentColor"
+						fill-rule="evenodd"
+						class="text-fg"
+					/>
+					<!-- Anchors as small markers -->
+					{#each inspectedGlyph.anchors ?? [] as a (a.name)}
+						<g transform="translate({a.x} {a.y})">
+							<circle r={24} fill="currentColor" class="text-accent" />
+						</g>
+					{/each}
+				</svg>
+			</div>
+			<!-- Sidebar — facts a designer wants. Number columns are
+			     monospace and right-aligned (via data-numeric) so they
+			     compare cleanly when stepping through glyphs. -->
+			<dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-[12px] text-fg-muted">
+				<dt class="text-fg-subtle">Advance</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{advance}</dd>
+				<dt class="text-fg-subtle">LSB</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{lsb}</dd>
+				<dt class="text-fg-subtle">RSB</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{rsb}</dd>
+				<dt class="text-fg-subtle">Contours</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>
+					{inspectedGlyph.contours.length}
+				</dd>
+				<dt class="text-fg-subtle">Anchors</dt>
+				<dd class="text-right font-mono text-fg" data-numeric>{anchorCount}</dd>
+				{#if layerCount > 0}
+					<dt class="text-fg-subtle">Color layers</dt>
+					<dd class="text-right font-mono text-fg" data-numeric>{layerCount}</dd>
+				{/if}
+				<dt class="col-span-2 mt-2 border-t border-border pt-2 text-fg-subtle">Status</dt>
+				<dd class="col-span-2 -mt-1 font-mono uppercase text-fg">
+					{inspectedGlyph.status}
+				</dd>
+				{#if inspectedGlyph.tags && inspectedGlyph.tags.length > 0}
+					<dt class="col-span-2 mt-2 border-t border-border pt-2 text-fg-subtle">Tags</dt>
+					<dd class="col-span-2 -mt-1 flex flex-wrap gap-1">
+						{#each inspectedGlyph.tags as t (t)}
+							<span
+								class="inline-block rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
+							>
+								#{t}
+							</span>
+						{/each}
+					</dd>
+				{/if}
+				{#if inspectedGlyph.notes}
+					<dt class="col-span-2 mt-2 border-t border-border pt-2 text-fg-subtle">Notes</dt>
+					<dd class="col-span-2 -mt-1 text-fg whitespace-pre-wrap">
+						{inspectedGlyph.notes}
+					</dd>
+				{/if}
+			</dl>
+		</div>
+		<footer
+			class="border-t border-border bg-surface-2/40 px-5 py-2 text-[10px] text-fg-subtle"
+		>
+			<span class="font-mono">←/→</span> step ·
+			<span class="font-mono">esc</span> close
+		</footer>
+	</div>
+{/if}
