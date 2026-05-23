@@ -209,6 +209,29 @@
 		}
 	};
 
+	// Glyph tag inventory — same grouping logic as the design-md exporter.
+	// Surfaces the project's own taxonomy (flagship / WIP / alternate /
+	// mark / composite / etc.) so designer-friends see what the designer
+	// considers special.
+	const tagInventory = $derived.by(() => {
+		const buckets = new Map<string, string[]>();
+		for (const g of Object.values(project.glyphs)) {
+			if (!g.tags || g.tags.length === 0) continue;
+			const label =
+				g.codepoint > 0x20 && g.codepoint < 0x10000
+					? String.fromCodePoint(g.codepoint)
+					: g.name;
+			for (const t of g.tags) {
+				const arr = buckets.get(t) ?? [];
+				arr.push(label);
+				buckets.set(t, arr);
+			}
+		}
+		return [...buckets.entries()]
+			.sort((a, b) => b[1].length - a[1].length)
+			.map(([tag, members]) => ({ tag, members }));
+	});
+
 	// OpenType features the project ships. Combines kern/liga toggles
 	// with anything detectFeatures finds via glyph-name suffixes (ss01,
 	// onum, etc.).
@@ -583,6 +606,28 @@
 			{/if}
 		</dl>
 	</section>
+
+	<!-- Tag inventory — designer-applied taxonomy. -->
+	{#if tagInventory.length > 0}
+		<section class="mb-10">
+			<h2
+				class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+			>
+				Tags
+			</h2>
+			<div class="flex flex-wrap gap-1.5">
+				{#each tagInventory as t (t.tag)}
+					<span
+						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
+						title={t.members.join(' · ')}
+					>
+						<span class="font-medium text-fg">{t.tag}</span>
+						<span class="text-fg-subtle" data-numeric>{t.members.length}</span>
+					</span>
+				{/each}
+			</div>
+		</section>
+	{/if}
 
 	<!-- OpenType features the project ships. -->
 	{#if sharedFeatures.length > 0}
