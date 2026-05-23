@@ -12,6 +12,7 @@
 	import type { RGBA } from '$lib/font/types';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import Download from '@lucide/svelte/icons/download';
 
 	let { data } = $props();
 	const project = $derived(data.project);
@@ -159,6 +160,36 @@
 	};
 	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
 
+	// Download flow — lazy-loads the export pipeline only on click so
+	// the initial share-page bundle stays light for visitors who don't
+	// download. Builds an OTF in-browser and triggers a download.
+	let downloading = $state(false);
+	let downloadError = $state<string | null>(null);
+	const safeFilename = (s: string): string => s.replace(/[^A-Za-z0-9_-]/g, '') || 'Font';
+	const downloadOtf = async () => {
+		if (downloading) return;
+		downloading = true;
+		downloadError = null;
+		try {
+			const { buildFont } = await import('$lib/font/export');
+			const { font } = buildFont(project);
+			const buffer = font.toArrayBuffer();
+			const blob = new Blob([buffer], { type: 'font/otf' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.otf`;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			downloadError = err instanceof Error ? err.message : String(err);
+		} finally {
+			downloading = false;
+		}
+	};
+
 	// OpenType features the project ships. Combines kern/liga toggles
 	// with anything detectFeatures finds via glyph-name suffixes (ss01,
 	// onum, etc.).
@@ -208,22 +239,41 @@
 		<span>Shared view · read-only</span>
 	</div>
 
-	<header class="mb-8">
-		<h1
-			class="text-[36px] leading-tight tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
-		>
-			{project.metadata.familyName}
-		</h1>
-		<p class="mt-1 text-[13px] text-fg-muted">
-			{project.metadata.styleName} · designed by {project.metadata.designer || 'Unknown'}
-		</p>
-		{#if project.description}
-			<p class="mt-3 max-w-prose text-[14px] leading-relaxed text-fg">
-				{project.description}
+	<header class="mb-8 flex items-start justify-between gap-4">
+		<div>
+			<h1
+				class="text-[36px] leading-tight tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				{project.metadata.familyName}
+			</h1>
+			<p class="mt-1 text-[13px] text-fg-muted">
+				{project.metadata.styleName} · designed by {project.metadata.designer || 'Unknown'}
 			</p>
-		{/if}
+			{#if project.description}
+				<p class="mt-3 max-w-prose text-[14px] leading-relaxed text-fg">
+					{project.description}
+				</p>
+			{/if}
+		</div>
+		<!-- Download — lazy-loads the export pipeline only on click.
+		     Builds an OTF in-browser and triggers a save. -->
+		<button
+			type="button"
+			onclick={downloadOtf}
+			disabled={downloading}
+			class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
+			title="Download the font as OTF"
+		>
+			<Download class="size-3.5" />
+			{downloading ? 'Building…' : 'Download OTF'}
+		</button>
 	</header>
+	{#if downloadError}
+		<div class="mb-6 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong">
+			Download failed: {downloadError}
+		</div>
+	{/if}
 
 	<!-- Live typeset preview. Renders typed text using the project's
 	     own SVG paths + kerning data, so visitors see the WIP font
