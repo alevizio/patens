@@ -367,6 +367,42 @@ export const createDemoProject = (): Project => {
 		}
 	];
 
+	// Anchors on a few base glyphs so the composite editor + the
+	// mark-positioning surfaces have real data to play with. The O carries
+	// top + bottom anchors centered on its bbox; H gets top + bottom
+	// aligned to the crossbar height. Lowercase n gets top only (no
+	// bottom — n has no descender to anchor against).
+	const H = project.glyphs[0x48];
+	if (H && H.contours.length > 0) {
+		project.glyphs[0x48] = {
+			...H,
+			anchors: [
+				{ name: 'top', x: Math.round(H.advanceWidth / 2), y: CAP_HEIGHT },
+				{ name: 'bottom', x: Math.round(H.advanceWidth / 2), y: 0 }
+			]
+		};
+	}
+	const nLower = project.glyphs[0x6e];
+	if (nLower && nLower.contours.length > 0) {
+		project.glyphs[0x6e] = {
+			...nLower,
+			anchors: [
+				{ name: 'top', x: Math.round(nLower.advanceWidth / 2), y: X_HEIGHT }
+			]
+		};
+	}
+
+	// Glyph tags — demonstrates the freeform taxonomy. Flagship glyphs get
+	// "flagship"; in-progress lowercase letter gets "wip". Surfaces in the
+	// browser filter as "#flagship" / "#wip" and in the command palette.
+	const tag = (cp: number, tags: string[]) => {
+		const g = project.glyphs[cp];
+		if (g) project.glyphs[cp] = { ...g, tags };
+	};
+	tag(0x4f, ['flagship', 'color']);
+	tag(0x48, ['flagship']);
+	tag(0x6e, ['wip']);
+
 	// COLR layers on the flagship uppercase `O`. Three layers stack to
 	// produce a warm-on-ink ring effect: ink fill (full), red accent
 	// (offset slightly), warm highlight (smallest, alpha).
@@ -379,6 +415,10 @@ export const createDemoProject = (): Project => {
 		const baseContours = JSON.parse(JSON.stringify(O.contours)) as typeof O.contours;
 		project.glyphs[0x4f] = {
 			...O,
+			anchors: [
+				{ name: 'top', x: Math.round(O.advanceWidth / 2), y: CAP_HEIGHT },
+				{ name: 'bottom', x: Math.round(O.advanceWidth / 2), y: 0 }
+			],
 			colorLayers: [
 				{
 					id: crypto.randomUUID(),
@@ -410,6 +450,21 @@ export const createDemoProject = (): Project => {
 			date: new Date().toISOString(),
 			notes:
 				'Initial example project shipped with Font Studio. Eight drawn glyphs across uppercase + lowercase, kerning pairs, sidebearing classes, and a stylistic-alternate set.'
+		}
+	];
+
+	// One pinned project-level snapshot so the Release tab's Project
+	// Snapshots panel isn't empty on first open. Serialises the current
+	// (just-built) project minus its own snapshots array to avoid
+	// recursive bloat — same pattern projectStore.saveProjectSnapshot uses.
+	const { snapshots: _ignored, ...snapshotData } = project;
+	project.snapshots = [
+		{
+			id: crypto.randomUUID(),
+			takenAt: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
+			label: 'v0.1 baseline — pre-iteration',
+			pinned: true,
+			data: JSON.stringify(snapshotData)
 		}
 	];
 
