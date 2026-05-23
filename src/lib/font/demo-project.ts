@@ -568,6 +568,81 @@ const build8 = (): BezierContour[] => {
 		poly(digitRing(w / 2, (mid - BAR / 2) / 2, w / 2 - 60 - (STEM - 10), (mid - BAR / 2) / 2 - (STEM - 10), true), 'ccw')
 	];
 };
+// Punctuation — small glyphs that the sample paragraph uses. Each one
+// is a single rect or tiny composition. Tabular widths kept tight so they
+// don't gap the surrounding letters.
+
+const PUNCT_W = Math.round(STEM * 2.4);
+
+// Period — small square baseline-adjacent rect.
+const buildPeriod = (): BezierContour[] => [
+	poly([
+		[STEM, 0],
+		[STEM + STEM, 0],
+		[STEM + STEM, STEM],
+		[STEM, STEM]
+	])
+];
+
+// Comma — same as period but with a small tail extending below baseline.
+const buildComma = (): BezierContour[] => [
+	poly([
+		[STEM, 0],
+		[STEM + STEM, 0],
+		[STEM + STEM, STEM],
+		[STEM, STEM]
+	]),
+	// Tail descending below the baseline
+	poly([
+		[STEM + 10, -120],
+		[STEM + STEM + 10, -120],
+		[STEM + STEM - 20, 0],
+		[STEM - 20, 0]
+	])
+];
+
+// Hyphen-minus — short horizontal bar centered around x-height/2.
+const buildHyphen = (): BezierContour[] => {
+	const mid = X_HEIGHT / 2;
+	const w = PUNCT_W + 80;
+	return [
+		poly([
+			[40, mid - BAR / 2],
+			[w - 40, mid - BAR / 2],
+			[w - 40, mid + BAR / 2],
+			[40, mid + BAR / 2]
+		])
+	];
+};
+
+// Em-dash — wider hyphen at the same height, almost double the width.
+const buildEmDash = (): BezierContour[] => {
+	const mid = X_HEIGHT / 2;
+	const w = Math.round(CAP_W * 1.6);
+	return [
+		poly([
+			[40, mid - BAR / 2],
+			[w - 40, mid - BAR / 2],
+			[w - 40, mid + BAR / 2],
+			[40, mid + BAR / 2]
+		])
+	];
+};
+
+// Apostrophe — small rect floating just below cap-height.
+const buildApostrophe = (): BezierContour[] => {
+	const top = CAP_HEIGHT;
+	const bottom = CAP_HEIGHT - 220;
+	return [
+		poly([
+			[STEM / 2 + 20, bottom],
+			[STEM / 2 + STEM + 20, bottom],
+			[STEM / 2 + STEM, top],
+			[STEM / 2, top]
+		])
+	];
+};
+
 const build9 = (): BezierContour[] => {
 	const w = DIGIT_W;
 	const mid = CAP_HEIGHT * 0.5;
@@ -704,6 +779,12 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x37, contours: build7(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x38, contours: build8(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x39, contours: build9(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	// Punctuation — minimum set the Bringhurst sample paragraph needs.
+	{ codepoint: 0x2e, contours: buildPeriod(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // .
+	{ codepoint: 0x2c, contours: buildComma(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // ,
+	{ codepoint: 0x2d, contours: buildHyphen(), advanceWidth: PUNCT_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // -
+	{ codepoint: 0x2014, contours: buildEmDash(), advanceWidth: Math.round(CAP_W * 1.6), leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // em dash
+	{ codepoint: 0x27, contours: buildApostrophe(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
