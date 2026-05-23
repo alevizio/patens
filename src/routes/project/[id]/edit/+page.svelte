@@ -3121,6 +3121,19 @@
 									<span class="flex-1" title={describeAuditCode(issue.code)}>
 										{issue.message}
 									</span>
+									<!-- "See all" link — jumps to the audit page filtered to
+									     this code. Lets a designer ask "is this just here or
+									     across other glyphs too?" with one click instead of
+									     opening audit and re-finding the code by name. -->
+									<a
+										href="/project/{projectStore.project?.id ?? ''}/audit?code={encodeURIComponent(
+											issue.code
+										)}"
+										class="shrink-0 rounded border border-current/30 bg-canvas/50 px-1.5 py-0.5 text-[10px] font-medium hover:bg-canvas/80"
+										title="See all glyphs with this audit code"
+									>
+										All
+									</a>
 									{#if fixable}
 										<button
 											type="button"
