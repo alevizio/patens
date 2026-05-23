@@ -1372,6 +1372,43 @@ class ProjectStore {
 		});
 	}
 
+	setGlyphTags(codepoint: number, tags: string[]) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const current = this.project.glyphs[codepoint];
+		if (!current) return;
+		// Normalise: trim, lowercase, dedupe, drop empties.
+		const cleaned = [
+			...new Set(
+				tags
+					.map((t) => t.trim().toLowerCase())
+					.filter((t) => t.length > 0)
+			)
+		];
+		this.writeGlyph(codepoint, {
+			...current,
+			tags: cleaned.length > 0 ? cleaned : undefined,
+			updatedAt: new Date().toISOString()
+		});
+	}
+
+	addGlyphTag(codepoint: number, tag: string) {
+		const current = this.project?.glyphs[codepoint];
+		if (!current) return;
+		const next = [...(current.tags ?? []), tag];
+		this.setGlyphTags(codepoint, next);
+	}
+
+	removeGlyphTag(codepoint: number, tag: string) {
+		const current = this.project?.glyphs[codepoint];
+		if (!current?.tags) return;
+		const normalised = tag.trim().toLowerCase();
+		this.setGlyphTags(
+			codepoint,
+			current.tags.filter((t) => t !== normalised)
+		);
+	}
+
 	setGlyphStatus(codepoint: number, status: Glyph['status']) {
 		if (!this.project) return;
 		if (this.project.locked) return;

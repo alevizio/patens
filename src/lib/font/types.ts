@@ -52,6 +52,10 @@ export type Glyph = {
 	anchors?: Anchor[];
 	/** Freeform designer notes for this glyph. */
 	notes?: string;
+	/** Free-form tags for organising glyphs by designer-defined taxonomy.
+	 *  Lowercased, deduped, persists across sessions. Surfaced as filter
+	 *  chips in the glyph browser + indexable from the command palette. */
+	tags?: string[];
 	/** Optional bitmap reference (data URL) shown behind the canvas as a tracing template. */
 	referenceImage?: ReferenceImage;
 	/** Pinned glyphs surface at the top of the browser for fast access. */
