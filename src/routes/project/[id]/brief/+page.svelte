@@ -48,6 +48,26 @@
 		newRefNotes = '';
 	};
 
+	// Brief completion — 6 weighted fields, each contributes 1/6. Empty
+	// strings count as 0. Surfaced as a progress bar in the header so the
+	// designer sees at a glance how much of the brief still needs work.
+	const briefCompletion = $derived.by(() => {
+		const fields: Array<unknown> = [
+			brief.intent?.trim(),
+			brief.audience?.trim(),
+			(brief.useCases?.length ?? 0) > 0,
+			brief.readingConditions?.trim(),
+			brief.differentiation?.trim(),
+			brief.designNotes?.trim()
+		];
+		const filled = fields.filter(Boolean).length;
+		return {
+			filled,
+			total: fields.length,
+			pct: Math.round((filled / fields.length) * 100)
+		};
+	});
+
 	const KIND_LABELS = {
 		functional: 'Functional',
 		historical: 'Historical',
@@ -168,12 +188,27 @@
 				<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
 					<FileText class="size-4" />
 				</div>
-				<div>
-					<h1 class="text-xl font-semibold tracking-tight">Brief</h1>
+				<div class="flex-1">
+					<div class="flex items-baseline justify-between gap-3">
+						<h1 class="text-xl font-semibold tracking-tight">Brief</h1>
+						<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
+							{briefCompletion.filled}/{briefCompletion.total} fields · {briefCompletion.pct}%
+						</span>
+					</div>
 					<p class="text-sm text-fg-muted">
 						Type design is system design. Defining the problem before drawing keeps
 						scope, audience, and use cases honest as the family grows.
 					</p>
+					<!-- Completion bar — drops a passive cue that there's more to
+					     fill out without nagging. Filled when the 6 weighted fields
+					     are all non-empty. Mirrors the home-page brief progress
+					     calculation in indexEntry(). -->
+					<div class="mt-2 h-1 overflow-hidden rounded-full bg-surface-2">
+						<div
+							class="h-full bg-accent transition-all duration-500"
+							style="width: {briefCompletion.pct}%;"
+						></div>
+					</div>
 				</div>
 			</header>
 
