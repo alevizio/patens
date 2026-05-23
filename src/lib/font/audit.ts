@@ -642,6 +642,44 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 	if (project.metrics.unitsPerEm < 1000 || project.metrics.unitsPerEm > 16384)
 		issues.push({ codepoint: 0, severity: 'warn', code: 'upm-unusual', message: `UPM ${project.metrics.unitsPerEm} is outside the typical 1000–2048 range` });
 
+	// Vertical-metric topology — caps can't be taller than ascender, x can't
+	// be taller than caps, descender must be negative. These are user-set
+	// in the project metrics and easy to corrupt by a typo. Each is fatal
+	// for text rendering, so error-level.
+	const m = project.metrics;
+	if (m.capHeight > m.ascender) {
+		issues.push({
+			codepoint: 0,
+			severity: 'error',
+			code: 'metrics-cap-above-ascender',
+			message: `Cap-height (${m.capHeight}) exceeds ascender (${m.ascender}) — caps will clip on every platform`
+		});
+	}
+	if (m.xHeight > m.capHeight) {
+		issues.push({
+			codepoint: 0,
+			severity: 'error',
+			code: 'metrics-x-above-cap',
+			message: `x-height (${m.xHeight}) exceeds cap-height (${m.capHeight}) — lowercase reads taller than uppercase`
+		});
+	}
+	if (m.descender >= 0) {
+		issues.push({
+			codepoint: 0,
+			severity: 'error',
+			code: 'metrics-descender-nonnegative',
+			message: `Descender (${m.descender}) is non-negative — descending letters (g j p q y) will sit on the baseline`
+		});
+	}
+	if (m.capHeight <= 0 || m.xHeight <= 0) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'metrics-zero-height',
+			message: 'Cap-height or x-height is zero — auto-fit + spacing-by-reference algorithms will misbehave'
+		});
+	}
+
 	// Control-glyph coverage
 	const controlGlyphs = [0x004e, 0x004f, 0x006e, 0x006f, 0x0048, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079];
 	const missingControl = controlGlyphs.filter(
@@ -1136,7 +1174,16 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'glyph-name-too-long':
 			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps it there.',
 		'glyph-name-not-canonical':
-			'The glyph name differs from the canonical Adobe Glyph List for New Fonts name for this codepoint. Renaming keeps downstream tooling (feature substitutions, color emoji lookups, PostScript naming) consistent.'
+			'The glyph name differs from the canonical Adobe Glyph List for New Fonts name for this codepoint. Renaming keeps downstream tooling (feature substitutions, color emoji lookups, PostScript naming) consistent.',
+		// Vertical-metric sanity
+		'metrics-cap-above-ascender':
+			'Cap-height exceeds the ascender. Capital letters will clip when rendered — ascender is the platform-recognised top of the glyph bounding box, caps must fit inside it.',
+		'metrics-x-above-cap':
+			'x-height exceeds cap-height — lowercase letters would render taller than uppercase. Almost certainly a typo in the metrics inspector.',
+		'metrics-descender-nonnegative':
+			'Descender is zero or positive — descending letters (g, j, p, q, y) will sit on the baseline rather than dropping below it. Descender values are conventionally negative (e.g. -200 at 1000 UPM).',
+		'metrics-zero-height':
+			'Cap-height or x-height is zero. Several algorithms (auto-spacing, spacing-by-reference, x-height alignment audit) depend on these to be positive — set them in the metrics inspector.'
 	};
 	return descriptions[code];
 };
