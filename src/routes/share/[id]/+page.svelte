@@ -537,6 +537,101 @@
 	});
 	const bodyMock = `Typography is two-thirds invisible. Most of the work of a typeface is in how it carries a reader from one line to the next without asking for attention. The letters that draw the eye in display sizes are the same letters that fade into rhythm at sixteen pixels — only if they were drawn to do both.`;
 
+	// Glyph coverage heatmap data. Each set is a list of codepoints we
+	// expect a "complete" Latin font to ship; the heatmap colors each
+	// cell by status so designer-friends see at a glance which sets are
+	// missing pieces. Sets are roughly the same buckets the editor uses
+	// for the "fill character set" wizard, so the visualization mirrors
+	// the editor's mental model.
+	const range = (start: number, end: number): number[] => {
+		const out: number[] = [];
+		for (let cp = start; cp <= end; cp++) out.push(cp);
+		return out;
+	};
+	const COVERAGE_SETS: ReadonlyArray<{
+		id: string;
+		label: string;
+		codepoints: readonly number[];
+	}> = [
+		{ id: 'uppercase', label: 'Uppercase Latin', codepoints: range(0x41, 0x5a) },
+		{ id: 'lowercase', label: 'Lowercase Latin', codepoints: range(0x61, 0x7a) },
+		{ id: 'digits', label: 'Digits', codepoints: range(0x30, 0x39) },
+		{
+			id: 'punct',
+			label: 'Punctuation',
+			codepoints: [
+				...range(0x21, 0x2f),
+				...range(0x3a, 0x40),
+				...range(0x5b, 0x60),
+				...range(0x7b, 0x7e),
+				0x2013,
+				0x2014,
+				0x2018,
+				0x2019,
+				0x201c,
+				0x201d,
+				0x2026
+			]
+		},
+		{
+			id: 'extended',
+			label: 'Extended Latin',
+			codepoints: [
+				// Uppercase accented (Latin-1 + extended-A common)
+				0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb,
+				0xcc, 0xcd, 0xce, 0xcf, 0xd1, 0xd2, 0xd3, 0xd4, 0xd5, 0xd6, 0xd8, 0xd9,
+				0xda, 0xdb, 0xdc,
+				// Lowercase accented
+				0xe0, 0xe1, 0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea, 0xeb,
+				0xec, 0xed, 0xee, 0xef, 0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf8, 0xf9,
+				0xfa, 0xfb, 0xfc,
+				// Common ligatures + ß
+				0xdf, 0xfb01, 0xfb02
+			]
+		}
+	];
+	type CoverageCell = {
+		cp: number;
+		char: string;
+		drawn: boolean;
+		wip: boolean;
+		glyph: ReturnType<typeof resolveGlyphForMaster> | null;
+	};
+	type CoverageRow = {
+		id: string;
+		label: string;
+		cells: CoverageCell[];
+		drawnCount: number;
+		total: number;
+	};
+	const coverageRows = $derived.by((): CoverageRow[] => {
+		return COVERAGE_SETS.map((set) => {
+			let drawnCount = 0;
+			const cells = set.codepoints.map((cp): CoverageCell => {
+				const g = project.glyphs[cp];
+				const drawn = !!g && g.contours.length > 0;
+				if (drawn) drawnCount++;
+				return {
+					cp,
+					char: String.fromCodePoint(cp),
+					drawn,
+					wip: drawn && (g.status === 'sketch' || g.status === 'draft'),
+					glyph: g ?? null
+				};
+			});
+			return { id: set.id, label: set.label, cells, drawnCount, total: cells.length };
+		});
+	});
+	const coverageOverall = $derived.by(() => {
+		let drawn = 0;
+		let total = 0;
+		for (const row of coverageRows) {
+			drawn += row.drawnCount;
+			total += row.total;
+		}
+		return { drawn, total, percent: total > 0 ? Math.round((drawn / total) * 100) : 0 };
+	});
+
 	// Multi-line layout for the reading specimens. Greedy word-wrap at a
 	// fixed UPM width; each line is one SVG row stacked vertically.
 	// Designers read paragraphs, not pangrams — the waterfall above
@@ -1720,6 +1815,61 @@ body {
 			</details>
 		</section>
 	{/if}
+
+	<!-- Coverage heatmap — visualizes drawn vs not-drawn across the
+	     baseline character sets a "complete" Latin font would ship.
+	     Each cell is one codepoint; color encodes status (drawn / WIP /
+	     empty). Click a drawn cell to inspect it. The section gives
+	     designer-friends a quick "is this font ready?" read without
+	     having to scan the full glyph grid below. -->
+	<section class="mb-10">
+		<h2
+			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		>
+			<span>Coverage</span>
+			<span class="font-mono normal-case text-fg-subtle" data-numeric>
+				{coverageOverall.drawn}/{coverageOverall.total} · {coverageOverall.percent}%
+			</span>
+		</h2>
+		<div class="space-y-3 rounded-md border border-border bg-canvas px-5 py-5">
+			{#each coverageRows as row (row.id)}
+				<div>
+					<div class="mb-1.5 flex items-baseline justify-between text-[11px]">
+						<span class="text-fg-muted">{row.label}</span>
+						<span class="font-mono text-fg-subtle" data-numeric>
+							{row.drawnCount}/{row.total}
+						</span>
+					</div>
+					<div class="flex flex-wrap gap-0.5">
+						{#each row.cells as cell (cell.cp)}
+							<button
+								type="button"
+								onclick={() => cell.drawn && openInspector(cell.cp)}
+								disabled={!cell.drawn}
+								class="inline-flex h-6 w-6 items-center justify-center rounded-sm border text-[11px] transition-colors {cell.drawn
+									? cell.wip
+										? 'border-amber-500/40 bg-amber-500/20 text-fg hover:bg-amber-500/30'
+										: 'border-accent/30 bg-accent-soft/30 text-fg hover:bg-accent-soft/60'
+									: 'border-border bg-surface-2/30 text-fg-subtle/40'}"
+								title={`U+${cell.cp
+									.toString(16)
+									.toUpperCase()
+									.padStart(4, '0')} · ${cell.char} · ${
+									cell.drawn ? (cell.wip ? 'in progress' : 'final') : 'not drawn'
+								}`}
+								aria-label="{cell.char} {cell.drawn ? 'drawn' : 'not drawn'}"
+							>
+								{cell.char}
+							</button>
+						{/each}
+					</div>
+				</div>
+			{/each}
+		</div>
+		<p class="mt-2 text-[11px] text-fg-subtle">
+			Cells colored by status — accent = drawn, amber = WIP, dim = not drawn. Click any drawn cell to inspect.
+		</p>
+	</section>
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
 	     state without spilling into editor chrome. Filter input +
