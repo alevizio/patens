@@ -978,6 +978,36 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Kerning classes with a single member — almost always an oversight.
+	// A class with one glyph is identical to kerning that glyph as a pair,
+	// so it adds maintenance burden without compression value.
+	for (const cls of project.classes ?? []) {
+		if (cls.members.length === 1) {
+			issues.push({
+				codepoint: 0,
+				severity: 'info',
+				code: 'kerning-class-singleton',
+				message: `Class ${cls.name} has one member — kerning classes are meant to group glyphs that share spacing behavior. Either add more members or replace the class with a direct pair.`
+			});
+		}
+	}
+
+	// CPAL invariant: every palette must have the same number of colors.
+	// font5.md: "palettes are alternate themes for the same layer set."
+	if (project.palettes && project.palettes.length > 1) {
+		const lengths = project.palettes.map((p) => p.colors.length);
+		const max = Math.max(...lengths);
+		const min = Math.min(...lengths);
+		if (max !== min) {
+			issues.push({
+				codepoint: 0,
+				severity: 'warn',
+				code: 'palette-length-mismatch',
+				message: `Palettes have mismatched lengths (${min}–${max}). CPAL requires every palette to share the same color count — layers referencing higher indices will fail to render in the shorter palettes.`
+			});
+		}
+	}
+
 	// Glyph count vs declared character set
 	const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
 	if (drawn < 26)
@@ -1349,6 +1379,10 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'Cap-height or x-height is zero. Several algorithms (auto-spacing, spacing-by-reference, x-height alignment audit) depend on these to be positive — set them in the metrics inspector.',
 		'kerning-extreme':
 			'A kerning pair exceeds half the smaller glyph\'s advance — almost certainly a decimal typo (e.g. -500 typed when -50 was meant). Check the value in the spacing pair editor.',
+		'kerning-class-singleton':
+			'A kerning class has exactly one member. Classes are meant to group glyphs that share kerning behavior — a singleton class is identical to a direct pair and just adds a layer to navigate. Either expand it (e.g. visually-similar glyphs to share the value) or replace it with a direct pair on the spacing tab.',
+		'palette-length-mismatch':
+			'Color palettes have different lengths. CPAL requires every palette to share the same color count — when a glyph layer references slot 4 and only the default palette has 5 colors, the alternate palette will fail to render that layer. Trim or pad palettes on the features tab so all share one length.',
 		'duplicate-glyph-name':
 			'Two or more glyphs share the same PostScript name. The OpenType post table requires unique names — OTF export fails. Rename the conflicting glyphs (the AGLFN suggestion chip + bulk AGLFN rename in the glyph browser are the fastest paths).',
 		'naming-designer-missing':
