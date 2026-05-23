@@ -1,7 +1,9 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { goto } from '$app/navigation';
 	import type { Glyph } from '$lib/font/types';
 	import Search from '@lucide/svelte/icons/search';
+	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import { onMount } from 'svelte';
 
 	type Props = {
@@ -42,7 +44,39 @@
 		return 0;
 	};
 
+	// Page navigation commands — prefix-based ">audit" syntax. Returns a
+	// flat list of {label, target} pairs filtered by the query suffix.
+	type PageCmd = { label: string; slug: string; hint?: string };
+	const PAGES: PageCmd[] = [
+		{ label: 'Edit', slug: 'edit', hint: 'Draw glyphs' },
+		{ label: 'Brief', slug: 'brief', hint: 'Project intent + decisions' },
+		{ label: 'Audit', slug: 'audit', hint: 'Issues across the project' },
+		{ label: 'Spacing & kerning', slug: 'spacing', hint: 'Pair editor + auto-space' },
+		{ label: 'Designspace', slug: 'designspace', hint: 'Axes + masters' },
+		{ label: 'Features', slug: 'features', hint: '.fea + palettes + auto-kern' },
+		{ label: 'Preview', slug: 'preview', hint: 'Live shape + feature toggles' },
+		{ label: 'Compare', slug: 'compare', hint: 'Overlay siblings + references' },
+		{ label: 'Specimen', slug: 'specimen', hint: 'Printable sample sheet' },
+		{ label: 'Release', slug: 'release', hint: 'Pre-flight + snapshots' },
+		{ label: 'Export', slug: 'export', hint: 'OTF / TTF / WOFF2 / bundle' },
+		{ label: 'AI', slug: 'ai', hint: 'Suggestions + drafts' }
+	];
+
+	const pageMode = $derived(query.startsWith('>'));
+	const pageResults = $derived.by(() => {
+		if (!pageMode) return [];
+		const q = query.slice(1).trim().toLowerCase();
+		if (!q) return PAGES;
+		return PAGES.filter(
+			(p) =>
+				p.label.toLowerCase().includes(q) ||
+				p.slug.includes(q) ||
+				(p.hint ?? '').toLowerCase().includes(q)
+		);
+	});
+
 	const results = $derived.by(() => {
+		if (pageMode) return [];
 		const q = query.trim();
 		if (!q) {
 			// Show recently edited when no query
@@ -69,18 +103,28 @@
 	});
 
 	const selectAt = (idx: number) => {
+		if (pageMode) {
+			const p = pageResults[idx];
+			if (!p) return;
+			const projectId = projectStore.project?.id;
+			if (projectId) goto(`/project/${projectId}/${p.slug}`);
+			onclose();
+			return;
+		}
 		const g = results[idx];
 		if (!g) return;
 		projectStore.selectGlyph(g.codepoint);
 		onclose();
 	};
 
+	const activeListLength = $derived(pageMode ? pageResults.length : results.length);
+
 	const onKey = (e: KeyboardEvent) => {
 		if (e.key === 'Escape') {
 			onclose();
 		} else if (e.key === 'ArrowDown') {
 			e.preventDefault();
-			cursor = Math.min(cursor + 1, results.length - 1);
+			cursor = Math.min(cursor + 1, activeListLength - 1);
 		} else if (e.key === 'ArrowUp') {
 			e.preventDefault();
 			cursor = Math.max(cursor - 1, 0);
@@ -120,11 +164,44 @@
 				bind:value={query}
 				onkeydown={onKey}
 				oninput={() => (cursor = 0)}
-				placeholder="Search glyph by character, name, or U+XXXX…"
+				placeholder="Search glyph by character, name, U+XXXX, or > for pages…"
 				class="w-full bg-transparent py-3.5 pl-11 pr-4 text-[14px] text-fg outline-none"
 			/>
 		</div>
 		<ul class="max-h-[420px] overflow-y-auto py-1">
+			{#if pageMode}
+				{#if pageResults.length === 0}
+					<li class="px-4 py-6 text-center text-[12px] text-fg-subtle">
+						No pages match "{query.slice(1).trim()}".
+					</li>
+				{/if}
+				{#each pageResults as p, i (p.slug)}
+					<li>
+						<button
+							type="button"
+							onclick={() => selectAt(i)}
+							onmouseenter={() => (cursor = i)}
+							class="flex w-full items-center gap-3 px-4 py-2 text-left transition-colors {cursor ===
+							i
+								? 'bg-accent-soft/40'
+								: 'hover:bg-surface-2'}"
+						>
+							<span
+								class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-surface-2 text-accent-strong"
+							>
+								<ArrowRight class="size-4" />
+							</span>
+							<span class="min-w-0 flex-1">
+								<span class="block truncate text-[13px] font-medium text-fg">{p.label}</span>
+								{#if p.hint}
+									<span class="block truncate text-[11px] text-fg-subtle">{p.hint}</span>
+								{/if}
+							</span>
+							<span class="font-mono text-[10px] text-fg-subtle">/{p.slug}</span>
+						</button>
+					</li>
+				{/each}
+			{:else}
 			{#if results.length === 0}
 				<li class="px-4 py-6 text-center text-[12px] text-fg-subtle">
 					No glyphs match "{query}".
@@ -169,10 +246,12 @@
 					</button>
 				</li>
 			{/each}
+			{/if}
 		</ul>
 		<div class="border-t border-border bg-surface-2/40 px-4 py-1.5 text-[10px] text-fg-subtle">
 			<span class="font-mono">↑↓</span> navigate · <span class="font-mono">↵</span> select ·
-			<span class="font-mono">esc</span> close
+			<span class="font-mono">esc</span> close ·
+			<span class="font-mono">&gt;</span> for page commands
 		</div>
 	</div>
 {/if}
