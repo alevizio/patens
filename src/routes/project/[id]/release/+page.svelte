@@ -1,7 +1,12 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import { preflightProject, auditCompatibility, auditProject } from '$lib/font/audit';
+	import {
+		preflightProject,
+		auditCompatibility,
+		auditProject,
+		describeAuditCode
+	} from '$lib/font/audit';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -33,6 +38,26 @@
 	const infos = $derived(
 		[...preflight, ...compatibility, ...perGlyph].filter((i) => i.severity === 'info').length
 	);
+
+	// Top error codes by frequency — lets the release-page pre-flight
+	// summary tell the designer WHAT to fix, not just that errors exist.
+	// Each entry includes the curated description so they can read the
+	// rationale inline. Capped at 5 to keep the panel from overflowing.
+	const topErrorCodes = $derived.by(() => {
+		const allErrors = [...preflight, ...compatibility, ...perGlyph].filter(
+			(i) => i.severity === 'error'
+		);
+		const counts = new Map<string, number>();
+		for (const e of allErrors) counts.set(e.code, (counts.get(e.code) ?? 0) + 1);
+		return [...counts.entries()]
+			.sort((a, b) => b[1] - a[1])
+			.slice(0, 5)
+			.map(([code, count]) => ({
+				code,
+				count,
+				description: describeAuditCode(code)
+			}));
+	});
 
 	const drawn = $derived(
 		project
@@ -342,8 +367,8 @@
 						<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 							Pre-flight summary
 						</h2>
-						<Button density="sm" variant="ghost" onclick={() => goto(`/project/${project.id}/export`)}>
-							View on Export →
+						<Button density="sm" variant="ghost" onclick={() => goto(`/project/${project.id}/audit`)}>
+							View on Audit →
 						</Button>
 					</div>
 					<div class="flex flex-wrap gap-1.5">
@@ -363,6 +388,27 @@
 							</span>
 						{/if}
 					</div>
+					{#if topErrorCodes.length > 0}
+						<!-- Top error codes inline — tells the designer WHAT to fix
+						     before sealing, with the curated description so they
+						     don't need to bounce to the audit page just to read the
+						     rationale. Click "View on Audit" above to dig deeper. -->
+						<ul class="mt-3 grid gap-1.5 border-t border-border/50 pt-3">
+							{#each topErrorCodes as e (e.code)}
+								<li class="text-[11px]">
+									<div class="flex items-baseline justify-between gap-2">
+										<span class="font-mono text-fg">{e.code}</span>
+										<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+											{e.count}×
+										</span>
+									</div>
+									{#if e.description}
+										<p class="leading-snug text-fg-muted">{e.description}</p>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					{/if}
 				</Panel>
 			{/if}
 
