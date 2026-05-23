@@ -832,7 +832,8 @@
 			code === 'contour-winding-collision' ||
 			code === 'duplicate-points' ||
 			code === 'near-collinear-points' ||
-			code === 'off-grid-points';
+			code === 'off-grid-points' ||
+			code === 'tiny-contour';
 		if (contourFix && glyph.contours.length > 0) {
 			const latest = glyph.revisions?.[glyph.revisions.length - 1];
 			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
@@ -947,6 +948,23 @@
 			});
 			projectStore.updateGlyph(cp, (g) => ({ ...g, anchors: cleaned }));
 			toast.success('Renamed anchors to match convention.');
+			return;
+		}
+		if (code === 'tiny-contour') {
+			// Drop any closed contour smaller than 8×8 font units in bbox —
+			// the same threshold the audit uses. Auto-snapshot upstream
+			// gives the designer a path back if any of them weren't actual
+			// artefacts.
+			const before = glyph.contours.length;
+			const cleaned = glyph.contours.filter((c) => {
+				if (!c.closed) return true;
+				const b = glyphBounds([c]);
+				return b.maxX - b.minX >= 8 || b.maxY - b.minY >= 8;
+			});
+			const dropped = before - cleaned.length;
+			if (dropped === 0) return;
+			handleContoursChange(cleaned);
+			toast.success(`Removed ${dropped} tiny contour${dropped === 1 ? '' : 's'}.`);
 			return;
 		}
 	};
@@ -3122,7 +3140,8 @@
 									issue.code === 'zero-advance' ||
 									issue.code === 'overflows-advance' ||
 									issue.code === 'anchor-naming-mark-no-prefix' ||
-									issue.code === 'anchor-naming-base-with-prefix'}
+									issue.code === 'anchor-naming-base-with-prefix' ||
+									issue.code === 'tiny-contour'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'

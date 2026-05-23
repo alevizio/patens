@@ -147,7 +147,9 @@
 		'off-grid-points',
 		// Anchor naming — fix is purely a rename based on isMark.
 		'anchor-naming-mark-no-prefix',
-		'anchor-naming-base-with-prefix'
+		'anchor-naming-base-with-prefix',
+		// Drops sub-8×8fu contours (the audit's own threshold).
+		'tiny-contour'
 	]);
 
 	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
@@ -195,7 +197,8 @@
 		'contour-winding-collision',
 		'off-grid-points',
 		'duplicate-points',
-		'near-collinear-points'
+		'near-collinear-points',
+		'tiny-contour'
 	]);
 	const snapshotIfNeeded = (codepoint: number, code: string) => {
 		if (!project || !CONTOUR_MUTATING.has(code)) return;
@@ -301,7 +304,17 @@
 					return a;
 				});
 				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, anchors: cleaned }));
-				toast.success('Renamed anchors to match convention.');
+				return;
+			}
+			case 'tiny-contour': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g) return;
+				const cleaned = g.contours.filter((c) => {
+					if (!c.closed) return true;
+					const b = glyphBounds([c]);
+					return b.maxX - b.minX >= 8 || b.maxY - b.minY >= 8;
+				});
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
 				return;
 			}
 			case 'duplicate-points': {
