@@ -93,7 +93,25 @@
 	};
 	const setSlotColor = (paletteId: string, index: number, hex: string) => {
 		const c = hexToRgba(hex);
-		projectStore.setPaletteColor(paletteId, index, c);
+		// Preserve existing alpha when only the RGB picker changes — the
+		// alpha slider has its own setter for explicit edits.
+		const existing = palettes
+			.find((p) => p.id === paletteId)
+			?.colors[index];
+		projectStore.setPaletteColor(paletteId, index, {
+			r: c.r,
+			g: c.g,
+			b: c.b,
+			a: existing?.a ?? c.a
+		});
+	};
+	const setSlotAlpha = (paletteId: string, index: number, alphaPct: number) => {
+		const existing = palettes.find((p) => p.id === paletteId)?.colors[index];
+		if (!existing) return;
+		projectStore.setPaletteColor(paletteId, index, {
+			...existing,
+			a: Math.max(0, Math.min(1, alphaPct / 100))
+		});
 	};
 	const addColorSlot = () => {
 		projectStore.resizePalettes(palettesLength + 1);
@@ -524,11 +542,12 @@
 										<span class="font-mono text-[14px]">×</span>
 									</button>
 								</div>
-								<div class="flex flex-wrap gap-1.5">
+								<div class="flex flex-wrap gap-3">
 									{#each p.colors as c, idx (idx)}
 										{@const hex = rgbaToHex(c).slice(0, 7)}
-										<label
-											class="group flex flex-col items-center gap-0.5"
+										{@const alphaPct = Math.round(c.a * 100)}
+										<div
+											class="group flex flex-col items-center gap-1"
 											title="Index {idx} · {rgbaToHex(c)}"
 										>
 											<input
@@ -538,13 +557,30 @@
 												class="size-7 cursor-pointer rounded border border-border bg-transparent"
 												aria-label="Palette colour {idx}"
 											/>
+											<!-- Alpha slider — drives the RGBA `a` channel directly.
+											     Lets designers set semi-transparent layers for COLR
+											     overlays without leaving the palette editor. -->
+											<input
+												type="range"
+												min="0"
+												max="100"
+												value={alphaPct}
+												onchange={(e) =>
+													setSlotAlpha(p.id, idx, Number(e.currentTarget.value))}
+												class="h-1 w-7 accent-fg"
+												aria-label="Alpha for palette colour {idx}"
+												title="Alpha: {alphaPct}%"
+											/>
 											<span
 												class="font-mono text-[9px] text-fg-subtle group-hover:text-fg-muted"
 												data-numeric
 											>
 												{idx}
+												{#if alphaPct < 100}
+													<span class="text-warn-strong">·{alphaPct}%</span>
+												{/if}
 											</span>
-										</label>
+										</div>
 									{/each}
 								</div>
 							</div>
