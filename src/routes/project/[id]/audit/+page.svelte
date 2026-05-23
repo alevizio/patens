@@ -136,6 +136,8 @@
 		'glyph-name-invalid',
 		'glyph-name-empty',
 		'glyph-name-too-long',
+		// AGLFN canonical-name fix: rename to the canonical AGLFN entry.
+		'glyph-name-not-canonical',
 		// Contour-shape fixers (parity with the Edit-tab audit panel).
 		'self-intersecting',
 		'duplicate-points',
@@ -255,7 +257,8 @@
 			}
 			case 'glyph-name-invalid':
 			case 'glyph-name-empty':
-			case 'glyph-name-too-long': {
+			case 'glyph-name-too-long':
+			case 'glyph-name-not-canonical': {
 				const g = project.glyphs[issue.codepoint];
 				if (!g) return;
 				// Prefer the AGLFN name for this codepoint — gives "zero" instead of

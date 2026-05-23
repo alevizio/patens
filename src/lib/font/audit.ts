@@ -7,6 +7,7 @@ import type { Glyph, Project } from './types';
 import { resolveVerticalMetrics } from './types';
 import { glyphBounds, signedArea, sampleContour } from './path';
 import { auditPeers } from './peer-audit';
+import { aglfnName } from './aglfn';
 
 export type AuditSeverity = 'info' | 'warn' | 'error';
 
@@ -531,6 +532,21 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 			code: 'glyph-name-too-long',
 			message: `Name "${glyph.name.slice(0, 30)}…" exceeds 63 chars (OpenType post table limit)`
 		});
+	} else {
+		// Canonical-name check: when AGLFN defines a name for this codepoint
+		// and the glyph's current name differs, info-level flag. Info, not
+		// warn, because valid custom names are sometimes intentional —
+		// e.g. project conventions like "ampersand.alt". The auto-fix
+		// matches the existing AGLFN suggestion chip in the editor.
+		const canonical = aglfnName(cp);
+		if (canonical && canonical !== glyph.name && /^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(canonical)) {
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'glyph-name-not-canonical',
+				message: `Name "${glyph.name}" differs from AGLFN canonical "${canonical}" — rename to keep downstream tooling happy`
+			});
+		}
 	}
 
 	return issues;
@@ -1118,7 +1134,9 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'glyph-name-invalid':
 			'Glyph name contains characters outside the allowed set (A-Za-z0-9._-) or starts with a digit. The PostScript spec forbids it.',
 		'glyph-name-too-long':
-			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps it there.'
+			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps it there.',
+		'glyph-name-not-canonical':
+			'The glyph name differs from the canonical Adobe Glyph List for New Fonts name for this codepoint. Renaming keeps downstream tooling (feature substitutions, color emoji lookups, PostScript naming) consistent.'
 	};
 	return descriptions[code];
 };
