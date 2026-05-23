@@ -484,7 +484,8 @@
 	const WATERFALL_SIZES = [14, 18, 24, 36, 56];
 	const computeRow = (
 		text: string,
-		masterId: string | undefined = undefined
+		masterId: string | undefined = undefined,
+		withFeatures = false
 	): { glyphs: typeof typeset.glyphs; totalWidth: number } => {
 		const out: typeof typeset.glyphs = [];
 		let x = 0;
@@ -492,7 +493,8 @@
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const g = resolveGlyphForMaster(cp, masterId);
+			const base = resolveGlyphForMaster(cp, masterId);
+			const g = withFeatures ? applyFeatures(base) : base;
 			if (!g || g.contours.length === 0) {
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
@@ -518,6 +520,23 @@
 	};
 	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
 
+	// Mock text for the in-context section. Pulls from project brief
+	// when present so the headline reads as the designer's own pitch.
+	const headlineMock = $derived.by(() => {
+		const intent = (project.brief?.intent ?? '').trim();
+		const firstSentence = intent.split(/[.!?]\s+/)[0] ?? '';
+		const title =
+			firstSentence && firstSentence.length <= 80
+				? firstSentence
+				: 'A typeface built for working.';
+		const lede =
+			intent && intent.length > 40
+				? intent.slice(0, 180) + (intent.length > 180 ? '…' : '')
+				: 'Drawn for screens, kerned for reading, and shaped to feel familiar from the first letter.';
+		return { title, lede };
+	});
+	const bodyMock = `Typography is two-thirds invisible. Most of the work of a typeface is in how it carries a reader from one line to the next without asking for attention. The letters that draw the eye in display sizes are the same letters that fade into rhythm at sixteen pixels — only if they were drawn to do both.`;
+
 	// Multi-line layout for the reading specimens. Greedy word-wrap at a
 	// fixed UPM width; each line is one SVG row stacked vertically.
 	// Designers read paragraphs, not pangrams — the waterfall above
@@ -539,11 +558,12 @@
 	const layoutParagraph = (
 		text: string,
 		maxWidthUpm: number,
-		masterId: string | undefined
+		masterId: string | undefined,
+		withFeatures = false
 	): { lines: LaidOutLine[]; totalHeight: number } => {
 		const words = text.split(/\s+/).filter(Boolean);
 		// Per-word layout — codepoints + kerning, no space prefix.
-		const wordRows = words.map((w) => computeRow(w, masterId));
+		const wordRows = words.map((w) => computeRow(w, masterId, withFeatures));
 		const lines: LaidOutLine[] = [];
 		let curGlyphs: LaidOutGlyph[] = [];
 		let curWidth = 0;
@@ -888,6 +908,56 @@ body {
 	<meta name="twitter:description" content={shareDesc} />
 	<meta name="twitter:image" content="/og.png" />
 </svelte:head>
+
+<!-- Reusable type-rendering snippets for the In context mockups.
+     Each snippet picks up tryMasterId + activeFeatures from outer
+     reactive scope, so switching master or toggling a feature in
+     the tester re-renders every mockup in step. Snippets are
+     defined here so they can be called from anywhere in the markup. -->
+{#snippet typeRow(text: string, sizePx: number)}
+	{@const row = computeRow(text, tryMasterId, true)}
+	<svg
+		viewBox="0 {descender} {Math.max(row.totalWidth, 100)} {fontSpan}"
+		preserveAspectRatio="xMinYMid meet"
+		style="height: {sizePx}px; width: auto; transform: scaleY(-1); display: inline-block; vertical-align: middle;"
+		aria-label={text}
+	>
+		{#each row.glyphs as g (g.id)}
+			{#if g.path}
+				<path
+					d={g.path}
+					transform="translate({g.x} 0)"
+					fill="currentColor"
+					fill-rule="evenodd"
+				/>
+			{/if}
+		{/each}
+	</svg>
+{/snippet}
+{#snippet typeParagraph(text: string, maxWidthUpm: number, sizePx: number)}
+	{@const layout = layoutParagraph(text, maxWidthUpm, tryMasterId, true)}
+	<svg
+		viewBox="0 0 {maxWidthUpm} {layout.totalHeight}"
+		preserveAspectRatio="xMinYMin meet"
+		style="width: 100%; height: auto; max-height: {sizePx * (layout.lines.length + 0.5)}px; display: block;"
+		aria-label={text}
+	>
+		{#each layout.lines as line, li (li)}
+			<g transform="translate(0 {li * fontSpan + ascender}) scale(1 -1)">
+				{#each line.glyphs as g (g.id)}
+					{#if g.path}
+						<path
+							d={g.path}
+							transform="translate({g.x} 0)"
+							fill="currentColor"
+							fill-rule="evenodd"
+						/>
+					{/if}
+				{/each}
+			</g>
+		{/each}
+	</svg>
+{/snippet}
 
 <div class="mx-auto max-w-4xl px-6 py-8">
 	<!-- Print-only specimen banner — visible only when printing. Replaces
@@ -1392,6 +1462,77 @@ body {
 		</div>
 		<p class="mt-2 text-[11px] text-fg-subtle">
 			Display, body, and caption. Body sample {project.brief?.intent ? 'uses the project brief' : 'is a generic typography passage'}; switch the master in the tester above to re-render every sample in that style.
+		</p>
+	</section>
+
+	<!-- In context — mockups that put the type in real UI shapes.
+	     Designers buy fonts because of how they look in their work, not
+	     as specimens. Buttons, headline card, stat card, paragraph
+	     block. Each renders through the same computeRow / layoutParagraph
+	     pipeline as the tester so the master switch above re-renders
+	     these mockups in step. -->
+	<section class="mb-10">
+		<h2
+			class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		>
+			In context
+		</h2>
+		<div class="grid gap-4 sm:grid-cols-2">
+			<!-- Buttons — primary + secondary. The primary uses bg-accent
+			     so it picks up the page's accent token rather than a
+			     project-specific palette (mockup should feel "neutral
+			     designer's site," not "this specific font's brand"). -->
+			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Buttons</div>
+				<div class="flex flex-wrap items-center gap-2">
+					<span
+						class="inline-flex items-center rounded-md bg-accent px-4 py-2 text-accent-fg"
+					>
+						{@render typeRow('Get started', 16)}
+					</span>
+					<span
+						class="inline-flex items-center rounded-md border border-border bg-surface px-4 py-2 text-fg"
+					>
+						{@render typeRow('Learn more', 16)}
+					</span>
+				</div>
+			</div>
+			<!-- Stat card — big number + label. Tests tabular figures and
+			     decimal alignment. Number style intentionally currency-
+			     adjacent because that's where tabular shines. -->
+			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Stat</div>
+				<div class="text-fg">
+					{@render typeRow('$12,847', 56)}
+				</div>
+				<div class="mt-1 text-fg-muted">
+					{@render typeRow('Monthly recurring revenue', 13)}
+				</div>
+			</div>
+		</div>
+		<!-- Headline card. The headline pulls from project brief intent
+		     when present (first sentence, capped at 60 chars) so the
+		     mockup reads as the designer's own pitch rather than a
+		     generic placeholder. Lede falls back to a generic line. -->
+		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-7">
+			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Headline</div>
+			<div class="text-fg">
+				{@render typeRow(headlineMock.title, 40)}
+			</div>
+			<div class="mt-3 max-w-xl text-fg-muted">
+				{@render typeRow(headlineMock.lede, 16)}
+			</div>
+		</div>
+		<!-- Paragraph card — multi-line body at a real reading measure.
+		     This is where rhythm and color (typographic, not chromatic)
+		     show up. Uses layoutParagraph for proper line breaks at a
+		     fixed UPM measure. -->
+		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-7">
+			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Body</div>
+			{@render typeParagraph(bodyMock, 1800, 16)}
+		</div>
+		<p class="mt-2 text-[11px] text-fg-subtle">
+			Mockups re-render in step with the tester above — switch master, palette, or features and these update too.
 		</p>
 	</section>
 
