@@ -68,11 +68,74 @@
 		return out;
 	};
 
+	// Treat a glyph as "drawn" when it has its own contours OR when it
+	// composes them from components (Aacute, fi, æ, …). Without the
+	// composite branch, every composite glyph in the project becomes
+	// invisible in the grid + typeset preview, which broke the demo's
+	// Aacute. Helper is hoisted so drawnGlyphs (right below) can use it.
+	const isDrawnOrComposed = (g: import('$lib/font/types').Glyph | undefined): boolean => {
+		if (!g) return false;
+		if (g.contours.length > 0) return true;
+		return (g.components?.length ?? 0) > 0;
+	};
+	// Resolve a glyph's components to flat contours so composites render
+	// the same way they would in an installed font. Recursion is depth-
+	// limited (6) as a cycle guard. Defined here so drawnGlyphs and the
+	// typeset / inspector can all share it.
+	const resolveContours = (
+		g: import('$lib/font/types').Glyph | undefined,
+		depth = 0
+	): import('$lib/font/types').BezierContour[] => {
+		if (!g) return [];
+		if (g.contours.length > 0) return g.contours;
+		if (!g.components || g.components.length === 0) return [];
+		if (depth > 6) return [];
+		const out: import('$lib/font/types').BezierContour[] = [];
+		for (const comp of g.components) {
+			const base = project.glyphs[comp.baseCodepoint];
+			if (!base) continue;
+			const baseContours = resolveContours(base, depth + 1);
+			const dx = comp.offsetX ?? 0;
+			const dy = comp.offsetY ?? 0;
+			if (dx === 0 && dy === 0) {
+				for (const c of baseContours) out.push(c);
+				continue;
+			}
+			for (const c of baseContours) {
+				out.push({
+					closed: c.closed,
+					winding: c.winding,
+					commands: c.commands.map((cmd) => {
+						if (cmd.type === 'M' || cmd.type === 'L') {
+							return { ...cmd, x: cmd.x + dx, y: cmd.y + dy };
+						}
+						if (cmd.type === 'Q') {
+							return { ...cmd, x1: cmd.x1 + dx, y1: cmd.y1 + dy, x: cmd.x + dx, y: cmd.y + dy };
+						}
+						if (cmd.type === 'C') {
+							return {
+								...cmd,
+								x1: cmd.x1 + dx,
+								y1: cmd.y1 + dy,
+								x2: cmd.x2 + dx,
+								y2: cmd.y2 + dy,
+								x: cmd.x + dx,
+								y: cmd.y + dy
+							};
+						}
+						return cmd;
+					})
+				});
+			}
+		}
+		return out;
+	};
+
 	// Glyph grid: only show drawn glyphs (skip empty placeholders),
-	// sorted by codepoint for a stable order.
+	// sorted by codepoint for a stable order. Composites count as drawn.
 	const drawnGlyphs = $derived(
 		Object.values(project.glyphs)
-			.filter((g) => g.contours.length > 0)
+			.filter(isDrawnOrComposed)
 			.sort((a, b) => a.codepoint - b.codepoint)
 	);
 
@@ -198,7 +261,7 @@
 		if (masterId) {
 			const m = project.masters?.find((x) => x.id === masterId);
 			const ov = m?.glyphs?.[cp];
-			if (ov && ov.contours.length > 0) return ov;
+			if (ov && (ov.contours.length > 0 || (ov.components?.length ?? 0) > 0)) return ov;
 		}
 		return project.glyphs[cp];
 	};
@@ -263,8 +326,14 @@
 	const inspectedGlyph = $derived(
 		inspectedIndex !== null ? (visibleGlyphs[inspectedIndex] ?? null) : null
 	);
+	// Inspector reads resolved contours so composite glyphs (Aacute, fi,
+	// æ, etc.) show their actual shape + correct bounds rather than an
+	// empty viewport.
+	const inspectedFlatContours = $derived(
+		inspectedGlyph ? resolveContours(inspectedGlyph) : []
+	);
 	const inspectedBounds = $derived(
-		inspectedGlyph ? glyphBounds(inspectedGlyph.contours) : null
+		inspectedFlatContours.length > 0 ? glyphBounds(inspectedFlatContours) : null
 	);
 	// Master overlay — when the project has additional masters, the
 	// inspector can show each master's version of the same codepoint as
@@ -532,7 +601,8 @@
 			const cp = ch.codePointAt(0) ?? 0;
 			const base = resolveGlyphForMaster(cp, tryMasterId);
 			const g = applyFeatures(base);
-			if (!g || g.contours.length === 0) {
+			const flatContours = g ? resolveContours(g) : [];
+			if (!g || flatContours.length === 0) {
 				// Missing glyph — render as a hollow box at half-em width.
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
@@ -549,7 +619,7 @@
 			out.push({
 				id: `${i}-${cp}`,
 				char: ch,
-				path: contoursToSvgPath(g.contours),
+				path: contoursToSvgPath(flatContours),
 				advance: g.advanceWidth,
 				x,
 				colorPlan
@@ -585,7 +655,8 @@
 			const cp = ch.codePointAt(0) ?? 0;
 			const base = resolveGlyphForMaster(cp, masterId);
 			const g = withFeatures ? applyFeatures(base) : base;
-			if (!g || g.contours.length === 0) {
+			const flat = g ? resolveContours(g) : [];
+			if (!g || flat.length === 0) {
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
 				x += w;
@@ -594,7 +665,7 @@
 			out.push({
 				id: `${i}-${cp}`,
 				char: ch,
-				path: contoursToSvgPath(g.contours),
+				path: contoursToSvgPath(flat),
 				advance: g.advanceWidth,
 				x,
 				colorPlan: []
@@ -699,7 +770,7 @@
 			let drawnCount = 0;
 			const cells = set.codepoints.map((cp): CoverageCell => {
 				const g = project.glyphs[cp];
-				const drawn = !!g && g.contours.length > 0;
+				const drawn = isDrawnOrComposed(g);
 				if (drawn) drawnCount++;
 				return {
 					cp,
@@ -2258,7 +2329,7 @@ body {
 					{/if}
 					<!-- The glyph itself -->
 					<path
-						d={contoursToSvgPath(inspectedGlyph.contours)}
+						d={contoursToSvgPath(inspectedFlatContours)}
 						fill="currentColor"
 						fill-rule="evenodd"
 						class="text-fg"
@@ -2345,7 +2416,10 @@ body {
 				<dd class="text-right font-mono text-fg" data-numeric>{rsb}</dd>
 				<dt class="text-fg-subtle">Contours</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>
-					{inspectedGlyph.contours.length}
+					{inspectedFlatContours.length}{inspectedGlyph.contours.length === 0 &&
+					(inspectedGlyph.components?.length ?? 0) > 0
+						? ' (composite)'
+						: ''}
 				</dd>
 				<dt class="text-fg-subtle">Anchors</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{anchorCount}</dd>
