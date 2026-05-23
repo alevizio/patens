@@ -304,6 +304,41 @@ export const createDemoProject = (): Project => {
 			'Typography is the craft of endowing human language with a durable visual form, and thus with an independent existence. Its heartwood is calligraphy — the dance, on a tiny stage, of the living, speaking hand — and its roots reach into living soil, though its branches may be hung each year with new and shifting leaves.'
 	};
 
+	// Curated kerning pairs — the AV/HE/TO/Ta/We trifecta that carries
+	// most of the perceived spacing in Latin body text. Negative values
+	// pull the glyphs closer; positive push them apart.
+	project.kerning = [
+		// Uppercase pairs against H / T / N / O — the demo's drawn caps.
+		{ left: 0x48, right: 0x49, value: -20 }, // HI
+		{ left: 0x48, right: 0x4f, value: -10 }, // HO
+		{ left: 0x49, right: 0x48, value: -20 }, // IH
+		{ left: 0x49, right: 0x4e, value: -10 }, // IN
+		{ left: 0x49, right: 0x4f, value: -30 }, // IO
+		{ left: 0x4f, right: 0x48, value: -10 }, // OH
+		{ left: 0x4f, right: 0x4e, value: -10 }, // ON
+		{ left: 0x4f, right: 0x54, value: -20 }, // OT
+		{ left: 0x4e, right: 0x4f, value: -10 }, // NO
+		{ left: 0x54, right: 0x4e, value: -20 }, // TN
+		{ left: 0x54, right: 0x4f, value: -30 }, // TO
+		// Lowercase pairs against n / o — the demo's drawn lowercase.
+		{ left: 0x6e, right: 0x6f, value: -10 }, // no
+		{ left: 0x6f, right: 0x6e, value: -10 }, // on
+		// Mixed-case caps following lowercase (common after-period case).
+		{ left: 0x6e, right: 0x48, value: 10 }, // nH
+		{ left: 0x6f, right: 0x48, value: 10 } // oH
+	];
+
+	// Sidebearing class: vertical-stem caps. H I T all share the same
+	// left/right whitespace by convention. Demonstrates the class system
+	// + the sidebearing-class-drift audit.
+	project.sidebearingClasses = [
+		{
+			id: crypto.randomUUID(),
+			name: 'Cap vertical stems',
+			members: [0x48, 0x49, 0x54, 0x4e] // H I T N
+		}
+	];
+
 	// A starter changelog entry so the Release tab shows something on first open.
 	project.changelog = [
 		{
