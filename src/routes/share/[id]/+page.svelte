@@ -17,6 +17,8 @@
 	import Copy from '@lucide/svelte/icons/copy';
 	import Check from '@lucide/svelte/icons/check';
 	import Printer from '@lucide/svelte/icons/printer';
+	import Link2 from '@lucide/svelte/icons/link-2';
+	import { onMount } from 'svelte';
 
 	let { data } = $props();
 	const project = $derived(data.project);
@@ -220,6 +222,53 @@
 			inspectorOverlayMasters = !inspectorOverlayMasters;
 		}
 	};
+
+	// Deep-linkable inspector. `?glyph=XXXX` (hex codepoint, no U+ prefix)
+	// opens the inspector at that glyph on load. Stepping or closing
+	// rewrites the URL via replaceState so designer-friends can copy the
+	// browser URL and share it directly — no extra Copy button needed,
+	// but we ship one too because the URL bar isn't always front-of-mind.
+	let linkCopied = $state(false);
+	const copyInspectorLink = async () => {
+		if (inspectedIndex === null) return;
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			linkCopied = true;
+			setTimeout(() => (linkCopied = false), 1500);
+		} catch {
+			// Clipboard denied — the URL is still in the address bar, so
+			// the designer can copy from there.
+		}
+	};
+	// On mount: parse ?glyph= and open the inspector at that codepoint.
+	// onMount (not $effect) so this only fires on initial load — closing
+	// the inspector later mustn't be undone by a reactive re-run.
+	onMount(() => {
+		const params = new URLSearchParams(window.location.search);
+		const hex = params.get('glyph');
+		if (!hex) return;
+		const cp = parseInt(hex, 16);
+		if (Number.isNaN(cp)) return;
+		const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
+		if (idx >= 0) inspectedIndex = idx;
+	});
+	// Sync URL when inspector state changes. replaceState (not pushState)
+	// so designer-friends don't accumulate dozens of arrow-step entries
+	// in their back button. Untracked-style: only writes the URL, never
+	// reads in this effect.
+	$effect(() => {
+		const g = inspectedGlyph;
+		const url = new URL(window.location.href);
+		if (g) {
+			url.searchParams.set('glyph', g.codepoint.toString(16).toUpperCase().padStart(4, '0'));
+		} else {
+			url.searchParams.delete('glyph');
+		}
+		const next = url.pathname + (url.search || '');
+		if (next !== window.location.pathname + window.location.search) {
+			window.history.replaceState(null, '', next);
+		}
+	});
 	const kerningLookup = $derived.by(() => {
 		const map = new Map<string, number>();
 		for (const k of project.kerning) {
@@ -1370,6 +1419,20 @@ body {
 						Masters
 					</button>
 				{/if}
+				<button
+					type="button"
+					onclick={copyInspectorLink}
+					class="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					title="Copy a direct link to this glyph"
+				>
+					{#if linkCopied}
+						<Check class="size-3" />
+						<span>Copied</span>
+					{:else}
+						<Link2 class="size-3" />
+						<span>Link</span>
+					{/if}
+				</button>
 				<button
 					type="button"
 					onclick={() => stepInspector(-1)}
