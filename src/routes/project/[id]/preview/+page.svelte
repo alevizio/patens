@@ -886,8 +886,28 @@ function rgb(hex) {
 			>
 				{activeSample}
 			</div>
-			<div class="mt-2 font-mono text-[11px] text-fg-subtle" data-numeric>
-				font-feature-settings: {featureSettings}
+			<div class="mt-2 flex items-baseline gap-2">
+				<code class="flex-1 font-mono text-[11px] text-fg-subtle" data-numeric>
+					font-feature-settings: {featureSettings}
+				</code>
+				<!-- One-click copy — designers building marketing pages or test
+				     CSS often want the exact settings string the preview is
+				     rendering against. -->
+				<button
+					type="button"
+					onclick={async () => {
+						try {
+							await navigator.clipboard.writeText(`font-feature-settings: ${featureSettings};`);
+							toast.success('CSS copied');
+						} catch {
+							toast.error('Clipboard write failed');
+						}
+					}}
+					class="shrink-0 rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+					title="Copy the full font-feature-settings declaration"
+				>
+					Copy
+				</button>
 			</div>
 		</Panel>
 
