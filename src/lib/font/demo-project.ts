@@ -339,6 +339,69 @@ export const createDemoProject = (): Project => {
 		}
 	];
 
+	// Two color palettes — default ("ink") + dark variant. Drives COLR
+	// rendering on the flagship `O` (below). Demonstrates the CPAL palette
+	// editor + the font-palette: light/dark CSS selector.
+	const PAL_DEFAULT_ID = crypto.randomUUID();
+	const PAL_DARK_ID = crypto.randomUUID();
+	project.palettes = [
+		{
+			id: PAL_DEFAULT_ID,
+			name: 'Default',
+			variant: 'default',
+			colors: [
+				{ r: 17, g: 17, b: 17, a: 1 }, // 0: ink (near-black)
+				{ r: 220, g: 38, b: 38, a: 1 }, // 1: warn red
+				{ r: 245, g: 158, b: 11, a: 0.85 } // 2: warm accent w/ alpha
+			]
+		},
+		{
+			id: PAL_DARK_ID,
+			name: 'Dark',
+			variant: 'dark',
+			colors: [
+				{ r: 245, g: 245, b: 245, a: 1 }, // 0: paper
+				{ r: 252, g: 165, b: 165, a: 1 }, // 1: soft red
+				{ r: 252, g: 211, b: 77, a: 0.85 } // 2: warm accent w/ alpha
+			]
+		}
+	];
+
+	// COLR layers on the flagship uppercase `O`. Three layers stack to
+	// produce a warm-on-ink ring effect: ink fill (full), red accent
+	// (offset slightly), warm highlight (smallest, alpha).
+	const O = project.glyphs[0x4f];
+	if (O && O.contours.length > 0) {
+		// Layer 0: ink fill — the existing monochrome shape itself.
+		// Layer 1: red accent — same shape, slightly nudged. (Demo
+		//    uses the same contours since the demo's O is a simple ring.)
+		// Layer 2: warm highlight — smaller inset.
+		const baseContours = JSON.parse(JSON.stringify(O.contours)) as typeof O.contours;
+		project.glyphs[0x4f] = {
+			...O,
+			colorLayers: [
+				{
+					id: crypto.randomUUID(),
+					name: 'ink',
+					contours: baseContours,
+					paletteIndex: 0
+				},
+				{
+					id: crypto.randomUUID(),
+					name: 'red accent',
+					contours: JSON.parse(JSON.stringify(baseContours)),
+					paletteIndex: 1
+				},
+				{
+					id: crypto.randomUUID(),
+					name: 'warm highlight',
+					contours: JSON.parse(JSON.stringify(baseContours)),
+					paletteIndex: 2
+				}
+			]
+		};
+	}
+
 	// A starter changelog entry so the Release tab shows something on first open.
 	project.changelog = [
 		{
