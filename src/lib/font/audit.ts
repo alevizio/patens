@@ -625,6 +625,48 @@ export const auditCompatibility = (project: Project): AuditIssue[] => {
 			}
 		}
 	}
+
+	// Axis-range sanity — each master's location must be within the
+	// declared range of every axis it references, AND must reference
+	// every declared axis (an axis without a value is undefined behaviour
+	// at export time).
+	const axes = project.axes ?? [];
+	const axisByTag = new Map(axes.map((a) => [a.tag, a]));
+	for (const m of project.masters ?? []) {
+		// Each location entry must be in-range.
+		for (const [tag, value] of Object.entries(m.location)) {
+			const axis = axisByTag.get(tag);
+			if (!axis) {
+				issues.push({
+					codepoint: 0,
+					severity: 'warn',
+					code: 'master-axis-unknown',
+					message: `Master "${m.name}" references axis "${tag}" which isn't declared in project.axes`
+				});
+				continue;
+			}
+			if (value < axis.minimum || value > axis.maximum) {
+				issues.push({
+					codepoint: 0,
+					severity: 'error',
+					code: 'master-axis-out-of-range',
+					message: `Master "${m.name}" sits at ${tag}=${value} but axis range is ${axis.minimum}..${axis.maximum}`
+				});
+			}
+		}
+		// Every declared axis must have a value in this master.
+		for (const axis of axes) {
+			if (!(axis.tag in m.location)) {
+				issues.push({
+					codepoint: 0,
+					severity: 'warn',
+					code: 'master-axis-missing',
+					message: `Master "${m.name}" missing a value for axis "${axis.tag}" — interpolation is undefined`
+				});
+			}
+		}
+	}
+
 	return issues;
 };
 
@@ -1241,6 +1283,12 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'The number of contours differs across masters. VF interpolation requires identical contour count and order in every master.',
 		'master-point-count':
 			'A specific contour has different point counts across masters. Same constraint as master-contour-count, one level deeper.',
+		'master-axis-unknown':
+			'A master\'s location references an axis tag the project doesn\'t declare. The unknown axis is ignored at export — fix by adding the axis to project.axes or removing it from the master\'s location.',
+		'master-axis-out-of-range':
+			'A master\'s axis value sits outside the declared range. The interpolation engine will clip to the nearest valid value, producing unexpected geometry.',
+		'master-axis-missing':
+			'A master is missing a value for a declared axis. Interpolation is undefined at that axis — the export pipeline will substitute the axis default, which is rarely what the designer intended.',
 		// Notes / flags / naming
 		'notes-todo':
 			'The glyph\'s notes field contains TODO or FIXME — an unresolved work item the designer left for future iteration.',
