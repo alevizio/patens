@@ -227,6 +227,21 @@
 		return out;
 	});
 
+	// OpenGraph metadata — derived so social cards always reflect current
+	// project state. Description truncated to 200 chars (well under the
+	// 300-char Twitter limit) and falls back to a spec summary when the
+	// brief is unpopulated.
+	const shareTitle = $derived(
+		`${project.metadata.familyName} · ${project.metadata.styleName}`
+	);
+	const shareDesc = $derived.by(() => {
+		const briefIntent = project.brief?.intent?.split('. ')[0]?.slice(0, 200);
+		if (briefIntent) return briefIntent;
+		if (project.description) return project.description.slice(0, 200);
+		const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
+		return `${drawn} drawn glyphs · UPM ${project.metrics.unitsPerEm} · ${project.kerning.length} kerning pairs`;
+	});
+
 	// Specs block — pulled from project state for the visitor footer.
 	const specs = $derived.by(() => {
 		const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
@@ -245,8 +260,16 @@
 </script>
 
 <svelte:head>
-	<title>{project.metadata.familyName} — Shared view</title>
-	<meta name="description" content="Read-only view of {project.metadata.familyName}" />
+	<title>{project.metadata.familyName} — {project.metadata.styleName}</title>
+	<meta name="description" content={shareDesc} />
+	<!-- OpenGraph for link unfurls on Twitter, Slack, Discord, iMessage. -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content={shareTitle} />
+	<meta property="og:description" content={shareDesc} />
+	<meta property="og:site_name" content="Font Studio" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content={shareTitle} />
+	<meta name="twitter:description" content={shareDesc} />
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-6 py-8">
