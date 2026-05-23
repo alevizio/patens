@@ -409,6 +409,180 @@ const buildS = (): BezierContour[] => {
 	];
 };
 
+// Geometric digits — tabular-width, cap-height tall. Stem width matches
+// the letters. Each digit is a small composition of rects + (where
+// needed) the ring helper from buildO.
+const DIGIT_W = Math.round(CAP_W * 0.65);
+const digitRing = (cx: number, cy: number, rx: number, ry: number, ccw = false): Array<[number, number]> => {
+	const sides = 16;
+	const pts: Array<[number, number]> = [];
+	for (let i = 0; i < sides; i++) {
+		const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+		pts.push([cx + Math.cos(angle) * rx, cy + Math.sin(angle) * ry]);
+	}
+	return pts;
+};
+const build0 = (): BezierContour[] => {
+	const cx = DIGIT_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = DIGIT_W / 2 - 60;
+	const ry = CAP_HEIGHT / 2;
+	const t = STEM - 10;
+	return [
+		poly(digitRing(cx, cy, rx, ry), 'cw'),
+		poly(digitRing(cx, cy, rx - t, ry - t, true), 'ccw')
+	];
+};
+const build1 = (): BezierContour[] => [
+	poly([
+		[DIGIT_W / 2 - STEM / 2, 0],
+		[DIGIT_W / 2 + STEM / 2, 0],
+		[DIGIT_W / 2 + STEM / 2, CAP_HEIGHT],
+		[DIGIT_W / 2 - STEM / 2, CAP_HEIGHT]
+	]),
+	// Flag/serif at top
+	poly([
+		[DIGIT_W / 2 - STEM / 2 - 80, CAP_HEIGHT - 100],
+		[DIGIT_W / 2 - STEM / 2, CAP_HEIGHT],
+		[DIGIT_W / 2 - STEM / 2 + 20, CAP_HEIGHT - 80],
+		[DIGIT_W / 2 - STEM / 2 - 60, CAP_HEIGHT - 180]
+	])
+];
+const build2 = (): BezierContour[] => {
+	// Top arc → diagonal → bottom bar. Simplified as five rects.
+	const w = DIGIT_W;
+	return [
+		// Top bar
+		poly([
+			[60, CAP_HEIGHT - BAR],
+			[w - 60, CAP_HEIGHT - BAR],
+			[w - 60, CAP_HEIGHT],
+			[60, CAP_HEIGHT]
+		]),
+		// Right top stem (cap level to middle)
+		poly([
+			[w - 60 - STEM, CAP_HEIGHT * 0.55],
+			[w - 60, CAP_HEIGHT * 0.55],
+			[w - 60, CAP_HEIGHT - BAR],
+			[w - 60 - STEM, CAP_HEIGHT - BAR]
+		]),
+		// Diagonal as a slanted rect
+		poly([
+			[60, BAR],
+			[60 + STEM, 0],
+			[w - 60, CAP_HEIGHT * 0.55],
+			[w - 60 - STEM, CAP_HEIGHT * 0.55 - BAR]
+		]),
+		// Bottom bar
+		poly([
+			[60, 0],
+			[w - 60, 0],
+			[w - 60, BAR],
+			[60, BAR]
+		])
+	];
+};
+const build3 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const upper = CAP_HEIGHT * 0.6;
+	return [
+		// Top bar
+		poly([[60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Right top stem
+		poly([[w - 60 - STEM, upper], [w - 60, upper], [w - 60, CAP_HEIGHT - BAR], [w - 60 - STEM, CAP_HEIGHT - BAR]]),
+		// Middle bar
+		poly([[60, upper - BAR], [w - 60, upper - BAR], [w - 60, upper], [60, upper]]),
+		// Right bottom stem
+		poly([[w - 60 - STEM, BAR], [w - 60, BAR], [w - 60, upper - BAR], [w - 60 - STEM, upper - BAR]]),
+		// Bottom bar
+		poly([[60, 0], [w - 60, 0], [w - 60, BAR], [60, BAR]])
+	];
+};
+const build4 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const mid = CAP_HEIGHT * 0.4;
+	return [
+		// Right stem (full height)
+		poly([[w - 60 - STEM, 0], [w - 60, 0], [w - 60, CAP_HEIGHT], [w - 60 - STEM, CAP_HEIGHT]]),
+		// Left stem (top half down to crossbar)
+		poly([[60, mid], [60 + STEM, mid], [60 + STEM, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Crossbar
+		poly([[60, mid - BAR], [w - 60, mid - BAR], [w - 60, mid], [60, mid]])
+	];
+};
+const build5 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const upper = CAP_HEIGHT * 0.55;
+	return [
+		// Top bar
+		poly([[60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Left top stem
+		poly([[60, upper], [60 + STEM, upper], [60 + STEM, CAP_HEIGHT - BAR], [60, CAP_HEIGHT - BAR]]),
+		// Middle bar
+		poly([[60, upper - BAR], [w - 60, upper - BAR], [w - 60, upper], [60, upper]]),
+		// Right bottom stem
+		poly([[w - 60 - STEM, BAR], [w - 60, BAR], [w - 60, upper - BAR], [w - 60 - STEM, upper - BAR]]),
+		// Bottom bar
+		poly([[60, 0], [w - 60, 0], [w - 60, BAR], [60, BAR]])
+	];
+};
+const build6 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const mid = CAP_HEIGHT * 0.5;
+	return [
+		// Outer left stem (top to bottom)
+		poly([[60, 0], [60 + STEM, 0], [60 + STEM, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Top bar
+		poly([[60 + STEM, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT], [60 + STEM, CAP_HEIGHT]]),
+		// Middle bar (closes the bowl)
+		poly([[60 + STEM, mid], [w - 60, mid], [w - 60, mid + BAR], [60 + STEM, mid + BAR]]),
+		// Bottom bowl right stem
+		poly([[w - 60 - STEM, BAR], [w - 60, BAR], [w - 60, mid + BAR], [w - 60 - STEM, mid + BAR]]),
+		// Bottom bar
+		poly([[60, 0], [w - 60, 0], [w - 60, BAR], [60, BAR]])
+	];
+};
+const build7 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	return [
+		// Top bar
+		poly([[60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT - BAR], [w - 60, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Diagonal stem
+		poly([
+			[w - 60 - STEM, CAP_HEIGHT - BAR],
+			[w - 60, CAP_HEIGHT - BAR],
+			[60 + STEM, 0],
+			[60, 0]
+		])
+	];
+};
+const build8 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const mid = CAP_HEIGHT * 0.5;
+	return [
+		// Top bowl outer
+		poly(digitRing(w / 2, (CAP_HEIGHT + mid + BAR / 2) / 2, w / 2 - 60, (CAP_HEIGHT - mid - BAR / 2) / 2), 'cw'),
+		poly(digitRing(w / 2, (CAP_HEIGHT + mid + BAR / 2) / 2, w / 2 - 60 - (STEM - 10), (CAP_HEIGHT - mid - BAR / 2) / 2 - (STEM - 10), true), 'ccw'),
+		// Bottom bowl outer
+		poly(digitRing(w / 2, (mid - BAR / 2) / 2, w / 2 - 60, (mid - BAR / 2) / 2), 'cw'),
+		poly(digitRing(w / 2, (mid - BAR / 2) / 2, w / 2 - 60 - (STEM - 10), (mid - BAR / 2) / 2 - (STEM - 10), true), 'ccw')
+	];
+};
+const build9 = (): BezierContour[] => {
+	const w = DIGIT_W;
+	const mid = CAP_HEIGHT * 0.5;
+	return [
+		// Outer right stem (top to bottom)
+		poly([[w - 60 - STEM, 0], [w - 60, 0], [w - 60, CAP_HEIGHT], [w - 60 - STEM, CAP_HEIGHT]]),
+		// Top bar
+		poly([[60, CAP_HEIGHT - BAR], [w - 60 - STEM, CAP_HEIGHT - BAR], [w - 60 - STEM, CAP_HEIGHT], [60, CAP_HEIGHT]]),
+		// Top bowl left stem
+		poly([[60, mid + BAR], [60 + STEM, mid + BAR], [60 + STEM, CAP_HEIGHT - BAR], [60, CAP_HEIGHT - BAR]]),
+		// Middle bar (closes the bowl)
+		poly([[60, mid], [w - 60 - STEM, mid], [w - 60 - STEM, mid + BAR], [60, mid + BAR]])
+	];
+};
+
 // acutecomb (U+0301) — a small angled bar floating just above cap-height,
 // designed as a mark that attaches to base letters via the `_top` anchor.
 // Shape: slanted parallelogram 60fu wide, 80fu tall.
@@ -518,6 +692,18 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x50, contours: buildP(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x46, contours: buildF(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x53, contours: buildS(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	// Digits — tabular-width (DIGIT_W), all the same advance so they form
+	// neat columns. Cap-height tall.
+	{ codepoint: 0x30, contours: build0(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x31, contours: build1(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x32, contours: build2(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x33, contours: build3(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x34, contours: build4(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x35, contours: build5(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x36, contours: build6(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x37, contours: build7(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x38, contours: build8(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x39, contours: build9(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
@@ -754,6 +940,11 @@ export const createDemoProject = (): Project => {
 			id: crypto.randomUUID(),
 			name: 'Lowercase stems',
 			members: [0x6e, 0x61] // n a
+		},
+		{
+			id: crypto.randomUUID(),
+			name: 'Tabular figures',
+			members: [0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39] // 0-9
 		}
 	];
 
