@@ -310,6 +310,26 @@ const buildR = (): BezierContour[] => [
 	])
 ];
 
+// acutecomb (U+0301) — a small angled bar floating just above cap-height,
+// designed as a mark that attaches to base letters via the `_top` anchor.
+// Shape: slanted parallelogram 60fu wide, 80fu tall.
+const buildAcuteComb = (): BezierContour[] => {
+	// Mark coordinates are local; `_top` anchor will be placed at the
+	// bottom-centre so the composite snaps onto the base's `top` anchor.
+	const y0 = CAP_HEIGHT + 50; // bottom of mark sits 50fu above cap-height
+	const y1 = y0 + 90; // top of mark
+	const cx = 100;
+	const skew = 30; // slant offset
+	return [
+		poly([
+			[cx - 30 + skew, y0],
+			[cx + 30 + skew, y0],
+			[cx + 30, y1],
+			[cx - 30, y1]
+		])
+	];
+};
+
 // lowercase a — single-storey alternate (ss01). Geometric circle bowl +
 // right stem flowing down. Demonstrates the OpenType stylistic-set feature.
 const buildA_lc_ss01 = (): BezierContour[] => {
@@ -451,6 +471,58 @@ export const createDemoProject = (): Project => {
 		notes: 'Single-storey alternate `a` — the geometric counterpart to the default two-storey form. Reach via font-feature-settings: \'ss01\' 1.',
 		updatedAt: new Date().toISOString()
 	};
+
+	// Combining acute (U+0301) — the mark glyph that pairs with base
+	// glyphs via the `_top` / `top` anchor convention. Drawn with the
+	// `_top` anchor at the bottom-centre of the mark so it lands on the
+	// base's `top` anchor when composed.
+	const ACUTECOMB = 0x0301;
+	const acuteShape = buildAcuteComb();
+	project.glyphs[ACUTECOMB] = {
+		codepoint: ACUTECOMB,
+		name: 'acutecomb',
+		status: 'draft',
+		advanceWidth: 0, // marks have zero advance
+		leftSidebearing: 0,
+		rightSidebearing: 0,
+		contours: acuteShape,
+		anchors: [
+			// `_top` at (100, CAP_HEIGHT) — sits at the bottom-centre of
+			// the mark shape (y matches the buildAcuteComb baseline + 0).
+			{ name: '_top', x: 100, y: CAP_HEIGHT + 50 }
+		],
+		tags: ['mark'],
+		notes: 'Combining acute. `_top` anchor pairs with the `top` anchor on Latin caps + lowercase via the GPOS mark feature.',
+		updatedAt: new Date().toISOString()
+	};
+
+	// Aacute (U+00C1) — composite of A + acutecomb. Anchor-snap math:
+	// A.top is at (CAP_W/2, CAP_HEIGHT); acutecomb._top is at (100, CAP_HEIGHT+50).
+	// mark.offset = base.offset + base.anchor - mark.anchor
+	//             = (0, 0) + (CAP_W/2, CAP_HEIGHT) - (100, CAP_HEIGHT + 50)
+	//             = (CAP_W/2 - 100, -50)
+	const AACUTE = 0x00c1;
+	const Aglyph = project.glyphs[0x41];
+	if (Aglyph) {
+		const markOffsetX = Math.round(Aglyph.advanceWidth / 2 - 100);
+		const markOffsetY = -50;
+		project.glyphs[AACUTE] = {
+			codepoint: AACUTE,
+			name: 'Aacute',
+			status: 'draft',
+			advanceWidth: Aglyph.advanceWidth,
+			leftSidebearing: Aglyph.leftSidebearing,
+			rightSidebearing: Aglyph.rightSidebearing,
+			contours: [],
+			components: [
+				{ baseCodepoint: 0x41, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: ACUTECOMB, offsetX: markOffsetX, offsetY: markOffsetY }
+			],
+			tags: ['composite'],
+			notes: 'Composite: A + acutecomb. Anchor-snapped — the mark\'s _top anchor sits exactly on A\'s top anchor.',
+			updatedAt: new Date().toISOString()
+		};
+	}
 
 	// Pre-fill the Brief so the user sees a complete project, not just
 	// glyphs. Six fields filled = 100% brief completion.
