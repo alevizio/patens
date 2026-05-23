@@ -1074,7 +1074,17 @@
 										     the home page without opening each. Links into
 										     the audit page via the context menu's Open audit
 										     entry. -->
-										<div class="mt-0.5 inline-flex items-center gap-1.5 text-[11px]" data-numeric>
+										<button
+											type="button"
+											onclick={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												goto(`/project/${p.id}/audit`);
+											}}
+											class="mt-0.5 inline-flex items-center gap-1.5 text-[11px] hover:underline"
+											data-numeric
+											title="{p.auditErrorCount ?? 0} errors, {p.auditWarnCount ?? 0} warnings — open this project's audit"
+										>
 											{#if (p.auditErrorCount ?? 0) > 0}
 												<span class="font-medium text-danger-strong">
 													{p.auditErrorCount}e
@@ -1085,9 +1095,20 @@
 													{p.auditWarnCount}w
 												</span>
 											{/if}
-										</div>
+										</button>
 									{:else if p.glyphCount > 0}
-										<div class="mt-0.5 text-[10px] text-success">✓ audit clean</div>
+										<button
+											type="button"
+											onclick={(e) => {
+												e.preventDefault();
+												e.stopPropagation();
+												goto(`/project/${p.id}/audit`);
+											}}
+											class="mt-0.5 inline-block text-[10px] text-success hover:underline"
+											title="Audit clean — open to verify"
+										>
+											✓ audit clean
+										</button>
 									{/if}
 									{#if p.tagline}
 										<div
