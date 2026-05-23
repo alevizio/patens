@@ -23,7 +23,7 @@
 		describeAuditCode,
 		sortBySeverity
 	} from '$lib/font/audit';
-	import { suggestAnchors } from '$lib/font/anchors-suggest';
+	import { suggestAnchors, findAnchorDrift } from '$lib/font/anchors-suggest';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Button from '$lib/ui/Button.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -2678,6 +2678,32 @@
 								Suggest anchors from bbox
 							</button>
 						{/if}
+					{/if}
+					<!-- Project-wide apply — runs findAnchorDrift and applies the
+					     bbox suggestions to every glyph that needs them. Hidden
+					     when zero glyphs have drift. -->
+					{@const projectDrift = findAnchorDrift(projectStore.project)}
+					{#if projectDrift.length > 0}
+						<button
+							type="button"
+							onclick={() => {
+								for (const item of projectDrift) {
+									projectStore.applyAnchorSuggestions(
+										item.codepoint,
+										item.suggestions.map((s) => ({ name: s.name, x: s.x, y: s.y }))
+									);
+								}
+								toast.success(
+									`Applied bbox anchors to ${projectDrift.length} glyph${projectDrift.length === 1 ? '' : 's'}.`
+								);
+							}}
+							class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+							title="Re-centre anchors on bbox for every glyph in the project that's drifted"
+						>
+							Apply to {projectDrift.length} drifted glyph{projectDrift.length === 1
+								? ''
+								: 's'} project-wide
+						</button>
 					{/if}
 				{/if}
 				{#if glyph.anchors && glyph.anchors.length > 0}
