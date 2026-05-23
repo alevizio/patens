@@ -208,10 +208,23 @@
 			for (const g of Object.values(project.glyphs)) {
 				if (g.contours.length === 0) continue;
 				if (g.codepoint === 0x0048 || g.codepoint === 0x006e) continue; // skip refs
-				// Categorise by codepoint range — basic Latin only.
+				// Categorise by codepoint range — basic Latin + figures +
+				// common punctuation. Figures and punctuation typically share
+				// cap-style spacing, so they ride the uppercase reference.
+				// All-caps fonts (no `n` drawn) still auto-space cleanly via
+				// the uppercase reference alone.
 				let category: 'uppercase' | 'lowercase' | null = null;
 				if (g.codepoint >= 0x0041 && g.codepoint <= 0x005a) category = 'uppercase';
 				else if (g.codepoint >= 0x0061 && g.codepoint <= 0x007a) category = 'lowercase';
+				else if (g.codepoint >= 0x0030 && g.codepoint <= 0x0039) category = 'uppercase'; // 0-9
+				else if (
+					(g.codepoint >= 0x0021 && g.codepoint <= 0x002f) ||
+					(g.codepoint >= 0x003a && g.codepoint <= 0x0040) ||
+					(g.codepoint >= 0x005b && g.codepoint <= 0x0060) ||
+					(g.codepoint >= 0x007b && g.codepoint <= 0x007e)
+				) {
+					category = 'uppercase'; // ASCII punctuation
+				}
 				if (!category) continue;
 				const ref = category === 'uppercase' ? refMeasurementCaps : refMeasurementLower;
 				const refGlyph = category === 'uppercase' ? refH : refN;
