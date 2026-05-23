@@ -73,6 +73,12 @@
 	let tryMasterId = $state<string | undefined>(undefined);
 	let trySize = $state(96); // SVG render height in pixels
 	let tryTracking = $state(0); // extra advance per glyph, UPM units
+	// Active OpenType features in the tester. Each detected feature (ss01,
+	// smcp, salt, etc.) can be toggled live so visitors see exactly what
+	// the feature does to their text — the chip list above is awareness,
+	// these toggles are tangible. kern is always on; liga isn't a single
+	// sub so it's not yet wired here.
+	let activeFeatures = $state<Set<string>>(new Set());
 	// Resolve a glyph in the context of a chosen master — overrides win,
 	// project glyph is the fallback. Mirrors the export pipeline's lookup
 	// so what visitors preview matches what they'd download. Hoisted up
@@ -84,6 +90,62 @@
 			if (ov && ov.contours.length > 0) return ov;
 		}
 		return project.glyphs[cp];
+	};
+	// Name → Glyph index, derived once per master change. Used by the
+	// feature applier: detectFeatures returns substitutions as name pairs
+	// (e.g. "a" → "a.ss01"), so applying them live needs a name lookup.
+	const glyphByName = $derived.by(() => {
+		const map = new Map<string, ReturnType<typeof resolveGlyphForMaster>>();
+		for (const g of Object.values(project.glyphs)) map.set(g.name, g);
+		const m = project.masters?.find((x) => x.id === tryMasterId);
+		if (m) {
+			for (const ov of Object.values(m.glyphs ?? {})) {
+				if (ov.contours.length > 0) map.set(ov.name, ov);
+			}
+		}
+		return map;
+	});
+	// Detected features for the project, available to the toggles + the
+	// substitution applier. Stored as an ordered list (matches feature
+	// chip order) so visitors see them grouped predictably.
+	const detectedFeatures = $derived.by(() => {
+		const autoOn = project.features.autoFeatures !== false;
+		if (!autoOn) return [];
+		const disabled = new Set(project.features.disabledAutoFeatures ?? []);
+		return detectFeatures(project.glyphs).filter((f) => !disabled.has(f.feature));
+	});
+	// Per-feature substitution maps: tag → (from name → to name). Built
+	// once so the typeset applier doesn't rescan on every keystroke.
+	const featureSubMaps = $derived.by(() => {
+		const out = new Map<string, Map<string, string>>();
+		for (const f of detectedFeatures) {
+			const m = new Map<string, string>();
+			for (const s of f.subs) m.set(s.from, s.to);
+			out.set(f.feature, m);
+		}
+		return out;
+	});
+	// Apply active feature substitutions to a resolved glyph. Returns the
+	// substituted glyph if any active feature has a sub for this glyph's
+	// name AND the substituted glyph exists; otherwise the original.
+	const applyFeatures = (g: ReturnType<typeof resolveGlyphForMaster>) => {
+		if (!g || activeFeatures.size === 0) return g;
+		let name = g.name;
+		// Iterate in detection order so the user sees deterministic results
+		// when two features could chain (e.g. smcp then salt).
+		for (const f of detectedFeatures) {
+			if (!activeFeatures.has(f.feature)) continue;
+			const next = featureSubMaps.get(f.feature)?.get(name);
+			if (next) name = next;
+		}
+		if (name === g.name) return g;
+		return glyphByName.get(name) ?? g;
+	};
+	const toggleFeature = (tag: string) => {
+		const next = new Set(activeFeatures);
+		if (next.has(tag)) next.delete(tag);
+		else next.add(tag);
+		activeFeatures = next;
 	};
 	const kerningLookup = $derived.by(() => {
 		const map = new Map<string, number>();
@@ -107,7 +169,8 @@
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const g = resolveGlyphForMaster(cp, tryMasterId);
+			const base = resolveGlyphForMaster(cp, tryMasterId);
+			const g = applyFeatures(base);
 			if (!g || g.contours.length === 0) {
 				// Missing glyph — render as a hollow box at half-em width.
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
@@ -536,6 +599,34 @@ body {
 				{/if}
 			</label>
 		</div>
+		{#if detectedFeatures.length > 0}
+			<div class="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+				<span class="text-fg-subtle">Features</span>
+				{#each detectedFeatures as f (f.feature)}
+					{@const on = activeFeatures.has(f.feature)}
+					<button
+						type="button"
+						onclick={() => toggleFeature(f.feature)}
+						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono transition-colors {on
+							? 'border-accent bg-accent-soft/40 text-fg'
+							: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
+						title="{featureLabel(f.feature)} — {f.subs.length} substitution{f.subs.length === 1 ? '' : 's'}"
+					>
+						<span>{f.feature}</span>
+						<span class="text-[9px] text-fg-subtle" data-numeric>{f.subs.length}</span>
+					</button>
+				{/each}
+				{#if activeFeatures.size > 0}
+					<button
+						type="button"
+						onclick={() => (activeFeatures = new Set())}
+						class="ml-1 text-[10px] text-fg-subtle hover:text-fg"
+					>
+						clear
+					</button>
+				{/if}
+			</div>
+		{/if}
 		<div
 			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6"
 			style="--font-baseline: {ascender}px;"
