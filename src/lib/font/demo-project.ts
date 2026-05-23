@@ -1743,8 +1743,8 @@ const DRAWN: GlyphSpec[] = [
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
 export const createDemoProject = (): Project => {
 	const project = createProject({
-		name: 'Studio Geometric (example)',
-		familyName: 'Studio Geometric Demo',
+		name: 'Studio Geometric — demo',
+		familyName: 'Studio Geometric',
 		kind: 'ui'
 	});
 
