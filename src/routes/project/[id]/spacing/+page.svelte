@@ -1018,11 +1018,20 @@
 
 <div class="h-full overflow-auto">
 <div class="mx-auto flex max-w-5xl flex-col gap-6 p-6">
-	<header>
-		<h1 class="text-xl font-semibold tracking-tight">Spacing &amp; kerning</h1>
-		<p class="text-sm text-fg-muted">
-			Per-glyph sidebearings are edited in the glyph editor. Set kerning pairs here.
-		</p>
+	<header class="flex items-baseline justify-between gap-3">
+		<div>
+			<h1 class="text-xl font-semibold tracking-tight">Spacing &amp; kerning</h1>
+			<p class="text-sm text-fg-muted">
+				Per-glyph sidebearings are edited in the glyph editor. Set kerning pairs here.
+			</p>
+		</div>
+		<!-- At-a-glance counts. Sidebearing classes are how spacing edits
+		     ripple across grouped glyphs; the kerning count is the work
+		     done in this page. Both are passive indicators. -->
+		<div class="font-mono text-[11px] text-fg-subtle" data-numeric>
+			{(project?.kerning?.length ?? 0)} pair{(project?.kerning?.length ?? 0) === 1 ? '' : 's'} ·
+			{(project?.sidebearingClasses?.length ?? 0)} SB class{(project?.sidebearingClasses?.length ?? 0) === 1 ? '' : 'es'}
+		</div>
 	</header>
 
 	<!-- Auto-space — silhouette-area suggester. Uses 'H' as the cap
