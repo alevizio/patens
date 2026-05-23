@@ -168,6 +168,21 @@
 	const autoPasses = $derived(errors === 0 && drawn >= 26);
 	const readyToShip = $derived(autoPasses && manualPct === 100);
 
+	// Celebrate the first transition from not-ready → ready in a session.
+	// Plain `let` (not $state) on the latch so writing it inside the
+	// effect doesn't retrigger the effect itself. Reaches for the same
+	// celebrate() helper the audit page uses on its all-pass moment.
+	let lastSeenReady = false;
+	$effect(() => {
+		if (readyToShip && !lastSeenReady) {
+			(async () => {
+				const { celebrate } = await import('$lib/delight');
+				celebrate('large');
+			})();
+		}
+		lastSeenReady = readyToShip;
+	});
+
 	// Google Fonts onboarding readiness — based on the official requirements
 	// (OFL 1.1, fsType=0, complete metadata, full Basic Latin). This is an
 	// approximation of FontBakery's check-googlefonts profile, not a substitute.
