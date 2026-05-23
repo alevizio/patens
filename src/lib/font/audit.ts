@@ -622,6 +622,12 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		issues.push({ codepoint: 0, severity: 'warn', code: 'naming-family-long', message: 'Family name longer than 31 characters may break legacy app menus' });
 	if (/[^A-Za-z0-9 -]/.test(project.metadata.familyName))
 		issues.push({ codepoint: 0, severity: 'warn', code: 'naming-family-chars', message: 'Family name contains special characters — some apps reject anything beyond letters/digits/space' });
+	if (!project.metadata.designer?.trim())
+		issues.push({ codepoint: 0, severity: 'info', code: 'naming-designer-missing', message: 'Designer name is empty — appears as "Unknown" in font browsers and metadata views' });
+	if (!project.metadata.copyright?.trim())
+		issues.push({ codepoint: 0, severity: 'info', code: 'naming-copyright-missing', message: 'Copyright line is empty — recommended for distribution + legal clarity' });
+	if (!project.metadata.license?.trim())
+		issues.push({ codepoint: 0, severity: 'info', code: 'naming-license-missing', message: 'License text is empty — pick an SPDX identifier or paste your custom EULA to make distribution terms explicit' });
 
 	// Vertical metrics consistency (Google Fonts: hhea should match typo)
 	const vm = resolveVerticalMetrics(project.metrics);
@@ -677,6 +683,26 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			severity: 'warn',
 			code: 'metrics-zero-height',
 			message: 'Cap-height or x-height is zero — auto-fit + spacing-by-reference algorithms will misbehave'
+		});
+	}
+
+	// Duplicate glyph names — fatal at OTF export time. Reports each
+	// repeating name once with a list of the codepoints sharing it.
+	const byName = new Map<string, number[]>();
+	for (const g of Object.values(project.glyphs)) {
+		if (!g.name) continue;
+		const list = byName.get(g.name) ?? [];
+		list.push(g.codepoint);
+		byName.set(g.name, list);
+	}
+	for (const [name, cps] of byName) {
+		if (cps.length < 2) continue;
+		const labels = cps.map((cp) => `U+${cp.toString(16).toUpperCase().padStart(4, '0')}`).join(', ');
+		issues.push({
+			codepoint: 0,
+			severity: 'error',
+			code: 'duplicate-glyph-name',
+			message: `Glyph name "${name}" used by ${cps.length} glyphs (${labels}) — OTF export will fail`
 		});
 	}
 
@@ -1212,7 +1238,15 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'metrics-zero-height':
 			'Cap-height or x-height is zero. Several algorithms (auto-spacing, spacing-by-reference, x-height alignment audit) depend on these to be positive — set them in the metrics inspector.',
 		'kerning-extreme':
-			'A kerning pair exceeds half the smaller glyph\'s advance — almost certainly a decimal typo (e.g. -500 typed when -50 was meant). Check the value in the spacing pair editor.'
+			'A kerning pair exceeds half the smaller glyph\'s advance — almost certainly a decimal typo (e.g. -500 typed when -50 was meant). Check the value in the spacing pair editor.',
+		'duplicate-glyph-name':
+			'Two or more glyphs share the same PostScript name. The OpenType post table requires unique names — OTF export fails. Rename the conflicting glyphs (the AGLFN suggestion chip + bulk AGLFN rename in the glyph browser are the fastest paths).',
+		'naming-designer-missing':
+			'Designer field is empty. The name appears in OS font browsers and any metadata-aware tool — leaving it blank shows "Unknown".',
+		'naming-copyright-missing':
+			'Copyright line is empty. Recommended for any distributed font — sets ownership and reuse boundaries.',
+		'naming-license-missing':
+			'License field is empty. Distributing without a license leaves recipients guessing about terms. Pick an SPDX identifier (e.g. "OFL-1.1") or paste your custom EULA.'
 	};
 	return descriptions[code];
 };
