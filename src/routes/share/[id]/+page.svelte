@@ -13,6 +13,8 @@
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Download from '@lucide/svelte/icons/download';
+	import Copy from '@lucide/svelte/icons/copy';
+	import Check from '@lucide/svelte/icons/check';
 
 	let { data } = $props();
 	const project = $derived(data.project);
@@ -326,6 +328,38 @@
 			axes: project.axes?.length ?? 0
 		};
 	});
+
+	// CSS embed snippet — exposed as a $derived so it can be copied in one
+	// place and rendered in another. Designers paste this into their site
+	// to use the font; the one-click copy beats hand-selecting from a <pre>.
+	const cssSnippet = $derived.by(() => {
+		const family = project.metadata.familyName;
+		const file = `${safeFilename(family)}-${safeFilename(project.metadata.styleName)}.woff2`;
+		const weight = project.familyAxes?.wght ?? 400;
+		const featureSettings = sharedFeatures.map((f) => `'${f.tag}' 1`).join(', ');
+		return `@font-face {
+  font-family: '${family}';
+  src: url('${file}') format('woff2');
+  font-weight: ${weight};
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: '${family}', sans-serif;${featureSettings ? `\n  font-feature-settings: ${featureSettings};` : ''}
+}`;
+	});
+	let snippetCopied = $state(false);
+	const copySnippet = async () => {
+		try {
+			await navigator.clipboard.writeText(cssSnippet);
+			snippetCopied = true;
+			setTimeout(() => (snippetCopied = false), 1500);
+		} catch {
+			// Clipboard access denied (rare on https). Fail silent — the
+			// snippet stays selectable as text so the designer can still copy.
+		}
+	};
 </script>
 
 <svelte:head>
@@ -760,25 +794,31 @@
 			</div>
 			<!-- CSS snippet for designers embedding via @font-face. Includes
 			     the @font-face rule + a feature-settings example with every
-			     non-default-on feature so designers see what's available. -->
+			     non-default-on feature so designers see what's available.
+			     One-click copy lands the whole thing on the clipboard. -->
 			<details class="mt-3 rounded-md border border-border bg-surface-2/30">
 				<summary class="cursor-pointer px-3 py-2 text-[11px] font-medium text-fg-muted hover:text-fg">
 					CSS embed snippet
 				</summary>
-				<pre
-					class="overflow-x-auto border-t border-border bg-canvas/60 px-3 py-3 font-mono text-[11px] leading-relaxed text-fg"><code
-						>{`@font-face {
-  font-family: '${project.metadata.familyName}';
-  src: url('${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.woff2') format('woff2');
-  font-weight: ${project.familyAxes?.wght ?? 400};
-  font-style: normal;
-  font-display: swap;
-}
-
-body {
-  font-family: '${project.metadata.familyName}', sans-serif;
-  font-feature-settings: ${sharedFeatures.map((f) => `'${f.tag}' 1`).join(', ')};
-}`}</code></pre>
+				<div class="relative">
+					<button
+						type="button"
+						onclick={copySnippet}
+						class="absolute right-2 top-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[10px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
+						title="Copy snippet to clipboard"
+					>
+						{#if snippetCopied}
+							<Check class="size-3" />
+							<span>Copied</span>
+						{:else}
+							<Copy class="size-3" />
+							<span>Copy</span>
+						{/if}
+					</button>
+					<pre
+						class="overflow-x-auto border-t border-border bg-canvas/60 px-3 py-3 pr-20 font-mono text-[11px] leading-relaxed text-fg"><code
+							>{cssSnippet}</code></pre>
+				</div>
 			</details>
 		</section>
 	{/if}
