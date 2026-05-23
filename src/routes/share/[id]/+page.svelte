@@ -165,6 +165,18 @@
 	// download. Builds the chosen format in-browser and triggers a save.
 	let downloading = $state<null | 'otf' | 'woff2'>(null);
 	let downloadError = $state<string | null>(null);
+	// Master selector — when the project has multiple masters, designers
+	// pick which one to build as a static OTF/WOFF2. A true variable
+	// font export needs Pyodide and is too heavy for the share page; this
+	// gives access to every master as a separate file.
+	let selectedMasterId = $state<string | undefined>(undefined);
+	const availableMasters = $derived.by(() => {
+		const list: Array<{ id: string | undefined; name: string }> = [
+			{ id: undefined, name: project.metadata.styleName || 'Regular' }
+		];
+		for (const m of project.masters ?? []) list.push({ id: m.id, name: m.name });
+		return list;
+	});
 	const safeFilename = (s: string): string => s.replace(/[^A-Za-z0-9_-]/g, '') || 'Font';
 	const triggerDownload = (buffer: ArrayBuffer, ext: 'otf' | 'woff2', mime: string) => {
 		const blob = new Blob([buffer], { type: mime });
@@ -177,14 +189,23 @@
 		document.body.removeChild(a);
 		URL.revokeObjectURL(url);
 	};
+	// Filename for downloads — incorporates the chosen master so files don't
+	// silently overwrite each other when designer-friends download multiple.
+	const downloadFilename = (ext: string): string => {
+		const family = safeFilename(project.metadata.familyName);
+		const style = safeFilename(
+			availableMasters.find((m) => m.id === selectedMasterId)?.name ?? project.metadata.styleName
+		);
+		return `${family}-${style}.${ext}`;
+	};
 	const downloadOtf = async () => {
 		if (downloading) return;
 		downloading = 'otf';
 		downloadError = null;
 		try {
 			const { buildFont } = await import('$lib/font/export');
-			const { font } = buildFont(project);
-			triggerDownload(font.toArrayBuffer(), 'otf', 'font/otf');
+			const { font } = buildFont(project, { masterId: selectedMasterId });
+			triggerDownloadNamed(font.toArrayBuffer(), downloadFilename('otf'), 'font/otf');
 		} catch (err) {
 			downloadError = err instanceof Error ? err.message : String(err);
 		} finally {
@@ -198,15 +219,26 @@
 		try {
 			const { buildFont } = await import('$lib/font/export');
 			const { otfToWoff2 } = await import('$lib/font/woff2');
-			const { font } = buildFont(project);
+			const { font } = buildFont(project, { masterId: selectedMasterId });
 			const otf = font.toArrayBuffer();
 			const woff2 = await otfToWoff2(otf);
-			triggerDownload(woff2, 'woff2', 'font/woff2');
+			triggerDownloadNamed(woff2, downloadFilename('woff2'), 'font/woff2');
 		} catch (err) {
 			downloadError = err instanceof Error ? err.message : String(err);
 		} finally {
 			downloading = null;
 		}
+	};
+	const triggerDownloadNamed = (buffer: ArrayBuffer, filename: string, mime: string) => {
+		const blob = new Blob([buffer], { type: mime });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
 	};
 
 	// Glyph tag inventory — same grouping logic as the design-md exporter.
@@ -330,28 +362,44 @@
 			{/if}
 		</div>
 		<!-- Download — two formats: OTF for install, WOFF2 for web.
-		     Both lazy-load the export pipeline only on click. -->
-		<div class="flex shrink-0 gap-2">
-			<button
-				type="button"
-				onclick={downloadOtf}
-				disabled={downloading !== null}
-				class="inline-flex items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
-				title="Download as OTF — install in macOS, Windows, design apps"
-			>
-				<Download class="size-3.5" />
-				{downloading === 'otf' ? 'Building…' : 'OTF'}
-			</button>
-			<button
-				type="button"
-				onclick={downloadWoff2}
-				disabled={downloading !== null}
-				class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent disabled:opacity-50"
-				title="Download as WOFF2 — for @font-face web embedding"
-			>
-				<Download class="size-3.5" />
-				{downloading === 'woff2' ? 'Building…' : 'WOFF2'}
-			</button>
+		     Both lazy-load the export pipeline only on click. When the
+		     project has masters, a selector lets the designer pick which
+		     to build as a static font. -->
+		<div class="flex shrink-0 flex-col items-end gap-2">
+			<div class="flex gap-2">
+				<button
+					type="button"
+					onclick={downloadOtf}
+					disabled={downloading !== null}
+					class="inline-flex items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
+					title="Download as OTF — install in macOS, Windows, design apps"
+				>
+					<Download class="size-3.5" />
+					{downloading === 'otf' ? 'Building…' : 'OTF'}
+				</button>
+				<button
+					type="button"
+					onclick={downloadWoff2}
+					disabled={downloading !== null}
+					class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent disabled:opacity-50"
+					title="Download as WOFF2 — for @font-face web embedding"
+				>
+					<Download class="size-3.5" />
+					{downloading === 'woff2' ? 'Building…' : 'WOFF2'}
+				</button>
+			</div>
+			{#if availableMasters.length > 1}
+				<select
+					bind:value={selectedMasterId}
+					disabled={downloading !== null}
+					class="rounded border border-border bg-surface px-2 py-0.5 text-[11px] outline-none focus:border-accent disabled:opacity-50"
+					title="Master to build as a static font"
+				>
+					{#each availableMasters as m (m.id ?? 'default')}
+						<option value={m.id}>{m.name}</option>
+					{/each}
+				</select>
+			{/if}
 		</div>
 	</header>
 	{#if downloadError}
