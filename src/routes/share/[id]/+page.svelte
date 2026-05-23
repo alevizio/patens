@@ -88,6 +88,17 @@
 	// share link was opened with ?print=1. Otherwise below-fold sections
 	// stay placeholders and the printed specimen sheet is half-empty.
 	let printRequested = $state(false);
+	// In-page Specimen button → same flow as the auto-print path so the
+	// PDF includes below-fold sections regardless of scroll position.
+	// window.print() is synchronously blocking, so a beforeprint
+	// listener that mutates $state can't paint in time — we have to
+	// force-mount + wait three frames, then print.
+	const triggerSpecimenPrint = () => {
+		printRequested = true;
+		requestAnimationFrame(() =>
+			requestAnimationFrame(() => requestAnimationFrame(() => window.print()))
+		);
+	};
 	// Sample-text presets — quick pills for the passages designers reach
 	// for first. Hamburgevons is the classic type-design proof word
 	// (stems + curves + key inks); pangram covers the alphabet; AaBbCc
@@ -440,7 +451,21 @@
 		if (params.get('print') === '1') {
 			printRequested = true;
 			requestAnimationFrame(() =>
-				requestAnimationFrame(() => requestAnimationFrame(() => window.print()))
+				requestAnimationFrame(() =>
+					requestAnimationFrame(() => {
+						window.print();
+						// Strip ?print=1 from the URL so a reload doesn't
+						// re-trigger the dialog. printRequested stays true
+						// so the lazy sections keep their forceMount path.
+						const u = new URL(window.location.href);
+						u.searchParams.delete('print');
+						window.history.replaceState(
+							null,
+							'',
+							u.pathname + (u.search || '')
+						);
+					})
+				)
 			);
 		}
 	});
@@ -1186,7 +1211,7 @@ body {
 				</button>
 				<button
 					type="button"
-					onclick={() => window.print()}
+					onclick={triggerSpecimenPrint}
 					class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent"
 					title="Print or save as PDF — type specimen sheet"
 				>
