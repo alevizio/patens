@@ -202,6 +202,19 @@
 		]);
 	});
 
+	// Unique tag set across the whole project — drives the datalist on the
+	// per-glyph Tags accordion so designers can autocomplete existing tags
+	// instead of typing fresh ones from scratch every time.
+	const existingProjectTags = $derived.by(() => {
+		const p = projectStore.project;
+		if (!p) return [] as string[];
+		const set = new Set<string>();
+		for (const g of Object.values(p.glyphs)) {
+			for (const t of g.tags ?? []) set.add(t);
+		}
+		return [...set].sort();
+	});
+
 	// AGLFN name suggestion. Returns the canonical Adobe Glyph List for
 	// New Fonts name for the current codepoint when (a) one exists, (b) it
 	// differs from the current name, and (c) it's a valid PostScript
@@ -3049,6 +3062,7 @@
 				<input
 					type="text"
 					placeholder="Add tag — Enter to save"
+					list="glyph-tag-suggestions"
 					onkeydown={(e) => {
 						if (e.key === 'Enter') {
 							const v = (e.currentTarget as HTMLInputElement).value;
@@ -3060,6 +3074,16 @@
 					}}
 					class="block w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent"
 				/>
+				<!-- Autocomplete from existing project tags — prevents drift
+				     (designer typing "wip" then later "WIP" then "in-progress"
+				     when they all should be one tag). datalist surfaces the
+				     full deduped tag set; lowercase normalisation happens at
+				     addGlyphTag time anyway. -->
+				<datalist id="glyph-tag-suggestions">
+					{#each existingProjectTags as t (t)}
+						<option value={t}></option>
+					{/each}
+				</datalist>
 				<p class="mt-1 text-[10px] text-fg-subtle">
 					Free-form taxonomy — lowercase, deduped. Useful for "needs-redraw",
 					"WIP", "v2", etc.
