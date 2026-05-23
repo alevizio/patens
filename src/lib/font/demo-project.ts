@@ -240,13 +240,68 @@ export const createDemoProject = (): Project => {
 		};
 	}
 
-	// Pre-fill the Brief so the user sees a complete project, not just glyphs.
+	// Pre-fill the Brief so the user sees a complete project, not just
+	// glyphs. Six fields filled = 100% brief completion.
 	project.brief = {
 		intent:
-			'A neutral monolinear geometric sans for product UI at 12–28px. Example project — open the Edit tab to see how the H, O, n, and o were drawn, then start adding more glyphs.',
-		useCases: ['web-ui', 'body-text'],
-		audience: 'Designers and engineers exploring Font Studio for the first time',
-		references: []
+			'A neutral monolinear geometric sans built for product interfaces at 12–28px. The aim is texture as steady as a column of bricks — readable at small sizes, calm at large ones, never calling attention to itself unless asked. Geometric construction gives the letters a clean, modern aesthetic without sacrificing legibility.',
+		audience:
+			'Designers and engineers building interfaces who need a typeface that disappears into the layout and lets the content speak. Equally happy in a Settings panel, a data table, or a marketing landing page.',
+		useCases: ['web-ui', 'body-text', 'display'],
+		readingConditions:
+			'Primarily on high-DPI screens at body sizes (12–18px) with optical sizing for larger heads (24–96px). Tested against macOS, iOS, Chrome on Android, and 1× / 2× Retina rendering. Should hold up at 12px on a low-DPI second monitor.',
+		differentiation:
+			'Where Inter and Manrope optimise for variable spans, this typeface optimises for the static body case: even rhythm, slightly tighter aperture on `c` and `e` so they hold their shape at 12px, and stylistic alternates (ss01) for designers who want a single-storey `a`.',
+		designNotes:
+			'Stem width 90fu (≈9% UPM); bar weight 80fu to match the optical balance at body sizes. Geometric letters (`O`, `o`) use circular construction; humanist letters (`a`, `g`) get a more handwritten lean. Kerning targets the AV/Ta/We pairs hardest — those carry most of the perceived spacing in Latin body text.',
+		references: [
+			{
+				id: crypto.randomUUID(),
+				name: 'Inter',
+				url: 'https://rsms.me/inter/',
+				kind: 'functional',
+				notes: 'The UI-grade benchmark. Reference for x-height proportion and spacing rhythm.'
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Söhne',
+				kind: 'competitive',
+				notes:
+					'Klim Type Foundry, 2019. Studied for the geometric/humanist crossover — particularly the way the lowercase a holds at small sizes.'
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Futura',
+				kind: 'historical',
+				notes:
+					"Paul Renner, 1927. The geometric grandparent; reference for `O` circularity and `n` shoulder."
+			}
+		]
+	};
+
+	// Two decisions captured in the design journal so the Brief tab's
+	// decision log isn't empty.
+	project.decisions = [
+		{
+			id: crypto.randomUUID(),
+			date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+			decision: 'Single-storey `a` as ss01 alternate, not the default',
+			rationale:
+				'Tested both in body copy. The two-storey `a` reads more solidly at 12-14px where most UI text lives. Single-storey reserved for designers who want the geometric look — opt in via the ss01 OpenType feature.'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+			decision: 'Stem width fixed at 90fu across uppercase + lowercase',
+			rationale:
+				'Tried 100fu for caps and 85fu for lowercase to match optical density. The contrast was too visible in mixed-case settings. 90fu reads as consistent across body text without looking mechanical.'
+		}
+	];
+
+	// Sample text the Preview + Specimen pages pick up.
+	project.samples = {
+		paragraph:
+			'Typography is the craft of endowing human language with a durable visual form, and thus with an independent existence. Its heartwood is calligraphy — the dance, on a tiny stage, of the living, speaking hand — and its roots reach into living soil, though its branches may be hung each year with new and shifting leaves.'
 	};
 
 	// A starter changelog entry so the Release tab shows something on first open.
@@ -256,7 +311,7 @@ export const createDemoProject = (): Project => {
 			version: '0.1.0-demo',
 			date: new Date().toISOString(),
 			notes:
-				'Initial example project shipped with Font Studio. Eight drawn glyphs across uppercase + lowercase.'
+				'Initial example project shipped with Font Studio. Eight drawn glyphs across uppercase + lowercase, kerning pairs, sidebearing classes, and a stylistic-alternate set.'
 		}
 	];
 
