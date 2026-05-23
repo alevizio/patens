@@ -310,6 +310,37 @@ const buildR = (): BezierContour[] => [
 	])
 ];
 
+// lowercase a — single-storey alternate (ss01). Geometric circle bowl +
+// right stem flowing down. Demonstrates the OpenType stylistic-set feature.
+const buildA_lc_ss01 = (): BezierContour[] => {
+	const cx = LC_W / 2 - 30;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 100;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		// Bowl — circular outer + circular counter.
+		poly(ring(rx, ry), 'cw'),
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Right stem going down from the bowl edge to the baseline.
+		poly([
+			[LC_W - 80 - STEM, 0],
+			[LC_W - 80, 0],
+			[LC_W - 80, X_HEIGHT],
+			[LC_W - 80 - STEM, X_HEIGHT]
+		])
+	];
+};
+
 // lowercase a — simple two-storey approximation: bowl + stem.
 const buildA_lc = (): BezierContour[] => [
 	// Stem on right
@@ -402,6 +433,24 @@ export const createDemoProject = (): Project => {
 			updatedAt: new Date().toISOString()
 		};
 	}
+
+	// Add the ss01 stylistic-alternate glyph at a PUA codepoint. The name
+	// `a.ss01` triggers feature-detect to emit a GSUB `feature ss01 { sub
+	// a by a.ss01; } ss01;` rule at export — the user can flip it on with
+	// font-feature-settings: 'ss01' 1 in the preview.
+	const ssOneCp = 0xe001;
+	project.glyphs[ssOneCp] = {
+		codepoint: ssOneCp,
+		name: 'a.ss01',
+		status: 'draft',
+		advanceWidth: LC_W,
+		leftSidebearing: 80,
+		rightSidebearing: 80,
+		contours: buildA_lc_ss01(),
+		tags: ['flagship', 'alternate'],
+		notes: 'Single-storey alternate `a` — the geometric counterpart to the default two-storey form. Reach via font-feature-settings: \'ss01\' 1.',
+		updatedAt: new Date().toISOString()
+	};
 
 	// Pre-fill the Brief so the user sees a complete project, not just
 	// glyphs. Six fields filled = 100% brief completion.
