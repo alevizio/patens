@@ -7,6 +7,24 @@ import { parse as parseFont } from 'opentype.js';
 import type { BezierContour, FontMetrics, Glyph, PathCommand, Project } from './types';
 import { DEFAULT_FEATURES } from './types';
 import { DEFAULT_GLYPH_SET } from './glyph-set';
+import { glyphBounds } from './path';
+
+// Derive LSB/RSB from the actual contour bbox + advance. Empty glyphs fall
+// back to the project default sidebearing.
+const computeSidebearings = (
+	contours: BezierContour[],
+	advanceWidth: number,
+	defaultSb: number
+): { leftSidebearing: number; rightSidebearing: number } => {
+	if (contours.length === 0) {
+		return { leftSidebearing: defaultSb, rightSidebearing: defaultSb };
+	}
+	const b = glyphBounds(contours);
+	return {
+		leftSidebearing: Math.round(b.minX),
+		rightSidebearing: Math.round(advanceWidth - b.maxX)
+	};
+};
 
 const newId = () => crypto.randomUUID();
 const now = () => new Date().toISOString();
@@ -83,6 +101,7 @@ export const importFromOtf = async (file: File): Promise<ImportResult> => {
 		tables: Record<string, unknown>;
 		names: Record<string, unknown>;
 		glyphs: { length: number; get(i: number): unknown };
+		kerningPairs?: Record<string, number>;
 	};
 
 	const upm = font.unitsPerEm || 1000;
@@ -139,13 +158,14 @@ export const importFromOtf = async (file: File): Promise<ImportResult> => {
 			| undefined;
 		if (otg) {
 			const contours = splitIntoContours(otg.path.commands);
+			const sb = computeSidebearings(contours, otg.advanceWidth, metrics.defaultSidebearing);
 			glyphs[spec.codepoint] = {
 				codepoint: spec.codepoint,
 				name: otg.name || spec.name,
 				status: contours.length > 0 ? 'final' : 'empty',
 				advanceWidth: otg.advanceWidth,
-				leftSidebearing: metrics.defaultSidebearing,
-				rightSidebearing: metrics.defaultSidebearing,
+				leftSidebearing: sb.leftSidebearing,
+				rightSidebearing: sb.rightSidebearing,
 				contours,
 				updatedAt: now()
 			};
@@ -181,17 +201,42 @@ export const importFromOtf = async (file: File): Promise<ImportResult> => {
 			path: { commands: Parameters<typeof splitIntoContours>[0] };
 		};
 		const contours = splitIntoContours(g.path.commands);
+		const sb = computeSidebearings(contours, g.advanceWidth, metrics.defaultSidebearing);
 		glyphs[cp] = {
 			codepoint: cp,
 			name: g.name || `uni${cp.toString(16).toUpperCase().padStart(4, '0')}`,
 			status: contours.length > 0 ? 'final' : 'empty',
 			advanceWidth: g.advanceWidth,
-			leftSidebearing: metrics.defaultSidebearing,
-			rightSidebearing: metrics.defaultSidebearing,
+			leftSidebearing: sb.leftSidebearing,
+			rightSidebearing: sb.rightSidebearing,
 			contours,
 			updatedAt: now()
 		};
 		if (contours.length > 0) extras += 1;
+	}
+
+	// Kerning: opentype.js exposes legacy `kern` table as a flat
+	// "leftGlyphIndex,rightGlyphIndex" → value map. We translate back to
+	// codepoint pairs via the glyph index. GPOS kern (modern) is not
+	// directly exposed by opentype.js; designers re-tune those after import.
+	const kerning: import('./types').KerningPair[] = [];
+	if (font.kerningPairs && typeof font.kerningPairs === 'object') {
+		// Build glyph-index → codepoint map for the pair lookup.
+		const idxToCp = new Map<number, number>();
+		for (let i = 0; i < font.glyphs.length; i++) {
+			const g = font.glyphs.get(i) as { unicode?: number };
+			if (typeof g.unicode === 'number' && g.unicode > 0) idxToCp.set(i, g.unicode);
+		}
+		for (const [key, value] of Object.entries(font.kerningPairs)) {
+			if (typeof value !== 'number' || value === 0) continue;
+			const [lStr, rStr] = key.split(',');
+			const li = Number(lStr);
+			const ri = Number(rStr);
+			const lc = idxToCp.get(li);
+			const rc = idxToCp.get(ri);
+			if (!lc || !rc) continue;
+			kerning.push({ left: lc, right: rc, value });
+		}
 	}
 
 	const ts = now();
@@ -208,7 +253,7 @@ export const importFromOtf = async (file: File): Promise<ImportResult> => {
 		},
 		metrics,
 		glyphs,
-		kerning: [],
+		kerning,
 		features: { ...DEFAULT_FEATURES },
 		createdAt: ts,
 		updatedAt: ts
