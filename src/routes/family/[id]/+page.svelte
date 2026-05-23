@@ -22,6 +22,7 @@
 	import { loadProject } from '$lib/font/project';
 	import { downloadFamilyBundle } from '$lib/font/family-export';
 	import { auditFamily, type FamilyIssue } from '$lib/font/family-audit';
+	import { auditProject, auditCompatibility, preflightProject } from '$lib/font/audit';
 	import type { Family, FamilyAxes } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Field from '$lib/ui/Field.svelte';
@@ -57,6 +58,34 @@
 		void siblings.length;
 		void data.siblings;
 		refreshAudit();
+	});
+
+	// Per-sibling project-level audit roll-up — error/warn counts for each
+	// sibling so the designer can see at a glance which styles need work.
+	// Loaded async, keyed by sibling id. Empty until the load completes.
+	let siblingAudits = $state<Record<string, { error: number; warn: number; info: number }>>({});
+	const refreshSiblingAudits = async () => {
+		const next: typeof siblingAudits = {};
+		for (const s of siblings) {
+			const p = await loadProject(s.id);
+			if (!p) continue;
+			const all = [
+				...auditProject(p),
+				...auditCompatibility(p),
+				...preflightProject(p)
+			];
+			next[s.id] = {
+				error: all.filter((i) => i.severity === 'error').length,
+				warn: all.filter((i) => i.severity === 'warn').length,
+				info: all.filter((i) => i.severity === 'info').length
+			};
+		}
+		siblingAudits = next;
+	};
+	$effect(() => {
+		void siblings.length;
+		void data.siblings;
+		refreshSiblingAudits();
 	});
 
 	const refresh = async () => {
@@ -480,6 +509,35 @@
 									>
 										{s.editsToday} today
 									</span>
+								{/if}
+								{#if siblingAudits[s.id]}
+									{@const a = siblingAudits[s.id]}
+									<!-- Per-sibling audit roll-up — surfaces project-level
+									     error/warn counts so the designer sees which styles
+									     need attention without opening each one. Clicks
+									     deep-link to that sibling's audit page. -->
+									{#if a.error === 0 && a.warn === 0}
+										<a
+											href="/project/{s.id}/audit"
+											class="inline-flex items-center gap-0.5 rounded bg-success/10 px-1.5 py-0 text-success-strong"
+											title="All audit checks pass for this sibling"
+										>
+											✓ clean
+										</a>
+									{:else}
+										<a
+											href="/project/{s.id}/audit"
+											class="inline-flex items-center gap-1 font-medium"
+											title="{a.error} errors, {a.warn} warnings, {a.info} info — open this sibling's audit"
+										>
+											{#if a.error > 0}
+												<span class="text-danger-strong">{a.error}e</span>
+											{/if}
+											{#if a.warn > 0}
+												<span class="text-warn-strong">{a.warn}w</span>
+											{/if}
+										</a>
+									{/if}
 								{/if}
 							</div>
 						</div>
