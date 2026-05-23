@@ -654,6 +654,28 @@
 					</span>
 				{/each}
 			</div>
+			<!-- CSS snippet for designers embedding via @font-face. Includes
+			     the @font-face rule + a feature-settings example with every
+			     non-default-on feature so designers see what's available. -->
+			<details class="mt-3 rounded-md border border-border bg-surface-2/30">
+				<summary class="cursor-pointer px-3 py-2 text-[11px] font-medium text-fg-muted hover:text-fg">
+					CSS embed snippet
+				</summary>
+				<pre
+					class="overflow-x-auto border-t border-border bg-canvas/60 px-3 py-3 font-mono text-[11px] leading-relaxed text-fg"><code
+						>{`@font-face {
+  font-family: '${project.metadata.familyName}';
+  src: url('${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.woff2') format('woff2');
+  font-weight: ${project.familyAxes?.wght ?? 400};
+  font-style: normal;
+  font-display: swap;
+}
+
+body {
+  font-family: '${project.metadata.familyName}', sans-serif;
+  font-feature-settings: ${sharedFeatures.map((f) => `'${f.tag}' 1`).join(', ')};
+}`}</code></pre>
+			</details>
 		</section>
 	{/if}
 
