@@ -1119,7 +1119,7 @@ body {
 	</svg>
 {/snippet}
 
-<div class="mx-auto max-w-4xl px-6 py-8">
+<div class="mx-auto max-w-4xl px-4 py-8 sm:px-6">
 	<!-- Print-only specimen banner — visible only when printing. Replaces
 	     the read-only chip with a dateline so the printed sheet stands
 	     alone as an artifact: family name + designer is already in the
@@ -1139,10 +1139,12 @@ body {
 		<span>Shared view · read-only</span>
 	</div>
 
-	<header class="mb-8 flex items-start justify-between gap-4">
-		<div>
+	<header
+		class="mb-8 flex flex-col items-start justify-between gap-4 sm:flex-row"
+	>
+		<div class="min-w-0">
 			<h1
-				class="text-[36px] leading-tight tracking-tight text-fg"
+				class="text-[28px] leading-tight tracking-tight text-fg sm:text-[36px]"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				{project.metadata.familyName}
@@ -1160,7 +1162,7 @@ body {
 		     Both lazy-load the export pipeline only on click. When the
 		     project has masters, a selector lets the designer pick which
 		     to build as a static font. -->
-		<div data-print-hide class="flex shrink-0 flex-col items-end gap-2">
+		<div data-print-hide class="flex shrink-0 flex-col items-start gap-2 sm:items-end">
 			<div class="flex gap-2">
 				<button
 					type="button"
