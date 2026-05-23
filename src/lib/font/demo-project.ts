@@ -936,6 +936,82 @@ const buildK_lc = (): BezierContour[] => {
 	];
 };
 
+// lowercase j — stem with descender + dot floating above x-height.
+const buildJ_lc = (): BezierContour[] => {
+	const cx = LC_W / 2;
+	return [
+		// Main stem (from descender to x-height)
+		poly([
+			[cx - STEM / 2, -100],
+			[cx + STEM / 2, -100],
+			[cx + STEM / 2, X_HEIGHT],
+			[cx - STEM / 2, X_HEIGHT]
+		]),
+		// Bottom-left hook
+		poly([
+			[80, -200],
+			[cx + STEM / 2, -200],
+			[cx + STEM / 2, -100],
+			[80, -100]
+		]),
+		// Tail going up at the left
+		poly([
+			[80, -100],
+			[80 + STEM, -100],
+			[80 + STEM, -100 + 100],
+			[80, -100 + 100]
+		]),
+		// Dot floating above x-height
+		poly([
+			[cx - STEM / 2, X_HEIGHT + 60],
+			[cx + STEM / 2, X_HEIGHT + 60],
+			[cx + STEM / 2, X_HEIGHT + 180],
+			[cx - STEM / 2, X_HEIGHT + 180]
+		])
+	];
+};
+
+// lowercase q — bowl + right stem with descender (mirror of g).
+const buildQ_lc = (): BezierContour[] => {
+	const cx = LC_W / 2 - 30;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 100;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		poly(ring(rx, ry), 'cw'),
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Right stem extending below baseline (no bottom hook — descender only)
+		poly([
+			[LC_W - 80 - STEM, -200],
+			[LC_W - 80, -200],
+			[LC_W - 80, X_HEIGHT],
+			[LC_W - 80 - STEM, X_HEIGHT]
+		])
+	];
+};
+
+// lowercase z — same as cap Z at x-height.
+const buildZ_lc = (): BezierContour[] => [
+	poly([[40, X_HEIGHT - BAR], [LC_W - 40, X_HEIGHT - BAR], [LC_W - 40, X_HEIGHT], [40, X_HEIGHT]]),
+	poly([
+		[40, BAR],
+		[40 + STEM, 0],
+		[LC_W - 40, X_HEIGHT - BAR],
+		[LC_W - 40 - STEM, X_HEIGHT - 2 * BAR]
+	]),
+	poly([[40, 0], [LC_W - 40, 0], [LC_W - 40, BAR], [40, BAR]])
+];
+
 // lowercase x — two diagonals at x-height.
 const buildX_lc = (): BezierContour[] => [
 	poly([
@@ -1467,7 +1543,10 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x76, contours: buildV_lc(), advanceWidth: LC_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' }, // v
 	{ codepoint: 0x77, contours: buildW_lc(), advanceWidth: LC_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // w
 	{ codepoint: 0x6b, contours: buildK_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // k
-	{ codepoint: 0x78, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' } // x
+	{ codepoint: 0x78, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // x
+	{ codepoint: 0x6a, contours: buildJ_lc(), advanceWidth: Math.round(LC_W * 0.55), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // j
+	{ codepoint: 0x71, contours: buildQ_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // q
+	{ codepoint: 0x7a, contours: buildZ_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' } // z
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
