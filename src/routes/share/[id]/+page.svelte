@@ -246,6 +246,95 @@
 		return { glyphs: out, totalWidth: x };
 	};
 	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
+
+	// Multi-line layout for the reading specimens. Greedy word-wrap at a
+	// fixed UPM width; each line is one SVG row stacked vertically.
+	// Designers read paragraphs, not pangrams — the waterfall above
+	// shows how letters behave at different sizes, this section shows
+	// how the type breathes across real prose.
+	type LaidOutGlyph = {
+		id: string;
+		char: string;
+		path: string;
+		advance: number;
+		x: number;
+	};
+	type LaidOutLine = { glyphs: LaidOutGlyph[]; width: number };
+	const spaceAdvance = $derived.by(() => {
+		const space = project.glyphs[0x20];
+		if (space) return space.advanceWidth;
+		return Math.round(project.metrics.unitsPerEm * 0.25);
+	});
+	const layoutParagraph = (
+		text: string,
+		maxWidthUpm: number,
+		masterId: string | undefined
+	): { lines: LaidOutLine[]; totalHeight: number } => {
+		const words = text.split(/\s+/).filter(Boolean);
+		// Per-word layout — codepoints + kerning, no space prefix.
+		const wordRows = words.map((w) => computeRow(w, masterId));
+		const lines: LaidOutLine[] = [];
+		let curGlyphs: LaidOutGlyph[] = [];
+		let curWidth = 0;
+		let lineSeq = 0;
+		for (let wi = 0; wi < words.length; wi++) {
+			const wr = wordRows[wi];
+			const needsSpace = curGlyphs.length > 0;
+			const addWidth = (needsSpace ? spaceAdvance : 0) + wr.totalWidth;
+			if (curGlyphs.length > 0 && curWidth + addWidth > maxWidthUpm) {
+				// Commit current line and start fresh
+				lines.push({ glyphs: curGlyphs, width: curWidth });
+				curGlyphs = [];
+				curWidth = 0;
+				lineSeq++;
+			}
+			if (curGlyphs.length > 0) curWidth += spaceAdvance;
+			const baseX = curWidth;
+			for (let gi = 0; gi < wr.glyphs.length; gi++) {
+				const g = wr.glyphs[gi];
+				curGlyphs.push({
+					id: `${lineSeq}-${wi}-${gi}-${g.char}`,
+					char: g.char,
+					path: g.path,
+					advance: g.advance,
+					x: baseX + g.x
+				});
+			}
+			curWidth += wr.totalWidth;
+		}
+		if (curGlyphs.length > 0) lines.push({ glyphs: curGlyphs, width: curWidth });
+		return { lines, totalHeight: lines.length * fontSpan };
+	};
+
+	// Reading samples — three tiers, each on a real designer concern.
+	// Display tier shows a short phrase (where letterforms have room to
+	// breathe). Body tier shows running text (where rhythm matters most).
+	// Caption tier shows fine print (where the type has to survive at
+	// small sizes). Brief intent (if present) replaces the lorem.
+	const READING_LINE_WIDTH = 2400; // UPM units — generous so paragraphs feel honest
+	const READING_SAMPLES = $derived.by(() => {
+		const brief = (project.brief?.intent ?? '').trim();
+		const display = brief
+			? brief.split(/[.!?]\s+/)[0].slice(0, 80)
+			: 'Typography is what language looks like.';
+		const body = brief && brief.length > 100
+			? brief
+			: 'Good design is honest. It does not attempt to manipulate the reader with promises it cannot keep. Letterforms are not decoration — they are the medium through which an idea reaches a reader. The work of the type designer is to make that reaching feel effortless.';
+		const caption =
+			'Set in ' + project.metadata.familyName + '. ' +
+			(project.brief?.references?.[0] ?? 'Drawn glyph-by-glyph in Font Studio.');
+		return [
+			{ id: 'display', label: 'Display', size: 64, text: display },
+			{ id: 'body', label: 'Body', size: 18, text: body },
+			{ id: 'caption', label: 'Caption', size: 12, text: caption }
+		];
+	});
+	const readingLayouts = $derived(
+		READING_SAMPLES.map((s) => ({
+			...s,
+			layout: layoutParagraph(s.text, READING_LINE_WIDTH, tryMasterId)
+		}))
+	);
 	// Per-master rows — only computed when the project has additional masters,
 	// rendered at one fixed size so the slant/weight difference is obvious
 	// without making the waterfall itself N× longer.
@@ -805,6 +894,60 @@ body {
 			</p>
 		</section>
 	{/if}
+
+	<!-- Reading specimens — display / body / caption. Designers read
+	     paragraphs, not pangrams; this is where the rhythm of the type
+	     becomes legible. Width is fixed in UPM so the line count reflects
+	     the actual measure a designer would set, not the viewport. -->
+	<section class="mb-10">
+		<h2
+			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		>
+			<span>Reading</span>
+			<span class="font-mono normal-case text-fg-subtle">
+				Display · Body · Caption
+			</span>
+		</h2>
+		<div class="space-y-6 rounded-md border border-border bg-canvas px-5 py-6">
+			{#each readingLayouts as sample (sample.id)}
+				{#if sample.layout.lines.length > 0}
+					<div>
+						<div
+							class="mb-1.5 text-[9px] font-mono uppercase tracking-wider text-fg-subtle"
+							data-numeric
+						>
+							{sample.label} · {sample.size}px
+						</div>
+						<svg
+							viewBox="0 0 {READING_LINE_WIDTH} {sample.layout.totalHeight}"
+							preserveAspectRatio="xMinYMin meet"
+							style="width: 100%; height: auto; display: block;"
+							aria-label="{sample.label} reading specimen"
+						>
+							{#each sample.layout.lines as line, li (li)}
+								<g transform="translate(0 {li * fontSpan + ascender}) scale(1 -1)">
+									{#each line.glyphs as g (g.id)}
+										{#if g.path}
+											<path
+												d={g.path}
+												transform="translate({g.x} 0)"
+												fill="currentColor"
+												fill-rule="evenodd"
+												class="text-fg"
+											/>
+										{/if}
+									{/each}
+								</g>
+							{/each}
+						</svg>
+					</div>
+				{/if}
+			{/each}
+		</div>
+		<p class="mt-2 text-[11px] text-fg-subtle">
+			Display, body, and caption. Body sample {project.brief?.intent ? 'uses the project brief' : 'is a generic typography passage'}; switch the master in the tester above to re-render every sample in that style.
+		</p>
+	</section>
 
 	<!-- Master compare — only when the family has > 1 master. Renders the
 	     same pangram in each master at one large size so the slant / weight
