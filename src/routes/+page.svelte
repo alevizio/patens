@@ -602,6 +602,29 @@
 </script>
 
 <svelte:head>
+	<title>Font Studio — browser type editor</title>
+	<meta
+		name="description"
+		content="Sketch-first browser type editor. Variable fonts, color (COLR), kerning, mark positioning, OpenType features, audit + auto-fix across every workflow surface."
+	/>
+	<!-- OpenGraph / Twitter card meta for link unfurls. -->
+	<meta property="og:type" content="website" />
+	<meta property="og:title" content="Font Studio" />
+	<meta
+		property="og:description"
+		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
+	/>
+	<meta property="og:site_name" content="Font Studio" />
+	<meta property="og:image" content="/og.png" />
+	<meta property="og:image:width" content="1200" />
+	<meta property="og:image:height" content="630" />
+	<meta name="twitter:card" content="summary_large_image" />
+	<meta name="twitter:title" content="Font Studio" />
+	<meta
+		name="twitter:description"
+		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
+	/>
+	<meta name="twitter:image" content="/og.png" />
 	<!-- Load the demo OTF as 'StudioGeometric' so the home page's big "Hn"
 	     mark renders in Font Studio's own typeface — the home page literally
 	     shows the product's output. `swap` keeps the fallback (Hoefler Text)
