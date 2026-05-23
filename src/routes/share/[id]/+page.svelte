@@ -18,6 +18,7 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Printer from '@lucide/svelte/icons/printer';
 	import Link2 from '@lucide/svelte/icons/link-2';
+	import LazySection from '$lib/ui/LazySection.svelte';
 	import { onMount } from 'svelte';
 
 	let { data } = $props();
@@ -83,6 +84,10 @@
 	// project apply automatically so visitors see the font as the
 	// designer intended (not as system-fallback substitutes).
 	let typeText = $state('Type something here');
+	// Force every LazySection on the page to mount immediately when the
+	// share link was opened with ?print=1. Otherwise below-fold sections
+	// stay placeholders and the printed specimen sheet is half-empty.
+	let printRequested = $state(false);
 	// Sample-text presets — quick pills for the passages designers reach
 	// for first. Hamburgevons is the classic type-design proof word
 	// (stems + curves + key inks); pangram covers the alphabet; AaBbCc
@@ -428,11 +433,15 @@
 			}
 		}
 		// Auto-print — when the editor's Print button opens this tab with
-		// ?print=1, kick off the browser print dialog after a frame so the
-		// page paints first. Designers get a one-click PDF without having
-		// to remember Cmd+P.
+		// ?print=1, force-mount every lazy section so the printed specimen
+		// is complete, then kick off the browser print dialog. Three RAFs
+		// instead of two so Svelte has a chance to render the newly-mounted
+		// LazySection content before the print dialog snapshots the DOM.
 		if (params.get('print') === '1') {
-			requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+			printRequested = true;
+			requestAnimationFrame(() =>
+				requestAnimationFrame(() => requestAnimationFrame(() => window.print()))
+			);
 		}
 	});
 	// Sync URL when inspector + tester state changes. replaceState (not
@@ -1621,7 +1630,10 @@ body {
 	     as specimens. Buttons, headline card, stat card, paragraph
 	     block. Each renders through the same computeRow / layoutParagraph
 	     pipeline as the tester so the master switch above re-renders
-	     these mockups in step. -->
+	     these mockups in step. Lazy-mounted — four SVG mockups + a body
+	     paragraph layout was paying for itself on cold load even when
+	     designers landed above-fold. -->
+	<LazySection minHeight={700} forceMount={printRequested}>
 	<section class="mb-10">
 		<h2
 			class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
@@ -1686,6 +1698,7 @@ body {
 			Mockups re-render in step with the tester above — switch master, palette, or features and these update too.
 		</p>
 	</section>
+	</LazySection>
 
 	<!-- Master compare — only when the family has > 1 master. Renders the
 	     same pangram in each master at one large size so the slant / weight
@@ -1877,7 +1890,9 @@ body {
 	     Each cell is one codepoint; color encodes status (drawn / WIP /
 	     empty). Click a drawn cell to inspect it. The section gives
 	     designer-friends a quick "is this font ready?" read without
-	     having to scan the full glyph grid below. -->
+	     having to scan the full glyph grid below. Lazy-mounted — ~120
+	     cells, each a styled button. -->
+	<LazySection minHeight={500} forceMount={printRequested}>
 	<section class="mb-10">
 		<h2
 			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
@@ -1926,13 +1941,17 @@ body {
 			Cells colored by status — accent = drawn, amber = WIP, dim = not drawn. Click any drawn cell to inspect.
 		</p>
 	</section>
+	</LazySection>
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
 	     state without spilling into editor chrome. Filter input +
 	     category pills let visitors scope the grid to letters / numbers
 	     / punctuation / marks / alternates / composites, or search by
 	     name / codepoint / tag / character. Inspector navigation
-	     respects the filter so arrow keys walk only the visible set. -->
+	     respects the filter so arrow keys walk only the visible set.
+	     Lazy-mounted — every tile renders its own SVG (≈80 of them for
+	     the demo), the heaviest single section on the page. -->
+	<LazySection minHeight={600} forceMount={printRequested}>
 	<section class="mb-10">
 		<h2
 			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
@@ -2004,6 +2023,7 @@ body {
 			</p>
 		{/if}
 	</section>
+	</LazySection>
 
 	<!-- Metadata footer — vendor + license info so the recipient
 	     understands the legal context of what they're looking at. -->
