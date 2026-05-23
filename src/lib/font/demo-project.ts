@@ -2125,6 +2125,92 @@ export const createDemoProject = (): Project => {
 		};
 	}
 
+	// Variable-font axis + Italic master — demonstrates the VF pipeline
+	// with a `slnt` (slant) axis at 0..-12 degrees. The Italic master is
+	// the default master's glyphs with every point skewed by -10° about
+	// the baseline; topology is preserved by construction (same contour
+	// count, same per-contour point count) so the master-compatibility
+	// audit passes cleanly.
+	project.axes = [
+		{
+			tag: 'slnt',
+			name: 'Slant',
+			minimum: -12,
+			default: 0,
+			maximum: 0
+		}
+	];
+	// Skew every drawn glyph's contours by -10° about y=0 (baseline).
+	// Math: x' = x + y * tan(10°); y' = y. tan(10°) ≈ 0.17633.
+	const SLANT_DEG = 10;
+	const SHEAR = Math.tan((SLANT_DEG * Math.PI) / 180);
+	const slantContours = (contours: BezierContour[]): BezierContour[] =>
+		contours.map((c) => ({
+			...c,
+			commands: c.commands.map((cmd) => {
+				if (cmd.type === 'Z') return cmd;
+				if (cmd.type === 'M' || cmd.type === 'L') {
+					return { ...cmd, x: Math.round(cmd.x + cmd.y * SHEAR) };
+				}
+				if (cmd.type === 'Q') {
+					return {
+						...cmd,
+						x: Math.round(cmd.x + cmd.y * SHEAR),
+						x1: Math.round(cmd.x1 + cmd.y1 * SHEAR)
+					};
+				}
+				// C
+				return {
+					...cmd,
+					x: Math.round(cmd.x + cmd.y * SHEAR),
+					x1: Math.round(cmd.x1 + cmd.y1 * SHEAR),
+					x2: Math.round(cmd.x2 + cmd.y2 * SHEAR)
+				};
+			})
+		}));
+	const italicGlyphs: Record<number, import('./types').Glyph> = {};
+	for (const [cpStr, g] of Object.entries(project.glyphs)) {
+		const cp = Number(cpStr);
+		if (g.contours.length === 0) {
+			// Empty / composite glyphs keep the original shape (composites
+			// inherit via reference at render time anyway).
+			italicGlyphs[cp] = { ...g, updatedAt: new Date().toISOString() };
+			continue;
+		}
+		italicGlyphs[cp] = {
+			...g,
+			contours: slantContours(g.contours),
+			anchors: g.anchors?.map((a) => ({
+				...a,
+				x: Math.round(a.x + a.y * SHEAR)
+			})),
+			updatedAt: new Date().toISOString()
+		};
+	}
+	project.masters = [
+		{
+			id: crypto.randomUUID(),
+			name: 'Italic',
+			location: { slnt: -10 },
+			glyphs: italicGlyphs,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString()
+		}
+	];
+	// Named instances mapping to the axis space — Regular + Italic.
+	project.instances = [
+		{
+			id: crypto.randomUUID(),
+			styleName: 'Regular',
+			location: { slnt: 0 }
+		},
+		{
+			id: crypto.randomUUID(),
+			styleName: 'Italic',
+			location: { slnt: -10 }
+		}
+	];
+
 	// A starter changelog entry so the Release tab shows something on first open.
 	project.changelog = [
 		{
