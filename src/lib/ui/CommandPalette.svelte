@@ -23,13 +23,18 @@
 		const char = String.fromCodePoint(g.codepoint).toLowerCase();
 		const hex = g.codepoint.toString(16).toLowerCase();
 		const notes = (g.notes ?? '').toLowerCase();
+		const tags = (g.tags ?? []).join(' ');
 		if (char === lower) return 100;
 		if (name === lower) return 95;
 		if (hex === lower) return 90;
 		if (name.startsWith(lower)) return 80;
 		if (hex.startsWith(lower)) return 75;
+		// Exact tag match outranks substring matches in name/notes —
+		// "#wip" should land all WIP glyphs at the top.
+		if (g.tags?.includes(lower)) return 70;
 		if (name.includes(lower)) return 50;
 		if (hex.includes(lower)) return 40;
+		if (tags.includes(lower)) return 35;
 		// Note search — lower score so explicit name/codepoint matches
 		// always win, but lets users find "the glyph I wrote TODO in"
 		// or "the one tagged 'WIP'" via the command palette.
