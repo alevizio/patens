@@ -1758,6 +1758,21 @@ export const createDemoProject = (): Project => {
 		xHeight: X_HEIGHT
 	};
 
+	// Polish the metadata so the demo reads as a real foundry release rather
+	// than a default skeleton. Designer / copyright / license / vendorID
+	// all populated; designer URL points at a placeholder so the link
+	// renders without 404-ing real content.
+	project.metadata = {
+		...project.metadata,
+		designer: 'Studio Geometric',
+		copyright: '© 2026 Studio Geometric. Released under the SIL Open Font License 1.1.',
+		license: 'SIL Open Font License 1.1',
+		licenseURL: 'https://scripts.sil.org/OFL',
+		designerURL: 'https://studio-geometric.example',
+		manufacturer: 'Studio Geometric',
+		vendorID: 'STGM'
+	};
+
 	// Set space's advance — without this, words run together.
 	// Standard convention is ~25% UPM (250 at 1000 UPM).
 	const spaceGlyph = project.glyphs[0x20];
@@ -1890,26 +1905,73 @@ export const createDemoProject = (): Project => {
 				kind: 'historical',
 				notes:
 					"Paul Renner, 1927. The geometric grandparent; reference for `O` circularity and `n` shoulder."
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'Avenir',
+				kind: 'historical',
+				notes:
+					"Adrian Frutiger, 1988. The other geometric reference — a touch more human than Futura. Studied for the way the lowercase joins (`u`, `n`) feel slightly softer than the perfect circles suggest."
+			},
+			{
+				id: crypto.randomUUID(),
+				name: 'IBM Plex Sans',
+				url: 'https://www.ibm.com/plex/',
+				kind: 'functional',
+				notes:
+					'Mike Abbink + Bold Monday, 2017. Sibling reference for the body-text optical-size story — reads similarly at 14px but optically heavier in display.'
 			}
 		]
 	};
 
-	// Two decisions captured in the design journal so the Brief tab's
-	// decision log isn't empty.
+	// Decisions captured in the design journal so the Brief tab's decision
+	// log reads like an actual project notebook — every decision has a
+	// "tried it the other way" trace so the journal is teaching, not
+	// rationalization. Dates back-distributed so the recency story is
+	// believable (oldest decisions first, newest at the bottom).
+	const daysAgo = (n: number) => new Date(Date.now() - 1000 * 60 * 60 * 24 * n).toISOString();
 	project.decisions = [
 		{
 			id: crypto.randomUUID(),
-			date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 14).toISOString(),
+			date: daysAgo(28),
+			decision: 'UPM 1000, ascender 800 / descender -200',
+			rationale:
+				'Considered 2048 (Inter standard) for vertical-metric precision, but 1000 keeps the coordinate math readable in the editor + audit logs. Designers reading the contour data understand units-per-em instantly when they match common rounding (50, 100, 250).'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: daysAgo(21),
+			decision: 'Cap-height 700 / x-height 500 (ratio 0.71)',
+			rationale:
+				'Higher x-height tested (0.75) read younger but lost some of the calm rhythm at body sizes. 0.71 is the Söhne / Inter compromise — large enough to hold at 12px without dominating the cap-height in mixed-case.'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: daysAgo(14),
 			decision: 'Single-storey `a` as ss01 alternate, not the default',
 			rationale:
 				'Tested both in body copy. The two-storey `a` reads more solidly at 12-14px where most UI text lives. Single-storey reserved for designers who want the geometric look — opt in via the ss01 OpenType feature.'
 		},
 		{
 			id: crypto.randomUUID(),
-			date: new Date(Date.now() - 1000 * 60 * 60 * 24 * 7).toISOString(),
+			date: daysAgo(7),
 			decision: 'Stem width fixed at 90fu across uppercase + lowercase',
 			rationale:
 				'Tried 100fu for caps and 85fu for lowercase to match optical density. The contrast was too visible in mixed-case settings. 90fu reads as consistent across body text without looking mechanical.'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: daysAgo(3),
+			decision: 'Italic via 10° slnt axis (no separate Italic master geometry)',
+			rationale:
+				'A proper drawn Italic was scoped at ~3 weeks of work. The slnt-only shear ships an Italic that reads consistent with Regular for body text — the audience (UI designers) won\'t typically use Italic for display. Drawn Italic is on the v2 list.'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: daysAgo(1),
+			decision: 'Kerning targets AV/Ta/We/LT/LV/LY first; everything else by silhouette',
+			rationale:
+				'Type design folklore: 30 pairs do 80% of the perceived spacing in Latin body text. Hand-tuned those plus a handful of CJK-adjacent uppercase pairs (HI, IH); the rest fills in via auto-kern silhouette distance.'
 		}
 	];
 
