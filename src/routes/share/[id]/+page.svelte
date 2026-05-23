@@ -162,6 +162,23 @@
 	const inspectedBounds = $derived(
 		inspectedGlyph ? glyphBounds(inspectedGlyph.contours) : null
 	);
+	// Master overlay — when the project has additional masters, the
+	// inspector can show each master's version of the same codepoint as
+	// a stroke overlay on top of the default outline. Designers see the
+	// exact slant or weight delta on a single drawing instead of jumping
+	// between renders. Off by default; toggled per inspector session.
+	let inspectorOverlayMasters = $state(false);
+	const inspectorMasterOverlays = $derived.by(() => {
+		if (!inspectorOverlayMasters || !inspectedGlyph) return [];
+		const cp = inspectedGlyph.codepoint;
+		const out: Array<{ id: string; name: string; path: string }> = [];
+		for (const m of project.masters ?? []) {
+			const ov = m.glyphs?.[cp];
+			if (!ov || ov.contours.length === 0) continue;
+			out.push({ id: m.id, name: m.name, path: contoursToSvgPath(ov.contours) });
+		}
+		return out;
+	});
 	const openInspector = (cp: number) => {
 		const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
 		if (idx >= 0) inspectedIndex = idx;
@@ -184,6 +201,9 @@
 		} else if (e.key === 'ArrowLeft') {
 			e.preventDefault();
 			stepInspector(-1);
+		} else if ((e.key === 'm' || e.key === 'M') && (project.masters?.length ?? 0) > 0) {
+			e.preventDefault();
+			inspectorOverlayMasters = !inspectorOverlayMasters;
 		}
 	};
 	const kerningLookup = $derived.by(() => {
@@ -1272,6 +1292,18 @@ body {
 				</p>
 			</div>
 			<div class="flex items-center gap-1">
+				{#if (project.masters?.length ?? 0) > 0}
+					<button
+						type="button"
+						onclick={() => (inspectorOverlayMasters = !inspectorOverlayMasters)}
+						class="rounded border px-2 py-1 text-[11px] transition-colors {inspectorOverlayMasters
+							? 'border-accent bg-accent-soft/40 text-fg'
+							: 'border-border bg-surface text-fg-muted hover:border-accent/60 hover:text-fg'}"
+						title="Overlay other masters as stroke outlines (M)"
+					>
+						Masters
+					</button>
+				{/if}
 				<button
 					type="button"
 					onclick={() => stepInspector(-1)}
@@ -1381,6 +1413,19 @@ body {
 						fill-rule="evenodd"
 						class="text-fg"
 					/>
+					<!-- Master overlays — each non-default master rendered as a
+					     stroke outline so the slant/weight delta is visible on
+					     top of the default outline. Stroke-only so fills don't
+					     fight; the badge legend below tells masters apart. -->
+					{#each inspectorMasterOverlays as ov (ov.id)}
+						<path
+							d={ov.path}
+							fill="none"
+							stroke="currentColor"
+							stroke-width={Math.max(10, Math.round(fontSpan / 120))}
+							class="text-accent"
+						/>
+					{/each}
 					<!-- Anchors as small markers -->
 					{#each inspectedGlyph.anchors ?? [] as a (a.name)}
 						<g transform="translate({a.x} {a.y})">
@@ -1388,6 +1433,26 @@ body {
 						</g>
 					{/each}
 				</svg>
+				{#if inspectorOverlayMasters && inspectorMasterOverlays.length > 0}
+					<div
+						class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-fg-subtle"
+					>
+						<span class="inline-flex items-center gap-1.5">
+							<span class="inline-block size-2 rounded-sm bg-fg"></span>
+							<span>Default ({project.metadata.styleName || 'Regular'})</span>
+						</span>
+						{#each inspectorMasterOverlays as ov (ov.id)}
+							<span class="inline-flex items-center gap-1.5">
+								<span class="inline-block size-2 rounded-sm border-2 border-accent"></span>
+								<span>{ov.name}</span>
+							</span>
+						{/each}
+					</div>
+				{:else if inspectorOverlayMasters && inspectorMasterOverlays.length === 0}
+					<p class="mt-2 text-[10px] text-fg-subtle">
+						No master overrides for this codepoint — every master falls back to the default drawing.
+					</p>
+				{/if}
 			</div>
 			<!-- Sidebar — facts a designer wants. Number columns are
 			     monospace and right-aligned (via data-numeric) so they
@@ -1437,6 +1502,9 @@ body {
 			class="border-t border-border bg-surface-2/40 px-5 py-2 text-[10px] text-fg-subtle"
 		>
 			<span class="font-mono">←/→</span> step ·
+			{#if (project.masters?.length ?? 0) > 0}
+				<span class="font-mono">m</span> masters ·
+			{/if}
 			<span class="font-mono">esc</span> close
 		</footer>
 	</div>
