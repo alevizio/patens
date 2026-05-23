@@ -102,6 +102,65 @@
 	// anchors, tags, layer count. Indexed by codepoint into drawnGlyphs
 	// so arrow keys navigate the grid.
 	let inspectedIndex = $state<number | null>(null);
+	// Glyph grid filter — visitors search by name, codepoint hex, tag, or
+	// pick a category pill. Categories are derived from Unicode ranges +
+	// glyph-name suffixes so the demo's punctuation, marks, composites,
+	// and alternates land in obvious buckets. Inspector navigation steps
+	// through the filtered set so arrow keys feel scoped to what the
+	// designer is currently looking at.
+	let glyphFilter = $state('');
+	let glyphCategory = $state<string | null>(null);
+	const isLatin = (cp: number) =>
+		(cp >= 0x0041 && cp <= 0x005a) || (cp >= 0x0061 && cp <= 0x007a);
+	const isDigit = (cp: number) => cp >= 0x0030 && cp <= 0x0039;
+	const isPunct = (cp: number) =>
+		(cp >= 0x0021 && cp <= 0x002f) ||
+		(cp >= 0x003a && cp <= 0x0040) ||
+		(cp >= 0x005b && cp <= 0x0060) ||
+		(cp >= 0x007b && cp <= 0x007e) ||
+		cp === 0x2013 ||
+		cp === 0x2014 ||
+		cp === 0x2018 ||
+		cp === 0x2019 ||
+		cp === 0x201c ||
+		cp === 0x201d;
+	const isMark = (cp: number) => cp >= 0x0300 && cp <= 0x036f;
+	const isAlternate = (name: string) =>
+		/\.(ss\d{2}|salt|alt|sc|smcp|c2sc|onum|tnum|lnum)$/.test(name);
+	const isComposite = (name: string) =>
+		/^[A-Za-z]+(?:acute|grave|circumflex|tilde|caron|breve|macron|dotaccent|ring|ogonek|cedilla|umlaut|dieresis)$/.test(
+			name
+		);
+	const glyphCategories = [
+		{ id: 'letters', label: 'Letters', match: (g: { codepoint: number }) => isLatin(g.codepoint) },
+		{ id: 'numbers', label: 'Numbers', match: (g: { codepoint: number }) => isDigit(g.codepoint) },
+		{ id: 'punct', label: 'Punctuation', match: (g: { codepoint: number }) => isPunct(g.codepoint) },
+		{ id: 'marks', label: 'Marks', match: (g: { codepoint: number }) => isMark(g.codepoint) },
+		{ id: 'alts', label: 'Alternates', match: (g: { name: string }) => isAlternate(g.name) },
+		{
+			id: 'composites',
+			label: 'Composites',
+			match: (g: { name: string }) => isComposite(g.name)
+		}
+	] as const;
+	const visibleGlyphs = $derived.by(() => {
+		const q = glyphFilter.trim().toLowerCase();
+		const cat = glyphCategory
+			? glyphCategories.find((c) => c.id === glyphCategory)
+			: null;
+		if (!q && !cat) return drawnGlyphs;
+		return drawnGlyphs.filter((g) => {
+			if (cat && !cat.match(g)) return false;
+			if (!q) return true;
+			const hex = g.codepoint.toString(16).toLowerCase();
+			const ch = String.fromCodePoint(g.codepoint).toLowerCase();
+			if (g.name.toLowerCase().includes(q)) return true;
+			if (hex.startsWith(q) || hex === q) return true;
+			if (ch === q) return true;
+			if (g.tags?.some((t) => t.toLowerCase().includes(q))) return true;
+			return false;
+		});
+	});
 	// Resolve a glyph in the context of a chosen master — overrides win,
 	// project glyph is the fallback. Mirrors the export pipeline's lookup
 	// so what visitors preview matches what they'd download. Hoisted up
@@ -173,7 +232,7 @@
 
 	// Inspector — derived view of the currently-inspected glyph.
 	const inspectedGlyph = $derived(
-		inspectedIndex !== null ? (drawnGlyphs[inspectedIndex] ?? null) : null
+		inspectedIndex !== null ? (visibleGlyphs[inspectedIndex] ?? null) : null
 	);
 	const inspectedBounds = $derived(
 		inspectedGlyph ? glyphBounds(inspectedGlyph.contours) : null
@@ -196,13 +255,25 @@
 		return out;
 	});
 	const openInspector = (cp: number) => {
-		const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
-		if (idx >= 0) inspectedIndex = idx;
+		// Clear filters so the inspected glyph is guaranteed visible.
+		// Otherwise designers click a tile in a filtered grid and the
+		// inspector targets the unfiltered index — confusing.
+		const idx = visibleGlyphs.findIndex((g) => g.codepoint === cp);
+		if (idx >= 0) {
+			inspectedIndex = idx;
+			return;
+		}
+		// Codepoint not in the current filter (came from a deep link or
+		// a stale click): reset filters and try again against drawnGlyphs.
+		glyphFilter = '';
+		glyphCategory = null;
+		const i2 = drawnGlyphs.findIndex((g) => g.codepoint === cp);
+		if (i2 >= 0) inspectedIndex = i2;
 	};
 	const closeInspector = () => (inspectedIndex = null);
 	const stepInspector = (delta: number) => {
 		if (inspectedIndex === null) return;
-		const n = drawnGlyphs.length;
+		const n = visibleGlyphs.length;
 		if (n === 0) return;
 		inspectedIndex = (inspectedIndex + delta + n) % n;
 	};
@@ -1297,23 +1368,66 @@ body {
 	{/if}
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
-	     state without spilling into editor chrome. -->
+	     state without spilling into editor chrome. Filter input +
+	     category pills let visitors scope the grid to letters / numbers
+	     / punctuation / marks / alternates / composites, or search by
+	     name / codepoint / tag / character. Inspector navigation
+	     respects the filter so arrow keys walk only the visible set. -->
 	<section class="mb-10">
 		<h2
 			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 		>
 			<span>Glyphs</span>
 			<span class="font-mono normal-case text-fg-subtle" data-numeric>
-				{drawnGlyphs.length} drawn · {Object.keys(project.glyphs).length} total
+				{visibleGlyphs.length}{visibleGlyphs.length !== drawnGlyphs.length
+					? ` of ${drawnGlyphs.length}`
+					: ''} drawn · {Object.keys(project.glyphs).length} total
 			</span>
 		</h2>
+		<div data-print-hide class="mb-3 flex flex-wrap items-center gap-1.5 text-[11px]">
+			<input
+				type="search"
+				bind:value={glyphFilter}
+				placeholder="Search name, U+, char, tag…"
+				class="w-48 rounded-md border border-border bg-surface px-2 py-1 text-[11px] text-fg outline-none focus:border-accent"
+				aria-label="Filter glyphs"
+			/>
+			{#each glyphCategories as cat (cat.id)}
+				{@const on = glyphCategory === cat.id}
+				<button
+					type="button"
+					onclick={() => (glyphCategory = on ? null : cat.id)}
+					class="rounded-md border px-2 py-0.5 transition-colors {on
+						? 'border-accent bg-accent-soft/40 text-fg'
+						: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
+				>
+					{cat.label}
+				</button>
+			{/each}
+			{#if glyphFilter || glyphCategory}
+				<button
+					type="button"
+					onclick={() => {
+						glyphFilter = '';
+						glyphCategory = null;
+					}}
+					class="ml-1 text-[10px] text-fg-subtle hover:text-fg"
+				>
+					clear
+				</button>
+			{/if}
+		</div>
 		{#if drawnGlyphs.length === 0}
 			<p class="rounded border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
 				No glyphs drawn yet.
 			</p>
+		{:else if visibleGlyphs.length === 0}
+			<p class="rounded border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
+				No glyphs match the current filter.
+			</p>
 		{:else}
 			<div class="grid grid-cols-8 gap-1 sm:grid-cols-10 md:grid-cols-12">
-				{#each drawnGlyphs as g (g.codepoint)}
+				{#each visibleGlyphs as g (g.codepoint)}
 					<GlyphTile
 						glyph={g}
 						size={48}
@@ -1403,7 +1517,7 @@ body {
 					{#if inspectedGlyph.codepoint >= 0x20 && inspectedGlyph.codepoint < 0x10000}
 						· {String.fromCodePoint(inspectedGlyph.codepoint)}
 					{/if}
-					· {inspectedIndex !== null ? inspectedIndex + 1 : '?'}/{drawnGlyphs.length}
+					· {inspectedIndex !== null ? inspectedIndex + 1 : '?'}/{visibleGlyphs.length}
 				</p>
 			</div>
 			<div class="flex items-center gap-1">
