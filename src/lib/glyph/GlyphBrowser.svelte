@@ -127,6 +127,45 @@
 		clearSelection();
 	};
 
+	// Bulk AGLFN rename — applies the canonical Adobe Glyph List for New
+	// Fonts name to every selection. Skips glyphs whose current name is
+	// already canonical and codepoints AGLFN doesn't cover.
+	const bulkAglfnRename = async () => {
+		const { aglfnName } = await import('$lib/font/aglfn');
+		let renamed = 0;
+		for (const cp of selectedCodepoints) {
+			const g = projectStore.activeGlyphs[cp];
+			if (!g) continue;
+			const aglfn = aglfnName(cp);
+			if (!aglfn || aglfn === g.name) continue;
+			if (!/^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(aglfn)) continue;
+			projectStore.renameGlyph(cp, aglfn);
+			renamed++;
+		}
+		if (renamed === 0) {
+			toast.info('Selected glyphs already match AGLFN names.');
+		} else {
+			toast.success(`Renamed ${renamed} glyph${renamed === 1 ? '' : 's'} to AGLFN.`);
+		}
+		clearSelection();
+	};
+
+	// Bulk delete — destructive, so confirm. Removes glyphs from the project
+	// + any kerning pairs or class members that referenced them (handled by
+	// projectStore.removeGlyph).
+	const bulkDelete = () => {
+		const n = selectedCodepoints.size;
+		if (n === 0) return;
+		if (!confirm(`Remove ${n} glyph${n === 1 ? '' : 's'} from the project? Kerning pairs and class members referencing them will also be removed.`)) {
+			return;
+		}
+		for (const cp of selectedCodepoints) {
+			projectStore.removeGlyph(cp);
+		}
+		toast.success(`Removed ${n} glyph${n === 1 ? '' : 's'}.`);
+		clearSelection();
+	};
+
 	type StatusFilter =
 		| 'all'
 		| 'drawn'
@@ -771,6 +810,24 @@
 					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
 				>
 					Unflag
+				</button>
+				<button
+					type="button"
+					onclick={bulkAglfnRename}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+					title="Rename selected glyphs to their canonical AGLFN names"
+				>
+					AGLFN
+				</button>
+				<button
+					type="button"
+					onclick={bulkDelete}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-danger hover:text-danger-strong disabled:opacity-40"
+					title="Remove selected glyphs from the project"
+				>
+					Delete
 				</button>
 			</div>
 		</div>
