@@ -729,6 +729,81 @@
 		return out;
 	});
 
+	// Feature category mapping — buckets OpenType tags so designer-friends
+	// see the features grouped the way they'd be in an InDesign or Figma
+	// type panel: Letterforms / Figures / Spacing & ligatures / Positional.
+	// Unknown tags fall into Other so nothing disappears.
+	type FeatureCategoryId =
+		| 'spacing'
+		| 'letterforms'
+		| 'figures'
+		| 'positional'
+		| 'other';
+	const FEATURE_CATEGORY_LABELS: Record<FeatureCategoryId, string> = {
+		spacing: 'Spacing & ligatures',
+		letterforms: 'Letterforms',
+		figures: 'Figures',
+		positional: 'Positional',
+		other: 'Other'
+	};
+	const FEATURE_CATEGORY_ORDER: FeatureCategoryId[] = [
+		'spacing',
+		'letterforms',
+		'figures',
+		'positional',
+		'other'
+	];
+	const featureCategory = (tag: string): FeatureCategoryId => {
+		if (['kern', 'liga', 'dlig', 'clig', 'calt', 'rlig', 'hlig'].includes(tag)) return 'spacing';
+		if (['init', 'medi', 'fina', 'isol'].includes(tag)) return 'positional';
+		if (
+			[
+				'lnum',
+				'onum',
+				'tnum',
+				'pnum',
+				'sups',
+				'subs',
+				'numr',
+				'dnom',
+				'frac',
+				'ordn',
+				'zero'
+			].includes(tag)
+		)
+			return 'figures';
+		if (
+			['smcp', 'c2sc', 'salt', 'swsh', 'hist', 'unic', 'titl'].includes(tag) ||
+			tag.startsWith('ss') ||
+			tag.startsWith('cv')
+		)
+			return 'letterforms';
+		return 'other';
+	};
+	type GroupedFeature<T> = { category: FeatureCategoryId; label: string; items: T[] };
+	const groupFeatures = <T extends { tag?: string; feature?: string }>(
+		items: T[]
+	): GroupedFeature<T>[] => {
+		const buckets = new Map<FeatureCategoryId, T[]>();
+		for (const it of items) {
+			const tag = it.tag ?? it.feature ?? '';
+			const cat = featureCategory(tag);
+			const list = buckets.get(cat) ?? [];
+			list.push(it);
+			buckets.set(cat, list);
+		}
+		const out: GroupedFeature<T>[] = [];
+		for (const id of FEATURE_CATEGORY_ORDER) {
+			const list = buckets.get(id);
+			if (list && list.length > 0) {
+				out.push({ category: id, label: FEATURE_CATEGORY_LABELS[id], items: list });
+			}
+		}
+		return out;
+	};
+	const sharedFeaturesGrouped = $derived(groupFeatures(sharedFeatures));
+	const detectedFeaturesGrouped = $derived(groupFeatures(detectedFeatures));
+
 	// OpenGraph metadata — derived so social cards always reflect current
 	// project state. Description truncated to 200 chars (well under the
 	// 300-char Twitter limit) and falls back to a spec summary when the
@@ -1022,21 +1097,30 @@ body {
 			</label>
 		</div>
 		{#if detectedFeatures.length > 0}
-			<div class="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+			<!-- Feature toggles grouped by category (letterforms / figures /
+			     spacing & ligatures / positional) so designers can scan the
+			     ones they care about. Active set spans groups; clear works
+			     across all. -->
+			<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[11px]">
 				<span class="text-fg-subtle">Features</span>
-				{#each detectedFeatures as f (f.feature)}
-					{@const on = activeFeatures.has(f.feature)}
-					<button
-						type="button"
-						onclick={() => toggleFeature(f.feature)}
-						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono transition-colors {on
-							? 'border-accent bg-accent-soft/40 text-fg'
-							: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
-						title="{featureLabel(f.feature)} — {f.subs.length} substitution{f.subs.length === 1 ? '' : 's'}"
-					>
-						<span>{f.feature}</span>
-						<span class="text-[9px] text-fg-subtle" data-numeric>{f.subs.length}</span>
-					</button>
+				{#each detectedFeaturesGrouped as group (group.category)}
+					<div class="flex flex-wrap items-center gap-1.5">
+						<span class="text-[10px] text-fg-subtle">{group.label}</span>
+						{#each group.items as f (f.feature)}
+							{@const on = activeFeatures.has(f.feature)}
+							<button
+								type="button"
+								onclick={() => toggleFeature(f.feature)}
+								class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono transition-colors {on
+									? 'border-accent bg-accent-soft/40 text-fg'
+									: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
+								title="{featureLabel(f.feature)} — {f.subs.length} substitution{f.subs.length === 1 ? '' : 's'}"
+							>
+								<span>{f.feature}</span>
+								<span class="text-[9px] text-fg-subtle" data-numeric>{f.subs.length}</span>
+							</button>
+						{/each}
+					</div>
 				{/each}
 				{#if activeFeatures.size > 0}
 					<button
@@ -1436,21 +1520,33 @@ body {
 			>
 				OpenType features
 			</h2>
-			<div class="flex flex-wrap gap-1.5">
-				{#each sharedFeatures as f (f.tag)}
-					<span
-						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
-						title={f.count !== undefined ? `${f.count} substitution${f.count === 1 ? '' : 's'}` : undefined}
-					>
-						<span class="font-mono text-fg">{f.tag}</span>
-						<span class="text-fg-muted">·</span>
-						<span class="text-fg-muted">{f.label}</span>
-						{#if f.count !== undefined}
-							<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
-								·{f.count}
+			<!-- Grouped by category. A flat list of 8+ tags doesn't tell
+			     designers anything; "kern + liga in Spacing & ligatures,
+			     ss01 + smcp in Letterforms" tells them what they're
+			     getting at a glance. Each group renders as a horizontal
+			     row with the category label on the left. -->
+			<div class="space-y-2">
+				{#each sharedFeaturesGrouped as group (group.category)}
+					<div class="flex flex-wrap items-center gap-1.5">
+						<span class="mr-1 text-[10px] uppercase tracking-wider text-fg-subtle">
+							{group.label}
+						</span>
+						{#each group.items as f (f.tag)}
+							<span
+								class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
+								title={f.count !== undefined ? `${f.count} substitution${f.count === 1 ? '' : 's'}` : undefined}
+							>
+								<span class="font-mono text-fg">{f.tag}</span>
+								<span class="text-fg-muted">·</span>
+								<span class="text-fg-muted">{f.label}</span>
+								{#if f.count !== undefined}
+									<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+										·{f.count}
+									</span>
+								{/if}
 							</span>
-						{/if}
-					</span>
+						{/each}
+					</div>
 				{/each}
 			</div>
 			<!-- CSS snippet for designers embedding via @font-face. Includes
