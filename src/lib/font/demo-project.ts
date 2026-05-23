@@ -310,6 +310,105 @@ const buildR = (): BezierContour[] => [
 	])
 ];
 
+// P — vertical stem + bowl (top bar / right stem / bottom bar of bowl).
+const buildP = (): BezierContour[] => [
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, CAP_HEIGHT],
+		[80, CAP_HEIGHT]
+	]),
+	// Bowl top
+	poly([
+		[80, CAP_HEIGHT],
+		[CAP_W - 80, CAP_HEIGHT],
+		[CAP_W - 80, CAP_HEIGHT - BAR],
+		[80, CAP_HEIGHT - BAR]
+	]),
+	// Bowl right stem
+	poly([
+		[CAP_W - 80 - STEM, CAP_HEIGHT - BAR],
+		[CAP_W - 80, CAP_HEIGHT - BAR],
+		[CAP_W - 80, CAP_HEIGHT * 0.55 + BAR],
+		[CAP_W - 80 - STEM, CAP_HEIGHT * 0.55 + BAR]
+	]),
+	// Bowl bottom
+	poly([
+		[80, CAP_HEIGHT * 0.55],
+		[CAP_W - 80, CAP_HEIGHT * 0.55],
+		[CAP_W - 80, CAP_HEIGHT * 0.55 + BAR],
+		[80, CAP_HEIGHT * 0.55 + BAR]
+	])
+];
+
+// F — vertical stem + top bar + middle bar.
+const buildF = (): BezierContour[] => [
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, CAP_HEIGHT],
+		[80, CAP_HEIGHT]
+	]),
+	// Top bar
+	poly([
+		[80, CAP_HEIGHT - BAR],
+		[CAP_W - 60, CAP_HEIGHT - BAR],
+		[CAP_W - 60, CAP_HEIGHT],
+		[80, CAP_HEIGHT]
+	]),
+	// Middle bar
+	poly([
+		[80, CAP_HEIGHT / 2 - BAR / 2],
+		[CAP_W - 100, CAP_HEIGHT / 2 - BAR / 2],
+		[CAP_W - 100, CAP_HEIGHT / 2 + BAR / 2],
+		[80, CAP_HEIGHT / 2 + BAR / 2]
+	])
+];
+
+// S — three horizontal bars connected by short diagonals. Geometric
+// approximation, easier than a true curve-based S.
+const buildS = (): BezierContour[] => {
+	const w = CAP_W;
+	const mid = CAP_HEIGHT / 2;
+	return [
+		// Top bar
+		poly([
+			[80, CAP_HEIGHT - BAR],
+			[w - 80, CAP_HEIGHT - BAR],
+			[w - 80, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		// Top-left stem (above middle)
+		poly([
+			[80, mid + BAR / 2],
+			[80 + STEM, mid + BAR / 2],
+			[80 + STEM, CAP_HEIGHT - BAR],
+			[80, CAP_HEIGHT - BAR]
+		]),
+		// Middle bar
+		poly([
+			[80, mid - BAR / 2],
+			[w - 80, mid - BAR / 2],
+			[w - 80, mid + BAR / 2],
+			[80, mid + BAR / 2]
+		]),
+		// Bottom-right stem (below middle)
+		poly([
+			[w - 80 - STEM, BAR],
+			[w - 80, BAR],
+			[w - 80, mid - BAR / 2],
+			[w - 80 - STEM, mid - BAR / 2]
+		]),
+		// Bottom bar
+		poly([
+			[80, 0],
+			[w - 80, 0],
+			[w - 80, BAR],
+			[80, BAR]
+		])
+	];
+};
+
 // acutecomb (U+0301) — a small angled bar floating just above cap-height,
 // designed as a mark that attaches to base letters via the `_top` anchor.
 // Shape: slanted parallelogram 60fu wide, 80fu tall.
@@ -416,6 +515,9 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x41, contours: buildA(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x4d, contours: buildM(), advanceWidth: CAP_W + 80, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x52, contours: buildR(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x50, contours: buildP(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x46, contours: buildF(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x53, contours: buildS(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
@@ -622,6 +724,14 @@ export const createDemoProject = (): Project => {
 		{ left: 0x56, right: 0x61, value: -30 }, // Va
 		{ left: 0x56, right: 0x6f, value: -30 }, // Vo
 		{ left: 0x41, right: 0x61, value: -10 }, // Aa
+		// New letters' kerning into common lowercase neighbours.
+		{ left: 0x50, right: 0x61, value: -50 }, // Pa
+		{ left: 0x50, right: 0x6f, value: -30 }, // Po
+		{ left: 0x46, right: 0x61, value: -50 }, // Fa
+		{ left: 0x46, right: 0x6f, value: -30 }, // Fo
+		{ left: 0x46, right: 0x6e, value: -30 }, // Fn
+		{ left: 0x53, right: 0x61, value: -10 }, // Sa
+		{ left: 0x53, right: 0x6f, value: -10 }, // So
 		// Lowercase pairs.
 		{ left: 0x6e, right: 0x6f, value: -10 }, // no
 		{ left: 0x6f, right: 0x6e, value: -10 }, // on
@@ -638,7 +748,7 @@ export const createDemoProject = (): Project => {
 		{
 			id: crypto.randomUUID(),
 			name: 'Cap vertical stems',
-			members: [0x48, 0x49, 0x4c, 0x4d, 0x4e, 0x52, 0x54] // H I L M N R T
+			members: [0x48, 0x49, 0x4c, 0x4d, 0x4e, 0x52, 0x54, 0x50, 0x46] // H I L M N R T P F
 		},
 		{
 			id: crypto.randomUUID(),
@@ -699,9 +809,10 @@ export const createDemoProject = (): Project => {
 			]
 		};
 	}
-	// Anchors on A, M, R — bigger character set means more useful anchors
-	// for the GPOS mark feature when designer-friends explore composites.
-	for (const cp of [0x41, 0x4d, 0x52, 0x4c, 0x56]) {
+	// Anchors on A, M, R, L, V, P, F, S — bigger character set means more
+	// useful anchors for the GPOS mark feature when designer-friends
+	// explore composites.
+	for (const cp of [0x41, 0x4d, 0x52, 0x4c, 0x56, 0x50, 0x46, 0x53]) {
 		const g = project.glyphs[cp];
 		if (g && g.contours.length > 0) {
 			project.glyphs[cp] = {
