@@ -267,6 +267,55 @@
 		}
 		return out;
 	});
+	// Anchor-attachment preview. For each non-underscore anchor on the
+	// inspected base glyph (top / bottom / center / etc.), find the
+	// first drawn mark glyph whose matching _<anchor> anchor connects.
+	// Render the mark as a faint path shifted so its _anchor lines up
+	// with the base's anchor — designers see exactly how the mark would
+	// float relative to the base. For the demo: inspect O → see the
+	// acutecomb hover at the `top` anchor.
+	type AnchorMarkPreview = {
+		id: string;
+		path: string;
+		dx: number;
+		dy: number;
+		markName: string;
+		baseAnchor: string;
+	};
+	const inspectorAnchorMarks = $derived.by((): AnchorMarkPreview[] => {
+		if (!inspectedGlyph) return [];
+		const baseAnchors = (inspectedGlyph.anchors ?? []).filter(
+			(a) => !a.name.startsWith('_')
+		);
+		if (baseAnchors.length === 0) return [];
+		// Collect every drawn mark glyph (Unicode marks live in
+		// 0x0300–0x036F).
+		const marks = Object.values(project.glyphs).filter(
+			(g) =>
+				g.codepoint >= 0x0300 &&
+				g.codepoint <= 0x036f &&
+				g.contours.length > 0 &&
+				g.anchors &&
+				g.anchors.length > 0
+		);
+		const out: AnchorMarkPreview[] = [];
+		for (const ba of baseAnchors) {
+			const wantedMarkAnchor = `_${ba.name}`;
+			const match = marks.find((m) => m.anchors?.some((a) => a.name === wantedMarkAnchor));
+			if (!match) continue;
+			const ma = match.anchors?.find((a) => a.name === wantedMarkAnchor);
+			if (!ma) continue;
+			out.push({
+				id: `${match.name}-on-${ba.name}`,
+				path: contoursToSvgPath(match.contours),
+				dx: ba.x - ma.x,
+				dy: ba.y - ma.y,
+				markName: match.name,
+				baseAnchor: ba.name
+			});
+		}
+		return out;
+	});
 	const openInspector = (cp: number) => {
 		// Clear filters so the inspected glyph is guaranteed visible.
 		// Otherwise designers click a tile in a filtered grid and the
@@ -2173,10 +2222,39 @@ body {
 							class="text-accent"
 						/>
 					{/each}
-					<!-- Anchors as small markers -->
+					<!-- Anchor-attachment preview — render every matched mark
+					     first so it sits UNDER the anchor markers and the
+					     base contour (the base path is already laid down
+					     above; this prints between the base and the dots). -->
+					{#each inspectorAnchorMarks as p (p.id)}
+						<path
+							d={p.path}
+							transform="translate({p.dx} {p.dy})"
+							fill="currentColor"
+							fill-rule="evenodd"
+							opacity="0.4"
+							class="text-accent"
+						/>
+					{/each}
+					<!-- Anchors as small markers with name labels. The SVG
+					     has scaleY(-1) at the root, so each label group
+					     needs to flip back to render text upright. Label
+					     offset (40 UPM right + slight vertical nudge) is
+					     a unit that works across UPM scales since we're
+					     in font-space, not pixels. -->
 					{#each inspectedGlyph.anchors ?? [] as a (a.name)}
 						<g transform="translate({a.x} {a.y})">
 							<circle r={24} fill="currentColor" class="text-accent" />
+							<g transform="scale(1 -1)">
+								<text
+									x={36}
+									y={6}
+									font-size={60}
+									font-family="ui-monospace, monospace"
+									fill="currentColor"
+									class="text-accent-strong"
+								>{a.name}</text>
+							</g>
 						</g>
 					{/each}
 				</svg>
@@ -2217,6 +2295,22 @@ body {
 				</dd>
 				<dt class="text-fg-subtle">Anchors</dt>
 				<dd class="text-right font-mono text-fg" data-numeric>{anchorCount}</dd>
+				{#if inspectorAnchorMarks.length > 0}
+					<dt class="col-span-2 mt-2 border-t border-border pt-2 text-fg-subtle">
+						Attaches
+					</dt>
+					<dd class="col-span-2 -mt-1 flex flex-wrap gap-1">
+						{#each inspectorAnchorMarks as p (p.id)}
+							<span
+								class="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
+							>
+								<span class="text-accent">{p.baseAnchor}</span>
+								<span class="text-fg-subtle">→</span>
+								<span>{p.markName}</span>
+							</span>
+						{/each}
+					</dd>
+				{/if}
 				{#if layerCount > 0}
 					<dt class="text-fg-subtle">Color layers</dt>
 					<dd class="text-right font-mono text-fg" data-numeric>{layerCount}</dd>
