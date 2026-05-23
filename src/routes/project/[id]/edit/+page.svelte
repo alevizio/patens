@@ -467,6 +467,20 @@
 			.join(' ');
 	};
 
+	// Helper: is every letter in a word actually drawn? Used by smartSample
+	// to skip suggestions that would show notdef boxes for missing glyphs.
+	const wordHasAllDrawn = (word: string): boolean => {
+		const p = projectStore.project;
+		if (!p) return false;
+		for (const ch of word) {
+			const cpp = ch.codePointAt(0) ?? 0;
+			if (cpp <= 0x20) continue; // skip spaces / control
+			const g = p.glyphs[cpp];
+			if (!g || g.contours.length === 0) return false;
+		}
+		return true;
+	};
+
 	const smartSample = () => {
 		if (!glyph) return;
 		const cp = glyph.codepoint;
@@ -494,7 +508,12 @@
 			}
 			return;
 		}
-		metricsText = words[sampleIndex % words.length];
+		// Prefer words whose letters are all drawn — avoids surfacing
+		// notdef boxes in the preview when the project is still in the
+		// 12-glyphs-drawn stage.
+		const drawnOnly = words.filter(wordHasAllDrawn);
+		const pool = drawnOnly.length > 0 ? drawnOnly : words;
+		metricsText = pool[sampleIndex % pool.length];
 		sampleIndex++;
 	};
 
