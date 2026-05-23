@@ -339,6 +339,44 @@
 		</p>
 	</section>
 
+	<!-- Brief — visible project narrative for designer-friends.
+	     Renders intent + audience + differentiation as a small
+	     prose block. Each piece is conditional so the section
+	     stays clean for projects without a populated brief. -->
+	{#if project.brief && (project.brief.intent || project.brief.audience || project.brief.differentiation)}
+		<section class="mb-10">
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Brief
+			</h2>
+			<div class="space-y-3 rounded-md border border-border bg-surface-2/30 p-4 text-[13px] leading-relaxed text-fg-muted">
+				{#if project.brief.intent}
+					<p>
+						<span class="text-[11px] font-semibold uppercase tracking-wider text-fg-subtle">
+							Intent
+						</span><br />
+						{project.brief.intent}
+					</p>
+				{/if}
+				{#if project.brief.audience}
+					<p>
+						<span class="text-[11px] font-semibold uppercase tracking-wider text-fg-subtle">
+							Audience
+						</span><br />
+						{project.brief.audience}
+					</p>
+				{/if}
+				{#if project.brief.differentiation}
+					<p>
+						<span class="text-[11px] font-semibold uppercase tracking-wider text-fg-subtle">
+							Differentiation
+						</span><br />
+						{project.brief.differentiation}
+					</p>
+				{/if}
+			</div>
+		</section>
+	{/if}
+
 	<!-- Waterfall — same pangram at multiple sizes. Shows how the
 	     typeface behaves from caption to display. -->
 	{#if waterfallRow.glyphs.length > 0}
