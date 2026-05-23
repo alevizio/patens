@@ -38,6 +38,7 @@
 	import Archive from '@lucide/svelte/icons/archive';
 	import ArchiveRestore from '@lucide/svelte/icons/archive-restore';
 	import Layers from '@lucide/svelte/icons/layers';
+	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import Download from '@lucide/svelte/icons/download';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
@@ -1432,6 +1433,17 @@
 					Archive
 				{/if}
 			</button>
+			<!-- Direct jump to the project's audit page — saves a click vs.
+			     entering the project then navigating the tab bar. -->
+			<a
+				role="menuitem"
+				href="/project/{menuTarget.id}/audit"
+				onclick={closeMenu}
+				class="flex w-full items-center gap-2 border-t border-border px-3 py-1.5 text-left text-[12px] text-fg-muted hover:bg-surface-2 hover:text-fg"
+			>
+				<AlertCircle class="size-3.5" />
+				Open audit
+			</a>
 			{#if menuTarget.familyId}
 				<a
 					role="menuitem"
