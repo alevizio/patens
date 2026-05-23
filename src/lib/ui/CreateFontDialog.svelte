@@ -8,6 +8,7 @@
 	import Input from './Input.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Plus from '@lucide/svelte/icons/plus';
+	import { focusTrap } from './focus-trap';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Link from '@lucide/svelte/icons/link';
@@ -78,6 +79,7 @@
 
 {#if open}
 	<div
+		use:focusTrap
 		class="fixed inset-0 z-50 grid place-items-center bg-fg/40 p-4 backdrop-blur-sm"
 		role="dialog"
 		aria-modal="true"

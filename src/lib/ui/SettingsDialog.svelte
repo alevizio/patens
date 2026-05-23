@@ -6,6 +6,7 @@
 	import Panel from './Panel.svelte';
 	import X from '@lucide/svelte/icons/x';
 	import Eye from '@lucide/svelte/icons/eye';
+	import { focusTrap } from './focus-trap';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import KeyRound from '@lucide/svelte/icons/key-round';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
@@ -43,9 +44,11 @@
 
 {#if open}
 	<div
+		use:focusTrap
 		class="fixed inset-0 z-50 grid place-items-center bg-fg/40 p-4 backdrop-blur-sm"
 		role="dialog"
 		aria-modal="true"
+		aria-label="Settings"
 		onclick={(e) => {
 			if (e.target === e.currentTarget) onclose();
 		}}

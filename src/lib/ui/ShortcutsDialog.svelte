@@ -1,6 +1,7 @@
 <script lang="ts">
 	import X from '@lucide/svelte/icons/x';
 	import Keyboard from '@lucide/svelte/icons/keyboard';
+	import { focusTrap } from './focus-trap';
 
 	type Props = { open: boolean; onclose: () => void };
 	let { open, onclose }: Props = $props();
@@ -117,6 +118,7 @@
 			tabindex="-1"
 		></button>
 		<div
+			use:focusTrap
 			role="dialog"
 			aria-modal="true"
 			aria-label="Keyboard shortcuts"
