@@ -311,29 +311,94 @@
 			// the designer can copy from there.
 		}
 	};
-	// On mount: parse ?glyph= and open the inspector at that codepoint.
-	// onMount (not $effect) so this only fires on initial load — closing
-	// the inspector later mustn't be undone by a reactive re-run.
+	// Tester share — copies the current URL (which the effect below keeps
+	// in sync with text/size/tracking/master/features/palette) so the
+	// recipient lands on the exact same view.
+	let testerLinkCopied = $state(false);
+	const copyTesterLink = async () => {
+		try {
+			await navigator.clipboard.writeText(window.location.href);
+			testerLinkCopied = true;
+			setTimeout(() => (testerLinkCopied = false), 1500);
+		} catch {
+			// Same fallback — URL bar is still authoritative.
+		}
+	};
+	// On mount: parse URL params and restore the tester + inspector state.
+	// onMount (not $effect) so closing/clearing the inspector or tester
+	// later isn't undone by a reactive re-run on the initial URL.
 	onMount(() => {
 		const params = new URLSearchParams(window.location.search);
+		// Glyph deep link
 		const hex = params.get('glyph');
-		if (!hex) return;
-		const cp = parseInt(hex, 16);
-		if (Number.isNaN(cp)) return;
-		const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
-		if (idx >= 0) inspectedIndex = idx;
+		if (hex) {
+			const cp = parseInt(hex, 16);
+			if (!Number.isNaN(cp)) {
+				const idx = drawnGlyphs.findIndex((g) => g.codepoint === cp);
+				if (idx >= 0) inspectedIndex = idx;
+			}
+		}
+		// Tester state
+		const t = params.get('t');
+		if (t !== null) typeText = t;
+		const s = params.get('s');
+		if (s !== null) {
+			const n = parseInt(s, 10);
+			if (!Number.isNaN(n) && n >= 24 && n <= 240) trySize = n;
+		}
+		const tr = params.get('tr');
+		if (tr !== null) {
+			const n = parseInt(tr, 10);
+			if (!Number.isNaN(n) && n >= -100 && n <= 200) tryTracking = n;
+		}
+		const m = params.get('m');
+		if (m && project.masters?.some((x) => x.id === m)) tryMasterId = m;
+		const f = params.get('f');
+		if (f) {
+			const tags = f.split(',').filter(Boolean);
+			activeFeatures = new Set(tags);
+		}
+		const p = params.get('p');
+		if (p !== null) {
+			const n = parseInt(p, 10);
+			if (!Number.isNaN(n) && n >= 0 && n < (project.palettes?.length ?? 0)) {
+				selectedPaletteIndex = n;
+			}
+		}
 	});
-	// Sync URL when inspector state changes. replaceState (not pushState)
-	// so designer-friends don't accumulate dozens of arrow-step entries
-	// in their back button. Untracked-style: only writes the URL, never
-	// reads in this effect.
+	// Sync URL when inspector + tester state changes. replaceState (not
+	// pushState) so a designer-friend dragging the size slider doesn't
+	// accumulate dozens of entries in the back stack. Param names are
+	// short (t/s/tr/m/f/p) so the URL stays readable when shared. Only
+	// non-default values are written — bare URL means default state.
 	$effect(() => {
-		const g = inspectedGlyph;
 		const url = new URL(window.location.href);
+		const g = inspectedGlyph;
 		if (g) {
 			url.searchParams.set('glyph', g.codepoint.toString(16).toUpperCase().padStart(4, '0'));
 		} else {
 			url.searchParams.delete('glyph');
+		}
+		if (typeText && typeText !== 'Type something here') {
+			url.searchParams.set('t', typeText);
+		} else {
+			url.searchParams.delete('t');
+		}
+		if (trySize !== 96) url.searchParams.set('s', String(trySize));
+		else url.searchParams.delete('s');
+		if (tryTracking !== 0) url.searchParams.set('tr', String(tryTracking));
+		else url.searchParams.delete('tr');
+		if (tryMasterId) url.searchParams.set('m', tryMasterId);
+		else url.searchParams.delete('m');
+		if (activeFeatures.size > 0) {
+			url.searchParams.set('f', [...activeFeatures].sort().join(','));
+		} else {
+			url.searchParams.delete('f');
+		}
+		if (selectedPaletteIndex !== initialPaletteIndex) {
+			url.searchParams.set('p', String(selectedPaletteIndex));
+		} else {
+			url.searchParams.delete('p');
 		}
 		const next = url.pathname + (url.search || '');
 		if (next !== window.location.pathname + window.location.search) {
@@ -841,7 +906,23 @@ body {
 		<h2
 			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 		>
-			<span>Try it</span>
+			<span class="flex items-center gap-2">
+				<span>Try it</span>
+				<button
+					type="button"
+					onclick={copyTesterLink}
+					class="inline-flex items-center gap-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
+					title="Copy a link to this exact tester view — text, size, master, features, palette"
+				>
+					{#if testerLinkCopied}
+						<Check class="size-2.5" />
+						<span>Copied</span>
+					{:else}
+						<Link2 class="size-2.5" />
+						<span>Share view</span>
+					{/if}
+				</button>
+			</span>
 			<span class="font-mono normal-case text-fg-subtle" data-numeric>
 				{trySize}px · {tryTracking > 0 ? '+' : ''}{tryTracking}
 			</span>
