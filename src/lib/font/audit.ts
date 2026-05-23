@@ -680,6 +680,33 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		});
 	}
 
+	// Kerning sanity — pairs whose absolute value exceeds half the smaller
+	// glyph's advance width are almost always typos (designer meant -50 but
+	// typed -500). Negative kerning > advance width effectively rewinds
+	// past the previous glyph's right edge; positive > advance creates
+	// gaps wider than a missing glyph.
+	for (const pair of project.kerning) {
+		const limit = (() => {
+			if (typeof pair.left !== 'number' || typeof pair.right !== 'number') return null;
+			const l = project.glyphs[pair.left];
+			const r = project.glyphs[pair.right];
+			if (!l || !r) return null;
+			return Math.round(Math.min(l.advanceWidth, r.advanceWidth) / 2);
+		})();
+		if (limit !== null && Math.abs(pair.value) > limit && limit > 0) {
+			const lc = pair.left as number;
+			const rc = pair.right as number;
+			const lch = lc > 0x20 && lc < 0x10000 ? String.fromCodePoint(lc) : `U+${lc.toString(16)}`;
+			const rch = rc > 0x20 && rc < 0x10000 ? String.fromCodePoint(rc) : `U+${rc.toString(16)}`;
+			issues.push({
+				codepoint: 0,
+				severity: 'warn',
+				code: 'kerning-extreme',
+				message: `Kerning ${lch}${rch} = ${pair.value}fu — extreme. Likely a typo (did you mean ${Math.sign(pair.value) * Math.round(Math.abs(pair.value) / 10)}?)`
+			});
+		}
+	}
+
 	// Control-glyph coverage
 	const controlGlyphs = [0x004e, 0x004f, 0x006e, 0x006f, 0x0048, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079];
 	const missingControl = controlGlyphs.filter(
@@ -1183,7 +1210,9 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'metrics-descender-nonnegative':
 			'Descender is zero or positive — descending letters (g, j, p, q, y) will sit on the baseline rather than dropping below it. Descender values are conventionally negative (e.g. -200 at 1000 UPM).',
 		'metrics-zero-height':
-			'Cap-height or x-height is zero. Several algorithms (auto-spacing, spacing-by-reference, x-height alignment audit) depend on these to be positive — set them in the metrics inspector.'
+			'Cap-height or x-height is zero. Several algorithms (auto-spacing, spacing-by-reference, x-height alignment audit) depend on these to be positive — set them in the metrics inspector.',
+		'kerning-extreme':
+			'A kerning pair exceeds half the smaller glyph\'s advance — almost certainly a decimal typo (e.g. -500 typed when -50 was meant). Check the value in the spacing pair editor.'
 	};
 	return descriptions[code];
 };
