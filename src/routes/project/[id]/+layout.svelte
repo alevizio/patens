@@ -36,6 +36,7 @@
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Save from '@lucide/svelte/icons/save';
 	import Share2 from '@lucide/svelte/icons/share-2';
+	import Printer from '@lucide/svelte/icons/printer';
 	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -667,6 +668,16 @@
 					title="Copy share link (read-only viewer)"
 				>
 					<Share2 class="size-3.5" />
+				</button>
+				<button
+					type="button"
+					onclick={() =>
+						window.open(`/share/${id}?print=1`, '_blank', 'noopener,noreferrer')}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					aria-label="Print specimen sheet"
+					title="Print specimen — opens share view + browser print dialog"
+				>
+					<Printer class="size-3.5" />
 				</button>
 				<button
 					type="button"

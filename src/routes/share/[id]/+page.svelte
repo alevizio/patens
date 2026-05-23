@@ -427,6 +427,13 @@
 				selectedPaletteIndex = n;
 			}
 		}
+		// Auto-print — when the editor's Print button opens this tab with
+		// ?print=1, kick off the browser print dialog after a frame so the
+		// page paints first. Designers get a one-click PDF without having
+		// to remember Cmd+P.
+		if (params.get('print') === '1') {
+			requestAnimationFrame(() => requestAnimationFrame(() => window.print()));
+		}
 	});
 	// Sync URL when inspector + tester state changes. replaceState (not
 	// pushState) so a designer-friend dragging the size slider doesn't
