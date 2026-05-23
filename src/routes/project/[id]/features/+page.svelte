@@ -79,6 +79,66 @@
 		}
 		projectStore.addPalette(fresh);
 	};
+
+	// Palette presets — curated starting points designers can reach for
+	// instead of dialling RGB sliders from scratch. Each preset returns
+	// a 4-colour palette in the project's RGBA format.
+	const PALETTE_PRESETS: Record<string, { name: string; variant?: 'default' | 'light' | 'dark' | 'brand'; colors: Array<{ r: number; g: number; b: number; a: number }> }> = {
+		warm: {
+			name: 'Warm',
+			variant: 'brand',
+			colors: [
+				{ r: 17, g: 17, b: 17, a: 1 },
+				{ r: 220, g: 38, b: 38, a: 1 },
+				{ r: 245, g: 158, b: 11, a: 1 },
+				{ r: 250, g: 246, b: 238, a: 1 }
+			]
+		},
+		cool: {
+			name: 'Cool',
+			variant: 'brand',
+			colors: [
+				{ r: 14, g: 23, b: 42, a: 1 },
+				{ r: 37, g: 99, b: 235, a: 1 },
+				{ r: 14, g: 165, b: 233, a: 1 },
+				{ r: 240, g: 249, b: 255, a: 1 }
+			]
+		},
+		mono: {
+			name: 'Monochrome',
+			variant: 'default',
+			colors: [
+				{ r: 17, g: 17, b: 17, a: 1 },
+				{ r: 87, g: 83, b: 78, a: 1 },
+				{ r: 168, g: 162, b: 158, a: 1 },
+				{ r: 250, g: 250, b: 249, a: 1 }
+			]
+		},
+		material: {
+			name: 'Material',
+			variant: 'default',
+			colors: [
+				{ r: 33, g: 33, b: 33, a: 1 },
+				{ r: 244, g: 67, b: 54, a: 1 },
+				{ r: 76, g: 175, b: 80, a: 1 },
+				{ r: 33, g: 150, b: 243, a: 1 }
+			]
+		}
+	};
+	const addPalettePreset = (key: keyof typeof PALETTE_PRESETS) => {
+		if (!project) return;
+		const referenceLength = palettesLength > 0 ? palettesLength : 4;
+		const preset = PALETTE_PRESETS[key];
+		const colors = [...preset.colors];
+		if (colors.length > referenceLength) colors.length = referenceLength;
+		else while (colors.length < referenceLength) colors.push({ r: 26, g: 26, b: 26, a: 1 });
+		projectStore.addPalette({
+			id: crypto.randomUUID(),
+			name: preset.name,
+			variant: palettes.length === 0 ? preset.variant : undefined,
+			colors
+		});
+	};
 	const removePalette = (id: string) => {
 		projectStore.removePalette(id);
 	};
@@ -487,6 +547,36 @@
 							</Button>
 						{/if}
 						<Button density="sm" onclick={addPalette}>+ palette</Button>
+						<!-- Quick-preset palette adds — curated 4-colour starting
+						     points designers can reach for instead of dialling
+						     RGB sliders. -->
+						<div class="inline-flex items-center gap-0.5 rounded-md border border-border bg-surface px-1 py-0.5">
+							<span class="px-1 text-[10px] text-fg-subtle">preset:</span>
+							<button
+								type="button"
+								onclick={() => addPalettePreset('warm')}
+								class="rounded px-1.5 py-0.5 text-[10px] text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
+								title="Ink + red + warm-yellow + paper"
+							>warm</button>
+							<button
+								type="button"
+								onclick={() => addPalettePreset('cool')}
+								class="rounded px-1.5 py-0.5 text-[10px] text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
+								title="Navy + blue + cyan + ice"
+							>cool</button>
+							<button
+								type="button"
+								onclick={() => addPalettePreset('mono')}
+								class="rounded px-1.5 py-0.5 text-[10px] text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
+								title="4-step grey ramp from ink to paper"
+							>mono</button>
+							<button
+								type="button"
+								onclick={() => addPalettePreset('material')}
+								class="rounded px-1.5 py-0.5 text-[10px] text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
+								title="Material 500-level: ink + red + green + blue"
+							>material</button>
+						</div>
 					</div>
 				</div>
 				<p class="mb-3 text-[12px] leading-snug text-fg-muted">
