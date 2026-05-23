@@ -185,6 +185,163 @@ const buildN_lc = (): BezierContour[] => [
 	])
 ];
 
+// L — vertical stem + bottom bar.
+const buildL = (): BezierContour[] => [
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, CAP_HEIGHT],
+		[80, CAP_HEIGHT]
+	]),
+	poly([
+		[80, 0],
+		[CAP_W - 60, 0],
+		[CAP_W - 60, BAR],
+		[80, BAR]
+	])
+];
+
+// V — two angled stems meeting at the bottom.
+const buildV = (): BezierContour[] => [
+	poly([
+		[60, CAP_HEIGHT],
+		[60 + STEM, CAP_HEIGHT],
+		[CAP_W / 2 + STEM / 2, 0],
+		[CAP_W / 2 - STEM / 2, 0]
+	]),
+	poly([
+		[CAP_W - 60 - STEM, CAP_HEIGHT],
+		[CAP_W - 60, CAP_HEIGHT],
+		[CAP_W / 2 + STEM / 2, 0],
+		[CAP_W / 2 - STEM / 2, 0]
+	])
+];
+
+// A — two angled stems meeting at the top + crossbar.
+const buildA = (): BezierContour[] => [
+	poly([
+		[CAP_W / 2 - STEM / 2, CAP_HEIGHT],
+		[CAP_W / 2 + STEM / 2, CAP_HEIGHT],
+		[CAP_W - 60, 0],
+		[CAP_W - 60 - STEM, 0]
+	]),
+	poly([
+		[CAP_W / 2 - STEM / 2, CAP_HEIGHT],
+		[CAP_W / 2 + STEM / 2, CAP_HEIGHT],
+		[60 + STEM, 0],
+		[60, 0]
+	]),
+	// Crossbar at 40% height
+	poly([
+		[140, CAP_HEIGHT * 0.4 - BAR / 2],
+		[CAP_W - 140, CAP_HEIGHT * 0.4 - BAR / 2],
+		[CAP_W - 140, CAP_HEIGHT * 0.4 + BAR / 2],
+		[140, CAP_HEIGHT * 0.4 + BAR / 2]
+	])
+];
+
+// M — left stem, two angled inner stems meeting at center-bottom, right stem.
+const buildM = (): BezierContour[] => {
+	const W = CAP_W + 60;
+	return [
+		poly([
+			[80, 0],
+			[80 + STEM, 0],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		poly([
+			[W - 80 - STEM, 0],
+			[W - 80, 0],
+			[W - 80, CAP_HEIGHT],
+			[W - 80 - STEM, CAP_HEIGHT]
+		]),
+		// Inner diagonals meeting at center-bottom
+		poly([
+			[80 + STEM, CAP_HEIGHT],
+			[80 + STEM + 40, CAP_HEIGHT],
+			[W / 2 + STEM / 2, 200],
+			[W / 2 - STEM / 2, 200]
+		]),
+		poly([
+			[W - 80 - STEM - 40, CAP_HEIGHT],
+			[W - 80 - STEM, CAP_HEIGHT],
+			[W / 2 + STEM / 2, 200],
+			[W / 2 - STEM / 2, 200]
+		])
+	];
+};
+
+// R — vertical stem + half-ring at top + diagonal leg.
+const buildR = (): BezierContour[] => [
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, CAP_HEIGHT],
+		[80, CAP_HEIGHT]
+	]),
+	// Bowl top bar
+	poly([
+		[80, CAP_HEIGHT],
+		[CAP_W - 100, CAP_HEIGHT],
+		[CAP_W - 100, CAP_HEIGHT - BAR],
+		[80, CAP_HEIGHT - BAR]
+	]),
+	// Bowl right stem
+	poly([
+		[CAP_W - 100 - STEM, CAP_HEIGHT - BAR],
+		[CAP_W - 100, CAP_HEIGHT - BAR],
+		[CAP_W - 100, CAP_HEIGHT * 0.55 + BAR],
+		[CAP_W - 100 - STEM, CAP_HEIGHT * 0.55 + BAR]
+	]),
+	// Bowl bottom bar
+	poly([
+		[80, CAP_HEIGHT * 0.55],
+		[CAP_W - 100, CAP_HEIGHT * 0.55],
+		[CAP_W - 100, CAP_HEIGHT * 0.55 + BAR],
+		[80, CAP_HEIGHT * 0.55 + BAR]
+	]),
+	// Diagonal leg from junction to bottom-right
+	poly([
+		[80 + STEM, CAP_HEIGHT * 0.55],
+		[80 + STEM + 40, CAP_HEIGHT * 0.55],
+		[CAP_W - 60, 0],
+		[CAP_W - 60 - 80, 0]
+	])
+];
+
+// lowercase a — simple two-storey approximation: bowl + stem.
+const buildA_lc = (): BezierContour[] => [
+	// Stem on right
+	poly([
+		[LC_W - 80 - STEM, 0],
+		[LC_W - 80, 0],
+		[LC_W - 80, X_HEIGHT],
+		[LC_W - 80 - STEM, X_HEIGHT]
+	]),
+	// Bowl top bar
+	poly([
+		[80, X_HEIGHT - STEM],
+		[LC_W - 80 - STEM, X_HEIGHT - STEM],
+		[LC_W - 80 - STEM, X_HEIGHT],
+		[80, X_HEIGHT]
+	]),
+	// Bowl left stem
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, X_HEIGHT],
+		[80, X_HEIGHT]
+	]),
+	// Bowl bottom bar
+	poly([
+		[80, 0],
+		[LC_W - 80 - STEM, 0],
+		[LC_W - 80 - STEM, STEM],
+		[80, STEM]
+	])
+];
+
 // ---------- Assembly ----------
 
 type GlyphSpec = {
@@ -203,8 +360,14 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x49, contours: buildI(), advanceWidth: Math.round(CAP_W * 0.6), leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x45, contours: buildE(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x4e, contours: buildN(), advanceWidth: CAP_W + 20, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	{ codepoint: 0x4c, contours: buildL(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x56, contours: buildV(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x41, contours: buildA(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x4d, contours: buildM(), advanceWidth: CAP_W + 80, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	{ codepoint: 0x52, contours: buildR(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
-	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
+	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
+	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
@@ -308,7 +471,16 @@ export const createDemoProject = (): Project => {
 	// most of the perceived spacing in Latin body text. Negative values
 	// pull the glyphs closer; positive push them apart.
 	project.kerning = [
-		// Uppercase pairs against H / T / N / O — the demo's drawn caps.
+		// Classic angular-stem pairs — the most-photographed bigrams in type.
+		{ left: 0x41, right: 0x56, value: -50 }, // AV
+		{ left: 0x56, right: 0x41, value: -50 }, // VA
+		{ left: 0x41, right: 0x54, value: -50 }, // AT
+		{ left: 0x54, right: 0x41, value: -50 }, // TA
+		{ left: 0x41, right: 0x59, value: -40 }, // AY (Y not drawn but pair stays)
+		{ left: 0x4c, right: 0x54, value: -50 }, // LT
+		{ left: 0x4c, right: 0x56, value: -50 }, // LV
+		{ left: 0x4c, right: 0x59, value: -50 }, // LY
+		// Uppercase pairs against H / T / N / O / L / R / M.
 		{ left: 0x48, right: 0x49, value: -20 }, // HI
 		{ left: 0x48, right: 0x4f, value: -10 }, // HO
 		{ left: 0x49, right: 0x48, value: -20 }, // IH
@@ -320,22 +492,37 @@ export const createDemoProject = (): Project => {
 		{ left: 0x4e, right: 0x4f, value: -10 }, // NO
 		{ left: 0x54, right: 0x4e, value: -20 }, // TN
 		{ left: 0x54, right: 0x4f, value: -30 }, // TO
-		// Lowercase pairs against n / o — the demo's drawn lowercase.
+		{ left: 0x52, right: 0x4f, value: -10 }, // RO
+		{ left: 0x4d, right: 0x4f, value: -10 }, // MO
+		// Cap-then-lowercase (mid-word and after-cap-then-lowercase letter).
+		{ left: 0x54, right: 0x61, value: -50 }, // Ta
+		{ left: 0x54, right: 0x6f, value: -40 }, // To
+		{ left: 0x54, right: 0x6e, value: -30 }, // Tn
+		{ left: 0x56, right: 0x61, value: -30 }, // Va
+		{ left: 0x56, right: 0x6f, value: -30 }, // Vo
+		{ left: 0x41, right: 0x61, value: -10 }, // Aa
+		// Lowercase pairs.
 		{ left: 0x6e, right: 0x6f, value: -10 }, // no
 		{ left: 0x6f, right: 0x6e, value: -10 }, // on
+		{ left: 0x61, right: 0x6e, value: -10 }, // an
+		{ left: 0x61, right: 0x6f, value: -10 }, // ao
 		// Mixed-case caps following lowercase (common after-period case).
 		{ left: 0x6e, right: 0x48, value: 10 }, // nH
 		{ left: 0x6f, right: 0x48, value: 10 } // oH
 	];
 
-	// Sidebearing class: vertical-stem caps. H I T all share the same
-	// left/right whitespace by convention. Demonstrates the class system
-	// + the sidebearing-class-drift audit.
+	// Sidebearing classes — vertical-stem caps + lowercase-with-stem.
+	// Demonstrates the class system + the sidebearing-class-drift audit.
 	project.sidebearingClasses = [
 		{
 			id: crypto.randomUUID(),
 			name: 'Cap vertical stems',
-			members: [0x48, 0x49, 0x54, 0x4e] // H I T N
+			members: [0x48, 0x49, 0x4c, 0x4d, 0x4e, 0x52, 0x54] // H I L M N R T
+		},
+		{
+			id: crypto.randomUUID(),
+			name: 'Lowercase stems',
+			members: [0x6e, 0x61] // n a
 		}
 	];
 
@@ -391,6 +578,30 @@ export const createDemoProject = (): Project => {
 			]
 		};
 	}
+	// Anchors on A, M, R — bigger character set means more useful anchors
+	// for the GPOS mark feature when designer-friends explore composites.
+	for (const cp of [0x41, 0x4d, 0x52, 0x4c, 0x56]) {
+		const g = project.glyphs[cp];
+		if (g && g.contours.length > 0) {
+			project.glyphs[cp] = {
+				...g,
+				anchors: [
+					{ name: 'top', x: Math.round(g.advanceWidth / 2), y: CAP_HEIGHT },
+					{ name: 'bottom', x: Math.round(g.advanceWidth / 2), y: 0 }
+				]
+			};
+		}
+	}
+	// `a` lowercase gets a top anchor (no descender to anchor against).
+	const aLower = project.glyphs[0x61];
+	if (aLower && aLower.contours.length > 0) {
+		project.glyphs[0x61] = {
+			...aLower,
+			anchors: [
+				{ name: 'top', x: Math.round(aLower.advanceWidth / 2), y: X_HEIGHT }
+			]
+		};
+	}
 
 	// Glyph tags — demonstrates the freeform taxonomy. Flagship glyphs get
 	// "flagship"; in-progress lowercase letter gets "wip". Surfaces in the
@@ -401,7 +612,10 @@ export const createDemoProject = (): Project => {
 	};
 	tag(0x4f, ['flagship', 'color']);
 	tag(0x48, ['flagship']);
+	tag(0x41, ['flagship']); // A — classic kerning showcase
+	tag(0x56, ['flagship']); // V — classic kerning showcase
 	tag(0x6e, ['wip']);
+	tag(0x61, ['wip', 'needs-redraw']);
 
 	// COLR layers on the flagship uppercase `O`. Three layers stack to
 	// produce a warm-on-ink ring effect: ink fill (full), red accent
