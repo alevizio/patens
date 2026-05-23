@@ -1094,6 +1094,38 @@
 		deriveSourceCp = null;
 	};
 
+	// Make alternate — duplicates the current glyph to a new PUA codepoint
+	// with a `.ss01` / `.smcp` / `.salt` name suffix. The naming convention
+	// auto-detects as the corresponding OpenType feature at export.
+	let alternateSuffix = $state<'ss01' | 'smcp' | 'salt' | 'alt'>('ss01');
+	const makeAlternate = () => {
+		if (!glyph || !projectStore.project) return;
+		// Find a free PUA codepoint. Start at U+E001 (skip 0xE000 reserved-ish)
+		// and walk forward until we find an empty slot.
+		let cp = 0xe001;
+		while (projectStore.project.glyphs[cp]) cp++;
+		// Build the name: prefer aglfn(originalCp) + '.suffix', fall back to
+		// the glyph's existing name.
+		const baseName = aglfnName(glyph.codepoint) || glyph.name;
+		const altName = `${baseName}.${alternateSuffix}`;
+		// Create the new glyph as a copy of the current one.
+		projectStore.addCustomGlyph(cp, altName);
+		projectStore.updateGlyph(cp, (g) => ({
+			...g,
+			contours: JSON.parse(JSON.stringify(glyph.contours)),
+			advanceWidth: glyph.advanceWidth,
+			leftSidebearing: glyph.leftSidebearing,
+			rightSidebearing: glyph.rightSidebearing,
+			anchors: glyph.anchors ? JSON.parse(JSON.stringify(glyph.anchors)) : undefined,
+			status: 'draft',
+			notes: `Alternate (.${alternateSuffix}) of ${baseName}. Substitution auto-emitted by feature-detect at export.`
+		}));
+		projectStore.selectGlyph(cp);
+		toast.success(
+			`Created "${altName}" at U+${cp.toString(16).toUpperCase().padStart(4, '0')}`
+		);
+	};
+
 	const addAnchor = (name: string) => {
 		if (!glyph || !metrics) return;
 		const trimmed = name.trim();
@@ -2817,6 +2849,36 @@
 					>
 						Generate
 					</button>
+				</Accordion>
+
+				<!-- Make alternate — duplicate the current glyph to a new PUA
+				     codepoint with an OpenType-feature naming suffix. The export
+				     pipeline's feature-detect picks the suffix up automatically. -->
+				<Accordion id="edit-make-alternate" label="Make alternate" defaultOpen={false}>
+					<p class="mb-2 text-[11px] text-fg-subtle">
+						Duplicate this glyph to a new alternate (PUA codepoint) with a
+						feature-detected name suffix. Rendered via
+						<code class="font-mono">font-feature-settings</code> at the chosen tag.
+					</p>
+					<div class="grid grid-cols-[1fr_auto] gap-1.5">
+						<select
+							bind:value={alternateSuffix}
+							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+						>
+							<option value="ss01">.ss01 — Stylistic set 01</option>
+							<option value="smcp">.smcp — Small cap</option>
+							<option value="salt">.salt — Stylistic alternate</option>
+							<option value="alt">.alt — Generic alternate</option>
+						</select>
+						<button
+							type="button"
+							onclick={makeAlternate}
+							disabled={glyph.contours.length === 0 && (glyph.components?.length ?? 0) === 0}
+							class="rounded-md border border-accent/40 bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent disabled:opacity-40"
+						>
+							Make
+						</button>
+					</div>
 				</Accordion>
 			{/if}
 
