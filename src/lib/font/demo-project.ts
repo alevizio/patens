@@ -798,6 +798,56 @@ const buildB_lc = (): BezierContour[] => {
 	];
 };
 
+// ß (eszett, U+00DF) — left stem with full ascender + bottom bowl like b
+// + a flag at the top of the stem hinting at the historic ſs ligature
+// origin. Geometric construction matches buildB_lc so the family reads
+// as one design. A real foundry would draw a custom shape here; this
+// is the simplest faithful geometric approximation.
+const buildEszett = (): BezierContour[] => {
+	const stemL = 80;
+	const stemR = 80 + STEM;
+	const stemTop = Math.round(X_HEIGHT * 1.5);
+	const cx = LC_W / 2 + 30;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 100;
+	const ry = X_HEIGHT / 2;
+	const innerOffset = STEM - 10;
+	const sides = 16;
+	const ring = (
+		radX: number,
+		radY: number,
+		ccw = false
+	): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		// Left stem with full ascender
+		poly([
+			[stemL, 0],
+			[stemR, 0],
+			[stemR, stemTop],
+			[stemL, stemTop]
+		]),
+		// Top flag — extends right from the top of the stem, hinting at
+		// the long-s (ſ) origin. Width tuned to match buildF_lc's flag.
+		poly([
+			[stemR, stemTop - 110],
+			[stemR + 220, stemTop - 110],
+			[stemR + 220, stemTop],
+			[stemR, stemTop]
+		]),
+		// Bottom bowl — outer
+		poly(ring(rx, ry)),
+		// Bottom bowl — inner counter (ccw so it punches a hole)
+		poly(ring(rx - innerOffset, ry - innerOffset, true), 'ccw')
+	];
+};
+
 // lowercase f — vertical stem with short ascender + crossbar at x-height.
 const buildF_lc = (): BezierContour[] => {
 	const cx = LC_W / 2 - 60;
@@ -1920,6 +1970,24 @@ export const createDemoProject = (): Project => {
 			updatedAt: new Date().toISOString()
 		};
 	}
+
+	// ß (eszett, U+00DF) — a real drawn glyph (not a composite). Geometric
+	// construction matches the rest of the lowercase: full-ascender left
+	// stem + bottom bowl + a top flag. Fills out Extended Latin with a
+	// shape that designer-friends evaluating the demo would expect.
+	project.glyphs[0x00df] = {
+		codepoint: 0x00df,
+		name: 'germandbls',
+		status: 'draft',
+		advanceWidth: LC_W + 60,
+		leftSidebearing: 80,
+		rightSidebearing: 80,
+		contours: buildEszett(),
+		tags: ['extended-latin'],
+		notes:
+			'Geometric ß — left stem with full ascender, top flag hinting at the long-s (ſ) origin, B-style lower bowl. Construction parallels buildB_lc so the family reads as one design.',
+		updatedAt: new Date().toISOString()
+	};
 
 	// fi (U+FB01) and fl (U+FB02) — proper ligatures with FEA-convention
 	// names ("f_i", "f_l") so detectFeatures picks them up as `liga`
