@@ -1472,6 +1472,80 @@ const buildQuoteLeft = (): BezierContour[] => {
 // Right single curly quote — like apostrophe.
 const buildQuoteRight = (): BezierContour[] => buildApostrophe();
 
+// Exclamation mark — vertical stem + dot at baseline.
+const buildExclam = (): BezierContour[] => {
+	const cx = PUNCT_W / 2;
+	return [
+		// Stem from above dot to cap-height
+		poly([
+			[cx - STEM / 2, STEM * 2],
+			[cx + STEM / 2, STEM * 2],
+			[cx + STEM / 2, CAP_HEIGHT],
+			[cx - STEM / 2, CAP_HEIGHT]
+		]),
+		// Dot at baseline
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, STEM],
+			[cx - STEM / 2, STEM]
+		])
+	];
+};
+
+// Left paren — vertical curve approximation (rect-style).
+const buildParenLeft = (): BezierContour[] => {
+	const w = Math.round(PUNCT_W * 1.2);
+	return [
+		// Left vertical (recessed)
+		poly([
+			[60, STEM * 2],
+			[60 + STEM, STEM * 2],
+			[60 + STEM, CAP_HEIGHT - STEM * 2],
+			[60, CAP_HEIGHT - STEM * 2]
+		]),
+		// Top angled cap
+		poly([
+			[60 + STEM, CAP_HEIGHT - STEM * 2],
+			[w - 40, CAP_HEIGHT - STEM],
+			[w - 40, CAP_HEIGHT],
+			[60 + STEM - 20, CAP_HEIGHT - STEM]
+		]),
+		// Bottom angled cap
+		poly([
+			[60 + STEM - 20, STEM],
+			[w - 40, 0],
+			[w - 40, STEM],
+			[60 + STEM, STEM * 2]
+		])
+	];
+};
+
+// Right paren — mirror of left paren.
+const buildParenRight = (): BezierContour[] => {
+	const w = Math.round(PUNCT_W * 1.2);
+	return [
+		poly([
+			[w - 60 - STEM, STEM * 2],
+			[w - 60, STEM * 2],
+			[w - 60, CAP_HEIGHT - STEM * 2],
+			[w - 60 - STEM, CAP_HEIGHT - STEM * 2]
+		]),
+		poly([
+			[40, CAP_HEIGHT - STEM],
+			[w - 60 - STEM + 20, CAP_HEIGHT - STEM * 2],
+			[w - 60 - STEM, CAP_HEIGHT - STEM],
+			[40, CAP_HEIGHT]
+		]),
+		poly([
+			[40, 0],
+			[w - 60 - STEM, STEM * 2],
+			[w - 60 - STEM + 20, STEM],
+			[40, STEM]
+		])
+	];
+};
+
 const build9 = (): BezierContour[] => {
 	const w = DIGIT_W;
 	const mid = CAP_HEIGHT * 0.5;
@@ -1633,6 +1707,9 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x3f, contours: buildQuestion(), advanceWidth: PUNCT_W + 100, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' }, // ?
 	{ codepoint: 0x2018, contours: buildQuoteLeft(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
 	{ codepoint: 0x2019, contours: buildQuoteRight(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
+	{ codepoint: 0x21, contours: buildExclam(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // !
+	{ codepoint: 0x28, contours: buildParenLeft(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 60, rightSidebearing: 40, status: 'draft' }, // (
+	{ codepoint: 0x29, contours: buildParenRight(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 40, rightSidebearing: 60, status: 'draft' }, // )
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
@@ -1680,6 +1757,18 @@ export const createDemoProject = (): Project => {
 		capHeight: CAP_HEIGHT,
 		xHeight: X_HEIGHT
 	};
+
+	// Set space's advance — without this, words run together.
+	// Standard convention is ~25% UPM (250 at 1000 UPM).
+	const spaceGlyph = project.glyphs[0x20];
+	if (spaceGlyph) {
+		project.glyphs[0x20] = {
+			...spaceGlyph,
+			advanceWidth: 250,
+			status: 'final',
+			updatedAt: new Date().toISOString()
+		};
+	}
 
 	// Inject drawn contours into existing glyph slots from the default set.
 	for (const spec of DRAWN) {
