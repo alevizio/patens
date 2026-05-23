@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { toast } from '$lib/stores/toast.svelte';
 	import { autoFeaSource } from '$lib/font/fea';
 	import { buildFont } from '$lib/font/export';
 	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
@@ -282,6 +283,49 @@
 		const sep = buffer.endsWith('\n') ? '\n' : '\n\n';
 		buffer = `${buffer}${sep}${s.body}\n`;
 		dirty = true;
+	};
+
+	// Visual GSUB rule builder — designers pick a feature tag + from-glyphs
+	// + to-glyphs and the form emits a properly-formatted .fea feature
+	// block appended to the buffer. Skips writing .fea source by hand for
+	// the common single-substitution case.
+	let builderTag = $state<string>('ss01');
+	let builderFrom = $state<string>(''); // space-separated glyph names
+	let builderTo = $state<string>(''); // space-separated glyph names
+	const builderDrawnGlyphs = $derived.by(() => {
+		if (!project) return [] as Array<{ name: string; codepoint: number }>;
+		return Object.values(project.glyphs)
+			.filter((g) => g.contours.length > 0 && g.name)
+			.map((g) => ({ name: g.name, codepoint: g.codepoint }))
+			.sort((a, b) => a.codepoint - b.codepoint);
+	});
+	const builderFromList = $derived(
+		builderFrom.trim().split(/\s+/).filter(Boolean)
+	);
+	const builderToList = $derived(
+		builderTo.trim().split(/\s+/).filter(Boolean)
+	);
+	const builderValid = $derived(
+		!!builderTag.trim() &&
+			builderFromList.length > 0 &&
+			builderToList.length > 0 &&
+			builderFromList.length === builderToList.length
+	);
+	const builderAppend = () => {
+		if (!builderValid) return;
+		const tag = builderTag.trim();
+		// Single-substitution rule per line — most flexible for designers.
+		// `sub a by a.ss01;` etc. Properly closed feature block.
+		const subs = builderFromList
+			.map((from, i) => `    sub ${from} by ${builderToList[i]};`)
+			.join('\n');
+		const block = `feature ${tag} {\n${subs}\n} ${tag};`;
+		const sep = buffer.endsWith('\n') ? '\n' : '\n\n';
+		buffer = `${buffer}${sep}${block}\n`;
+		dirty = true;
+		toast.success(`Appended ${builderFromList.length} ${tag} substitution${builderFromList.length === 1 ? '' : 's'}`);
+		builderFrom = '';
+		builderTo = '';
 	};
 
 	const testCompile = async () => {
@@ -677,6 +721,90 @@
 						{/each}
 					</div>
 				{/if}
+			</Panel>
+
+			<!-- Visual rule builder — fill in a feature tag + parallel from/to
+			     glyph names, click Append to add a properly-formatted
+			     feature block to features.fea. Skips writing raw .fea by
+			     hand for the common single-substitution case. -->
+			<Panel>
+				<div class="mb-3 flex flex-wrap items-baseline gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Build rule
+					</h2>
+					<span
+						class="rounded-full bg-accent-soft/30 px-1.5 py-0.5 font-mono text-[9px] font-semibold uppercase tracking-wider text-accent-strong"
+					>
+						No .fea required
+					</span>
+				</div>
+				<p class="mb-3 text-[12px] leading-snug text-fg-muted">
+					Pick a feature tag, list the source glyphs on the left, the
+					substitute glyphs on the right (parallel lists, space-separated).
+					Append generates a complete <code class="font-mono">feature</code>
+					block at the end of <code class="font-mono">features.fea</code>.
+				</p>
+				<div class="grid grid-cols-[120px_1fr_1fr_auto] items-end gap-2">
+					<label class="grid gap-1">
+						<span class="text-[10px] uppercase tracking-wider text-fg-subtle">Feature</span>
+						<select
+							bind:value={builderTag}
+							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+						>
+							<option value="ss01">ss01 — Stylistic set 01</option>
+							<option value="ss02">ss02 — Stylistic set 02</option>
+							<option value="ss03">ss03 — Stylistic set 03</option>
+							<option value="smcp">smcp — Small caps</option>
+							<option value="c2sc">c2sc — Caps to small caps</option>
+							<option value="salt">salt — Stylistic alternates</option>
+							<option value="calt">calt — Contextual alternates</option>
+							<option value="liga">liga — Standard ligatures</option>
+							<option value="dlig">dlig — Discretionary ligatures</option>
+							<option value="zero">zero — Slashed zero</option>
+							<option value="case">case — Case-sensitive forms</option>
+							<option value="onum">onum — Oldstyle figures</option>
+							<option value="tnum">tnum — Tabular figures</option>
+							<option value="frac">frac — Fractions</option>
+						</select>
+					</label>
+					<label class="grid gap-1">
+						<span class="text-[10px] uppercase tracking-wider text-fg-subtle">
+							From {builderFromList.length > 0 ? `(${builderFromList.length})` : ''}
+						</span>
+						<input
+							type="text"
+							bind:value={builderFrom}
+							placeholder="a g  (space-separated glyph names)"
+							list="builder-glyph-names"
+							class="rounded border border-border bg-surface px-1.5 py-1 font-mono text-[11px] outline-none focus:border-accent"
+						/>
+					</label>
+					<label class="grid gap-1">
+						<span class="text-[10px] uppercase tracking-wider text-fg-subtle">
+							To {builderToList.length > 0 ? `(${builderToList.length})` : ''}
+						</span>
+						<input
+							type="text"
+							bind:value={builderTo}
+							placeholder="a.ss01 g.ss01"
+							list="builder-glyph-names"
+							class="rounded border border-border bg-surface px-1.5 py-1 font-mono text-[11px] outline-none focus:border-accent"
+						/>
+					</label>
+					<Button density="sm" onclick={builderAppend} disabled={!builderValid}>
+						Append
+					</Button>
+				</div>
+				{#if builderFromList.length !== builderToList.length && (builderFromList.length > 0 || builderToList.length > 0)}
+					<p class="mt-2 text-[11px] text-warn-strong">
+						From and To lists must have the same number of glyph names.
+					</p>
+				{/if}
+				<datalist id="builder-glyph-names">
+					{#each builderDrawnGlyphs as g (g.codepoint)}
+						<option value={g.name}></option>
+					{/each}
+				</datalist>
 			</Panel>
 
 			<Panel padding="none">
