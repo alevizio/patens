@@ -66,6 +66,25 @@
 	// project apply automatically so visitors see the font as the
 	// designer intended (not as system-fallback substitutes).
 	let typeText = $state('Type something here');
+	// Tester controls — master / size / tracking. The tester is the
+	// designer's playground on the share page; they should be able to
+	// see the type at the size they care about, in the master they
+	// care about, with the letter-spacing they want.
+	let tryMasterId = $state<string | undefined>(undefined);
+	let trySize = $state(96); // SVG render height in pixels
+	let tryTracking = $state(0); // extra advance per glyph, UPM units
+	// Resolve a glyph in the context of a chosen master — overrides win,
+	// project glyph is the fallback. Mirrors the export pipeline's lookup
+	// so what visitors preview matches what they'd download. Hoisted up
+	// here so the typeset + waterfall + master-compare rows all share it.
+	const resolveGlyphForMaster = (cp: number, masterId: string | undefined) => {
+		if (masterId) {
+			const m = project.masters?.find((x) => x.id === masterId);
+			const ov = m?.glyphs?.[cp];
+			if (ov && ov.contours.length > 0) return ov;
+		}
+		return project.glyphs[cp];
+	};
 	const kerningLookup = $derived.by(() => {
 		const map = new Map<string, number>();
 		for (const k of project.kerning) {
@@ -88,12 +107,12 @@
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const g = project.glyphs[cp];
+			const g = resolveGlyphForMaster(cp, tryMasterId);
 			if (!g || g.contours.length === 0) {
 				// Missing glyph — render as a hollow box at half-em width.
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
-				x += w;
+				x += w + tryTracking;
 				continue;
 			}
 			// Compute the color render plan when the glyph has color
@@ -111,7 +130,7 @@
 				x,
 				colorPlan
 			});
-			x += g.advanceWidth;
+			x += g.advanceWidth + tryTracking;
 			if (i + 1 < codepoints.length) {
 				const nextCp = codepoints[i + 1].codePointAt(0) ?? 0;
 				const kv = kerningLookup.get(`${cp},${nextCp}`);
@@ -129,17 +148,6 @@
 	// Reuses the same typeset computation but on a fixed string.
 	const WATERFALL_TEXT = 'The quick brown fox jumps over the lazy dog.';
 	const WATERFALL_SIZES = [14, 18, 24, 36, 56];
-	// Resolve a glyph in the context of a chosen master — overrides win,
-	// project glyph is the fallback. Mirrors the export pipeline's lookup
-	// so what visitors preview matches what they'd download.
-	const resolveGlyph = (cp: number, masterId: string | undefined) => {
-		if (masterId) {
-			const m = project.masters?.find((x) => x.id === masterId);
-			const ov = m?.glyphs?.[cp];
-			if (ov && ov.contours.length > 0) return ov;
-		}
-		return project.glyphs[cp];
-	};
 	const computeRow = (
 		text: string,
 		masterId: string | undefined = undefined
@@ -150,7 +158,7 @@
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const g = resolveGlyph(cp, masterId);
+			const g = resolveGlyphForMaster(cp, masterId);
 			if (!g || g.contours.length === 0) {
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
@@ -458,12 +466,17 @@ body {
 
 	<!-- Live typeset preview. Renders typed text using the project's
 	     own SVG paths + kerning data, so visitors see the WIP font
-	     as the designer intended. -->
+	     as the designer intended. Master/size/tracking controls give
+	     designers a real foundry-style "tester" — they can audition
+	     the type at the size and rhythm they actually need. -->
 	<section class="mb-10">
 		<h2
-			class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 		>
-			Try it
+			<span>Try it</span>
+			<span class="font-mono normal-case text-fg-subtle" data-numeric>
+				{trySize}px · {tryTracking > 0 ? '+' : ''}{tryTracking}
+			</span>
 		</h2>
 		<input
 			type="text"
@@ -471,6 +484,58 @@ body {
 			placeholder="Type something..."
 			class="w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
 		/>
+		<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-fg-muted">
+			{#if availableMasters.length > 1}
+				<div class="flex items-center gap-1.5">
+					<span class="text-fg-subtle">Master</span>
+					{#each availableMasters as m (m.id ?? 'default')}
+						<button
+							type="button"
+							onclick={() => (tryMasterId = m.id)}
+							class="rounded-md border px-2 py-0.5 transition-colors {tryMasterId === m.id
+								? 'border-accent bg-accent-soft/40 text-fg'
+								: 'border-border bg-surface hover:border-accent/60'}"
+						>
+							{m.name}
+						</button>
+					{/each}
+				</div>
+			{/if}
+			<label class="flex items-center gap-2">
+				<span class="text-fg-subtle">Size</span>
+				<input
+					type="range"
+					min="24"
+					max="240"
+					step="4"
+					bind:value={trySize}
+					class="h-1 w-32 cursor-pointer accent-accent"
+					aria-label="Preview size"
+				/>
+			</label>
+			<label class="flex items-center gap-2">
+				<span class="text-fg-subtle">Tracking</span>
+				<input
+					type="range"
+					min="-100"
+					max="200"
+					step="10"
+					bind:value={tryTracking}
+					class="h-1 w-32 cursor-pointer accent-accent"
+					aria-label="Tracking"
+				/>
+				{#if tryTracking !== 0}
+					<button
+						type="button"
+						onclick={() => (tryTracking = 0)}
+						class="text-[10px] text-fg-subtle hover:text-fg"
+						title="Reset tracking to 0"
+					>
+						reset
+					</button>
+				{/if}
+			</label>
+		</div>
 		<div
 			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6"
 			style="--font-baseline: {ascender}px;"
@@ -478,7 +543,7 @@ body {
 			<svg
 				viewBox="0 {descender} {Math.max(typeset.totalWidth, 100)} {fontSpan}"
 				preserveAspectRatio="xMinYMid meet"
-				style="height: 96px; width: auto; transform: scaleY(-1); display: block;"
+				style="height: {trySize}px; width: auto; transform: scaleY(-1); display: block;"
 				aria-label="Typeset preview of {project.metadata.familyName}"
 			>
 				<!-- Color/gradient defs per glyph instance. Each gradient
