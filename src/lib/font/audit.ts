@@ -53,6 +53,40 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 				message: `Bottom of glyph (${Math.round(b.minY)}) is below descender (${project.metrics.descender})`
 			});
 		}
+		// x-height / cap-height alignment — letters that should reach their
+		// metric line. Tolerance: 15fu (about 1.5% UPM at 1000) — accounts
+		// for optical overshoot on round letters without flagging everything.
+		// X-HEIGHT lowercase (no ascender, no descender): a c e m n o r s u v w x z
+		const XHT_LOWERS = new Set(['a', 'c', 'e', 'm', 'n', 'o', 'r', 's', 'u', 'v', 'w', 'x', 'z']);
+		// CAP-HEIGHT uppercase: every Latin cap reaches cap-height except
+		// none excluded (Q descends but still reaches the top). All A-Z.
+		const ch = cp > 0x20 && cp < 0x80 ? String.fromCharCode(cp) : '';
+		if (XHT_LOWERS.has(ch)) {
+			const target = project.metrics.xHeight;
+			const delta = Math.abs(b.maxY - target);
+			// Allow modest overshoot upward; only flag when noticeably below.
+			if (target > 0 && b.maxY < target - 15) {
+				issues.push({
+					codepoint: cp,
+					severity: 'info',
+					code: 'xheight-misaligned',
+					message: `Top of '${ch}' (${Math.round(b.maxY)}) sits ${Math.round(delta)}fu below x-height (${target}) — text colour will look uneven`
+				});
+			}
+		}
+		if (ch >= 'A' && ch <= 'Z') {
+			const target = project.metrics.capHeight;
+			const delta = Math.abs(b.maxY - target);
+			if (target > 0 && b.maxY < target - 15) {
+				issues.push({
+					codepoint: cp,
+					severity: 'info',
+					code: 'capheight-misaligned',
+					message: `Top of '${ch}' (${Math.round(b.maxY)}) sits ${Math.round(delta)}fu below cap-height (${target}) — caps line will look uneven`
+				});
+			}
+		}
+
 		// Advance width zero or smaller than bbox
 		if (glyph.advanceWidth <= 0) {
 			issues.push({
@@ -1019,6 +1053,11 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'A contour lacks its closing Z command. Open paths still rasterise but break boolean ops and many shaping tools.',
 		'tiny-contour':
 			'A contour smaller than 8fu in both dimensions — usually a stray artefact from a boolean op or imported SVG.',
+		// Metric alignment
+		'xheight-misaligned':
+			'A lowercase letter that should reach x-height is sitting noticeably below it. Uneven tops across letters give text a wobbly rhythm; consistent x-height alignment is what makes type read smoothly.',
+		'capheight-misaligned':
+			'An uppercase letter that should reach cap-height is sitting noticeably below it. Caps lines lose their crisp baseline-and-cap rhythm when individual letters fall short.',
 		// Spacing & metrics
 		'zero-advance':
 			'The glyph\'s advance width is 0. Text containing this glyph will have all following glyphs stacked at the same position.',

@@ -485,6 +485,72 @@ describe('auditGlyph', () => {
 		expect(found?.severity).toBe('warn');
 	});
 
+	it('flags lowercase letters sitting below x-height', () => {
+		// `o` drawn at half its expected height — should reach 500 (xHeight)
+		// but tops out at 200.
+		const o = baseGlyph({
+			codepoint: 0x6f, // o
+			name: 'o',
+			contours: [{
+				closed: true,
+				winding: 'ccw',
+				commands: [
+					{ type: 'M', x: 0, y: 0 },
+					{ type: 'L', x: 200, y: 0 },
+					{ type: 'L', x: 200, y: 200 },
+					{ type: 'L', x: 0, y: 200 },
+					{ type: 'Z' }
+				] as PathCommand[]
+			}]
+		});
+		const issues = auditGlyph(o, baseProject());
+		const found = issues.find((i) => i.code === 'xheight-misaligned');
+		expect(found).toBeDefined();
+		expect(found?.severity).toBe('info');
+	});
+
+	it('does NOT flag x-height-reaching lowercase letters', () => {
+		const o = baseGlyph({
+			codepoint: 0x6f,
+			name: 'o',
+			contours: [{
+				closed: true,
+				winding: 'ccw',
+				commands: [
+					{ type: 'M', x: 0, y: 0 },
+					{ type: 'L', x: 400, y: 0 },
+					{ type: 'L', x: 400, y: 500 }, // hits x-height
+					{ type: 'L', x: 0, y: 500 },
+					{ type: 'Z' }
+				] as PathCommand[]
+			}]
+		});
+		const issues = auditGlyph(o, baseProject());
+		expect(issues.find((i) => i.code === 'xheight-misaligned')).toBeUndefined();
+	});
+
+	it('flags uppercase letters sitting below cap-height', () => {
+		const a = baseGlyph({
+			codepoint: 0x41, // A
+			name: 'A',
+			contours: [{
+				closed: true,
+				winding: 'ccw',
+				commands: [
+					{ type: 'M', x: 0, y: 0 },
+					{ type: 'L', x: 500, y: 0 },
+					{ type: 'L', x: 500, y: 300 }, // far below cap-height 700
+					{ type: 'L', x: 0, y: 300 },
+					{ type: 'Z' }
+				] as PathCommand[]
+			}]
+		});
+		const issues = auditGlyph(a, baseProject());
+		const found = issues.find((i) => i.code === 'capheight-misaligned');
+		expect(found).toBeDefined();
+		expect(found?.severity).toBe('info');
+	});
+
 	it('does NOT flag correctly-named base / mark anchors', () => {
 		const mark = baseGlyph({
 			codepoint: 0x0301,
