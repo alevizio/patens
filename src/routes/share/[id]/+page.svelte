@@ -120,6 +120,59 @@
 	const fontSpan = $derived(ascender - descender);
 
 	const sweepRadiusTypeset = $derived(fontSpan * 2);
+
+	// Waterfall sample — common pangram laid out at several heights.
+	// Reuses the same typeset computation but on a fixed string.
+	const WATERFALL_TEXT = 'The quick brown fox jumps over the lazy dog.';
+	const WATERFALL_SIZES = [14, 18, 24, 36, 56];
+	const computeRow = (text: string): { glyphs: typeof typeset.glyphs; totalWidth: number } => {
+		const out: typeof typeset.glyphs = [];
+		let x = 0;
+		const codepoints = [...text];
+		for (let i = 0; i < codepoints.length; i++) {
+			const ch = codepoints[i];
+			const cp = ch.codePointAt(0) ?? 0;
+			const g = project.glyphs[cp];
+			if (!g || g.contours.length === 0) {
+				const w = Math.round(project.metrics.unitsPerEm * 0.5);
+				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
+				x += w;
+				continue;
+			}
+			out.push({
+				id: `${i}-${cp}`,
+				char: ch,
+				path: contoursToSvgPath(g.contours),
+				advance: g.advanceWidth,
+				x,
+				colorPlan: []
+			});
+			x += g.advanceWidth;
+			if (i + 1 < codepoints.length) {
+				const nextCp = codepoints[i + 1].codePointAt(0) ?? 0;
+				const kv = kerningLookup.get(`${cp},${nextCp}`);
+				if (kv !== undefined) x += kv;
+			}
+		}
+		return { glyphs: out, totalWidth: x };
+	};
+	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
+
+	// Specs block — pulled from project state for the visitor footer.
+	const specs = $derived.by(() => {
+		const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
+		const total = Object.keys(project.glyphs).length;
+		return {
+			drawn,
+			total,
+			upm: project.metrics.unitsPerEm,
+			capHeight: project.metrics.capHeight,
+			xHeight: project.metrics.xHeight,
+			kerningPairs: project.kerning.length,
+			palettes: project.palettes?.length ?? 0,
+			axes: project.axes?.length ?? 0
+		};
+	});
 </script>
 
 <svelte:head>
@@ -265,6 +318,101 @@
 			Live render with the project's kerning applied. Dashed boxes mark
 			glyphs the designer hasn't drawn yet — system font won't substitute.
 		</p>
+	</section>
+
+	<!-- Waterfall — same pangram at multiple sizes. Shows how the
+	     typeface behaves from caption to display. -->
+	{#if waterfallRow.glyphs.length > 0}
+		<section class="mb-10">
+			<h2
+				class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+			>
+				Waterfall
+			</h2>
+			<div class="space-y-3 rounded-md border border-border bg-canvas px-4 py-5">
+				{#each WATERFALL_SIZES as size (size)}
+					<div class="flex items-baseline gap-4">
+						<span class="w-10 shrink-0 text-right font-mono text-[10px] text-fg-subtle" data-numeric>
+							{size}px
+						</span>
+						<svg
+							viewBox="0 {descender} {Math.max(waterfallRow.totalWidth, 100)} {fontSpan}"
+							preserveAspectRatio="xMinYMid meet"
+							style="height: {size}px; width: auto; transform: scaleY(-1);"
+							aria-label="Waterfall {size}px"
+						>
+							{#each waterfallRow.glyphs as g (g.id)}
+								{#if g.path}
+									<path
+										d={g.path}
+										transform="translate({g.x} 0)"
+										fill="currentColor"
+										fill-rule="evenodd"
+										class="text-fg"
+									/>
+								{/if}
+							{/each}
+						</svg>
+					</div>
+				{/each}
+			</div>
+			<p class="mt-2 text-[11px] text-fg-subtle">
+				The classic English pangram from 14px (caption) to 56px (small display).
+			</p>
+		</section>
+	{/if}
+
+	<!-- Specs block — at-a-glance facts for designer-friends. -->
+	<section class="mb-10">
+		<h2
+			class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+		>
+			Specs
+		</h2>
+		<dl class="grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border border-border bg-surface-2/30 p-4 sm:grid-cols-4">
+			<div>
+				<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Drawn</dt>
+				<dd class="text-[14px] font-medium text-fg" data-numeric>
+					{specs.drawn}/{specs.total}
+				</dd>
+			</div>
+			<div>
+				<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">UPM</dt>
+				<dd class="text-[14px] font-medium text-fg" data-numeric>{specs.upm}</dd>
+			</div>
+			<div>
+				<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Cap-height</dt>
+				<dd class="text-[14px] font-medium text-fg" data-numeric>{specs.capHeight}</dd>
+			</div>
+			<div>
+				<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">x-height</dt>
+				<dd class="text-[14px] font-medium text-fg" data-numeric>{specs.xHeight}</dd>
+			</div>
+			{#if specs.kerningPairs > 0}
+				<div>
+					<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Kerning pairs</dt>
+					<dd class="text-[14px] font-medium text-fg" data-numeric>{specs.kerningPairs}</dd>
+				</div>
+			{/if}
+			{#if specs.palettes > 0}
+				<div>
+					<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Palettes</dt>
+					<dd class="text-[14px] font-medium text-fg" data-numeric>
+						{specs.palettes}
+						<span class="text-[10px] font-normal text-fg-subtle">CPAL</span>
+					</dd>
+				</div>
+			{/if}
+			{#if specs.axes > 0}
+				<div>
+					<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Axes</dt>
+					<dd class="text-[14px] font-medium text-fg" data-numeric>
+						{specs.axes}
+						<span class="text-[10px] font-normal text-fg-subtle">VF</span>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	</section>
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
