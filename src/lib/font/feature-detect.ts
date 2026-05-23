@@ -38,13 +38,25 @@ export type SubPair = {
 	to: string;
 };
 
+/** A ligature substitution: a sequence of input glyph names that
+ *  collapse into a single output glyph (e.g. ["f","i"] → "f_i"). */
+export type LigatureSub = {
+	from: string[];
+	to: string;
+};
+
 export type DetectedFeature = {
 	/** Feature tag: `smcp`, `c2sc`, `salt`, `ss01–ss20`, `cv01–cv99`, etc. */
 	feature: string;
 	/** Type of GSUB lookup this feature uses. */
-	kind: 'single';
-	/** (from, to) pairs sorted ascending by `from`. */
+	kind: 'single' | 'ligature';
+	/** Single substitutions, sorted ascending by `from`. Used when
+	 *  kind === 'single' or as the empty-list default for 'ligature'. */
 	subs: SubPair[];
+	/** Ligature substitutions, longest input sequence first so a
+	 *  greedy match picks the longest available ligature (e.g. ffi
+	 *  before fi). Used when kind === 'ligature'. */
+	ligatures?: LigatureSub[];
 };
 
 // Suffix → feature mapping. A single suffix may produce ONE OR MORE
@@ -181,6 +193,30 @@ export const detectFeatures = (
 		const sortedSubs = [...subs].sort((a, b) => (a.from < b.from ? -1 : a.from > b.from ? 1 : 0));
 		out.push({ feature, kind: 'single', subs: sortedSubs });
 	}
+
+	// Ligature detection — scan for glyphs whose name is two-or-more
+	// existing glyph names joined by underscores (the FEA convention:
+	// `f_i`, `f_f_i`, `c_t`, etc.). Each match becomes a liga sub.
+	// Longest-first so greedy matching picks ffi before fi.
+	const ligatures: LigatureSub[] = [];
+	for (const g of Object.values(glyphsByCp)) {
+		if (!g.name || !g.name.includes('_')) continue;
+		const parts = g.name.split('_');
+		if (parts.length < 2) continue;
+		// Every part must be a real glyph in the project; otherwise the
+		// underscore is part of a real glyph name (rare) or a typo.
+		if (!parts.every((p) => byName.has(p))) continue;
+		ligatures.push({ from: parts, to: g.name });
+	}
+	if (ligatures.length > 0) {
+		ligatures.sort((a, b) => {
+			// Longest input first, then alphabetical within length.
+			if (a.from.length !== b.from.length) return b.from.length - a.from.length;
+			return a.to < b.to ? -1 : a.to > b.to ? 1 : 0;
+		});
+		out.push({ feature: 'liga', kind: 'ligature', subs: [], ligatures });
+	}
+
 	// Sort features alphabetically — opentype.js requires this.
 	out.sort((a, b) => (a.feature < b.feature ? -1 : a.feature > b.feature ? 1 : 0));
 	return out;

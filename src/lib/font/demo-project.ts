@@ -1921,6 +1921,62 @@ export const createDemoProject = (): Project => {
 		};
 	}
 
+	// fi (U+FB01) and fl (U+FB02) — proper ligatures with FEA-convention
+	// names ("f_i", "f_l") so detectFeatures picks them up as `liga`
+	// substitutions. When the share-page tester (or installed font with
+	// liga on) sees an "f" followed by "i", it swaps both for the
+	// ligature glyph. The composites use a small negative overlap so
+	// the f's hook + i's dot share visual space — the canonical
+	// motivation for shipping a fi ligature.
+	const Fglyph_lc = project.glyphs[0x66];
+	const Iglyph_lc = project.glyphs[0x69];
+	const Lglyph_lc_lower = project.glyphs[0x6c];
+	if (Fglyph_lc && Iglyph_lc) {
+		// f.advance is narrow (~0.6 * LC_W); i is even narrower. Overlap
+		// pulls the i slightly under the f's hook for a real-feeling
+		// fi shape.
+		const overlap = 80;
+		const offsetX = Fglyph_lc.advanceWidth - overlap;
+		project.glyphs[0xfb01] = {
+			codepoint: 0xfb01,
+			name: 'f_i',
+			status: 'sketch',
+			advanceWidth: offsetX + Iglyph_lc.advanceWidth,
+			leftSidebearing: Fglyph_lc.leftSidebearing,
+			rightSidebearing: Iglyph_lc.rightSidebearing,
+			contours: [],
+			components: [
+				{ baseCodepoint: 0x66, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: 0x69, offsetX, offsetY: 0 }
+			],
+			tags: ['composite', 'ligature'],
+			notes:
+				'Composite f + i, slight overlap so the hook meets the dot. Auto-detected as a liga substitution because the name is `f_i`.',
+			updatedAt: new Date().toISOString()
+		};
+	}
+	if (Fglyph_lc && Lglyph_lc_lower) {
+		const overlap = 60;
+		const offsetX = Fglyph_lc.advanceWidth - overlap;
+		project.glyphs[0xfb02] = {
+			codepoint: 0xfb02,
+			name: 'f_l',
+			status: 'sketch',
+			advanceWidth: offsetX + Lglyph_lc_lower.advanceWidth,
+			leftSidebearing: Fglyph_lc.leftSidebearing,
+			rightSidebearing: Lglyph_lc_lower.rightSidebearing,
+			contours: [],
+			components: [
+				{ baseCodepoint: 0x66, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: 0x6c, offsetX, offsetY: 0 }
+			],
+			tags: ['composite', 'ligature'],
+			notes:
+				'Composite f + l. Auto-detected as `liga` via the underscore-joined name (`f_l`).',
+			updatedAt: new Date().toISOString()
+		};
+	}
+
 	// Pre-fill the Brief so the user sees a complete project, not just
 	// glyphs. Six fields filled = 100% brief completion.
 	project.brief = {

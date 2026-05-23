@@ -309,11 +309,53 @@
 		// when two features could chain (e.g. smcp then salt).
 		for (const f of detectedFeatures) {
 			if (!activeFeatures.has(f.feature)) continue;
+			if (f.kind !== 'single') continue;
 			const next = featureSubMaps.get(f.feature)?.get(name);
 			if (next) name = next;
 		}
 		if (name === g.name) return g;
 		return glyphByName.get(name) ?? g;
+	};
+	// Active ligature subs flattened across every active liga-kind feature,
+	// already sorted longest-first by detectFeatures. The typeset loop
+	// consults this list before falling through to single-sub features —
+	// when the next N codepoints' glyph names match a ligature's input,
+	// the ligature glyph takes their place.
+	const activeLigatures = $derived.by(() => {
+		const out: import('$lib/font/feature-detect').LigatureSub[] = [];
+		for (const f of detectedFeatures) {
+			if (f.kind !== 'ligature') continue;
+			if (!activeFeatures.has(f.feature)) continue;
+			if (f.ligatures) out.push(...f.ligatures);
+		}
+		return out;
+	});
+	// Match a ligature starting at `idx` in the codepoint sequence.
+	// Returns { glyph, consumed } when a ligature matches; null otherwise.
+	// `consumed` is how many input codepoints the ligature collapses.
+	const matchLigature = (
+		codepoints: string[],
+		idx: number,
+		masterId: string | undefined
+	): { glyph: ReturnType<typeof resolveGlyphForMaster>; consumed: number } | null => {
+		if (activeLigatures.length === 0) return null;
+		for (const lig of activeLigatures) {
+			if (idx + lig.from.length > codepoints.length) continue;
+			let matches = true;
+			for (let k = 0; k < lig.from.length; k++) {
+				const cp = codepoints[idx + k].codePointAt(0) ?? 0;
+				const g = resolveGlyphForMaster(cp, masterId);
+				if (!g || g.name !== lig.from[k]) {
+					matches = false;
+					break;
+				}
+			}
+			if (matches) {
+				const out = glyphByName.get(lig.to);
+				if (out) return { glyph: out, consumed: lig.from.length };
+			}
+		}
+		return null;
 	};
 	const toggleFeature = (tag: string) => {
 		const next = new Set(activeFeatures);
@@ -599,8 +641,21 @@
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const base = resolveGlyphForMaster(cp, tryMasterId);
-			const g = applyFeatures(base);
+			// Ligature pass — try to consume multiple codepoints at this
+			// position. Walks longest-first so ffi beats fi. Falls through
+			// to single-glyph rendering when nothing matches.
+			const lig = matchLigature(codepoints, i, tryMasterId);
+			let g: ReturnType<typeof resolveGlyphForMaster>;
+			let displayChar = ch;
+			let consumed = 1;
+			if (lig) {
+				g = lig.glyph;
+				consumed = lig.consumed;
+				displayChar = codepoints.slice(i, i + consumed).join('');
+			} else {
+				const base = resolveGlyphForMaster(cp, tryMasterId);
+				g = applyFeatures(base);
+			}
 			const flatContours = g ? resolveContours(g) : [];
 			if (!g || flatContours.length === 0) {
 				// Missing glyph — render as a hollow box at half-em width.
@@ -618,18 +673,23 @@
 					: [];
 			out.push({
 				id: `${i}-${cp}`,
-				char: ch,
+				char: displayChar,
 				path: contoursToSvgPath(flatContours),
 				advance: g.advanceWidth,
 				x,
 				colorPlan
 			});
 			x += g.advanceWidth + tryTracking;
-			if (i + 1 < codepoints.length) {
-				const nextCp = codepoints[i + 1].codePointAt(0) ?? 0;
+			// Kerning uses the codepoint AFTER the consumed window — when a
+			// ligature ate "fi" (i=0, consumed=2), kerning's right neighbor
+			// is at i + 2, not i + 1. The for-loop step adds consumed.
+			const nextIdx = i + consumed;
+			if (nextIdx < codepoints.length) {
+				const nextCp = codepoints[nextIdx].codePointAt(0) ?? 0;
 				const kv = kerningLookup.get(`${cp},${nextCp}`);
 				if (kv !== undefined) x += kv;
 			}
+			if (consumed > 1) i += consumed - 1;
 		}
 		return { glyphs: out, totalWidth: x };
 	});
@@ -992,16 +1052,26 @@
 	// onum, etc.).
 	const sharedFeatures = $derived.by(() => {
 		const out: Array<{ tag: string; label: string; count?: number }> = [];
-		if (project.features.kern) out.push({ tag: 'kern', label: 'Kerning' });
-		if (project.features.liga) out.push({ tag: 'liga', label: 'Standard ligatures' });
+		const seen = new Set<string>();
+		const push = (tag: string, label: string, count?: number) => {
+			if (seen.has(tag)) return;
+			seen.add(tag);
+			out.push({ tag, label, count });
+		};
+		if (project.features.kern) push('kern', 'Kerning');
 		const disabled = new Set(project.features.disabledAutoFeatures ?? []);
 		const autoOn = project.features.autoFeatures !== false;
 		if (autoOn) {
 			for (const f of detectFeatures(project.glyphs)) {
 				if (disabled.has(f.feature)) continue;
-				out.push({ tag: f.feature, label: featureLabel(f.feature), count: f.subs.length });
+				const count = f.kind === 'ligature' ? f.ligatures?.length ?? 0 : f.subs.length;
+				push(f.feature, featureLabel(f.feature), count);
 			}
 		}
+		// If the project explicitly opted into liga but no ligatures were
+		// auto-detected, surface the chip with no count so the contract
+		// (the font ships liga) stays visible.
+		if (project.features.liga) push('liga', 'Standard ligatures');
 		return out;
 	});
 
