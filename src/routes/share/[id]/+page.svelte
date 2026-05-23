@@ -19,10 +19,23 @@
 
 	let { data } = $props();
 	const project = $derived(data.project);
-	// Pass the project's default palette so color/gradient layers
-	// render in the glyph tiles. When no palette exists, tiles fall
-	// back to monochrome outlines.
-	const palette = $derived(defaultPalette(project.palettes));
+	// Selected palette index for color layers. When the project has
+	// multiple palettes (warm / cool / mono / material), visitors can
+	// flip through them in the tester and watch every COLR-layered glyph
+	// re-skin live. Initial value is the index of the default-flagged
+	// palette so the page first renders the same way the designer sees
+	// it in the editor; designers explicitly choose other palettes.
+	const initialPaletteIndex = (() => {
+		const list = data.project.palettes ?? [];
+		const idx = list.findIndex((p) => p.variant === 'default');
+		return idx >= 0 ? idx : 0;
+	})();
+	let selectedPaletteIndex = $state(initialPaletteIndex);
+	const palette = $derived.by(() => {
+		const list = project.palettes ?? [];
+		if (list.length === 0) return defaultPalette(project.palettes);
+		return list[selectedPaletteIndex] ?? defaultPalette(project.palettes);
+	});
 
 	// Sweep slice approximation for the typeset preview (SVG has no
 	// native conic gradient). Same approach as GlyphTile/DrawingCanvas.
@@ -773,6 +786,35 @@ body {
 						clear
 					</button>
 				{/if}
+			</div>
+		{/if}
+		{#if (project.palettes?.length ?? 0) > 1}
+			<div class="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+				<span class="text-fg-subtle">Palette</span>
+				{#each project.palettes ?? [] as p, pi (pi)}
+					{@const on = pi === selectedPaletteIndex}
+					<button
+						type="button"
+						onclick={() => (selectedPaletteIndex = pi)}
+						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 transition-colors {on
+							? 'border-accent bg-accent-soft/40 text-fg'
+							: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
+						title={p.name ?? `Palette ${pi + 1}`}
+					>
+						<!-- Mini swatch strip — the first four colors of the
+						     palette so visitors can recognize a palette by
+						     its colors before reading its name. -->
+						<span class="inline-flex overflow-hidden rounded-sm">
+							{#each p.colors.slice(0, 4) as c, ci (ci)}
+								<span
+									class="inline-block size-2.5"
+									style="background: {rgbaToCss(c)};"
+								></span>
+							{/each}
+						</span>
+						<span>{p.name ?? `Palette ${pi + 1}`}</span>
+					</button>
+				{/each}
 			</div>
 		{/if}
 		<div
