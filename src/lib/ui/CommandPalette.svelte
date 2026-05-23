@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { goto } from '$app/navigation';
+	import { contoursToSvgPath } from '$lib/font/path';
 	import type { Glyph } from '$lib/font/types';
 	import Search from '@lucide/svelte/icons/search';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
@@ -218,14 +219,33 @@
 							? 'bg-accent-soft/40'
 							: 'hover:bg-surface-2'}"
 					>
-						<!-- System font: command-palette previews must stay legible
-						     even when the project's own font has an empty slot for
-						     the codepoint being shown. -->
+						<!-- Tile prefers the project's own glyph shape when drawn —
+						     designers want to see THEIR work, not a system-font
+						     glyph that may look completely different. Falls back to
+						     the system-font character when the glyph isn't drawn. -->
 						<span
 							class="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-surface-2 text-lg"
 							style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
 						>
-							{labelFor(g)}
+							{#if g.contours.length > 0 && projectStore.project}
+								{@const metrics = projectStore.project.metrics}
+								<svg
+									viewBox="0 {metrics.descender} {Math.max(g.advanceWidth, 100)} {metrics.ascender - metrics.descender}"
+									width="24"
+									height="24"
+									preserveAspectRatio="xMidYMid meet"
+									style="transform: scaleY(-1);"
+									aria-hidden="true"
+								>
+									<path
+										d={contoursToSvgPath(g.contours)}
+										fill="currentColor"
+										fill-rule="evenodd"
+									/>
+								</svg>
+							{:else}
+								{labelFor(g)}
+							{/if}
 						</span>
 						<span class="min-w-0 flex-1">
 							<span class="block truncate text-[13px] font-medium text-fg">{g.name}</span>
