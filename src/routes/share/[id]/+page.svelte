@@ -8,6 +8,7 @@
 		sampleColorLine,
 		type ColorRenderStep
 	} from '$lib/font/color';
+	import { detectFeatures, featureLabel } from '$lib/font/feature-detect';
 	import type { RGBA } from '$lib/font/types';
 	import Eye from '@lucide/svelte/icons/eye';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
@@ -157,6 +158,24 @@
 		return { glyphs: out, totalWidth: x };
 	};
 	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
+
+	// OpenType features the project ships. Combines kern/liga toggles
+	// with anything detectFeatures finds via glyph-name suffixes (ss01,
+	// onum, etc.).
+	const sharedFeatures = $derived.by(() => {
+		const out: Array<{ tag: string; label: string; count?: number }> = [];
+		if (project.features.kern) out.push({ tag: 'kern', label: 'Kerning' });
+		if (project.features.liga) out.push({ tag: 'liga', label: 'Standard ligatures' });
+		const disabled = new Set(project.features.disabledAutoFeatures ?? []);
+		const autoOn = project.features.autoFeatures !== false;
+		if (autoOn) {
+			for (const f of detectFeatures(project.glyphs)) {
+				if (disabled.has(f.feature)) continue;
+				out.push({ tag: f.feature, label: featureLabel(f.feature), count: f.subs.length });
+			}
+		}
+		return out;
+	});
 
 	// Specs block — pulled from project state for the visitor footer.
 	const specs = $derived.by(() => {
@@ -414,6 +433,34 @@
 			{/if}
 		</dl>
 	</section>
+
+	<!-- OpenType features the project ships. -->
+	{#if sharedFeatures.length > 0}
+		<section class="mb-10">
+			<h2
+				class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
+			>
+				OpenType features
+			</h2>
+			<div class="flex flex-wrap gap-1.5">
+				{#each sharedFeatures as f (f.tag)}
+					<span
+						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
+						title={f.count !== undefined ? `${f.count} substitution${f.count === 1 ? '' : 's'}` : undefined}
+					>
+						<span class="font-mono text-fg">{f.tag}</span>
+						<span class="text-fg-muted">·</span>
+						<span class="text-fg-muted">{f.label}</span>
+						{#if f.count !== undefined}
+							<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+								·{f.count}
+							</span>
+						{/if}
+					</span>
+				{/each}
+			</div>
+		</section>
+	{/if}
 
 	<!-- Drawn glyph grid. Counts give context for the work-in-progress
 	     state without spilling into editor chrome. -->
