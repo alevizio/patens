@@ -83,6 +83,19 @@
 	// project apply automatically so visitors see the font as the
 	// designer intended (not as system-fallback substitutes).
 	let typeText = $state('Type something here');
+	// Sample-text presets — quick pills for the passages designers reach
+	// for first. Hamburgevons is the classic type-design proof word
+	// (stems + curves + key inks); pangram covers the alphabet; AaBbCc
+	// makes Upper/lower shape comparison easy; figures + punctuation +
+	// lorem each test one dimension of the font.
+	const SAMPLE_PRESETS = [
+		{ id: 'pangram', label: 'Pangram', text: 'The quick brown fox jumps over the lazy dog.' },
+		{ id: 'hamburge', label: 'Hamburgevons', text: 'Hamburgevons' },
+		{ id: 'aabbcc', label: 'AaBbCc', text: 'AaBbCcDdEeFfGgHhIiJjKkLlMm' },
+		{ id: 'numbers', label: 'Numbers', text: '0123456789 $1,234.56 99.9%' },
+		{ id: 'punct', label: 'Punctuation', text: 'Hello, world! "Quoted" — (parens)' },
+		{ id: 'lorem', label: 'Lorem', text: 'Lorem ipsum dolor sit amet consectetur adipiscing elit.' }
+	] as const;
 	// Tester controls — master / size / tracking. The tester is the
 	// designer's playground on the share page; they should be able to
 	// see the type at the size they care about, in the master they
@@ -933,6 +946,29 @@ body {
 			placeholder="Type something..."
 			class="w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
 		/>
+		<!-- Sample-text presets. Quick pills for the passages designers
+		     reach for first: a pangram for coverage, AaBbCc for shape
+		     comparison, Numbers for figures, Punctuation for marks,
+		     Lorem for body rhythm, Hamburgevons as the type-design proof
+		     word (catches stem widths + curve consistency + key inks).
+		     Click sets typeText; URL stays in sync via the existing
+		     effect. Hidden in print since the tester itself is hidden. -->
+		<div class="mt-2 flex flex-wrap items-center gap-1.5 text-[11px]">
+			<span class="text-fg-subtle">Try</span>
+			{#each SAMPLE_PRESETS as preset (preset.id)}
+				{@const active = typeText === preset.text}
+				<button
+					type="button"
+					onclick={() => (typeText = preset.text)}
+					class="rounded-md border px-2 py-0.5 transition-colors {active
+						? 'border-accent bg-accent-soft/40 text-fg'
+						: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
+					title={preset.text}
+				>
+					{preset.label}
+				</button>
+			{/each}
+		</div>
 		<div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[11px] text-fg-muted">
 			{#if availableMasters.length > 1}
 				<div class="flex items-center gap-1.5">
