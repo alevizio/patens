@@ -389,22 +389,32 @@
 						{/if}
 					</div>
 					{#if topErrorCodes.length > 0}
-						<!-- Top error codes inline — tells the designer WHAT to fix
-						     before sealing, with the curated description so they
-						     don't need to bounce to the audit page just to read the
-						     rationale. Click "View on Audit" above to dig deeper. -->
+						<!-- Top error codes inline — each row is a button that
+						     deep-links the audit page filtered to that specific
+						     code + severity=error, so the designer can land
+						     directly on the rows they need to fix. -->
 						<ul class="mt-3 grid gap-1.5 border-t border-border/50 pt-3">
 							{#each topErrorCodes as e (e.code)}
-								<li class="text-[11px]">
-									<div class="flex items-baseline justify-between gap-2">
-										<span class="font-mono text-fg">{e.code}</span>
-										<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
-											{e.count}×
-										</span>
-									</div>
-									{#if e.description}
-										<p class="leading-snug text-fg-muted">{e.description}</p>
-									{/if}
+								<li>
+									<button
+										type="button"
+										onclick={() =>
+											goto(
+												`/project/${project.id}/audit?code=${encodeURIComponent(e.code)}&severity=error`
+											)}
+										class="block w-full rounded-md px-2 py-1.5 text-left text-[11px] transition-colors hover:bg-surface-2/60"
+										title="Open the audit page filtered to this code"
+									>
+										<div class="flex items-baseline justify-between gap-2">
+											<span class="font-mono text-fg">{e.code}</span>
+											<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
+												{e.count}× →
+											</span>
+										</div>
+										{#if e.description}
+											<p class="leading-snug text-fg-muted">{e.description}</p>
+										{/if}
+									</button>
 								</li>
 							{/each}
 						</ul>

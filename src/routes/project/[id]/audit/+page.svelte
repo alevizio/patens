@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { page } from '$app/state';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import {
@@ -44,8 +45,16 @@
 		return sortBySeverity(dedup);
 	});
 
-	let query = $state('');
-	let severityFilter = $state<AuditSeverity | 'all'>('all');
+	// URL ?code=<audit-code>&severity=error|warn|info seeds let other surfaces
+	// (release pre-flight summary, future audit-link buttons) deep-link
+	// directly to a specific issue type. Falls back to empty query / all
+	// severities when the params are absent or invalid.
+	const initialCode = page.url.searchParams.get('code') ?? '';
+	const sevParam = page.url.searchParams.get('severity');
+	const initialSeverity: AuditSeverity | 'all' =
+		sevParam === 'error' || sevParam === 'warn' || sevParam === 'info' ? sevParam : 'all';
+	let query = $state(initialCode);
+	let severityFilter = $state<AuditSeverity | 'all'>(initialSeverity);
 	let groupMode = $state<'code' | 'glyph'>('code');
 
 	const filtered = $derived.by(() => {
