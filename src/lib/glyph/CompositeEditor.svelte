@@ -76,6 +76,41 @@
 		}));
 	};
 
+	// Compute an initial offset that snaps a new component to the base's
+	// matching anchor. If the new mark has `_top` and the base has `top`,
+	// position the mark so its `_top` anchor lands on the base's `top`.
+	// Falls back to (0, xHeight) for marks with no matching anchor, and
+	// (0, 0) for the first component.
+	const snapOffsetFor = (newCp: number): { offsetX: number; offsetY: number } => {
+		if (!project) return { offsetX: 0, offsetY: 0 };
+		if (components.length === 0) return { offsetX: 0, offsetY: 0 };
+		const newGlyph = project.glyphs[newCp];
+		if (!newGlyph?.anchors) {
+			return { offsetX: 0, offsetY: project.metrics.xHeight ?? 0 };
+		}
+		// Base is the first component — its position is fixed at its own
+		// offsetX/Y. The new mark's _NAME anchor must align with base's NAME.
+		const base = components[0];
+		const baseGlyph = project.glyphs[base.baseCodepoint];
+		if (!baseGlyph?.anchors) {
+			return { offsetX: 0, offsetY: project.metrics.xHeight ?? 0 };
+		}
+		for (const ma of newGlyph.anchors) {
+			if (!ma.name.startsWith('_')) continue;
+			const baseName = ma.name.slice(1);
+			const ba = baseGlyph.anchors.find((a) => a.name === baseName);
+			if (!ba) continue;
+			// Align mark anchor with base anchor:
+			//   base.offset + base.anchor === mark.offset + mark.anchor
+			//   mark.offset = base.offset + base.anchor - mark.anchor
+			return {
+				offsetX: base.offsetX + ba.x - ma.x,
+				offsetY: base.offsetY + ba.y - ma.y
+			};
+		}
+		return { offsetX: 0, offsetY: project.metrics.xHeight ?? 0 };
+	};
+
 	const addComponent = (e: Event) => {
 		e.preventDefault();
 		if (!glyph) return;
@@ -85,10 +120,10 @@
 			toast.warn('A glyph cannot reference itself.');
 			return;
 		}
-		const offsetY = components.length === 0 ? 0 : project?.metrics.xHeight ?? 0;
+		const { offsetX, offsetY } = snapOffsetFor(cp);
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({
 			...g,
-			components: [...(g.components ?? []), { baseCodepoint: cp, offsetX: 0, offsetY }]
+			components: [...(g.components ?? []), { baseCodepoint: cp, offsetX, offsetY }]
 		}));
 		newRefInput = '';
 		showAdd = false;
@@ -98,6 +133,25 @@
 		const c = components[idx];
 		if (!c) return;
 		updateComponent(idx, { offsetX: c.offsetX + dx, offsetY: c.offsetY + dy });
+	};
+
+	// Snap an existing component to its matching base anchor. Same math as
+	// snapOffsetFor — used when the designer manually nudged off the anchor
+	// and wants to re-center.
+	const snapToAnchor = (idx: number) => {
+		const c = components[idx];
+		if (!c || idx === 0) return;
+		const snap = snapOffsetFor(c.baseCodepoint);
+		// snapOffsetFor returned (0, xHeight) when no anchor match — only
+		// apply when a real anchor pairing exists (offset differs from
+		// the fallback). Cheap detection: anchorMatches must contain
+		// this component idx.
+		const hasMatch = anchorMatches.some((m) => m.markIdx === idx);
+		if (!hasMatch) {
+			toast.warn('No matching anchor on the base — add `top` / `_top` to enable snap.');
+			return;
+		}
+		updateComponent(idx, snap);
 	};
 
 	// Live preview: render each referenced glyph at its current offset.
@@ -327,6 +381,16 @@
 								class="rounded border border-border bg-surface px-1.5 py-0.5 font-mono text-[10px] hover:border-accent"
 								title="Nudge right 10"
 							>→</button>
+							{#if idx > 0}
+								<button
+									type="button"
+									onclick={() => snapToAnchor(idx)}
+									class="ml-1 rounded border border-accent/30 bg-accent-soft/30 px-1.5 py-0.5 font-mono text-[10px] text-accent-strong hover:bg-accent-soft"
+									title="Snap this component to its matching base anchor"
+								>
+									snap
+								</button>
+							{/if}
 						</div>
 					</li>
 				{/each}
