@@ -150,6 +150,23 @@
 		clearSelection();
 	};
 
+	// Bulk add tag — prompt for one tag, apply to every selected glyph.
+	// Lightweight: uses window.prompt rather than a custom modal since
+	// tag-name entry is a single string.
+	const bulkAddTag = () => {
+		const tag = prompt(
+			`Add a tag to ${selectedCodepoints.size} selected glyph${selectedCodepoints.size === 1 ? '' : 's'}? (lowercase, no spaces)`
+		);
+		if (!tag) return;
+		const cleaned = tag.trim().toLowerCase();
+		if (!cleaned) return;
+		for (const cp of selectedCodepoints) {
+			projectStore.addGlyphTag(cp, cleaned);
+		}
+		toast.success(`Tagged ${selectedCodepoints.size} glyph${selectedCodepoints.size === 1 ? '' : 's'} → "${cleaned}"`);
+		clearSelection();
+	};
+
 	// Bulk delete — destructive, so confirm. Removes glyphs from the project
 	// + any kerning pairs or class members that referenced them (handled by
 	// projectStore.removeGlyph).
@@ -830,6 +847,15 @@
 					title="Rename selected glyphs to their canonical AGLFN names"
 				>
 					AGLFN
+				</button>
+				<button
+					type="button"
+					onclick={bulkAddTag}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+					title="Add a tag to every selected glyph"
+				>
+					+ Tag
 				</button>
 				<button
 					type="button"
