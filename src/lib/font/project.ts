@@ -91,6 +91,13 @@ export type ProjectIndexEntry = {
 	familyId?: string;
 	/** This sibling's position in the family's design space (rendered as compact chips). */
 	familyAxes?: import('./types').FamilyAxes;
+	/** Number of additional masters (a VF project ships >1 master at distinct
+	 *  axis locations); used by the family hub to surface a "+N masters" chip
+	 *  per sibling without loading the full project. Excludes the default. */
+	masterCount?: number;
+	/** Names of additional masters, in order. Capped at the first three to
+	 *  keep the badge readable. */
+	masterNames?: string[];
 };
 
 const newId = () => crypto.randomUUID();
@@ -341,7 +348,9 @@ const indexEntry = (p: Project): ProjectIndexEntry => {
 		tags: p.tags,
 		lastEditedGlyph: lastEditedGlyphEntry,
 		familyId: p.familyId,
-		familyAxes: p.familyAxes
+		familyAxes: p.familyAxes,
+		masterCount: p.masters?.length,
+		masterNames: (p.masters ?? []).slice(0, 3).map((m) => m.name)
 	};
 };
 

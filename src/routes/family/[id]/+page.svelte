@@ -88,6 +88,27 @@
 		refreshSiblingAudits();
 	});
 
+	// Family-wide designspace summary — total siblings, total masters
+	// across all siblings, unique axis tags. Surfaces the family's variable-
+	// font footprint at a glance. Derived from the index entries so it
+	// doesn't require loading every sibling.
+	const designspaceSummary = $derived.by(() => {
+		let totalMasters = 0;
+		const axisTags = new Set<string>();
+		const masterNames = new Set<string>();
+		for (const s of siblings) {
+			totalMasters += s.masterCount ?? 0;
+			for (const name of s.masterNames ?? []) masterNames.add(name);
+			for (const tag of Object.keys(s.familyAxes ?? {})) axisTags.add(tag);
+		}
+		return {
+			siblingCount: siblings.length,
+			totalMasters,
+			axisTags: [...axisTags].sort(),
+			masterNames: [...masterNames].sort()
+		};
+	});
+
 	const refresh = async () => {
 		const f = await loadFamily(data.family.id);
 		if (f) family = f;
@@ -448,6 +469,53 @@
 
 	<Panel>
 		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			Designspace
+		</h2>
+		<div class="grid gap-3 md:grid-cols-4">
+			<div>
+				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Siblings</div>
+				<div class="text-[18px] font-medium text-fg" data-numeric>
+					{designspaceSummary.siblingCount}
+				</div>
+			</div>
+			<div>
+				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Masters</div>
+				<div class="text-[18px] font-medium text-fg" data-numeric>
+					{designspaceSummary.totalMasters}
+				</div>
+			</div>
+			<div>
+				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Axes</div>
+				<div class="flex flex-wrap items-center gap-1 pt-1.5">
+					{#each designspaceSummary.axisTags as tag (tag)}
+						<span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg">
+							{tag}
+						</span>
+					{:else}
+						<span class="text-[12px] text-fg-subtle">none declared</span>
+					{/each}
+				</div>
+			</div>
+			<div>
+				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Master names</div>
+				<div class="flex flex-wrap items-center gap-1 pt-1.5">
+					{#each designspaceSummary.masterNames as name (name)}
+						<span class="rounded bg-accent-soft/30 px-1.5 py-0.5 text-[11px] text-accent-strong">
+							{name}
+						</span>
+					{:else}
+						<span class="text-[12px] text-fg-subtle">—</span>
+					{/each}
+				</div>
+			</div>
+		</div>
+		<p class="mt-2 text-[11px] text-fg-subtle">
+			Aggregated across every sibling. Per-sibling master breakdown shows in the row below.
+		</p>
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 			Siblings
 		</h2>
 		{#if siblings.length === 0}
@@ -509,6 +577,23 @@
 									     family-level health signal. -->
 									<span title="Kerning pairs in this sibling">
 										{s.kerningCount} pairs
+									</span>
+								{/if}
+								{#if (s.masterCount ?? 0) > 0}
+									<!-- Masters chip — a VF sibling's design space at a
+									     glance. Names are capped at three by the indexer
+									     so the chip stays readable for large families. -->
+									<span
+										class="inline-flex items-center gap-1 rounded bg-accent-soft/30 px-1.5 text-accent-strong"
+										title="Variable-font masters in this sibling — {s.masterNames?.join(', ') ?? ''}"
+									>
+										+{s.masterCount} master{s.masterCount === 1 ? '' : 's'}
+										{#if s.masterNames && s.masterNames.length > 0}
+											<span class="text-fg-muted">·</span>
+											<span class="text-fg-muted">
+												{s.masterNames.join(', ')}{(s.masterCount ?? 0) > 3 ? '…' : ''}
+											</span>
+										{/if}
 									</span>
 								{/if}
 								{#if (s.editsToday ?? 0) > 0}
