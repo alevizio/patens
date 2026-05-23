@@ -178,6 +178,29 @@ export const generateDesignMd = (project: Project): string => {
 		lines.push(section('OpenType features', featLines.join('\n')));
 	}
 
+	// Glyph tag inventory — groups designer-applied tags so the doc
+	// records the project's own taxonomy. Empty for projects without
+	// per-glyph tags.
+	const tagBuckets = new Map<string, string[]>();
+	for (const g of Object.values(project.glyphs)) {
+		if (!g.tags || g.tags.length === 0) continue;
+		const label =
+			g.codepoint > 0x20 && g.codepoint < 0x10000
+				? String.fromCodePoint(g.codepoint)
+				: g.name;
+		for (const t of g.tags) {
+			const arr = tagBuckets.get(t) ?? [];
+			arr.push(label);
+			tagBuckets.set(t, arr);
+		}
+	}
+	if (tagBuckets.size > 0) {
+		const tagLines = [...tagBuckets.entries()]
+			.sort((a, b) => b[1].length - a[1].length)
+			.map(([tag, members]) => `- **${tag}** (${members.length}) — ${members.join(', ')}`);
+		lines.push(section('Glyph tags', tagLines.join('\n')));
+	}
+
 	// Variable / instances
 	if (project.instances && project.instances.length > 0) {
 		const instLines = project.instances.map((i) => {
