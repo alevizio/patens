@@ -9,6 +9,7 @@
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
+	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import UploadCloud from '@lucide/svelte/icons/upload-cloud';
@@ -491,6 +492,21 @@
 											title="Remove this reference layer"
 										>
 											<Trash2 class="size-3.5" />
+										</button>
+									{/if}
+									{#if layer.id.startsWith('snapshot-') && project}
+										{@const revId = layer.id.replace(/^snapshot-/, '')}
+										<button
+											type="button"
+											onclick={() => {
+												projectStore.restoreRevision(cp, revId);
+												toast.info('Restored snapshot — ⌘Z to undo');
+											}}
+											class="-mr-1 rounded p-1 text-fg-subtle transition-colors hover:bg-accent/10 hover:text-accent-strong"
+											aria-label="Restore this snapshot"
+											title="Restore this snapshot as the current outline (⌘Z to undo)"
+										>
+											<RotateCcw class="size-3.5" />
 										</button>
 									{/if}
 								</div>
