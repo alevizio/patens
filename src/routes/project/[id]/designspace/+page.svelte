@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { STANDARD_AXES } from '$lib/font/types';
@@ -438,14 +439,26 @@
 						{#each [...compatIssuesByCp.entries()] as [cp, issues] (cp)}
 							{@const ch = cp > 0x20 && cp < 0x10000 ? String.fromCodePoint(cp) : ''}
 							<li class="rounded-md border border-warn/30 bg-warn/5 p-2">
-								<div class="mb-1 flex items-baseline gap-2">
+								<!-- Header row is a button that selects the glyph + jumps
+								     to the editor. Lets designers go from "X glyphs are
+								     incompatible" to actually fixing them with one click
+								     each, instead of routing through the glyph browser. -->
+								<button
+									type="button"
+									onclick={() => {
+										projectStore.selectGlyph(cp);
+										goto(`/project/${project.id}/edit`);
+									}}
+									class="mb-1 flex items-baseline gap-2 text-left hover:text-accent-strong"
+								>
 									<span class="font-mono text-[13px] text-warn-strong">
 										{ch || `U+${cp.toString(16).toUpperCase().padStart(4, '0')}`}
 									</span>
 									<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
 										U+{cp.toString(16).toUpperCase().padStart(4, '0')}
 									</span>
-								</div>
+									<span class="font-mono text-[10px] text-fg-subtle">→ edit</span>
+								</button>
 								<ul class="grid gap-0.5 pl-1 text-[11px] text-fg-muted">
 									{#each issues as iss (iss.master + iss.code)}
 										<li class="flex items-start gap-2">
