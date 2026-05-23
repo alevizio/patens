@@ -502,6 +502,15 @@
 								<span title="Drawn glyphs · last sealed version">
 									{s.glyphCount} drawn{s.lastSealedVersion ? ` · v${s.lastSealedVersion}` : ''}
 								</span>
+								{#if (s.kerningCount ?? 0) > 0}
+									<!-- Surface kerning effort at a glance — different
+									     siblings often diverge in pair count (e.g. Bold
+									     has more pairs than Light), which is a useful
+									     family-level health signal. -->
+									<span title="Kerning pairs in this sibling">
+										{s.kerningCount} pairs
+									</span>
+								{/if}
 								{#if (s.editsToday ?? 0) > 0}
 									<span
 										class="font-medium text-accent-strong"
