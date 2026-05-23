@@ -458,4 +458,48 @@ describe('auditGlyph', () => {
 		const issues = auditGlyph(glyph, baseProject());
 		expect(issues.find((i) => i.code === 'contour-winding-collision')).toBeUndefined();
 	});
+
+	it('flags mark glyph anchors that lack the "_" prefix', () => {
+		const mark = baseGlyph({
+			codepoint: 0x0301, // combining acute
+			name: 'acutecomb',
+			contours: [closedSquare(100)],
+			anchors: [{ name: 'top', x: 50, y: 0 }]
+		});
+		const issues = auditGlyph(mark, baseProject());
+		const found = issues.find((i) => i.code === 'anchor-naming-mark-no-prefix');
+		expect(found).toBeDefined();
+		expect(found?.severity).toBe('warn');
+	});
+
+	it('flags base glyph anchors that start with "_"', () => {
+		const base = baseGlyph({
+			codepoint: 0x0041,
+			name: 'A',
+			contours: [closedSquare(500)],
+			anchors: [{ name: '_top', x: 250, y: 700 }]
+		});
+		const issues = auditGlyph(base, baseProject());
+		const found = issues.find((i) => i.code === 'anchor-naming-base-with-prefix');
+		expect(found).toBeDefined();
+		expect(found?.severity).toBe('warn');
+	});
+
+	it('does NOT flag correctly-named base / mark anchors', () => {
+		const mark = baseGlyph({
+			codepoint: 0x0301,
+			name: 'acutecomb',
+			contours: [closedSquare(100)],
+			anchors: [{ name: '_top', x: 50, y: 0 }]
+		});
+		const base = baseGlyph({
+			codepoint: 0x0041,
+			contours: [closedSquare(500)],
+			anchors: [{ name: 'top', x: 250, y: 700 }]
+		});
+		const mIssues = auditGlyph(mark, baseProject());
+		const bIssues = auditGlyph(base, baseProject());
+		expect(mIssues.find((i) => i.code?.startsWith('anchor-naming'))).toBeUndefined();
+		expect(bIssues.find((i) => i.code?.startsWith('anchor-naming'))).toBeUndefined();
+	});
 });

@@ -144,7 +144,10 @@
 		// self-intersecting fix — clipping normalises nested winding too.
 		'contour-winding-collision',
 		// Fractional coordinates from SVG paste / Figma — round to int.
-		'off-grid-points'
+		'off-grid-points',
+		// Anchor naming — fix is purely a rename based on isMark.
+		'anchor-naming-mark-no-prefix',
+		'anchor-naming-base-with-prefix'
 	]);
 
 	// Build a small "next 3 things to fix" list: prefer errors with auto-fix,
@@ -285,6 +288,20 @@
 					commands: roundToFontUnits(c.commands)
 				}));
 				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, contours: cleaned }));
+				return;
+			}
+			case 'anchor-naming-mark-no-prefix':
+			case 'anchor-naming-base-with-prefix': {
+				const g = project.glyphs[issue.codepoint];
+				if (!g || !g.anchors) return;
+				const isMark = issue.codepoint >= 0x0300 && issue.codepoint <= 0x036f;
+				const cleaned = g.anchors.map((a) => {
+					if (isMark && !a.name.startsWith('_')) return { ...a, name: `_${a.name}` };
+					if (!isMark && a.name.startsWith('_')) return { ...a, name: a.name.slice(1) };
+					return a;
+				});
+				projectStore.updateGlyph(issue.codepoint, (gg) => ({ ...gg, anchors: cleaned }));
+				toast.success('Renamed anchors to match convention.');
 				return;
 			}
 			case 'duplicate-points': {

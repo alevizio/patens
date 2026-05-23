@@ -343,6 +343,33 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Anchor naming convention — used by the GPOS mark feature pipeline.
+	// Marks live in U+0300–U+036F and carry anchors prefixed with '_'
+	// (e.g. `_top`); base glyphs carry the same name without the underscore
+	// (`top`). A mismatch on either side means the GPOS pair won't form and
+	// the anchor effectively does nothing at export.
+	if (glyph.anchors && glyph.anchors.length > 0) {
+		const isMark = cp >= 0x0300 && cp <= 0x036f;
+		for (const a of glyph.anchors) {
+			const hasUnderscorePrefix = a.name.startsWith('_');
+			if (isMark && !hasUnderscorePrefix) {
+				issues.push({
+					codepoint: cp,
+					severity: 'warn',
+					code: 'anchor-naming-mark-no-prefix',
+					message: `Mark glyph anchor "${a.name}" should start with '_' to participate in the mark feature`
+				});
+			} else if (!isMark && hasUnderscorePrefix) {
+				issues.push({
+					codepoint: cp,
+					severity: 'warn',
+					code: 'anchor-naming-base-with-prefix',
+					message: `Base glyph anchor "${a.name}" should not start with '_' — only marks use that prefix`
+				});
+			}
+		}
+	}
+
 	// Composite references that point to empty base glyphs
 	if (composite) {
 		for (const ref of glyph.components ?? []) {
@@ -1008,6 +1035,11 @@ export const describeAuditCode = (code: string): string | undefined => {
 		// Composites & references
 		'composite-missing-base':
 			'A composite reference points at a glyph with no outlines. The reference will render as nothing.',
+		// Anchor naming
+		'anchor-naming-mark-no-prefix':
+			'GPOS mark-positioning convention: marks (combining diacritics) carry anchors prefixed with "_" so they pair up with same-named base anchors. Without the prefix, this anchor never enters the mark feature.',
+		'anchor-naming-base-with-prefix':
+			'Base-glyph anchors should not start with "_" — that prefix is reserved for mark glyphs. Rename or the GPOS mark feature will miss this attachment point.',
 		// Variable-font compatibility
 		'master-contour-count':
 			'The number of contours differs across masters. VF interpolation requires identical contour count and order in every master.',

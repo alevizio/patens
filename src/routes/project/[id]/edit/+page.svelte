@@ -937,6 +937,18 @@
 			toast.success(`Set advance to ${target}.`);
 			return;
 		}
+		if (code === 'anchor-naming-mark-no-prefix' || code === 'anchor-naming-base-with-prefix') {
+			if (!glyph.anchors) return;
+			const isMark = cp >= 0x0300 && cp <= 0x036f;
+			const cleaned = glyph.anchors.map((a) => {
+				if (isMark && !a.name.startsWith('_')) return { ...a, name: `_${a.name}` };
+				if (!isMark && a.name.startsWith('_')) return { ...a, name: a.name.slice(1) };
+				return a;
+			});
+			projectStore.updateGlyph(cp, (g) => ({ ...g, anchors: cleaned }));
+			toast.success('Renamed anchors to match convention.');
+			return;
+		}
 	};
 
 	type DeriveTransform = 'copy' | 'flipH' | 'flipV' | 'rotate180';
@@ -3108,7 +3120,9 @@
 									issue.code === 'off-grid-points' ||
 									issue.code === 'open-contour' ||
 									issue.code === 'zero-advance' ||
-									issue.code === 'overflows-advance'}
+									issue.code === 'overflows-advance' ||
+									issue.code === 'anchor-naming-mark-no-prefix' ||
+									issue.code === 'anchor-naming-base-with-prefix'}
 								<li
 									class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 									'error'
