@@ -170,6 +170,44 @@
 	// Bulk delete — destructive, so confirm. Removes glyphs from the project
 	// + any kerning pairs or class members that referenced them (handled by
 	// projectStore.removeGlyph).
+	// Copy sidebearings from the currently-focused glyph to every selected
+	// glyph. Preserves each glyph's bbox width — only the surrounding
+	// whitespace gets aligned, which is the foundational "make these read
+	// at the same rhythm" workflow when spacing a set (e.g. all caps).
+	// Skips the focused glyph itself so designers don't accidentally
+	// overwrite their reference. font5.md: "the spaces around the letters
+	// are part of the letters."
+	const bulkCopySidebearings = () => {
+		const current = projectStore.activeGlyphs[projectStore.selectedCodepoint];
+		if (!current) {
+			toast.info('Focus a glyph first — sidebearings are copied FROM the focused glyph');
+			return;
+		}
+		const lsb = current.leftSidebearing;
+		const rsb = current.rightSidebearing;
+		let count = 0;
+		for (const cp of selectedCodepoints) {
+			if (cp === current.codepoint) continue;
+			projectStore.updateGlyph(cp, (g) => {
+				const bboxW = Math.max(0, g.advanceWidth - g.leftSidebearing - g.rightSidebearing);
+				return {
+					...g,
+					leftSidebearing: lsb,
+					rightSidebearing: rsb,
+					advanceWidth: lsb + bboxW + rsb,
+					updatedAt: new Date().toISOString()
+				};
+			});
+			count++;
+		}
+		if (count === 0) {
+			toast.info('Nothing to copy — only the focused glyph was selected');
+			return;
+		}
+		toast.success(`Copied LSB ${lsb} / RSB ${rsb} to ${count} glyph${count === 1 ? '' : 's'}`);
+		clearSelection();
+	};
+
 	const bulkDelete = () => {
 		const n = selectedCodepoints.size;
 		if (n === 0) return;
@@ -809,6 +847,22 @@
 				</button>
 				<button
 					type="button"
+					onclick={() => bulkSetStatus('sketch')}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+				>
+					→ sketch
+				</button>
+				<button
+					type="button"
+					onclick={() => bulkSetStatus('empty')}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-fg-subtle hover:text-fg-subtle disabled:opacity-40"
+				>
+					→ empty
+				</button>
+				<button
+					type="button"
 					onclick={bulkPin}
 					disabled={selectedCodepoints.size === 0}
 					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-warn hover:text-warn disabled:opacity-40"
@@ -856,6 +910,15 @@
 					title="Add a tag to every selected glyph"
 				>
 					+ Tag
+				</button>
+				<button
+					type="button"
+					onclick={bulkCopySidebearings}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+					title="Copy LSB and RSB from the focused glyph to every selected glyph (bbox width preserved)"
+				>
+					Copy SB
 				</button>
 				<button
 					type="button"
