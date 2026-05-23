@@ -568,6 +568,163 @@ const build8 = (): BezierContour[] => {
 		poly(digitRing(w / 2, (mid - BAR / 2) / 2, w / 2 - 60 - (STEM - 10), (mid - BAR / 2) / 2 - (STEM - 10), true), 'ccw')
 	];
 };
+// Lowercase letters — the high-frequency set so the Bringhurst sample
+// paragraph renders. Each one fits the x-height envelope (h, t use a
+// short ascender; r/s/i/e stay within x-height).
+
+// lowercase e — bowl shape with horizontal middle bar (closed counter).
+const buildE_lc = (): BezierContour[] => {
+	const cx = LC_W / 2;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 80;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		poly(ring(rx, ry), 'cw'),
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Crossbar opens the lower-right counter (e shape)
+		poly([
+			[cx, cy - BAR / 2],
+			[cx + rx - 10, cy - BAR / 2],
+			[cx + rx - 10, cy + BAR / 2],
+			[cx, cy + BAR / 2]
+		])
+	];
+};
+
+// lowercase i — vertical stem + dot floating above
+const buildI_lc = (): BezierContour[] => {
+	const cx = LC_W / 2;
+	const stemTop = X_HEIGHT;
+	return [
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, stemTop],
+			[cx - STEM / 2, stemTop]
+		]),
+		// Dot floating above x-height
+		poly([
+			[cx - STEM / 2, stemTop + 60],
+			[cx + STEM / 2, stemTop + 60],
+			[cx + STEM / 2, stemTop + 180],
+			[cx - STEM / 2, stemTop + 180]
+		])
+	];
+};
+
+// lowercase t — vertical stem + short crossbar at x-height
+const buildT_lc = (): BezierContour[] => {
+	const cx = LC_W / 2;
+	const stemTop = Math.round(X_HEIGHT * 1.4);
+	return [
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, stemTop],
+			[cx - STEM / 2, stemTop]
+		]),
+		// Crossbar at x-height
+		poly([
+			[80, X_HEIGHT - BAR],
+			[LC_W - 80, X_HEIGHT - BAR],
+			[LC_W - 80, X_HEIGHT],
+			[80, X_HEIGHT]
+		])
+	];
+};
+
+// lowercase h — vertical stem with short ascender + arch from stem to right
+const buildH_lc = (): BezierContour[] => [
+	// Left stem (full ascender height)
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, Math.round(X_HEIGHT * 1.5)],
+		[80, Math.round(X_HEIGHT * 1.5)]
+	]),
+	// Right stem (x-height tall)
+	poly([
+		[LC_W - 80 - STEM, 0],
+		[LC_W - 80, 0],
+		[LC_W - 80, X_HEIGHT - STEM],
+		[LC_W - 80 - STEM, X_HEIGHT - STEM]
+	]),
+	// Arch from left stem to right stem
+	poly([
+		[80, X_HEIGHT - STEM],
+		[LC_W - 80, X_HEIGHT - STEM],
+		[LC_W - 80, X_HEIGHT],
+		[80, X_HEIGHT]
+	])
+];
+
+// lowercase r — vertical stem + small shoulder to upper-right
+const buildR_lc = (): BezierContour[] => [
+	// Stem
+	poly([
+		[80, 0],
+		[80 + STEM, 0],
+		[80 + STEM, X_HEIGHT],
+		[80, X_HEIGHT]
+	]),
+	// Shoulder (small horizontal at top extending right)
+	poly([
+		[80, X_HEIGHT - STEM],
+		[LC_W - 100, X_HEIGHT - STEM],
+		[LC_W - 100, X_HEIGHT],
+		[80, X_HEIGHT]
+	])
+];
+
+// lowercase s — same construction as cap S but at x-height + reduced widths
+const buildS_lc = (): BezierContour[] => {
+	const w = LC_W;
+	const mid = X_HEIGHT / 2;
+	const lt = STEM - 10;
+	return [
+		// Top bar
+		poly([
+			[60, X_HEIGHT - BAR],
+			[w - 60, X_HEIGHT - BAR],
+			[w - 60, X_HEIGHT],
+			[60, X_HEIGHT]
+		]),
+		// Top-left stem
+		poly([
+			[60, mid + BAR / 2],
+			[60 + lt, mid + BAR / 2],
+			[60 + lt, X_HEIGHT - BAR],
+			[60, X_HEIGHT - BAR]
+		]),
+		// Middle bar
+		poly([
+			[60, mid - BAR / 2],
+			[w - 60, mid - BAR / 2],
+			[w - 60, mid + BAR / 2],
+			[60, mid + BAR / 2]
+		]),
+		// Bottom-right stem
+		poly([
+			[w - 60 - lt, BAR],
+			[w - 60, BAR],
+			[w - 60, mid - BAR / 2],
+			[w - 60 - lt, mid - BAR / 2]
+		]),
+		// Bottom bar
+		poly([[60, 0], [w - 60, 0], [w - 60, BAR], [60, BAR]])
+	];
+};
+
 // Punctuation — small glyphs that the sample paragraph uses. Each one
 // is a single rect or tiny composition. Tabular widths kept tight so they
 // don't gap the surrounding letters.
@@ -787,7 +944,14 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x27, contours: buildApostrophe(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
-	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }
+	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
+	// Lowercase high-frequency letters — render the sample paragraph
+	{ codepoint: 0x65, contours: buildE_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	{ codepoint: 0x69, contours: buildI_lc(), advanceWidth: Math.round(LC_W * 0.55), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' },
+	{ codepoint: 0x74, contours: buildT_lc(), advanceWidth: Math.round(LC_W * 0.7), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' },
+	{ codepoint: 0x68, contours: buildH_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	{ codepoint: 0x72, contours: buildR_lc(), advanceWidth: Math.round(LC_W * 0.7), leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
+	{ codepoint: 0x73, contours: buildS_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
