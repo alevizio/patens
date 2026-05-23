@@ -12,7 +12,7 @@
 		type AuditIssue,
 		type AuditSeverity
 	} from '$lib/font/audit';
-	import { glyphBounds, roundToFontUnits } from '$lib/font/path';
+	import { glyphBounds, roundToFontUnits, contoursToSvgPath } from '$lib/font/path';
 	import { booleanContours } from '$lib/font/path-edit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import Panel from '$lib/ui/Panel.svelte';
@@ -622,19 +622,39 @@
 				{:else}
 					<div class="grid gap-4">
 						{#each groupedByGlyph as [cp, issues] (cp)}
+							{@const g = project.glyphs[cp]}
 							<div>
 								<div class="mb-1.5 flex items-baseline justify-between gap-2">
-									<h3 class="text-[12px] font-semibold text-fg">
+									<h3 class="flex items-baseline gap-2 text-[12px] font-semibold text-fg">
 										{#if cp === 0}
 											Project-level
-										{:else if project.glyphs[cp]}
+										{:else if g}
 											<button
 												type="button"
 												onclick={() => jumpToGlyph(cp)}
-												class="font-mono text-fg hover:text-accent"
+												class="inline-flex items-baseline gap-2 font-mono text-fg hover:text-accent"
 												title="Open this glyph in the editor"
 											>
-												{labelFor(cp)}
+												<!-- Tiny SVG thumbnail of the actual glyph. Makes the
+												     audit's "By glyph" view scannable at a glance —
+												     designers see the shape, not just the hex. -->
+												{#if g.contours.length > 0}
+													<svg
+														viewBox="0 {project.metrics.descender} {Math.max(g.advanceWidth, 100)} {project.metrics.ascender - project.metrics.descender}"
+														width="22"
+														height="22"
+														preserveAspectRatio="xMidYMid meet"
+														style="transform: scaleY(-1);"
+														aria-hidden="true"
+													>
+														<path
+															d={contoursToSvgPath(g.contours)}
+															fill="currentColor"
+															fill-rule="evenodd"
+														/>
+													</svg>
+												{/if}
+												<span>{labelFor(cp)}</span>
 												<span class="text-fg-subtle" data-numeric>
 													· U+{cp.toString(16).toUpperCase().padStart(4, '0')}
 												</span>
