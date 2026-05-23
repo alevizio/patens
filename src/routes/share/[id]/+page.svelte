@@ -16,6 +16,7 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Check from '@lucide/svelte/icons/check';
+	import Printer from '@lucide/svelte/icons/printer';
 
 	let { data } = $props();
 	const project = $derived(data.project);
@@ -616,8 +617,19 @@ body {
 </svelte:head>
 
 <div class="mx-auto max-w-4xl px-6 py-8">
+	<!-- Print-only specimen banner — visible only when printing. Replaces
+	     the read-only chip with a dateline so the printed sheet stands
+	     alone as an artifact: family name + designer is already in the
+	     header below; this gives the document a date and shareable URL. -->
+	<div data-print-only class="mb-6 hidden border-b border-fg pb-2 text-[10px] uppercase">
+		<span class="font-mono">Specimen</span>
+		<span class="mx-2">·</span>
+		<span class="font-mono" data-numeric>{new Date().toISOString().slice(0, 10)}</span>
+	</div>
+
 	<!-- Read-only banner — clarifies what the route is for. -->
 	<div
+		data-print-hide
 		class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface-2/60 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase text-fg-muted"
 	>
 		<Eye class="size-3" />
@@ -645,7 +657,7 @@ body {
 		     Both lazy-load the export pipeline only on click. When the
 		     project has masters, a selector lets the designer pick which
 		     to build as a static font. -->
-		<div class="flex shrink-0 flex-col items-end gap-2">
+		<div data-print-hide class="flex shrink-0 flex-col items-end gap-2">
 			<div class="flex gap-2">
 				<button
 					type="button"
@@ -667,6 +679,15 @@ body {
 					<Download class="size-3.5" />
 					{downloading === 'woff2' ? 'Building…' : 'WOFF2'}
 				</button>
+				<button
+					type="button"
+					onclick={() => window.print()}
+					class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent"
+					title="Print or save as PDF — type specimen sheet"
+				>
+					<Printer class="size-3.5" />
+					Specimen
+				</button>
 			</div>
 			{#if availableMasters.length > 1}
 				<select
@@ -683,7 +704,10 @@ body {
 		</div>
 	</header>
 	{#if downloadError}
-		<div class="mb-6 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong">
+		<div
+			data-print-hide
+			class="mb-6 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong"
+		>
 			Download failed: {downloadError}
 		</div>
 	{/if}
@@ -693,7 +717,7 @@ body {
 	     as the designer intended. Master/size/tracking controls give
 	     designers a real foundry-style "tester" — they can audition
 	     the type at the size and rhythm they actually need. -->
-	<section class="mb-10">
+	<section class="mb-10" data-print-hide>
 		<h2
 			class="mb-3 flex items-baseline justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
 		>
@@ -1286,7 +1310,7 @@ body {
 		{/if}
 	</footer>
 
-	<div class="mt-10">
+	<div class="mt-10" data-print-hide>
 		<a
 			href="/"
 			class="inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -1551,3 +1575,70 @@ body {
 		</footer>
 	</div>
 {/if}
+
+<style>
+	/* Print specimen — designers expect a single-click PDF specimen
+	   from a foundry page. Cmd+P (or the Specimen button) produces a
+	   clean sheet without the app chrome.
+
+	   The page is paginated by the browser; we keep section boundaries
+	   soft (page-break-inside: avoid) so a glyph grid or waterfall
+	   isn't sliced mid-block. The inspector modal is positioned fixed
+	   and would inherit the viewport on print, so it's force-hidden. */
+	@media print {
+		[data-print-hide] {
+			display: none !important;
+		}
+		[data-print-only] {
+			display: block !important;
+		}
+		/* Modal/backdrop layers should never appear on the printed sheet
+		   regardless of state — they're position:fixed and would land on
+		   every page. */
+		[role='dialog'][aria-modal='true'],
+		[aria-label='Close inspector'] {
+			display: none !important;
+		}
+		@page {
+			margin: 18mm 14mm;
+		}
+		:global(html),
+		:global(body) {
+			background: white !important;
+			color: black !important;
+		}
+		/* Tailwind utility classes that resolve to themed colors override
+		   the page reset above, so force the most common surface tokens
+		   back to black-on-white for the printed sheet. The SVGs inherit
+		   currentColor so this also resets the glyph fills. */
+		:global(.text-fg),
+		:global(.text-fg-muted),
+		:global(.text-fg-subtle),
+		:global(.text-accent) {
+			color: black !important;
+		}
+		:global(.bg-canvas),
+		:global(.bg-surface),
+		:global(.bg-surface-2),
+		:global(.bg-surface-2\/40),
+		:global(.bg-surface-2\/60) {
+			background: transparent !important;
+		}
+		:global(.border-border),
+		:global(.border-accent) {
+			border-color: black !important;
+		}
+		section {
+			page-break-inside: avoid;
+			break-inside: avoid;
+		}
+		/* Headlines keep with the next section so a label doesn't orphan
+		   at the bottom of a page. */
+		h1,
+		h2,
+		h3 {
+			page-break-after: avoid;
+			break-after: avoid;
+		}
+	}
+</style>
