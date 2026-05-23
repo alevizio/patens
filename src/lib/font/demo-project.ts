@@ -1363,6 +1363,115 @@ const buildApostrophe = (): BezierContour[] => {
 	];
 };
 
+// Colon — two small squares stacked vertically.
+const buildColon = (): BezierContour[] => [
+	// Bottom dot at baseline
+	poly([
+		[STEM, 0],
+		[STEM + STEM, 0],
+		[STEM + STEM, STEM],
+		[STEM, STEM]
+	]),
+	// Top dot at x-height level
+	poly([
+		[STEM, X_HEIGHT - STEM],
+		[STEM + STEM, X_HEIGHT - STEM],
+		[STEM + STEM, X_HEIGHT],
+		[STEM, X_HEIGHT]
+	])
+];
+
+// Semicolon — top dot + bottom comma (period with tail).
+const buildSemicolon = (): BezierContour[] => [
+	// Top dot at x-height level
+	poly([
+		[STEM, X_HEIGHT - STEM],
+		[STEM + STEM, X_HEIGHT - STEM],
+		[STEM + STEM, X_HEIGHT],
+		[STEM, X_HEIGHT]
+	]),
+	// Bottom comma at baseline + tail
+	poly([
+		[STEM, 0],
+		[STEM + STEM, 0],
+		[STEM + STEM, STEM],
+		[STEM, STEM]
+	]),
+	poly([
+		[STEM + 10, -120],
+		[STEM + STEM + 10, -120],
+		[STEM + STEM - 20, 0],
+		[STEM - 20, 0]
+	])
+];
+
+// Question mark — top hook + stem + dot at baseline.
+const buildQuestion = (): BezierContour[] => {
+	const w = PUNCT_W + 100;
+	const upperBowl = CAP_HEIGHT * 0.55;
+	return [
+		// Top bar
+		poly([
+			[60, CAP_HEIGHT - BAR],
+			[w - 60, CAP_HEIGHT - BAR],
+			[w - 60, CAP_HEIGHT],
+			[60, CAP_HEIGHT]
+		]),
+		// Right top stem (cap to middle)
+		poly([
+			[w - 60 - STEM, upperBowl],
+			[w - 60, upperBowl],
+			[w - 60, CAP_HEIGHT - BAR],
+			[w - 60 - STEM, CAP_HEIGHT - BAR]
+		]),
+		// Mid-right diagonal/connector down to mid stem
+		poly([
+			[w / 2, upperBowl - BAR],
+			[w - 60, upperBowl - BAR],
+			[w - 60, upperBowl],
+			[w / 2, upperBowl]
+		]),
+		// Lower stem (mid down to dot area)
+		poly([
+			[w / 2 - STEM / 2, STEM * 2],
+			[w / 2 + STEM / 2, STEM * 2],
+			[w / 2 + STEM / 2, upperBowl - BAR],
+			[w / 2 - STEM / 2, upperBowl - BAR]
+		]),
+		// Dot at baseline
+		poly([
+			[w / 2 - STEM / 2, 0],
+			[w / 2 + STEM / 2, 0],
+			[w / 2 + STEM / 2, STEM],
+			[w / 2 - STEM / 2, STEM]
+		])
+	];
+};
+
+// Left single curly quote — small angled wedge floating below cap-height.
+const buildQuoteLeft = (): BezierContour[] => {
+	const top = CAP_HEIGHT;
+	const bottom = CAP_HEIGHT - 200;
+	return [
+		// Inverted comma shape (mirror of regular comma but at top)
+		poly([
+			[STEM / 2, top],
+			[STEM / 2 + STEM, top],
+			[STEM / 2 + STEM, top - 100],
+			[STEM / 2, top - 100]
+		]),
+		poly([
+			[STEM / 2 - 20, bottom],
+			[STEM / 2 + STEM - 20, bottom],
+			[STEM / 2 + STEM, top - 100],
+			[STEM / 2, top - 100]
+		])
+	];
+};
+
+// Right single curly quote — like apostrophe.
+const buildQuoteRight = (): BezierContour[] => buildApostrophe();
+
 const build9 = (): BezierContour[] => {
 	const w = DIGIT_W;
 	const mid = CAP_HEIGHT * 0.5;
@@ -1519,6 +1628,11 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x2d, contours: buildHyphen(), advanceWidth: PUNCT_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // -
 	{ codepoint: 0x2014, contours: buildEmDash(), advanceWidth: Math.round(CAP_W * 1.6), leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // em dash
 	{ codepoint: 0x27, contours: buildApostrophe(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
+	{ codepoint: 0x3a, contours: buildColon(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // :
+	{ codepoint: 0x3b, contours: buildSemicolon(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // ;
+	{ codepoint: 0x3f, contours: buildQuestion(), advanceWidth: PUNCT_W + 100, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' }, // ?
+	{ codepoint: 0x2018, contours: buildQuoteLeft(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
+	{ codepoint: 0x2019, contours: buildQuoteRight(), advanceWidth: PUNCT_W, leftSidebearing: STEM / 2, rightSidebearing: STEM / 2, status: 'draft' }, // '
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
