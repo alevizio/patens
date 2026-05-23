@@ -507,6 +507,119 @@
 				</Panel>
 			{/if}
 
+			<!-- Project snapshots — whole-project checkpoints distinct from
+			     the per-glyph revision system. Designers use these as named
+			     milestones: "before kerning purge", "shipped to friends",
+			     "v1 freeze". Capped at 6; pinned snapshots survive rotation. -->
+			<Panel>
+				<div class="mb-2 flex items-baseline justify-between gap-2">
+					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+						Project snapshots
+					</h2>
+					<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
+						{(project.snapshots?.length ?? 0)}/6
+					</span>
+				</div>
+				<p class="mb-3 text-[12px] text-fg-subtle">
+					Whole-project checkpoints — captures glyphs, metadata, kerning,
+					features, and palettes at one moment. Restore to roll back the
+					entire project (per-glyph revisions remain untouched).
+				</p>
+				<div class="mb-3 flex gap-2">
+					<input
+						type="text"
+						placeholder="Snapshot label (optional)"
+						id="proj-snap-label"
+						class="flex-1 rounded-md border border-border bg-surface px-2 py-1 text-[12px] outline-none focus:border-accent"
+						onkeydown={(e) => {
+							if (e.key === 'Enter') {
+								const el = e.currentTarget as HTMLInputElement;
+								projectStore.saveProjectSnapshot(el.value);
+								toast.success(
+									el.value.trim() ? `Snapshot: "${el.value.trim()}"` : 'Project snapshot saved'
+								);
+								el.value = '';
+							}
+						}}
+					/>
+					<Button
+						density="sm"
+						variant="primary"
+						onclick={() => {
+							const el = document.getElementById('proj-snap-label') as HTMLInputElement | null;
+							const label = el?.value ?? '';
+							projectStore.saveProjectSnapshot(label);
+							toast.success(label.trim() ? `Snapshot: "${label.trim()}"` : 'Project snapshot saved');
+							if (el) el.value = '';
+						}}
+					>
+						Take snapshot
+					</Button>
+				</div>
+				{#if (project.snapshots?.length ?? 0) > 0}
+					<ul class="grid gap-1.5">
+						{#each project.snapshots ?? [] as s (s.id)}
+							<li
+								class="flex items-center gap-2 rounded-md border px-2 py-1.5 text-[12px] {s.pinned
+									? 'border-accent/40 bg-accent-soft/20'
+									: 'border-border bg-surface-2/40'}"
+							>
+								<span class="flex-1 min-w-0 truncate">
+									{#if s.label}
+										<span class="block truncate text-fg">{s.label}</span>
+										<span class="block text-[10px] text-fg-subtle" data-numeric>
+											{new Date(s.takenAt).toLocaleString()}
+										</span>
+									{:else}
+										<span class="text-fg-subtle" data-numeric>
+											{new Date(s.takenAt).toLocaleString()}
+										</span>
+									{/if}
+								</span>
+								<button
+									type="button"
+									onclick={() => projectStore.toggleProjectSnapshotPin(s.id)}
+									class="rounded px-1.5 py-0.5 text-[10px] {s.pinned
+										? 'text-accent-strong'
+										: 'text-fg-subtle hover:text-accent-strong'}"
+									title={s.pinned ? 'Unpin' : 'Pin — exempt from the 6-cap rotation'}
+								>
+									{s.pinned ? 'unpin' : 'pin'}
+								</button>
+								<button
+									type="button"
+									onclick={() => {
+										if (confirm(`Restore this snapshot? Current project state will be replaced (per-glyph revisions kept).`)) {
+											projectStore.restoreProjectSnapshot(s.id);
+											toast.info('Project restored from snapshot');
+										}
+									}}
+									class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+									title="Restore — replaces current project state"
+								>
+									restore
+								</button>
+								<button
+									type="button"
+									onclick={() => {
+										if (confirm(`Delete this snapshot?`)) {
+											projectStore.deleteProjectSnapshot(s.id);
+										}
+									}}
+									class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
+									aria-label="Delete snapshot"
+									title="Delete"
+								>
+									<Trash2 class="size-3" />
+								</button>
+							</li>
+						{/each}
+					</ul>
+				{:else}
+					<p class="text-[11px] text-fg-subtle">No snapshots yet.</p>
+				{/if}
+			</Panel>
+
 			<Panel>
 				<div class="mb-2 flex items-baseline justify-between gap-2">
 					<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">

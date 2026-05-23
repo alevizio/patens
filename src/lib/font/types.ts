@@ -218,6 +218,22 @@ export type GlyphRevision = {
 	rightSidebearing: number;
 };
 
+/** Whole-project checkpoint — captures glyphs + metadata + features + kerning
+ *  + classes + palettes + axes + masters + instances at a moment in time.
+ *  Designers use these as named milestones ("v1 — pre-spacing pass",
+ *  "shipped to friends", "before kerning purge"). Pin-exempts work the same
+ *  way as per-glyph revisions. */
+export type ProjectSnapshot = {
+	id: string;
+	takenAt: string;
+	label?: string;
+	pinned?: boolean;
+	/** Serialised JSON of the project, minus the snapshots array itself
+	 *  (to avoid recursive bloat). Captured via JSON.stringify on save and
+	 *  JSON.parse on restore. */
+	data: string;
+};
+
 export type ReferenceImage = {
 	/** Data URL (image/*) — kept inline so the project file is self-contained. */
 	src: string;
@@ -509,6 +525,10 @@ export type Project = {
 	tags?: string[];
 	/** Which specimen sections render. Unset = all on. */
 	specimenSections?: Record<string, boolean>;
+	/** Whole-project snapshots — designer-named milestones distinct from
+	 *  per-glyph revisions. Capped at 6; pinned snapshots exempt from
+	 *  rotation. See ProjectSnapshot for the data shape. */
+	snapshots?: ProjectSnapshot[];
 	/** Designer-supplied proofing strings shown in Preview + Specimen instead of defaults. */
 	samples?: ProjectSamples;
 	metadata: FontMetadata;

@@ -571,6 +571,92 @@ class ProjectStore {
 		this.withRootScalar('description', description);
 	}
 
+	saveProjectSnapshot(label?: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		// Strip the snapshots array from the serialised data to avoid
+		// recursive bloat. Everything else (glyphs, metadata, features,
+		// kerning, classes, palettes, axes, masters, instances, brief,
+		// decisions, changelog, samples) round-trips.
+		const { snapshots: _s, ...serialisable } = this.project;
+		const snap: import('$lib/font/types').ProjectSnapshot = {
+			id: crypto.randomUUID(),
+			takenAt: new Date().toISOString(),
+			label: label?.trim() || undefined,
+			data: JSON.stringify(serialisable)
+		};
+		// Cap at 6 snapshots total; pinned ones survive the rotation.
+		const next = [...(this.project.snapshots ?? []), snap];
+		let trimmed = next;
+		while (trimmed.length > 6) {
+			const oldestUnpinnedIdx = trimmed.findIndex((s) => !s.pinned);
+			if (oldestUnpinnedIdx === -1) break;
+			trimmed = [
+				...trimmed.slice(0, oldestUnpinnedIdx),
+				...trimmed.slice(oldestUnpinnedIdx + 1)
+			];
+		}
+		this.withRootScalar('snapshots', trimmed);
+	}
+
+	toggleProjectSnapshotPin(snapshotId: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		this.withRootScalar(
+			'snapshots',
+			(this.project.snapshots ?? []).map((s) =>
+				s.id === snapshotId ? { ...s, pinned: !s.pinned } : s
+			)
+		);
+	}
+
+	renameProjectSnapshot(snapshotId: string, label: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const trimmed = label.trim();
+		this.withRootScalar(
+			'snapshots',
+			(this.project.snapshots ?? []).map((s) =>
+				s.id === snapshotId ? { ...s, label: trimmed || undefined } : s
+			)
+		);
+	}
+
+	deleteProjectSnapshot(snapshotId: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		this.withRootScalar(
+			'snapshots',
+			(this.project.snapshots ?? []).filter((s) => s.id !== snapshotId)
+		);
+	}
+
+	restoreProjectSnapshot(snapshotId: string) {
+		if (!this.project) return;
+		if (this.project.locked) return;
+		const snap = (this.project.snapshots ?? []).find((s) => s.id === snapshotId);
+		if (!snap) return;
+		try {
+			const restored = JSON.parse(snap.data) as Partial<Project>;
+			// Preserve the snapshots array itself + id + locked state across
+			// the restore — only the project's actual content gets replaced.
+			// updatedAt bumps to mark the restore moment.
+			const merged: Project = {
+				...this.project,
+				...restored,
+				id: this.project.id,
+				snapshots: this.project.snapshots,
+				locked: this.project.locked,
+				updatedAt: new Date().toISOString()
+			};
+			this.project = merged;
+			this.dirty = true;
+			this.scheduleSave();
+		} catch {
+			/* malformed JSON — skip silently rather than crash */
+		}
+	}
+
 	addChangelogEntry(entry: { version: string; notes: string }) {
 		if (!this.project) return;
 		const next: import('$lib/font/types').ChangelogEntry = {
