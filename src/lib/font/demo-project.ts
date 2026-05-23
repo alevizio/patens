@@ -568,6 +568,230 @@ const build8 = (): BezierContour[] => {
 		poly(digitRing(w / 2, (mid - BAR / 2) / 2, w / 2 - 60 - (STEM - 10), (mid - BAR / 2) / 2 - (STEM - 10), true), 'ccw')
 	];
 };
+// B — vertical stem + two stacked half-rings (top + bottom bowls).
+const buildB = (): BezierContour[] => {
+	const mid = CAP_HEIGHT / 2;
+	return [
+		// Stem
+		poly([
+			[80, 0],
+			[80 + STEM, 0],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		// Top bowl: top bar
+		poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		// Top bowl: right stem
+		poly([[CAP_W - 80 - STEM, mid + BAR / 2], [CAP_W - 80, mid + BAR / 2], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80 - STEM, CAP_HEIGHT - BAR]]),
+		// Middle bar
+		poly([[80, mid - BAR / 2], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80, mid + BAR / 2], [80, mid + BAR / 2]]),
+		// Bottom bowl: right stem
+		poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80 - STEM, mid - BAR / 2]]),
+		// Bottom bar
+		poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
+	];
+};
+
+// C — left stem + top bar + bottom bar (open on the right).
+const buildC = (): BezierContour[] => [
+	poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+	poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
+];
+
+// D — vertical stem + top/bottom bars + right stem (rect-style).
+const buildD = (): BezierContour[] => [
+	poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+	poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+	poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80 - STEM, CAP_HEIGHT - BAR]]),
+	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
+];
+
+// G — C with a small horizontal extension at mid-right + a vertical stub.
+const buildG = (): BezierContour[] => {
+	const mid = CAP_HEIGHT / 2;
+	return [
+		poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]]),
+		// Right vertical (lower half only)
+		poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, mid], [CAP_W - 80 - STEM, mid]]),
+		// Mid-right horizontal serif
+		poly([[CAP_W / 2, mid - BAR / 2], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80, mid + BAR / 2], [CAP_W / 2, mid + BAR / 2]])
+	];
+};
+
+// U — two vertical stems + bottom bar.
+const buildU = (): BezierContour[] => [
+	poly([[80, BAR], [80 + STEM, BAR], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+	poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, CAP_HEIGHT], [CAP_W - 80 - STEM, CAP_HEIGHT]]),
+	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
+];
+
+// Y — V meeting at mid + vertical stub extending down.
+const buildY = (): BezierContour[] => {
+	const mid = CAP_HEIGHT * 0.5;
+	return [
+		// Left angled stem (top to center)
+		poly([
+			[60, CAP_HEIGHT],
+			[60 + STEM, CAP_HEIGHT],
+			[CAP_W / 2 + STEM / 2, mid],
+			[CAP_W / 2 - STEM / 2, mid]
+		]),
+		// Right angled stem (top to center)
+		poly([
+			[CAP_W - 60 - STEM, CAP_HEIGHT],
+			[CAP_W - 60, CAP_HEIGHT],
+			[CAP_W / 2 + STEM / 2, mid],
+			[CAP_W / 2 - STEM / 2, mid]
+		]),
+		// Vertical stem from center to baseline
+		poly([[CAP_W / 2 - STEM / 2, 0], [CAP_W / 2 + STEM / 2, 0], [CAP_W / 2 + STEM / 2, mid], [CAP_W / 2 - STEM / 2, mid]])
+	];
+};
+
+// K — vertical stem + diagonal arms (upper + lower).
+const buildK = (): BezierContour[] => {
+	const mid = CAP_HEIGHT / 2;
+	return [
+		poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		// Upper diagonal arm
+		poly([
+			[80 + STEM, mid + BAR / 2],
+			[80 + STEM + 30, mid],
+			[CAP_W - 80, CAP_HEIGHT],
+			[CAP_W - 80 - 80, CAP_HEIGHT]
+		]),
+		// Lower diagonal arm
+		poly([
+			[80 + STEM, mid - BAR / 2],
+			[80 + STEM + 30, mid],
+			[CAP_W - 80 - 80, 0],
+			[CAP_W - 80, 0]
+		])
+	];
+};
+
+// X — two diagonals crossing.
+const buildX = (): BezierContour[] => [
+	poly([
+		[60, CAP_HEIGHT],
+		[60 + STEM, CAP_HEIGHT],
+		[CAP_W - 60, 0],
+		[CAP_W - 60 - STEM, 0]
+	]),
+	poly([
+		[CAP_W - 60 - STEM, CAP_HEIGHT],
+		[CAP_W - 60, CAP_HEIGHT],
+		[60 + STEM, 0],
+		[60, 0]
+	])
+];
+
+// lowercase l — vertical stem with full ascender height.
+const buildL_lc = (): BezierContour[] => {
+	const cx = LC_W / 2;
+	return [
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, Math.round(X_HEIGHT * 1.5)],
+			[cx - STEM / 2, Math.round(X_HEIGHT * 1.5)]
+		])
+	];
+};
+
+// lowercase u — two stems + bottom bar (mirror of n).
+const buildU_lc = (): BezierContour[] => [
+	poly([[80, BAR], [80 + STEM, BAR], [80 + STEM, X_HEIGHT], [80, X_HEIGHT]]),
+	poly([[LC_W - 80 - STEM, BAR], [LC_W - 80, BAR], [LC_W - 80, X_HEIGHT], [LC_W - 80 - STEM, X_HEIGHT]]),
+	poly([[80, 0], [LC_W - 80, 0], [LC_W - 80, BAR], [80, BAR]])
+];
+
+// lowercase c — left stem + top bar + bottom bar (open on the right).
+const buildC_lc = (): BezierContour[] => [
+	poly([[80, 0], [80 + STEM, 0], [80 + STEM, X_HEIGHT], [80, X_HEIGHT]]),
+	poly([[80, X_HEIGHT - BAR], [LC_W - 80, X_HEIGHT - BAR], [LC_W - 80, X_HEIGHT], [80, X_HEIGHT]]),
+	poly([[80, 0], [LC_W - 80, 0], [LC_W - 80, BAR], [80, BAR]])
+];
+
+// lowercase d — bowl + right stem with full ascender (mirror of b).
+const buildD_lc = (): BezierContour[] => {
+	const cx = LC_W / 2 - 30;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 100;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		poly(ring(rx, ry), 'cw'),
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Right stem with full ascender
+		poly([
+			[LC_W - 80 - STEM, 0],
+			[LC_W - 80, 0],
+			[LC_W - 80, Math.round(X_HEIGHT * 1.5)],
+			[LC_W - 80 - STEM, Math.round(X_HEIGHT * 1.5)]
+		])
+	];
+};
+
+// lowercase m — three stems + two arches (n doubled).
+const buildM_lc = (): BezierContour[] => {
+	const w = LC_W + 80;
+	const third = (w - 160) / 2;
+	return [
+		// Left stem
+		poly([[80, 0], [80 + STEM, 0], [80 + STEM, X_HEIGHT - STEM], [80, X_HEIGHT - STEM]]),
+		// Left arch
+		poly([[80, X_HEIGHT - STEM], [80 + third, X_HEIGHT - STEM], [80 + third, X_HEIGHT], [80, X_HEIGHT]]),
+		// Middle stem
+		poly([[80 + third - STEM, 0], [80 + third, 0], [80 + third, X_HEIGHT - STEM], [80 + third - STEM, X_HEIGHT - STEM]]),
+		// Right arch
+		poly([[80 + third, X_HEIGHT - STEM], [w - 80, X_HEIGHT - STEM], [w - 80, X_HEIGHT], [80 + third, X_HEIGHT]]),
+		// Right stem
+		poly([[w - 80 - STEM, 0], [w - 80, 0], [w - 80, X_HEIGHT - STEM], [w - 80 - STEM, X_HEIGHT - STEM]])
+	];
+};
+
+// lowercase p — bowl + left stem with descender (mirror of d/b).
+const buildP_lc = (): BezierContour[] => {
+	const cx = LC_W / 2 + 30;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 100;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		poly(ring(rx, ry), 'cw'),
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Left stem with descender (extends below baseline)
+		poly([
+			[80, -200],
+			[80 + STEM, -200],
+			[80 + STEM, X_HEIGHT],
+			[80, X_HEIGHT]
+		])
+	];
+};
+
 // Lowercase letters — the high-frequency set so the Bringhurst sample
 // paragraph renders. Each one fits the x-height envelope (h, t use a
 // short ascender; r/s/i/e stay within x-height).
@@ -924,6 +1148,15 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x50, contours: buildP(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x46, contours: buildF(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
 	{ codepoint: 0x53, contours: buildS(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	// Remaining caps — fills out the alphabet so the demo can spell anything.
+	{ codepoint: 0x42, contours: buildB(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // B
+	{ codepoint: 0x43, contours: buildC(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // C
+	{ codepoint: 0x44, contours: buildD(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // D
+	{ codepoint: 0x47, contours: buildG(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // G
+	{ codepoint: 0x55, contours: buildU(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // U
+	{ codepoint: 0x59, contours: buildY(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' }, // Y
+	{ codepoint: 0x4b, contours: buildK(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // K
+	{ codepoint: 0x58, contours: buildX(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' }, // X
 	// Digits — tabular-width (DIGIT_W), all the same advance so they form
 	// neat columns. Cap-height tall.
 	{ codepoint: 0x30, contours: build0(), advanceWidth: DIGIT_W, leftSidebearing: 60, rightSidebearing: 60, status: 'draft' },
@@ -951,7 +1184,14 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x74, contours: buildT_lc(), advanceWidth: Math.round(LC_W * 0.7), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' },
 	{ codepoint: 0x68, contours: buildH_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x72, contours: buildR_lc(), advanceWidth: Math.round(LC_W * 0.7), leftSidebearing: 80, rightSidebearing: 60, status: 'draft' },
-	{ codepoint: 0x73, contours: buildS_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }
+	{ codepoint: 0x73, contours: buildS_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
+	// More lowercase — the next-most-frequent letters in English.
+	{ codepoint: 0x6c, contours: buildL_lc(), advanceWidth: Math.round(LC_W * 0.55), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // l
+	{ codepoint: 0x75, contours: buildU_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // u
+	{ codepoint: 0x63, contours: buildC_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 60, status: 'draft' }, // c
+	{ codepoint: 0x64, contours: buildD_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // d
+	{ codepoint: 0x6d, contours: buildM_lc(), advanceWidth: LC_W + 80, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // m
+	{ codepoint: 0x70, contours: buildP_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' } // p
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
@@ -1179,7 +1419,7 @@ export const createDemoProject = (): Project => {
 		{
 			id: crypto.randomUUID(),
 			name: 'Cap vertical stems',
-			members: [0x48, 0x49, 0x4c, 0x4d, 0x4e, 0x52, 0x54, 0x50, 0x46] // H I L M N R T P F
+			members: [0x48, 0x49, 0x4c, 0x4d, 0x4e, 0x52, 0x54, 0x50, 0x46, 0x42, 0x44, 0x4b, 0x55] // H I L M N R T P F B D K U
 		},
 		{
 			id: crypto.randomUUID(),
@@ -1248,7 +1488,10 @@ export const createDemoProject = (): Project => {
 	// Anchors on A, M, R, L, V, P, F, S — bigger character set means more
 	// useful anchors for the GPOS mark feature when designer-friends
 	// explore composites.
-	for (const cp of [0x41, 0x4d, 0x52, 0x4c, 0x56, 0x50, 0x46, 0x53]) {
+	for (const cp of [
+		0x41, 0x4d, 0x52, 0x4c, 0x56, 0x50, 0x46, 0x53,
+		0x42, 0x43, 0x44, 0x47, 0x55, 0x59, 0x4b, 0x58
+	]) {
 		const g = project.glyphs[cp];
 		if (g && g.contours.length > 0) {
 			project.glyphs[cp] = {
