@@ -1870,6 +1870,57 @@ export const createDemoProject = (): Project => {
 		};
 	}
 
+	// æ (U+00E6) and œ (U+0153) — composite ligatures built from a/e and
+	// o/e. Each base shifts the second letter right by its own advance,
+	// then nudges back slightly so the two letterforms share a join
+	// rather than reading as two adjacent letters with a gap. Not how
+	// you'd ship a polished ligature (those want a custom drawing) but
+	// they demonstrate the composite mechanism + populate the Extended
+	// Latin coverage row with real shapes.
+	const Aglyph_lc = project.glyphs[0x61];
+	const Eglyph_lc = project.glyphs[0x65];
+	const Oglyph_lc = project.glyphs[0x6f];
+	if (Aglyph_lc && Eglyph_lc) {
+		const overlap = 180;
+		const offsetX = Aglyph_lc.advanceWidth - overlap;
+		project.glyphs[0x00e6] = {
+			codepoint: 0x00e6,
+			name: 'ae',
+			status: 'sketch',
+			advanceWidth: offsetX + Eglyph_lc.advanceWidth,
+			leftSidebearing: Aglyph_lc.leftSidebearing,
+			rightSidebearing: Eglyph_lc.rightSidebearing,
+			contours: [],
+			components: [
+				{ baseCodepoint: 0x61, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: 0x65, offsetX, offsetY: 0 }
+			],
+			tags: ['composite', 'ligature'],
+			notes: 'Composite a + e. A real æ joins them at the central vertical; this is a side-by-side approximation that demonstrates the composite mechanism.',
+			updatedAt: new Date().toISOString()
+		};
+	}
+	if (Oglyph_lc && Eglyph_lc) {
+		const overlap = 200;
+		const offsetX = Oglyph_lc.advanceWidth - overlap;
+		project.glyphs[0x0153] = {
+			codepoint: 0x0153,
+			name: 'oe',
+			status: 'sketch',
+			advanceWidth: offsetX + Eglyph_lc.advanceWidth,
+			leftSidebearing: Oglyph_lc.leftSidebearing,
+			rightSidebearing: Eglyph_lc.rightSidebearing,
+			contours: [],
+			components: [
+				{ baseCodepoint: 0x6f, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: 0x65, offsetX, offsetY: 0 }
+			],
+			tags: ['composite', 'ligature'],
+			notes: 'Composite o + e. Side-by-side approximation; a polished œ would share the bowl.',
+			updatedAt: new Date().toISOString()
+		};
+	}
+
 	// Pre-fill the Brief so the user sees a complete project, not just
 	// glyphs. Six fields filled = 100% brief completion.
 	project.brief = {
