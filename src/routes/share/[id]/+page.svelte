@@ -162,31 +162,50 @@
 
 	// Download flow — lazy-loads the export pipeline only on click so
 	// the initial share-page bundle stays light for visitors who don't
-	// download. Builds an OTF in-browser and triggers a download.
-	let downloading = $state(false);
+	// download. Builds the chosen format in-browser and triggers a save.
+	let downloading = $state<null | 'otf' | 'woff2'>(null);
 	let downloadError = $state<string | null>(null);
 	const safeFilename = (s: string): string => s.replace(/[^A-Za-z0-9_-]/g, '') || 'Font';
+	const triggerDownload = (buffer: ArrayBuffer, ext: 'otf' | 'woff2', mime: string) => {
+		const blob = new Blob([buffer], { type: mime });
+		const url = URL.createObjectURL(blob);
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = `${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.${ext}`;
+		document.body.appendChild(a);
+		a.click();
+		document.body.removeChild(a);
+		URL.revokeObjectURL(url);
+	};
 	const downloadOtf = async () => {
 		if (downloading) return;
-		downloading = true;
+		downloading = 'otf';
 		downloadError = null;
 		try {
 			const { buildFont } = await import('$lib/font/export');
 			const { font } = buildFont(project);
-			const buffer = font.toArrayBuffer();
-			const blob = new Blob([buffer], { type: 'font/otf' });
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.otf`;
-			document.body.appendChild(a);
-			a.click();
-			document.body.removeChild(a);
-			URL.revokeObjectURL(url);
+			triggerDownload(font.toArrayBuffer(), 'otf', 'font/otf');
 		} catch (err) {
 			downloadError = err instanceof Error ? err.message : String(err);
 		} finally {
-			downloading = false;
+			downloading = null;
+		}
+	};
+	const downloadWoff2 = async () => {
+		if (downloading) return;
+		downloading = 'woff2';
+		downloadError = null;
+		try {
+			const { buildFont } = await import('$lib/font/export');
+			const { otfToWoff2 } = await import('$lib/font/woff2');
+			const { font } = buildFont(project);
+			const otf = font.toArrayBuffer();
+			const woff2 = await otfToWoff2(otf);
+			triggerDownload(woff2, 'woff2', 'font/woff2');
+		} catch (err) {
+			downloadError = err instanceof Error ? err.message : String(err);
+		} finally {
+			downloading = null;
 		}
 	};
 
@@ -256,18 +275,30 @@
 				</p>
 			{/if}
 		</div>
-		<!-- Download — lazy-loads the export pipeline only on click.
-		     Builds an OTF in-browser and triggers a save. -->
-		<button
-			type="button"
-			onclick={downloadOtf}
-			disabled={downloading}
-			class="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
-			title="Download the font as OTF"
-		>
-			<Download class="size-3.5" />
-			{downloading ? 'Building…' : 'Download OTF'}
-		</button>
+		<!-- Download — two formats: OTF for install, WOFF2 for web.
+		     Both lazy-load the export pipeline only on click. -->
+		<div class="flex shrink-0 gap-2">
+			<button
+				type="button"
+				onclick={downloadOtf}
+				disabled={downloading !== null}
+				class="inline-flex items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
+				title="Download as OTF — install in macOS, Windows, design apps"
+			>
+				<Download class="size-3.5" />
+				{downloading === 'otf' ? 'Building…' : 'OTF'}
+			</button>
+			<button
+				type="button"
+				onclick={downloadWoff2}
+				disabled={downloading !== null}
+				class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent disabled:opacity-50"
+				title="Download as WOFF2 — for @font-face web embedding"
+			>
+				<Download class="size-3.5" />
+				{downloading === 'woff2' ? 'Building…' : 'WOFF2'}
+			</button>
+		</div>
 	</header>
 	{#if downloadError}
 		<div class="mb-6 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong">
