@@ -405,8 +405,42 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 	// the anchor effectively does nothing at export.
 	if (glyph.anchors && glyph.anchors.length > 0) {
 		const isMark = cp >= 0x0300 && cp <= 0x036f;
+		// Build the set of all anchor names across all glyphs (cached
+		// per-audit-call would be cheaper but the per-glyph version is
+		// simple and the audit module is hot-pathless).
+		const allMarkAnchorNames = new Set<string>();
+		const allBaseAnchorNames = new Set<string>();
+		for (const g of Object.values(project.glyphs)) {
+			const gIsMark = g.codepoint >= 0x0300 && g.codepoint <= 0x036f;
+			for (const a of g.anchors ?? []) {
+				if (gIsMark && a.name.startsWith('_')) allMarkAnchorNames.add(a.name.slice(1));
+				else if (!gIsMark && !a.name.startsWith('_')) allBaseAnchorNames.add(a.name);
+			}
+		}
 		for (const a of glyph.anchors) {
 			const hasUnderscorePrefix = a.name.startsWith('_');
+			// Partner detection — anchor only does work when there's a peer
+			// on the other side. base `top` needs at least one mark with
+			// `_top`; mark `_top` needs at least one base with `top`.
+			if (isMark && hasUnderscorePrefix) {
+				if (!allBaseAnchorNames.has(a.name.slice(1))) {
+					issues.push({
+						codepoint: cp,
+						severity: 'info',
+						code: 'anchor-without-partner',
+						message: `Mark anchor "${a.name}" has no base glyph with anchor "${a.name.slice(1)}" — this mark won't attach to anything`
+					});
+				}
+			} else if (!isMark && !hasUnderscorePrefix) {
+				if (!allMarkAnchorNames.has(a.name)) {
+					issues.push({
+						codepoint: cp,
+						severity: 'info',
+						code: 'anchor-without-partner',
+						message: `Base anchor "${a.name}" has no mark glyph with anchor "_${a.name}" — no mark will attach here`
+					});
+				}
+			}
 			if (isMark && !hasUnderscorePrefix) {
 				issues.push({
 					codepoint: cp,
@@ -1278,6 +1312,8 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'GPOS mark-positioning convention: marks (combining diacritics) carry anchors prefixed with "_" so they pair up with same-named base anchors. Without the prefix, this anchor never enters the mark feature.',
 		'anchor-naming-base-with-prefix':
 			'Base-glyph anchors should not start with "_" — that prefix is reserved for mark glyphs. Rename or the GPOS mark feature will miss this attachment point.',
+		'anchor-without-partner':
+			'An anchor has no partner on the other side (no mark with the matching "_name" for a base anchor, or no base with the matching "name" for a mark anchor). Info-level because designers often add anchors ahead of drawing the partner glyph — but if you forget the partner, the anchor sits unused at export.',
 		// Variable-font compatibility
 		'master-contour-count':
 			'The number of contours differs across masters. VF interpolation requires identical contour count and order in every master.',
