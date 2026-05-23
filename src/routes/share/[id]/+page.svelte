@@ -127,14 +127,28 @@
 	// Reuses the same typeset computation but on a fixed string.
 	const WATERFALL_TEXT = 'The quick brown fox jumps over the lazy dog.';
 	const WATERFALL_SIZES = [14, 18, 24, 36, 56];
-	const computeRow = (text: string): { glyphs: typeof typeset.glyphs; totalWidth: number } => {
+	// Resolve a glyph in the context of a chosen master — overrides win,
+	// project glyph is the fallback. Mirrors the export pipeline's lookup
+	// so what visitors preview matches what they'd download.
+	const resolveGlyph = (cp: number, masterId: string | undefined) => {
+		if (masterId) {
+			const m = project.masters?.find((x) => x.id === masterId);
+			const ov = m?.glyphs?.[cp];
+			if (ov && ov.contours.length > 0) return ov;
+		}
+		return project.glyphs[cp];
+	};
+	const computeRow = (
+		text: string,
+		masterId: string | undefined = undefined
+	): { glyphs: typeof typeset.glyphs; totalWidth: number } => {
 		const out: typeof typeset.glyphs = [];
 		let x = 0;
 		const codepoints = [...text];
 		for (let i = 0; i < codepoints.length; i++) {
 			const ch = codepoints[i];
 			const cp = ch.codePointAt(0) ?? 0;
-			const g = project.glyphs[cp];
+			const g = resolveGlyph(cp, masterId);
 			if (!g || g.contours.length === 0) {
 				const w = Math.round(project.metrics.unitsPerEm * 0.5);
 				out.push({ id: `${i}-${cp}`, char: ch, path: '', advance: w, x, colorPlan: [] });
@@ -159,6 +173,17 @@
 		return { glyphs: out, totalWidth: x };
 	};
 	const waterfallRow = $derived(computeRow(WATERFALL_TEXT));
+	// Per-master rows — only computed when the project has additional masters,
+	// rendered at one fixed size so the slant/weight difference is obvious
+	// without making the waterfall itself N× longer.
+	const masterRows = $derived.by(() => {
+		const masters = project.masters ?? [];
+		if (masters.length === 0) return [];
+		return [
+			{ name: project.metadata.styleName || 'Regular', row: waterfallRow },
+			...masters.map((m) => ({ name: m.name, row: computeRow(WATERFALL_TEXT, m.id) }))
+		];
+	});
 
 	// Download flow — lazy-loads the export pipeline only on click so
 	// the initial share-page bundle stays light for visitors who don't
@@ -178,17 +203,6 @@
 		return list;
 	});
 	const safeFilename = (s: string): string => s.replace(/[^A-Za-z0-9_-]/g, '') || 'Font';
-	const triggerDownload = (buffer: ArrayBuffer, ext: 'otf' | 'woff2', mime: string) => {
-		const blob = new Blob([buffer], { type: mime });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${safeFilename(project.metadata.familyName)}-${safeFilename(project.metadata.styleName)}.${ext}`;
-		document.body.appendChild(a);
-		a.click();
-		document.body.removeChild(a);
-		URL.revokeObjectURL(url);
-	};
 	// Filename for downloads — incorporates the chosen master so files don't
 	// silently overwrite each other when designer-friends download multiple.
 	const downloadFilename = (ext: string): string => {
@@ -598,6 +612,48 @@
 			</div>
 			<p class="mt-2 text-[11px] text-fg-subtle">
 				The classic English pangram from 14px (caption) to 56px (small display).
+			</p>
+		</section>
+	{/if}
+
+	<!-- Master compare — only when the family has > 1 master. Renders the
+	     same pangram in each master at one large size so the slant / weight
+	     difference is visible at a glance. -->
+	{#if masterRows.length > 1}
+		<section class="mb-10">
+			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+				Masters
+			</h2>
+			<div class="space-y-4 rounded-md border border-border bg-canvas px-4 py-5">
+				{#each masterRows as m (m.name)}
+					<div class="flex items-baseline gap-4">
+						<span class="w-16 shrink-0 text-right font-mono text-[10px] text-fg-subtle">
+							{m.name}
+						</span>
+						<svg
+							viewBox="0 {descender} {Math.max(m.row.totalWidth, 100)} {fontSpan}"
+							preserveAspectRatio="xMinYMid meet"
+							style="height: 48px; width: auto; transform: scaleY(-1);"
+							aria-label="{m.name} sample"
+						>
+							{#each m.row.glyphs as g (g.id)}
+								{#if g.path}
+									<path
+										d={g.path}
+										transform="translate({g.x} 0)"
+										fill="currentColor"
+										fill-rule="evenodd"
+										class="text-fg"
+									/>
+								{/if}
+							{/each}
+						</svg>
+					</div>
+				{/each}
+			</div>
+			<p class="mt-2 text-[11px] text-fg-subtle">
+				Each row uses the same drawing, transformed for its master. Pick a master in the
+				download row above to grab any of them as a static font.
 			</p>
 		</section>
 	{/if}
