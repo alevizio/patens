@@ -1,16 +1,16 @@
 import { test, expect, type Page } from '@playwright/test';
 
-// First-time visitor smoke test for the Welcome dialog.
+// First-time visitor smoke test for the welcome strip.
 //
-// Why this exists: the Welcome modal has `fixed inset-0 z-50` + an aria-modal
-// backdrop that has historically intercepted pointer events on the home-page
-// CTAs underneath. The whole point of the dialog is to be dismissible — if
-// any of the three paths (X button / Escape / backdrop click) regresses, a
-// first-time visitor gets a softlocked home page they can't click through.
-// This suite locks each path in.
+// Why this exists: the historical bug was a blocking modal that stole pointer
+// events on the home-page CTAs underneath. v1.0.0-beta replaced the modal
+// with a non-blocking region (role="region", aria-label="Welcome to Font
+// Studio") that sits at the top of the home-page content. The strip is
+// dismissible via an X button; pressing it should hide the strip + leave
+// the rest of the page interactive.
 
 const setUnseen = async (page: Page) => {
-	// The welcome dialog opens when settings.welcomeDismissed is falsy. The
+	// The welcome strip opens when settings.welcomeDismissed is falsy. The
 	// settings store persists to localStorage; clearing the relevant key gives
 	// us the first-visit experience every test run.
 	await page.goto('/');
@@ -29,42 +29,52 @@ const setUnseen = async (page: Page) => {
 	await page.reload();
 };
 
-test('Welcome dialog opens on a fresh visit', async ({ page }) => {
+test('Welcome strip appears on a fresh visit', async ({ page }) => {
 	await setUnseen(page);
-	await expect(page.getByRole('dialog')).toBeVisible();
+	await expect(page.getByRole('region', { name: /Welcome to Font Studio/i })).toBeVisible();
+	// Strip should NOT be a modal — the home-page content underneath stays
+	// reachable. Verify the example-project CTA inside the strip is visible.
 	await expect(
-		page.getByRole('dialog').getByRole('heading', { name: /Design your own typeface/i })
+		page.getByRole('link', { name: /Open the example project/i })
 	).toBeVisible();
 });
 
-test('Welcome dialog dismisses via the X button', async ({ page }) => {
+test('Welcome strip dismisses via the X button', async ({ page }) => {
 	await setUnseen(page);
-	await page.getByRole('button', { name: 'Dismiss' }).click();
-	await expect(page.getByRole('dialog')).toBeHidden();
-});
-
-test('Welcome dialog dismisses via the "Got it" CTA', async ({ page }) => {
-	await setUnseen(page);
-	await page.getByRole('button', { name: /Got it/i }).click();
-	await expect(page.getByRole('dialog')).toBeHidden();
-});
-
-test('Welcome dialog dismisses via Escape (focus inside)', async ({ page }) => {
-	await setUnseen(page);
-	// Focus the dialog itself (it has tabindex="-1") then press Escape — the
-	// keydown handler only fires when focus is in the dialog subtree.
-	await page.getByRole('dialog').focus();
-	await page.keyboard.press('Escape');
-	await expect(page.getByRole('dialog')).toBeHidden();
+	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+	await expect(
+		page.getByRole('region', { name: /Welcome to Font Studio/i })
+	).toBeHidden();
 });
 
 test('Once dismissed, the home-page CTAs are clickable', async ({ page }) => {
-	// This is the actual regression test — the historical bug was that the
-	// modal stole pointer events even after the user thought they'd dismissed
-	// it. Verify the demo-project button is reachable + functional.
+	// The original regression: a blocking modal that stole pointer events on
+	// the CTAs below. With the strip-only design this would only fail if the
+	// strip somehow occluded the demo CTA. Click an in-strip link AFTER
+	// dismissal to verify the strip is fully gone — the link still exists
+	// in another section of the home page (the "See it in action" hero).
 	await setUnseen(page);
-	await page.getByRole('button', { name: 'Dismiss' }).click();
-	await expect(page.getByRole('dialog')).toBeHidden();
-	await page.getByRole('button', { name: /Open the example project/i }).click();
+	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+	await expect(
+		page.getByRole('region', { name: /Welcome to Font Studio/i })
+	).toBeHidden();
+	// The home page has its own "Open the example project" button in the
+	// "See it in action" section; click that to confirm navigation works.
+	await page
+		.getByRole('button', { name: /Open the example project/i })
+		.first()
+		.click();
 	await expect(page).toHaveURL(/\/project\/[^/]+\/edit$/);
+});
+
+test('Welcome strip persists dismissal across reloads', async ({ page }) => {
+	await setUnseen(page);
+	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+	await expect(
+		page.getByRole('region', { name: /Welcome to Font Studio/i })
+	).toBeHidden();
+	await page.reload();
+	await expect(
+		page.getByRole('region', { name: /Welcome to Font Studio/i })
+	).toBeHidden();
 });

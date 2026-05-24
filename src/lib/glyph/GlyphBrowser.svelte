@@ -509,7 +509,7 @@
 						     need review, so designers see it without engaging the filter.
 						     Hidden at zero so a clean font doesn't shout for attention. -->
 						<span
-							class="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-amber-500/20 px-1 text-[9px] font-semibold text-amber-700 dark:text-amber-300"
+							class="inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-amber-500/30 px-1 text-[9px] font-semibold text-amber-900 dark:bg-amber-400/30 dark:text-amber-100"
 							data-numeric
 						>
 							{attentionCount}

@@ -597,6 +597,7 @@
 								<input
 									type="text"
 									value={m.name}
+									aria-label="Master name"
 									oninput={(e) =>
 										projectStore.updateMaster(m.id, (mm) => ({
 											...mm,

@@ -1966,6 +1966,7 @@
 								value={cls.name}
 								onchange={(e) =>
 									projectStore.renameSidebearingClass(cls.id, e.currentTarget.value)}
+								aria-label="Class name"
 								class="min-w-0 flex-1 border-0 bg-transparent text-[13px] font-medium text-fg outline-none focus:ring-1 focus:ring-accent"
 							/>
 							<button

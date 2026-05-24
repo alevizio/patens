@@ -17,16 +17,18 @@ import AxeBuilder from '@axe-core/playwright';
 // "any serious violation introduced is a regression that blocks CI."
 
 const dismissWelcomeIfPresent = async (page: Page) => {
-	const dialog = page.getByRole('dialog');
+	// Welcome is a non-blocking region in v1.0.0-beta (was a modal pre-Day 11).
+	// Strip exposes a "Dismiss welcome" aria-label; if present, click to remove
+	// it before scanning the page so axe doesn't see the strip's own DOM.
+	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
 	if (
-		await dialog
-			.first()
+		await strip
 			.waitFor({ state: 'visible', timeout: 1500 })
 			.then(() => true)
 			.catch(() => false)
 	) {
-		await dialog.getByRole('button', { name: 'Dismiss' }).click();
-		await dialog.first().waitFor({ state: 'detached' });
+		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+		await strip.waitFor({ state: 'hidden' });
 	}
 };
 
@@ -91,7 +93,7 @@ test('/edit (demo project) has no serious/critical a11y violations', async ({
 }) => {
 	await page.goto('/');
 	await dismissWelcomeIfPresent(page);
-	await page.getByRole('button', { name: /Open the example project/i }).click();
+	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	await auditPage(page);
 });
@@ -101,7 +103,7 @@ test('/audit (demo project) has no serious/critical a11y violations', async ({
 }) => {
 	await page.goto('/');
 	await dismissWelcomeIfPresent(page);
-	await page.getByRole('button', { name: /Open the example project/i }).click();
+	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	await page.getByRole('link', { name: /^Audit/ }).first().click();
 	await page.waitForURL(/\/audit$/);
@@ -129,7 +131,7 @@ for (const tab of PROJECT_TABS) {
 	}) => {
 		await page.goto('/');
 		await dismissWelcomeIfPresent(page);
-		await page.getByRole('button', { name: /Open the example project/i }).click();
+		await page.getByRole('button', { name: /Open the example project/i }).first().click();
 		await page.waitForURL(/\/project\/[^/]+\/edit$/);
 		await page.getByRole('link', { name: tab.linkName }).first().click();
 		await page.waitForURL(tab.urlPattern);

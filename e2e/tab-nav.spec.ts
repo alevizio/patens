@@ -27,21 +27,19 @@ const TABS: Tab[] = [
 
 const openDemoProject = async (page: Page): Promise<string> => {
 	await page.goto('/');
-	// First-run Welcome dialog has aria-modal=fixed-inset and intercepts pointer
-	// events from the page underneath; if it opened, click its X (Escape only
-	// fires when focus is inside the dialog, which isn't true on cold load).
-	const dialog = page.getByRole('dialog');
+	// Welcome is a non-blocking region in v1.0.0-beta. Dismiss it if present
+	// so the strip isn't visible during the rest of the test.
+	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
 	if (
-		await dialog
-			.first()
+		await strip
 			.waitFor({ state: 'visible', timeout: 2000 })
 			.then(() => true)
 			.catch(() => false)
 	) {
-		await dialog.getByRole('button', { name: 'Dismiss' }).click();
-		await dialog.first().waitFor({ state: 'detached' });
+		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+		await strip.waitFor({ state: 'hidden' });
 	}
-	await page.getByRole('button', { name: /Open the example project/i }).click();
+	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	return new URL(page.url()).pathname.split('/')[2];
 };

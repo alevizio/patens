@@ -2,18 +2,17 @@ import { test, expect, type Page } from '@playwright/test';
 
 const seed = async (page: Page) => {
 	await page.goto('/');
-	const dialog = page.getByRole('dialog');
+	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
 	if (
-		await dialog
-			.first()
+		await strip
 			.waitFor({ state: 'visible', timeout: 2000 })
 			.then(() => true)
 			.catch(() => false)
 	) {
-		await dialog.getByRole('button', { name: 'Dismiss' }).click();
-		await dialog.first().waitFor({ state: 'detached' });
+		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
+		await strip.waitFor({ state: 'hidden' });
 	}
-	await page.getByRole('button', { name: /Open the example project/i }).click();
+	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	return new URL(page.url()).pathname.split('/')[2];
 };

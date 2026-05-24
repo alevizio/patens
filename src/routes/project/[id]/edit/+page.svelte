@@ -2283,7 +2283,7 @@
 									/>
 								{/if}
 							</svg>
-							<span class="text-[10px] font-medium {isActive ? 'text-accent' : 'text-fg-muted'}">
+							<span class="text-[10px] font-medium {isActive ? 'text-accent-strong' : 'text-fg-muted'}">
 								{item.name}
 							</span>
 						</button>
