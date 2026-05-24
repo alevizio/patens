@@ -43,6 +43,12 @@
 	// semantics here.
 	// svelte-ignore state_referenced_locally
 	const STORAGE_KEY = `font-studio:accordion:${id}`;
+	// Stable element ids for the WAI-ARIA disclosure pattern: the button
+	// controls a labeled region, the region is labelled by the button.
+	// svelte-ignore state_referenced_locally
+	const headerId = `acc-h-${id}`;
+	// svelte-ignore state_referenced_locally
+	const panelId = `acc-p-${id}`;
 	// svelte-ignore state_referenced_locally
 	let open = $state(defaultOpen);
 
@@ -70,9 +76,11 @@
 <section class="border-b border-border">
 	<button
 		type="button"
+		id={headerId}
 		onclick={toggle}
 		class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[10px] font-semibold tracking-wider text-fg-subtle uppercase transition-colors hover:bg-surface-2/40 hover:text-fg"
 		aria-expanded={open}
+		aria-controls={panelId}
 		title={open ? `Collapse ${label}` : `Expand ${label}`}
 	>
 		{#if open}
@@ -89,7 +97,12 @@
 		{/if}
 	</button>
 	{#if open}
-		<div class="px-4 pb-4 {bodyClass}">
+		<div
+			id={panelId}
+			role="region"
+			aria-labelledby={headerId}
+			class="px-4 pb-4 {bodyClass}"
+		>
 			{@render children()}
 		</div>
 	{/if}
