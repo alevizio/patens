@@ -513,6 +513,25 @@
 			// Same fallback — URL bar is still authoritative.
 		}
 	};
+	// True when any tester control has moved off its default. Drives the
+	// "Reset" button so it only appears when there's something to undo —
+	// no visual clutter on a fresh page load.
+	const testerDirty = $derived(
+		typeText !== 'Type something here' ||
+			trySize !== 96 ||
+			tryTracking !== 0 ||
+			tryMasterId !== undefined ||
+			activeFeatures.size > 0 ||
+			selectedPaletteIndex !== initialPaletteIndex
+	);
+	const resetTester = () => {
+		typeText = 'Type something here';
+		trySize = 96;
+		tryTracking = 0;
+		tryMasterId = undefined;
+		activeFeatures = new Set();
+		selectedPaletteIndex = initialPaletteIndex;
+	};
 	// On mount: parse URL params and restore the tester + inspector state.
 	// onMount (not $effect) so closing/clearing the inspector or tester
 	// later isn't undone by a reactive re-run on the initial URL.
@@ -1408,6 +1427,16 @@ body {
 						<span>Share view</span>
 					{/if}
 				</button>
+				{#if testerDirty}
+					<button
+						type="button"
+						onclick={resetTester}
+						class="inline-flex items-center gap-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
+						title="Reset text, size, tracking, master, features, palette to defaults"
+					>
+						<span>Reset</span>
+					</button>
+				{/if}
 			</span>
 			<span class="font-mono normal-case text-fg-subtle" data-numeric>
 				{trySize}px · {tryTracking > 0 ? '+' : ''}{tryTracking}
