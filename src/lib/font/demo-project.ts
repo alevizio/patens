@@ -2626,6 +2626,156 @@ export const createDemoProject = (): Project => {
 		};
 	}
 
+	// Translate a contour set by (dx, dy). Used by the feature-variant
+	// glyphs below — onum digits sit lower than lining, case parens sit
+	// higher than default. Same offset applied to every command's
+	// coordinates (M/L/Q/C handles).
+	const translateContours = (
+		contours: BezierContour[],
+		dx: number,
+		dy: number
+	): BezierContour[] =>
+		contours.map((c) => ({
+			...c,
+			commands: c.commands.map((cmd) => {
+				if (cmd.type === 'Z') return cmd;
+				if (cmd.type === 'M' || cmd.type === 'L') {
+					return { ...cmd, x: cmd.x + dx, y: cmd.y + dy };
+				}
+				if (cmd.type === 'Q') {
+					return { ...cmd, x: cmd.x + dx, y: cmd.y + dy, x1: cmd.x1 + dx, y1: cmd.y1 + dy };
+				}
+				return {
+					...cmd,
+					x: cmd.x + dx,
+					y: cmd.y + dy,
+					x1: cmd.x1 + dx,
+					y1: cmd.y1 + dy,
+					x2: cmd.x2 + dx,
+					y2: cmd.y2 + dy
+				};
+			})
+		}));
+
+	// Oldstyle figures — each digit translated down so the set sits
+	// lower than the lining default. Lights up the onum feature in the
+	// tester so the toggle does visible work.
+	const ONUM_NAMES = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+	const ONUM_BUILDERS = [build0, build1, build2, build3, build4, build5, build6, build7, build8, build9];
+	for (let i = 0; i < 10; i++) {
+		const cp = 0xe100 + i;
+		// Hangers (3,4,5,7,9) sit lower; "tall" oldstyle (6,8) lift; the
+		// rest sit at x-height-ish. Approximations of the historic shape
+		// distinctions — close enough for the demo to show variation.
+		let dy = -80;
+		if (i === 6 || i === 8) dy = 30;
+		else if (i === 0 || i === 1 || i === 2) dy = -50;
+		project.glyphs[cp] = {
+			codepoint: cp,
+			name: `${ONUM_NAMES[i]}.onum`,
+			status: 'sketch',
+			advanceWidth: DIGIT_W,
+			leftSidebearing: 60,
+			rightSidebearing: 60,
+			contours: translateContours(ONUM_BUILDERS[i](), 0, dy),
+			tags: ['alternate', 'onum'],
+			notes: `Oldstyle ${ONUM_NAMES[i]} — shifted vertical so the set has the wave that oldstyle figures carry through running text. Reach via 'onum' 1.`,
+			updatedAt: new Date().toISOString()
+		};
+	}
+
+	// Case-sensitive parens — raised so the vertical position matches
+	// uppercase letters (the default parens sit at lowercase x-height
+	// territory). Lights up the case feature.
+	project.glyphs[0xe200] = {
+		codepoint: 0xe200,
+		name: 'parenleft.case',
+		status: 'sketch',
+		advanceWidth: Math.round(PUNCT_W * 1.2),
+		leftSidebearing: 60,
+		rightSidebearing: 40,
+		contours: translateContours(buildParenLeft(), 0, 80),
+		tags: ['alternate', 'case'],
+		notes: 'Case-sensitive ( — raised so it aligns vertically with uppercase letters in "(HELLO)" rather than centering at x-height. Reach via \'case\' 1.',
+		updatedAt: new Date().toISOString()
+	};
+	project.glyphs[0xe201] = {
+		codepoint: 0xe201,
+		name: 'parenright.case',
+		status: 'sketch',
+		advanceWidth: Math.round(PUNCT_W * 1.2),
+		leftSidebearing: 40,
+		rightSidebearing: 60,
+		contours: translateContours(buildParenRight(), 0, 80),
+		tags: ['alternate', 'case'],
+		notes: 'Case-sensitive ) — raised partner to parenleft.case.',
+		updatedAt: new Date().toISOString()
+	};
+
+	// g.ss02 — alternate lowercase g. The default is the geometric two-
+	// storey g; this one is a single-storey with a hook tail (the
+	// monolinear UI shape). Same x-height bowl, simpler descender.
+	project.glyphs[0xe010] = {
+		codepoint: 0xe010,
+		name: 'g.ss02',
+		status: 'sketch',
+		advanceWidth: LC_W,
+		leftSidebearing: 80,
+		rightSidebearing: 80,
+		contours: [
+			// Bowl outer (small ring at x-height/2)
+			poly(
+				(() => {
+					const cx = LC_W / 2;
+					const cy = X_HEIGHT / 2;
+					const r = X_HEIGHT / 2 - 60;
+					const sides = 16;
+					const pts: Array<[number, number]> = [];
+					for (let i = 0; i < sides; i++) {
+						const a = (i / sides) * Math.PI * 2;
+						pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+					}
+					return pts;
+				})()
+			),
+			// Bowl counter (ccw)
+			poly(
+				(() => {
+					const cx = LC_W / 2;
+					const cy = X_HEIGHT / 2;
+					const r = X_HEIGHT / 2 - 60 - STEM + 10;
+					const sides = 16;
+					const pts: Array<[number, number]> = [];
+					for (let i = 0; i < sides; i++) {
+						const a = -(i / sides) * Math.PI * 2;
+						pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+					}
+					return pts;
+				})(),
+				'ccw'
+			),
+			// Right stem (single-storey g has a vertical stem on the right
+			// extending into the descender)
+			poly([
+				[LC_W - 80 - STEM, -150],
+				[LC_W - 80, -150],
+				[LC_W - 80, X_HEIGHT - 60],
+				[LC_W - 80 - STEM, X_HEIGHT - 60]
+			]),
+			// Descender hook (short horizontal at the bottom of the right
+			// stem, signal of the single-storey descender)
+			poly([
+				[LC_W - 80 - STEM - 80, -150],
+				[LC_W - 80, -150],
+				[LC_W - 80, -150 + BAR],
+				[LC_W - 80 - STEM - 80, -150 + BAR]
+			])
+		],
+		tags: ['alternate', 'ss02'],
+		notes: 'Single-storey g alternate — geometric-UI variant of the default two-storey shape. Reach via \'ss02\' 1.',
+		updatedAt: new Date().toISOString()
+	};
+
 	// Add the ss01 stylistic-alternate glyph at a PUA codepoint. The name
 	// `a.ss01` triggers feature-detect to emit a GSUB `feature ss01 { sub
 	// a by a.ss01; } ss01;` rule at export — the user can flip it on with
