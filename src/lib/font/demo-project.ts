@@ -1371,6 +1371,133 @@ const buildComma = (): BezierContour[] => [
 	])
 ];
 
+// Plus — vertical + horizontal bars crossed at the math axis (just
+// above x-height/2). Width matches PUNCT_W + a touch so it sits next
+// to numbers without crowding.
+const buildPlus = (): BezierContour[] => {
+	const mid = Math.round(X_HEIGHT * 0.55);
+	const w = PUNCT_W + 100;
+	const armLen = Math.round(w * 0.35);
+	const cx = w / 2;
+	return [
+		// Horizontal arm
+		poly([
+			[cx - armLen, mid - BAR / 2],
+			[cx + armLen, mid - BAR / 2],
+			[cx + armLen, mid + BAR / 2],
+			[cx - armLen, mid + BAR / 2]
+		]),
+		// Vertical arm
+		poly([
+			[cx - BAR / 2, mid - armLen],
+			[cx + BAR / 2, mid - armLen],
+			[cx + BAR / 2, mid + armLen],
+			[cx - BAR / 2, mid + armLen]
+		])
+	];
+};
+
+// Equals — two horizontal bars at and below the math axis. Same width
+// + arm as plus so the row of math operators reads as a set.
+const buildEquals = (): BezierContour[] => {
+	const mid = Math.round(X_HEIGHT * 0.55);
+	const w = PUNCT_W + 100;
+	const armLen = Math.round(w * 0.35);
+	const cx = w / 2;
+	const sep = BAR + 30;
+	return [
+		poly([
+			[cx - armLen, mid + sep / 2 - BAR / 2],
+			[cx + armLen, mid + sep / 2 - BAR / 2],
+			[cx + armLen, mid + sep / 2 + BAR / 2],
+			[cx - armLen, mid + sep / 2 + BAR / 2]
+		]),
+		poly([
+			[cx - armLen, mid - sep / 2 - BAR / 2],
+			[cx + armLen, mid - sep / 2 - BAR / 2],
+			[cx + armLen, mid - sep / 2 + BAR / 2],
+			[cx - armLen, mid - sep / 2 + BAR / 2]
+		])
+	];
+};
+
+// Asterisk — six short bars rotated 60° each around a center near
+// cap-height. Six arms is the most-typographically-correct asterisk
+// shape (matches the historic five-point star + descender stub).
+const buildAsterisk = (): BezierContour[] => {
+	const cx = (PUNCT_W + 60) / 2;
+	const cy = Math.round(CAP_HEIGHT * 0.75);
+	const armLen = 100;
+	const armWidth = 35;
+	const out: BezierContour[] = [];
+	for (let i = 0; i < 6; i++) {
+		const angle = (i / 6) * Math.PI * 2;
+		const dx = Math.cos(angle);
+		const dy = Math.sin(angle);
+		// Perpendicular for thickness
+		const px = -dy * armWidth;
+		const py = dx * armWidth;
+		// Four corners of a rotated rectangle from (cx,cy) outward by armLen
+		out.push(
+			poly([
+				[cx + px, cy + py],
+				[cx - px, cy - py],
+				[cx - px + dx * armLen, cy - py + dy * armLen],
+				[cx + px + dx * armLen, cy + py + dy * armLen]
+			])
+		);
+	}
+	return out;
+};
+
+// Forward slash — diagonal from lower-left to upper-right, rotated
+// rectangle. Spans full ascender to mirror cap-height + descender.
+const buildSlash = (): BezierContour[] => {
+	const w = PUNCT_W + 40;
+	const topY = ASCENDER;
+	const bottomY = -100;
+	const thick = STEM - 20;
+	return [
+		poly([
+			[0, bottomY],
+			[thick, bottomY],
+			[w, topY],
+			[w - thick, topY]
+		])
+	];
+};
+
+// Backslash — mirror of slash.
+const buildBackslash = (): BezierContour[] => {
+	const w = PUNCT_W + 40;
+	const topY = ASCENDER;
+	const bottomY = -100;
+	const thick = STEM - 20;
+	return [
+		poly([
+			[0, topY],
+			[thick, topY],
+			[w, bottomY],
+			[w - thick, bottomY]
+		])
+	];
+};
+
+// Pipe — vertical bar, full ascender + descender height. Used by code
+// editors + tabular separators.
+const buildPipe = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const cx = w / 2;
+	return [
+		poly([
+			[cx - STEM / 2 + 10, -100],
+			[cx + STEM / 2 - 10, -100],
+			[cx + STEM / 2 - 10, ASCENDER],
+			[cx - STEM / 2 + 10, ASCENDER]
+		])
+	];
+};
+
 // Hyphen-minus — short horizontal bar centered around x-height/2.
 const buildHyphen = (): BezierContour[] => {
 	const mid = X_HEIGHT / 2;
@@ -1760,6 +1887,13 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x21, contours: buildExclam(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // !
 	{ codepoint: 0x28, contours: buildParenLeft(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 60, rightSidebearing: 40, status: 'draft' }, // (
 	{ codepoint: 0x29, contours: buildParenRight(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 40, rightSidebearing: 60, status: 'draft' }, // )
+	// Math + symbol operators — minimum set for code, prices, equations
+	{ codepoint: 0x2b, contours: buildPlus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // +
+	{ codepoint: 0x3d, contours: buildEquals(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // =
+	{ codepoint: 0x2a, contours: buildAsterisk(), advanceWidth: PUNCT_W + 60, leftSidebearing: 30, rightSidebearing: 30, status: 'draft' }, // *
+	{ codepoint: 0x2f, contours: buildSlash(), advanceWidth: PUNCT_W + 40, leftSidebearing: 20, rightSidebearing: 20, status: 'draft' }, // /
+	{ codepoint: 0x5c, contours: buildBackslash(), advanceWidth: PUNCT_W + 40, leftSidebearing: 20, rightSidebearing: 20, status: 'draft' }, // \
+	{ codepoint: 0x7c, contours: buildPipe(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // |
 	{ codepoint: 0x6f, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' },
 	{ codepoint: 0x6e, contours: buildN_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
 	{ codepoint: 0x61, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' },
