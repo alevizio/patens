@@ -1015,7 +1015,18 @@
   ╱───────╲    your control set
  ╱         ╲   draws this whole
 ╱           ╲  family.`}</pre>
-					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin.</p>
+					<p class="text-sm text-fg-muted">No fonts yet. Create one to begin —</p>
+					<p class="mt-2 text-[12px] text-fg-subtle">
+						or
+						<button
+							type="button"
+							onclick={handleOpenDemo}
+							disabled={openingDemo}
+							class="text-accent-strong underline-offset-2 hover:underline disabled:opacity-50"
+						>
+							{openingDemo ? 'opening the demo…' : 'open the example project →'}
+						</button>
+					</p>
 				</div>
 			{:else if filteredProjects.length === 0}
 				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-6 text-center text-[12px] text-fg-muted">
@@ -1331,12 +1342,14 @@
 				See it in action.
 			</h2>
 			<p class="mt-4 text-[14px] leading-relaxed text-fg-muted">
-				Open the example project to explore a font mid-design — eight drawn
-				glyphs across uppercase and lowercase, the Brief filled in,
-				metrics set. Edit a point, run a boolean op, ship the OTF.
+				Open the example project to explore a font mid-design — eighty-eight
+				drawn glyphs across uppercase, lowercase, digits, punctuation, math
+				operators, and Extended Latin (ß, æ, œ, fi, fl); the Brief filled
+				in, metrics set, kerning tuned. Edit a point, run a boolean op,
+				flip the master, ship the OTF.
 			</p>
 			<p class="mt-5 font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-				Example project &nbsp;·&nbsp; Two demo OTFs
+				Example project &nbsp;·&nbsp; 88 glyphs &nbsp;·&nbsp; 2 masters &nbsp;·&nbsp; ligatures + COLR
 			</p>
 		</div>
 		<div>
