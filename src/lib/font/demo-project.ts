@@ -1421,6 +1421,370 @@ const buildEquals = (): BezierContour[] => {
 	];
 };
 
+// Dollar — S-form with a vertical stem running through. The stem
+// extends slightly above cap-height and below baseline so the bar
+// is visible past the S's bowls (the canonical $ shape).
+const buildDollar = (): BezierContour[] => {
+	const w = CAP_W;
+	const mid = CAP_HEIGHT / 2;
+	const cx = w / 2;
+	return [
+		// S contours (same construction as buildS)
+		poly([[80, CAP_HEIGHT - BAR], [w - 80, CAP_HEIGHT - BAR], [w - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		poly([[80, mid + BAR / 2], [80 + STEM, mid + BAR / 2], [80 + STEM, CAP_HEIGHT - BAR], [80, CAP_HEIGHT - BAR]]),
+		poly([[80, mid - BAR / 2], [w - 80, mid - BAR / 2], [w - 80, mid + BAR / 2], [80, mid + BAR / 2]]),
+		poly([[w - 80 - STEM, BAR], [w - 80, BAR], [w - 80, mid - BAR / 2], [w - 80 - STEM, mid - BAR / 2]]),
+		poly([[80, 0], [w - 80, 0], [w - 80, BAR], [80, BAR]]),
+		// Vertical stem extending above and below the S
+		poly([
+			[cx - STEM / 2, -60],
+			[cx + STEM / 2, -60],
+			[cx + STEM / 2, CAP_HEIGHT + 60],
+			[cx - STEM / 2, CAP_HEIGHT + 60]
+		])
+	];
+};
+
+// Copyright — outer ring + counter + small letter C inside. The C is
+// a smaller version of the buildC construction, scaled to fit inside
+// the ring with breathing room.
+const buildCopyright = (): BezierContour[] => {
+	const w = CAP_W + 40;
+	const cx = w / 2;
+	const cy = CAP_HEIGHT / 2;
+	const outerR = CAP_HEIGHT * 0.5;
+	const innerR = outerR - STEM + 10;
+	const sides = 24;
+	const ring = (rx: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const a = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * rx]);
+		}
+		return pts;
+	};
+	// Inner C — three small rectangles forming a C inside the ring
+	const cR = outerR - STEM - 40;
+	const cBar = BAR - 20;
+	const cStem = STEM - 30;
+	return [
+		poly(ring(outerR)),
+		poly(ring(innerR, true), 'ccw'),
+		// Inner C — left stem
+		poly([
+			[cx - cR, cy - cR],
+			[cx - cR + cStem, cy - cR],
+			[cx - cR + cStem, cy + cR],
+			[cx - cR, cy + cR]
+		]),
+		// Inner C — top arm
+		poly([
+			[cx - cR, cy + cR - cBar],
+			[cx + cR, cy + cR - cBar],
+			[cx + cR, cy + cR],
+			[cx - cR, cy + cR]
+		]),
+		// Inner C — bottom arm
+		poly([
+			[cx - cR, cy - cR],
+			[cx + cR, cy - cR],
+			[cx + cR, cy - cR + cBar],
+			[cx - cR, cy - cR + cBar]
+		])
+	];
+};
+
+// Registered — outer ring + counter + R-shape inside (vertical stem +
+// top bowl approximation + leg).
+const buildRegistered = (): BezierContour[] => {
+	const w = CAP_W + 40;
+	const cx = w / 2;
+	const cy = CAP_HEIGHT / 2;
+	const outerR = CAP_HEIGHT * 0.5;
+	const innerR = outerR - STEM + 10;
+	const sides = 24;
+	const ring = (rx: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const a = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * rx]);
+		}
+		return pts;
+	};
+	const rR = outerR - STEM - 40;
+	const rStem = STEM - 30;
+	const rBar = BAR - 20;
+	const stemX = cx - rR + 10;
+	return [
+		poly(ring(outerR)),
+		poly(ring(innerR, true), 'ccw'),
+		// R left stem
+		poly([
+			[stemX, cy - rR],
+			[stemX + rStem, cy - rR],
+			[stemX + rStem, cy + rR],
+			[stemX, cy + rR]
+		]),
+		// R top bowl outer (small rectangle approximation)
+		poly([
+			[stemX, cy + rR - rBar],
+			[cx + rR * 0.7, cy + rR - rBar],
+			[cx + rR * 0.7, cy + rR],
+			[stemX, cy + rR]
+		]),
+		// R bowl right stem
+		poly([
+			[cx + rR * 0.4, cy + rBar / 2],
+			[cx + rR * 0.7, cy + rBar / 2],
+			[cx + rR * 0.7, cy + rR - rBar],
+			[cx + rR * 0.4, cy + rR - rBar]
+		]),
+		// R bowl bottom bar
+		poly([
+			[stemX, cy + rBar / 2],
+			[cx + rR * 0.7, cy + rBar / 2],
+			[cx + rR * 0.7, cy + rBar / 2 + rBar - 10],
+			[stemX, cy + rBar / 2 + rBar - 10]
+		]),
+		// R leg — diagonal stub down-right
+		poly([
+			[cx + rR * 0.3, cy + rBar / 2],
+			[cx + rR * 0.45, cy + rBar / 2],
+			[cx + rR * 0.7, cy - rR],
+			[cx + rR * 0.55, cy - rR]
+		])
+	];
+};
+
+// Trademark — superscript TM. Two small letterforms (T + M) sized
+// at ~half cap-height, positioned at the top of the glyph.
+const buildTrademark = (): BezierContour[] => {
+	const w = CAP_W + 60;
+	const sm = CAP_HEIGHT * 0.5;
+	const top = CAP_HEIGHT;
+	const stemSmall = STEM - 30;
+	const barSmall = BAR - 20;
+	// T positioned at left
+	const tCx = w * 0.25;
+	const tW = sm * 0.7;
+	// M positioned at right
+	const mL = w * 0.5;
+	const mR = w - 20;
+	return [
+		// T top bar
+		poly([
+			[tCx - tW / 2, top - barSmall],
+			[tCx + tW / 2, top - barSmall],
+			[tCx + tW / 2, top],
+			[tCx - tW / 2, top]
+		]),
+		// T vertical stem
+		poly([
+			[tCx - stemSmall / 2, top - sm],
+			[tCx + stemSmall / 2, top - sm],
+			[tCx + stemSmall / 2, top],
+			[tCx - stemSmall / 2, top]
+		]),
+		// M left stem
+		poly([
+			[mL, top - sm],
+			[mL + stemSmall, top - sm],
+			[mL + stemSmall, top],
+			[mL, top]
+		]),
+		// M right stem
+		poly([
+			[mR - stemSmall, top - sm],
+			[mR, top - sm],
+			[mR, top],
+			[mR - stemSmall, top]
+		]),
+		// M middle V (two short angled stubs)
+		poly([
+			[mL + stemSmall, top - barSmall],
+			[(mL + mR) / 2 + stemSmall / 2, top - sm + barSmall],
+			[(mL + mR) / 2 - stemSmall / 2, top - sm + barSmall],
+			[mL + stemSmall, top]
+		]),
+		poly([
+			[(mL + mR) / 2 - stemSmall / 2, top - sm + barSmall],
+			[(mL + mR) / 2 + stemSmall / 2, top - sm + barSmall],
+			[mR - stemSmall, top],
+			[mR - stemSmall, top - barSmall]
+		])
+	];
+};
+
+// Section sign — two stacked C-curves rotated. Approximated as two
+// stacked rectangular bowls with crossed connections.
+const buildSection = (): BezierContour[] => {
+	const w = CAP_W * 0.7;
+	const mid = CAP_HEIGHT / 2;
+	return [
+		// Top bowl — C-shape pointing left
+		poly([[w - 40 - STEM, CAP_HEIGHT - BAR], [w - 40, CAP_HEIGHT - BAR], [w - 40, CAP_HEIGHT], [w - 40 - STEM, CAP_HEIGHT]]),
+		poly([[20, mid + BAR / 2], [w - 40, mid + BAR / 2], [w - 40, CAP_HEIGHT], [20, CAP_HEIGHT]]),
+		poly([[20, mid - BAR / 2 + BAR], [20 + STEM, mid - BAR / 2 + BAR], [20 + STEM, CAP_HEIGHT - BAR], [20, CAP_HEIGHT - BAR]]),
+		// Mid connectors (the crossing strokes)
+		poly([[w / 2, mid - BAR], [w - 40, mid - BAR], [w - 40, mid + BAR], [w / 2, mid + BAR]]),
+		// Bottom bowl — C-shape pointing right (mirrored)
+		poly([[40, 0], [40 + STEM, 0], [40 + STEM, BAR], [40, BAR]]),
+		poly([[40, 0], [w - 20, 0], [w - 20, mid - BAR / 2], [40, mid - BAR / 2]]),
+		poly([[w - 20 - STEM, BAR], [w - 20, BAR], [w - 20, mid - BAR / 2 - BAR], [w - 20 - STEM, mid - BAR / 2 - BAR]])
+	];
+};
+
+// Bracket left [ — three bars forming a left bracket at full ascender
+// height (slightly taller than caps so they enclose ALL letters).
+const buildBracketLeft = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const top = ASCENDER - 100;
+	const bot = -100;
+	const armW = w * 0.7;
+	return [
+		// Left vertical stem
+		poly([[40, bot], [40 + STEM - 10, bot], [40 + STEM - 10, top], [40, top]]),
+		// Top arm
+		poly([[40, top - BAR], [40 + armW, top - BAR], [40 + armW, top], [40, top]]),
+		// Bottom arm
+		poly([[40, bot], [40 + armW, bot], [40 + armW, bot + BAR], [40, bot + BAR]])
+	];
+};
+
+// Bracket right ] — mirror of left.
+const buildBracketRight = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const top = ASCENDER - 100;
+	const bot = -100;
+	const armW = w * 0.7;
+	return [
+		poly([[w - 40 - STEM + 10, bot], [w - 40, bot], [w - 40, top], [w - 40 - STEM + 10, top]]),
+		poly([[w - 40 - armW, top - BAR], [w - 40, top - BAR], [w - 40, top], [w - 40 - armW, top]]),
+		poly([[w - 40 - armW, bot], [w - 40, bot], [w - 40, bot + BAR], [w - 40 - armW, bot + BAR]])
+	];
+};
+
+// Brace left { — vertical stem segmented into top, mid (notched), and
+// bottom, with a small middle nipple pointing left.
+const buildBraceLeft = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const top = ASCENDER - 100;
+	const bot = -100;
+	const mid = (top + bot) / 2;
+	return [
+		// Top vertical
+		poly([[w * 0.4, mid + BAR], [w * 0.4 + STEM - 20, mid + BAR], [w * 0.4 + STEM - 20, top - BAR], [w * 0.4, top - BAR]]),
+		// Top top-arm
+		poly([[w * 0.4, top - BAR], [w * 0.4 + STEM * 1.5, top - BAR], [w * 0.4 + STEM * 1.5, top], [w * 0.4, top]]),
+		// Mid nipple pointing left
+		poly([[20, mid - STEM / 2], [w * 0.4, mid - STEM / 2], [w * 0.4, mid + STEM / 2], [20, mid + STEM / 2]]),
+		// Bottom vertical
+		poly([[w * 0.4, bot + BAR], [w * 0.4 + STEM - 20, bot + BAR], [w * 0.4 + STEM - 20, mid - BAR], [w * 0.4, mid - BAR]]),
+		// Bottom bottom-arm
+		poly([[w * 0.4, bot], [w * 0.4 + STEM * 1.5, bot], [w * 0.4 + STEM * 1.5, bot + BAR], [w * 0.4, bot + BAR]])
+	];
+};
+
+// Brace right } — mirror of left.
+const buildBraceRight = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const top = ASCENDER - 100;
+	const bot = -100;
+	const mid = (top + bot) / 2;
+	const stemX = w * 0.6 - STEM + 20;
+	return [
+		poly([[stemX, mid + BAR], [stemX + STEM - 20, mid + BAR], [stemX + STEM - 20, top - BAR], [stemX, top - BAR]]),
+		poly([[stemX - STEM * 0.5, top - BAR], [stemX + STEM - 20, top - BAR], [stemX + STEM - 20, top], [stemX - STEM * 0.5, top]]),
+		poly([[stemX + STEM - 20, mid - STEM / 2], [w - 20, mid - STEM / 2], [w - 20, mid + STEM / 2], [stemX + STEM - 20, mid + STEM / 2]]),
+		poly([[stemX, bot + BAR], [stemX + STEM - 20, bot + BAR], [stemX + STEM - 20, mid - BAR], [stemX, mid - BAR]]),
+		poly([[stemX - STEM * 0.5, bot], [stemX + STEM - 20, bot], [stemX + STEM - 20, bot + BAR], [stemX - STEM * 0.5, bot + BAR]])
+	];
+};
+
+// Degree — small ring at cap-height. Ring weight matches BAR.
+const buildDegree = (): BezierContour[] => {
+	const w = PUNCT_W;
+	const cx = w / 2;
+	const cy = CAP_HEIGHT - 100;
+	const r = 70;
+	const innerR = r - BAR + 10;
+	const sides = 16;
+	const ring = (rx: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const a = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * rx]);
+		}
+		return pts;
+	};
+	return [poly(ring(r)), poly(ring(innerR, true), 'ccw')];
+};
+
+// Plus-minus — plus glyph + a horizontal bar below.
+const buildPlusMinus = (): BezierContour[] => {
+	const mid = Math.round(X_HEIGHT * 0.55);
+	const w = PUNCT_W + 100;
+	const armLen = Math.round(w * 0.35);
+	const cx = w / 2;
+	const bottomBar = mid - armLen - 60;
+	return [
+		// Horizontal arm of plus
+		poly([[cx - armLen, mid - BAR / 2], [cx + armLen, mid - BAR / 2], [cx + armLen, mid + BAR / 2], [cx - armLen, mid + BAR / 2]]),
+		// Vertical arm of plus
+		poly([[cx - BAR / 2, mid - armLen], [cx + BAR / 2, mid - armLen], [cx + BAR / 2, mid + armLen], [cx - BAR / 2, mid + armLen]]),
+		// Bottom horizontal bar (the minus part)
+		poly([[cx - armLen, bottomBar - BAR / 2], [cx + armLen, bottomBar - BAR / 2], [cx + armLen, bottomBar + BAR / 2], [cx - armLen, bottomBar + BAR / 2]])
+	];
+};
+
+// Multiplication — X-shape (two diagonal rectangles crossed).
+const buildMultiply = (): BezierContour[] => {
+	const w = PUNCT_W + 80;
+	const mid = Math.round(X_HEIGHT * 0.55);
+	const r = 80;
+	const t = BAR / 2;
+	return [
+		// Diagonal NW-SE
+		poly([
+			[w / 2 - r - t, mid + r - t],
+			[w / 2 - r + t, mid + r + t],
+			[w / 2 + r + t, mid - r + t],
+			[w / 2 + r - t, mid - r - t]
+		]),
+		// Diagonal NE-SW
+		poly([
+			[w / 2 + r - t, mid + r + t],
+			[w / 2 + r + t, mid + r - t],
+			[w / 2 - r + t, mid - r - t],
+			[w / 2 - r - t, mid - r + t]
+		])
+	];
+};
+
+// Division — horizontal bar with a dot above and below.
+const buildDivide = (): BezierContour[] => {
+	const w = PUNCT_W + 100;
+	const mid = Math.round(X_HEIGHT * 0.55);
+	const armLen = Math.round(w * 0.35);
+	const cx = w / 2;
+	const dotR = 35;
+	const dotOffset = 110;
+	const sides = 12;
+	const ring = (cy: number, rx: number): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const a = (i / sides) * Math.PI * 2;
+			pts.push([cx + Math.cos(a) * rx, cy + Math.sin(a) * rx]);
+		}
+		return pts;
+	};
+	return [
+		poly([[cx - armLen, mid - BAR / 2], [cx + armLen, mid - BAR / 2], [cx + armLen, mid + BAR / 2], [cx - armLen, mid + BAR / 2]]),
+		poly(ring(mid + dotOffset, dotR)),
+		poly(ring(mid - dotOffset, dotR))
+	];
+};
+
 // Euro — C-form + two horizontal crossbars at upper-third and lower-
 // third heights. The upper bar extends past the left stem on the LEFT
 // — that's the euro convention; the bar protrudes beyond the glyph's
@@ -2145,10 +2509,26 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x26, contours: buildAmp(), advanceWidth: CAP_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // &
 	// At-sign — outer ring enclosing a small lowercase a core
 	{ codepoint: 0x40, contours: buildAtSign(), advanceWidth: CAP_W + 60, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // @
-	// Currency — euro / pound / yen for international body text
+	// Currency — euro / pound / yen / dollar for international body text
 	{ codepoint: 0x20ac, contours: buildEuro(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // €
 	{ codepoint: 0x00a3, contours: buildPound(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // £
 	{ codepoint: 0x00a5, contours: buildYen(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // ¥
+	{ codepoint: 0x24, contours: buildDollar(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // $
+	// Legal / typography — copyright / registered / trademark / section
+	{ codepoint: 0x00a9, contours: buildCopyright(), advanceWidth: CAP_W + 40, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // ©
+	{ codepoint: 0x00ae, contours: buildRegistered(), advanceWidth: CAP_W + 40, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // ®
+	{ codepoint: 0x2122, contours: buildTrademark(), advanceWidth: CAP_W + 60, leftSidebearing: 30, rightSidebearing: 30, status: 'sketch' }, // ™
+	{ codepoint: 0x00a7, contours: buildSection(), advanceWidth: Math.round(CAP_W * 0.7), leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // §
+	// Brackets
+	{ codepoint: 0x5b, contours: buildBracketLeft(), advanceWidth: PUNCT_W, leftSidebearing: 30, rightSidebearing: 30, status: 'sketch' }, // [
+	{ codepoint: 0x5d, contours: buildBracketRight(), advanceWidth: PUNCT_W, leftSidebearing: 30, rightSidebearing: 30, status: 'sketch' }, // ]
+	{ codepoint: 0x7b, contours: buildBraceLeft(), advanceWidth: PUNCT_W, leftSidebearing: 30, rightSidebearing: 30, status: 'sketch' }, // {
+	{ codepoint: 0x7d, contours: buildBraceRight(), advanceWidth: PUNCT_W, leftSidebearing: 30, rightSidebearing: 30, status: 'sketch' }, // }
+	// Math
+	{ codepoint: 0x00b0, contours: buildDegree(), advanceWidth: PUNCT_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // °
+	{ codepoint: 0x00b1, contours: buildPlusMinus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // ±
+	{ codepoint: 0x00d7, contours: buildMultiply(), advanceWidth: PUNCT_W + 80, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // ×
+	{ codepoint: 0x00f7, contours: buildDivide(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // ÷
 	// Math + symbol operators — minimum set for code, prices, equations
 	{ codepoint: 0x2b, contours: buildPlus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // +
 	{ codepoint: 0x3d, contours: buildEquals(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // =
