@@ -1008,6 +1008,89 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 		}
 	}
 
+	// Color-layer integrity. Each layer references a palette slot by
+	// index; if that index is beyond every palette's color count, the
+	// layer renders as transparent. Easy to break by adding a color to
+	// a glyph after the palette was trimmed; detection saves a
+	// "why is my glyph invisible" debug session.
+	const paletteCount = project.palettes?.length ?? 0;
+	const minPaletteLen =
+		paletteCount > 0
+			? Math.min(...(project.palettes ?? []).map((p) => p.colors.length))
+			: 0;
+	for (const g of Object.values(project.glyphs)) {
+		const layers = g.colorLayers ?? [];
+		for (const layer of layers) {
+			if (paletteCount === 0) {
+				// Color layer with no palette in the project at all.
+				issues.push({
+					codepoint: g.codepoint,
+					severity: 'warn',
+					code: 'color-layer-no-palette',
+					message: `Glyph has color layers but the project has no palettes — layers won't render. Define at least one palette on the Features tab.`
+				});
+				break;
+			}
+			if (layer.paletteIndex >= minPaletteLen) {
+				issues.push({
+					codepoint: g.codepoint,
+					severity: 'warn',
+					code: 'color-layer-out-of-range',
+					message: `Color layer references palette slot ${layer.paletteIndex}, but the shortest palette only has ${minPaletteLen} colors — layer renders transparent in that palette.`
+				});
+			}
+		}
+	}
+
+	// Self-kerning. A pair where left === right is rarely intended
+	// (typos like accidentally entering the same glyph in both slots
+	// of the pair editor) and produces a "letter pulls toward itself"
+	// effect that designers won't expect. Surface as info — false
+	// positives possible (some scripts legitimately kern a letter to
+	// itself in compound contexts) but worth flagging.
+	for (const k of project.kerning) {
+		if (typeof k.left === 'number' && typeof k.right === 'number' && k.left === k.right) {
+			const g = project.glyphs[k.left];
+			const ch = g ? `${g.name} (${String.fromCodePoint(k.left)})` : `U+${k.left.toString(16)}`;
+			issues.push({
+				codepoint: 0,
+				severity: 'info',
+				code: 'kerning-pair-self',
+				message: `Kerning pair where left = right (${ch} ↔ ${ch}) — pulls a letter toward itself. Usually a typo in the pair editor.`
+			});
+		}
+	}
+
+	// Master with no overrides. A master is supposed to provide
+	// per-glyph deltas at a specific axis location; an empty master
+	// is dead weight in the designspace + confusing in the share-page
+	// master picker.
+	for (const m of project.masters ?? []) {
+		const overrideCount = Object.values(m.glyphs ?? {}).filter(
+			(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+		).length;
+		if (overrideCount === 0) {
+			issues.push({
+				codepoint: 0,
+				severity: 'warn',
+				code: 'master-empty',
+				message: `Master "${m.name}" has no glyph overrides — it'll render identically to the default. Add overrides or remove the master.`
+			});
+		}
+	}
+
+	// Feature-state inconsistency. project.features.kern = false but
+	// kerning pairs exist → the pairs ship dead. project.features.liga
+	// = false but ligature glyphs exist → the ligas ship invisible.
+	if (project.features.kern === false && project.kerning.length > 0) {
+		issues.push({
+			codepoint: 0,
+			severity: 'warn',
+			code: 'feature-kern-disabled-with-pairs',
+			message: `kern feature is disabled but ${project.kerning.length} kerning pairs exist — pairs ship dead in the OTF. Enable kern or delete the pairs.`
+		});
+	}
+
 	// Glyph count vs declared character set
 	const drawn = Object.values(project.glyphs).filter((g) => g.contours.length > 0).length;
 	if (drawn < 26)
@@ -1383,6 +1466,16 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'A kerning class has exactly one member. Classes are meant to group glyphs that share kerning behavior — a singleton class is identical to a direct pair and just adds a layer to navigate. Either expand it (e.g. visually-similar glyphs to share the value) or replace it with a direct pair on the spacing tab.',
 		'palette-length-mismatch':
 			'Color palettes have different lengths. CPAL requires every palette to share the same color count — when a glyph layer references slot 4 and only the default palette has 5 colors, the alternate palette will fail to render that layer. Trim or pad palettes on the features tab so all share one length.',
+		'color-layer-no-palette':
+			'A glyph carries color layers but the project has no palettes defined — the layers won\'t render. Either define a palette on the Features tab so the layers have somewhere to draw their colors from, or remove the colorLayers from the glyph if the color was experimental.',
+		'color-layer-out-of-range':
+			'A color layer references a palette slot index that\'s beyond the shortest palette\'s color count. That layer renders transparent in any palette that doesn\'t have a color at that index. Either add more colors to the short palette(s) or change the layer to reference a slot within the existing range.',
+		'kerning-pair-self':
+			'A kerning pair sets a value where the left and right glyph are the same — at run time this pulls a letter toward itself, which is rarely intended. Usually a typo in the pair editor (accidentally entering the same glyph in both slots). Delete unless the script genuinely needs self-kerning in a compound context.',
+		'master-empty':
+			'A variable-font master has no glyph overrides — every codepoint falls back to the default master\'s shape. Either add at least one override (the typical case: the difference is what defines the master) or remove the master from the designspace.',
+		'feature-kern-disabled-with-pairs':
+			'The kern feature is disabled in project.features.kern but kerning pairs exist in project.kerning. The pairs ship in the OTF dead — they\'re emitted into the file but the off flag tells renderers to skip them. Either enable kern on the Features tab (the typical case once pairs are set) or delete the pair data.',
 		'duplicate-glyph-name':
 			'Two or more glyphs share the same PostScript name. The OpenType post table requires unique names — OTF export fails. Rename the conflicting glyphs (the AGLFN suggestion chip + bulk AGLFN rename in the glyph browser are the fastest paths).',
 		'naming-designer-missing':
