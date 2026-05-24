@@ -6,6 +6,7 @@
 		deleteProject,
 		duplicateProject,
 		listProjects,
+		loadProject,
 		saveProject,
 		toggleProjectPin,
 		toggleProjectArchive,
@@ -442,6 +443,47 @@
 	const handleDuplicate = async (id: string) => {
 		await duplicateProject(id);
 		await refresh();
+	};
+
+	// Share a project from the home page — load it, upload to cloud
+	// (Vercel Blob via /api/share), copy the share URL. Same shape as
+	// the editor-layout shareProject handler; duplicated here because
+	// from the home page we don't have projectStore loaded yet.
+	const shareProjectFromHome = async (projectId: string, familyName: string) => {
+		const url = `${location.origin}/share/${projectId}`;
+		const project = await loadProject(projectId);
+		if (!project) {
+			toast.error(`Could not load ${familyName} from local storage`);
+			return;
+		}
+		try {
+			const res = await fetch('/api/share', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(project)
+			});
+			if (res.ok) {
+				try {
+					await navigator.clipboard.writeText(url);
+					toast.success(`Share link copied — ${familyName}`);
+				} catch {
+					toast.info(`Uploaded — ${url}`);
+				}
+			} else if (res.status === 503) {
+				try {
+					await navigator.clipboard.writeText(url);
+					toast.warn(
+						`Cloud share unavailable. Link works for this browser only — ${familyName}`
+					);
+				} catch {
+					toast.warn(`Cloud share unavailable. Link: ${url}`);
+				}
+			} else {
+				toast.error(`Upload failed (${res.status})`);
+			}
+		} catch (err) {
+			toast.error(`Network error: ${err instanceof Error ? err.message : String(err)}`);
+		}
 	};
 
 	const handleDelete = async (entry: ProjectIndexEntry) => {
@@ -1265,17 +1307,9 @@
 									<Button
 										variant="ghost"
 										density="sm"
-										onclick={async () => {
-											const url = `${location.origin}/share/${p.id}`;
-											try {
-												await navigator.clipboard.writeText(url);
-												toast.success(`Share link copied — ${p.familyName}`);
-											} catch {
-												toast.info(`Link: ${url}`);
-											}
-										}}
+										onclick={() => shareProjectFromHome(p.id, p.familyName)}
 										aria-label="Copy share link"
-										title="Copy share link — read-only foundry view"
+										title="Copy share link — uploads to cloud so recipients in any browser see the project"
 									>
 										{#snippet icon()}<Share2 class="size-3.5" />{/snippet}
 									</Button>

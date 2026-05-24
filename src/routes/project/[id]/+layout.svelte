@@ -136,6 +136,58 @@
 	let projectSwitcherOpen = $state(false);
 	let projectSwitcherEl = $state<HTMLDivElement | null>(null);
 
+	// Share — upload the current project to Vercel Blob via /api/share,
+	// then copy the share URL to the clipboard. Uploading first means
+	// recipients in any browser can open the link and see the project,
+	// not just the originator. Falls back to a local-only URL with a
+	// clear warning when the cloud API is unconfigured (self-host or
+	// dev without BLOB_READ_WRITE_TOKEN) — the share view's IndexedDB
+	// path still works for the originator.
+	let sharing = $state(false);
+	const shareProject = async () => {
+		if (sharing) return;
+		const p = projectStore.project;
+		if (!p) {
+			t.warn('No project loaded');
+			return;
+		}
+		const url = `${location.origin}/share/${id}`;
+		sharing = true;
+		try {
+			const res = await fetch('/api/share', {
+				method: 'POST',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify(p)
+			});
+			if (res.ok) {
+				try {
+					await navigator.clipboard.writeText(url);
+					t.success('Share link copied — works for recipients in any browser');
+				} catch {
+					t.info(`Uploaded — share link: ${url}`);
+				}
+			} else if (res.status === 503) {
+				// API not configured for this deployment. Still useful: the
+				// share URL works for the originator's own browser via IDB.
+				try {
+					await navigator.clipboard.writeText(url);
+					t.warn(
+						'Cloud share unavailable — link copied but recipients need the originator\'s browser. Use the Download button to share the project file instead.'
+					);
+				} catch {
+					t.warn(`Cloud share unavailable. Link: ${url}`);
+				}
+			} else {
+				const detail = await res.text().catch(() => res.statusText);
+				t.error(`Upload failed (${res.status}): ${detail}`);
+			}
+		} catch (err) {
+			t.error(`Network error: ${err instanceof Error ? err.message : String(err)}`);
+		} finally {
+			sharing = false;
+		}
+	};
+
 	// Project file export — writes the project as a single .font.json the
 	// recipient can drop on their home page to import. This is the
 	// portable async-share path that DOESN'T rely on the recipient having
@@ -683,18 +735,13 @@
 				</div>
 				<button
 					type="button"
-					onclick={async () => {
-						const url = `${location.origin}/share/${id}`;
-						try {
-							await navigator.clipboard.writeText(url);
-							t.success('Share link copied');
-						} catch {
-							t.warn('Could not copy — link: ' + url);
-						}
-					}}
-					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+					onclick={shareProject}
+					disabled={sharing}
+					class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg disabled:opacity-50"
 					aria-label="Copy share link"
-					title="Copy share link (read-only viewer)"
+					title={sharing
+						? 'Uploading…'
+						: 'Copy share link — uploads to cloud so recipients in any browser see the project'}
 				>
 					<Share2 class="size-3.5" />
 				</button>

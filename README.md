@@ -28,7 +28,17 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 ## Project status
 
-**`v1.0.0-beta`** — feature-complete for the "single-designer, single-machine" use case. Real cloud sharing (PartyKit-style hydration for share-link recipients in different browsers) is on the M3 roadmap.
+**`v1.0.0`** — production-grade. Cloud share works for recipients in any browser when the deployment has `BLOB_READ_WRITE_TOKEN` set (Vercel Blob); without it, share URLs work in the originator's browser only (the `.font.json` export remains the cross-machine option). See [ROADMAP.md](./ROADMAP.md) for what's deferred.
+
+### Configuring cloud share
+
+The cloud-share path uses Vercel Blob. To enable it on your deployment:
+
+1. In the Vercel dashboard → your project → Storage → Create a Blob store.
+2. The `BLOB_READ_WRITE_TOKEN` env var lands automatically.
+3. Redeploy. The "Copy share link" button now uploads on click and recipients in any browser see the project.
+
+Without the token, the API returns 503 and the client falls back to copying a local-only URL with a clear warning.
 
 ## Running locally
 

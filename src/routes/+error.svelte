@@ -40,12 +40,11 @@
 				class="mb-3 text-[32px] leading-tight text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
-				This link is browser-local.
+				Project not found.
 			</h1>
 			<p class="mx-auto max-w-lg text-[14px] leading-relaxed text-fg-muted">
-				Font Studio share URLs work in the originator's browser only — every
-				project lives in IndexedDB on the device where it was created.
-				Cloud-shared viewing is on the roadmap; until then, two ways forward:
+				The share URL was either never uploaded to the cloud, or this
+				deployment doesn't have cloud sharing configured. Two ways forward:
 			</p>
 			<div class="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
 				<a

@@ -2,18 +2,19 @@
 
 What's deliberately deferred from `v1.0.0-beta` and why.
 
-## M3 — Cloud + real sharing
+## M3 — Cloud sharing ✅ SHIPPED in v1.0.0
 
-The share-link recipient story is browser-local in v1: `/share/{id}` only renders for visitors whose IndexedDB has the project, i.e. the originator. The recovery flow ([`+error.svelte`](./src/routes/+error.svelte) when `path.startsWith('/share/')`) explains the constraint and offers `/share/demo` + the `.font.json` import as workarounds.
+The share-link recipient story is no longer browser-local. Tier 2 shipped:
 
-To make share URLs work for arbitrary recipients we need:
+- **Vercel Blob backend.** `src/routes/api/share/+server.ts` accepts a project JSON `POST` from the editor and the home page, uploads to `shares/{id}.json` keyed by the project's existing UUID. 5MB cap; payload validation; 503 when `BLOB_READ_WRITE_TOKEN` isn't set.
+- **Share page hydration.** `src/routes/share/[id]/+page.ts` tries IndexedDB first, then `GET /api/share/{id}` (Vercel Blob), then surfaces the 404 recovery copy if both miss. The fetched project is saved to IDB so the next view is instant.
+- **Link-as-capability auth.** No accounts. The share URL contains the project's existing UUID (already unguessable client-generated). Anyone with the URL can view; no one without it can.
+- **Upload-on-share.** Editor header + home-page card "Copy share link" buttons now upload first, then copy. Failure modes handled: 503 (cloud not configured) falls back to local-only with a clear warning; network errors surface as toast errors.
 
-- **Cloud project storage.** PartyKit, Supabase, or similar. A `projects` table keyed by UUID, with the project blob as JSON.
-- **Hydration in the share-page loader.** `src/routes/share/[id]/+page.ts` becomes async-server: try IndexedDB first (cheap, local), fall back to the network if the project isn't local. Cached aggressively so repeat visits don't re-fetch.
-- **Auth (optional but likely).** If projects are uploaded, visibility rules matter. Public-by-default-with-unguessable-id might be enough for v1 (the share URL is the capability).
-- **Upload affordance.** Today's "Copy share link" button doesn't upload; it just produces the URL. With cloud storage, the click should also upload the current project state.
-
-Estimated effort: 2-3 days of focused work.
+What's still deferred:
+- **Re-share versioning.** Re-uploads currently overwrite. A version history (with deep-link to a specific version) is future work.
+- **Delete API.** Today a share lives until the Vercel Blob store is wiped. A self-service delete by the originator (key signed by their IndexedDB project record) is future work.
+- **Per-project OG image.** Now achievable with cloud — server-render a preview at request time using the uploaded project. ~1 day on top of the cloud arc.
 
 ## Per-project OG image
 
