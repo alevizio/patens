@@ -534,7 +534,25 @@
 				};
 				importWarning = checkReservedName(project.metadata.familyName);
 				await saveProject(project);
-				toast.success(`Imported ${project.metadata.familyName}`);
+				// Detailed import receipt — counts the work the recipient just
+				// inherited so they can verify the right file landed before
+				// the editor opens. Beats a bare "Imported X".
+				const glyphCount =
+					Object.values(parsed.glyphs ?? {}).filter(
+						(g: unknown) =>
+							!!g &&
+							typeof g === 'object' &&
+							(((g as { contours?: unknown[] }).contours?.length ?? 0) > 0 ||
+								((g as { components?: unknown[] }).components?.length ?? 0) > 0)
+					).length;
+				const kernCount = Array.isArray(parsed.kerning) ? parsed.kerning.length : 0;
+				const masterCount = Array.isArray(parsed.masters) ? parsed.masters.length : 0;
+				const palCount = Array.isArray(parsed.palettes) ? parsed.palettes.length : 0;
+				const bits: string[] = [`${glyphCount} glyphs`];
+				if (kernCount > 0) bits.push(`${kernCount} kern pairs`);
+				if (masterCount > 0) bits.push(`${masterCount + 1} masters`);
+				if (palCount > 0) bits.push(`${palCount} palette${palCount === 1 ? '' : 's'}`);
+				toast.success(`Imported ${project.metadata.familyName} — ${bits.join(', ')}`);
 				if (importWarning) toast.warn(importWarning);
 				await goto(`/project/${project.id}/edit`);
 			} else if (name.endsWith('.zip') || name.endsWith('.ufo.zip')) {
