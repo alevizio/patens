@@ -702,7 +702,7 @@
 		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
 	/>
 	<meta property="og:site_name" content="Font Studio" />
-	<meta property="og:image" content="/og.png" />
+	<meta property="og:image" content="/og/home" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
@@ -711,7 +711,7 @@
 		name="twitter:description"
 		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
 	/>
-	<meta name="twitter:image" content="/og.png" />
+	<meta name="twitter:image" content="/og/home" />
 	<!-- Load the demo OTF as 'StudioGeometric' so the home page's big "Hn"
 	     mark renders in Font Studio's own typeface — the home page literally
 	     shows the product's output. `swap` keeps the fallback (Hoefler Text)

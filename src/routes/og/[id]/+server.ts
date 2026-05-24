@@ -28,6 +28,12 @@ const fetchProject = async (
 	id: string,
 	fetchFn: typeof fetch
 ): Promise<Project | null> => {
+	if (id === 'home' || id === 'brand') {
+		// The home/brand variant renders the generic Font Studio card —
+		// no project lookup. Returning null causes draw() to fall back to
+		// the brand-only layout.
+		return null;
+	}
 	if (id === 'demo') {
 		// Lazy-import demo builder so this route doesn't pull the demo
 		// project into the bundle when other ids are requested.
@@ -93,14 +99,18 @@ const loadFonts = async (): Promise<{ serif: ArrayBuffer; sans: ArrayBuffer }> =
 const draw = async (
 	project: Project | null
 ): Promise<{ png: Buffer; status: number }> => {
+	const isBrand = !project;
 	const familyName = project?.metadata.familyName ?? 'Font Studio';
-	const designer = project?.metadata.designer ?? 'A foundry on the web';
-	const version = project?.metadata.version ?? 'v1.0';
-	const drawnCount = project
-		? Object.values(project.glyphs).filter(
-				(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
-			).length
-		: 0;
+	const designer = isBrand
+		? 'Browser-native type design'
+		: project!.metadata.designer || 'Unsigned';
+	const meta = isBrand
+		? 'Open source · MIT · v1.0'
+		: `${project!.metadata.version} · ${
+				Object.values(project!.glyphs).filter(
+					(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+				).length
+			} glyphs`;
 
 	// Lazy-load the heavy bits so unrelated routes don't pay.
 	const [{ default: satori }, { Resvg }] = await Promise.all([
@@ -144,7 +154,9 @@ const draw = async (
 										color: '#737373',
 										fontFamily: 'Sans'
 									},
-									children: 'Font Studio · specimen'
+									children: isBrand
+										? 'Type design in the browser'
+										: 'Font Studio · specimen'
 								}
 							},
 							{
@@ -202,7 +214,7 @@ const draw = async (
 													color: '#737373',
 													letterSpacing: '0.1em'
 												},
-												children: `${version} · ${drawnCount} glyphs`
+												children: meta
 											}
 										}
 									]
