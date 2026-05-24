@@ -3025,7 +3025,7 @@ export const createDemoProject = (): Project => {
 		readingConditions:
 			'Primarily on high-DPI screens at body sizes (12–18px) with optical sizing for larger heads (24–96px). Tested against macOS, iOS, Chrome on Android, and 1× / 2× Retina rendering. Should hold up at 12px on a low-DPI second monitor.',
 		differentiation:
-			'Where Inter and Manrope optimise for variable spans, this typeface optimises for the static body case: even rhythm, slightly tighter aperture on `c` and `e` so they hold their shape at 12px, two stylistic-alternate slots (`ss01` single-storey `a`, `ss02` single-storey `g`), oldstyle figures via `onum`, case-sensitive parens via `case`, and a real `liga` pair (`fi`, `fl`). The Latin set covers ASCII + Extended Latin (ß, æ, œ), currency (€ £ ¥ $), legal (© ® ™ §), math (± × ÷ °), and brackets — enough to set a UI shell, a price table, or a legal footer without falling back to system fonts.',
+			'Where Inter and Manrope optimise for variable spans, this typeface optimises for the static body case: even rhythm, slightly tighter aperture on `c` and `e` so they hold their shape at 12px, two stylistic-alternate slots (`ss01` single-storey `a`, `ss02` single-storey `g`), oldstyle figures via `onum`, case-sensitive parens via `case`, and a real `liga` pair (`fi`, `fl`). The Latin set covers ASCII + Extended Latin (ß, æ, œ), currency (€ £ ¥ $), legal (© ® ™ §), math (± × ÷ °), and brackets — enough to set a UI shell, a price table, or a legal footer without falling back to system fonts. A Cyrillic + Greek look-alike starter (the letters that share Latin shapes in a geometric sans — А В Е К М Н О Р С Т Х and Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ) seeds the multi-script story; bespoke Cyrillic + Greek shapes are explicit future work.',
 		designNotes:
 			'Stem width 90fu (≈9% UPM); bar weight 80fu to match the optical balance at body sizes. Geometric letters (`O`, `o`) use circular construction; humanist letters (`a`, `g`) get a more handwritten lean. Kerning targets the AV/Ta/We pairs hardest — those carry most of the perceived spacing in Latin body text.',
 		references: [
@@ -3123,6 +3123,13 @@ export const createDemoProject = (): Project => {
 			decision: 'Six OpenType features (kern, liga, ss01, ss02, onum, case) before extending Cyrillic / Greek',
 			rationale:
 				'A complete Latin set with rich OpenType behavior beats a half-finished multi-script. liga ships real fi/fl ligatures (the eye notices missing fi-collisions instantly in body text). onum + case turn the tester toggles from "feature declared" into "feature does something visible." ss01/ss02 reach the population that wants a different a or g without forcing the rest. Cyrillic + Greek are real work in the next arc.'
+		},
+		{
+			id: crypto.randomUUID(),
+			date: daysAgo(0),
+			decision: 'Cyrillic + Greek as look-alike starters first, bespoke shapes deferred',
+			rationale:
+				'Cyrillic А В Е Н К М О Р С Т Х and Greek Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ already share their Latin shapes in a geometric sans. Reusing the Latin builders honestly ships ~25 multi-script glyphs without inventing shapes I can\'t commit to. The bespoke letters (Я Ж Ф and the entire Greek lowercase) need a different design pass — I\'d rather ship the safe subset than fake the hard parts. Coverage heatmap will gain a Cyrillic/Greek baseline once the bespoke set lands.'
 		}
 	];
 
