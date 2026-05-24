@@ -1,0 +1,101 @@
+# Contributing to Font Studio
+
+Thanks for your interest. Font Studio is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics; for "what does this code do," see [`docs/architecture.md`](./docs/architecture.md).
+
+## Getting set up
+
+```sh
+git clone https://github.com/alevizio/font-studio.git
+cd font-studio
+pnpm install
+pnpm dev
+```
+
+The dev server runs at `http://localhost:5173`. Open `/project/demo/edit` to land in the editor with the example project loaded.
+
+### Before you push
+
+```sh
+pnpm lint              # ESLint — must add no new errors
+pnpm check             # svelte-check / TypeScript strict — must pass
+pnpm test              # Vitest unit tests (~450 tests)
+pnpm test:e2e          # Playwright + axe-core a11y
+```
+
+CI runs all four on every PR. The lint baseline has 52 known warnings; new code should add zero.
+
+## Branch model
+
+- `main` is the trunk; deploys to production on push (Vercel).
+- Feature branches: short-lived, named like `feat/share-coverage-fix` or `fix/cmd-shift-v-conflict`.
+- No long-running release branches — releases are tags.
+
+## Commit messages
+
+Conventional Commits, short subject + a body that explains *why*:
+
+```
+feat(share): glyph inspector master-overlay toggle
+
+When a project has multiple masters, the inspector can now show
+every master's version of the same codepoint as a stroke overlay
+on top of the default fill. Designers see the slant or weight
+delta on a single drawing instead of jumping between renders.
+
+  - M key inside the inspector toggles
+  - Legend names the colors back to their masters
+  - Stroke weight scales with fontSpan/120 so it stays readable
+    across UPM scales
+```
+
+The body should describe the problem the change solves, not just the code.
+
+## Pull requests
+
+1. Fork + branch.
+2. Make your change. Add or update tests where the change has clear behaviour.
+3. Run the four checks above locally.
+4. Open a PR against `main`. The PR template will ask for: problem, solution, screenshots (if UI), test plan.
+5. CI must be green before review.
+
+## Where things live
+
+```
+src/
+├── lib/
+│   ├── font/         # Type-design domain: glyphs, contours, audit, export
+│   ├── ui/           # Reusable UI primitives (Button, Panel, Dialog, etc.)
+│   ├── glyph/        # Glyph-specific UI (GlyphTile, GlyphBrowser)
+│   ├── drawing/      # Canvas + drawing tools
+│   └── stores/       # Reactive stores (project, settings, toast)
+├── routes/           # SvelteKit routes
+│   ├── +page.svelte  # Home — project list
+│   ├── project/[id]/ # Editor + spacing + audit + features + ...
+│   ├── share/[id]/   # Read-only specimen view
+│   └── family/[id]/  # Multi-style family hub
+e2e/                  # Playwright tests
+scripts/              # Build helpers (demo-font generation)
+```
+
+Mutation flow: every glyph / kerning / metadata write goes through `projectStore` (`src/lib/stores/project.svelte.ts`), which re-emits the reactive project + auto-saves to IndexedDB.
+
+## Areas where help is wanted
+
+- **More audit codes.** The audit module is the spine; new checks land cleanly. See `src/lib/font/audit.ts` and the five-surface contract in `docs/architecture.md`.
+- **Curve fitting refinements.** The Schneider trace is competent but doesn't handle every sketch shape well. Real type designers have opinions; PRs welcome.
+- **Cyrillic / Greek glyph builders.** The demo project is Latin-only by deliberate scope. Building a starter Cyrillic / Greek set the same way the Latin glyphs are built would be a real contribution.
+- **Cloud-shared viewing (PartyKit).** The share-link recipient story is browser-local today. See [ROADMAP.md](./ROADMAP.md).
+
+## Anti-goals
+
+- We don't accept changes that introduce a new framework / state library / styling system. Font Studio is SvelteKit + Tailwind + Svelte 5 runes; stay inside that.
+- No new third-party fonts in the repo — the demo project's "font" is its own SVG path data.
+- No backend yet. Cloud features are the M3 arc; we don't add servers piecemeal.
+
+## Code of conduct
+
+Be kind, be specific, assume good faith. Disagreements are about the work, not the people. The maintainer has final say but will explain reasoning.
+
+## License
+
+By contributing, you agree your contributions are released under the [MIT License](./LICENSE).
