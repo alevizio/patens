@@ -2563,7 +2563,31 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x78, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // x
 	{ codepoint: 0x6a, contours: buildJ_lc(), advanceWidth: Math.round(LC_W * 0.55), leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // j
 	{ codepoint: 0x71, contours: buildQ_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'draft' }, // q
-	{ codepoint: 0x7a, contours: buildZ_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' } // z
+	{ codepoint: 0x7a, contours: buildZ_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'draft' }, // z
+	// Cyrillic look-alike starter — letters that share Latin shapes
+	// directly. NOT a full Cyrillic set; bespoke Cyrillic shapes (Я Ж Ц
+	// Щ Б Г Д Ы Ю Э Ч П Л Ф) need their own drawings and are explicit
+	// future work. This starter unlocks reading basic Russian/Bulgarian
+	// transliterations + words that happen to use only look-alike letters.
+	// Uppercase:
+	{ codepoint: 0x0410, contours: buildA(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // А
+	{ codepoint: 0x0412, contours: buildB(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // В
+	{ codepoint: 0x0415, contours: buildE(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Е
+	{ codepoint: 0x041a, contours: buildK(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'sketch' }, // К
+	{ codepoint: 0x041c, contours: buildM(), advanceWidth: CAP_W + 80, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // М
+	{ codepoint: 0x041d, contours: buildH(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Н — same as Latin H
+	{ codepoint: 0x041e, contours: buildO(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // О
+	{ codepoint: 0x0420, contours: buildP(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Р — same as Latin P
+	{ codepoint: 0x0421, contours: buildC(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // С — same as Latin C
+	{ codepoint: 0x0422, contours: buildT(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Т — same as Latin T
+	{ codepoint: 0x0425, contours: buildX(), advanceWidth: CAP_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // Х — same as Latin X
+	// Lowercase (only the ones with unambiguous Latin twins in geometric sans):
+	{ codepoint: 0x0430, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // а
+	{ codepoint: 0x0435, contours: buildE_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // е
+	{ codepoint: 0x043e, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // о
+	{ codepoint: 0x0440, contours: buildP_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // р — same as Latin p
+	{ codepoint: 0x0441, contours: buildC_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 60, status: 'sketch' }, // с
+	{ codepoint: 0x0445, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' } // х
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
