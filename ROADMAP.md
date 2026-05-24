@@ -57,6 +57,18 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 - **Real bundle-size budgets in CI.** Bundle analyzer ships as `pnpm run analyze`; wiring a `bundlewatch` or similar into CI to fail PRs that grow the bundle past a threshold is future work.
 - **Accessibility audit beyond focus traps + accordion ARIA.** axe-core runs in Playwright E2E for the home + welcome + tab-nav routes; full audit across every route + every modal is future work.
 
+## Known issues (v1.0.0-beta)
+
+Tracked here so future readers see them without re-discovering. Each links to the surface where it shows up:
+
+- **`tab-nav.spec.ts` Designspace timing.** When the project-tab nav runs through tabs rapidly in sequence (Brief → Edit → Spacing → Designspace → ...), the Spacing-to-Designspace click occasionally races SvelteKit's CSR teardown and the URL update doesn't fire. v1.0.0-beta added `waitForLoadState('networkidle')` before each click to make the test deterministic; if the flake returns, the underlying nav probably needs a guard against rapid-fire clicks.
+
+- **`harfbuzz.wasm` 404 in dev mode.** Vite's dep-optimisation pre-bundles `harfbuzzjs` but loses the wasm reference, then the SSR handler 404s on `/node_modules/.vite/deps/harfbuzz.wasm`. v1.0.0-beta added `optimizeDeps.exclude: ['harfbuzzjs']` to route the wasm via its natural path; if the error returns, check whether `harfbuzzjs` was upgraded and now needs a different exclusion.
+
+- **Pre-existing a11y warnings (moderate / minor).** axe-core reports a small number of moderate / minor violations (color contrast on tinted backgrounds, sparse landmarks on some routes). These don't block CI but are logged via `[a11y minor/moderate]` lines in the test output. Each is small; future PRs should tighten as they touch the affected components.
+
+- **Lint warning baseline.** 52 pre-existing ESLint warnings as of `v1.0.0-beta` (mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty`). New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
+
 ## Anti-goals
 
 The things we explicitly don't want:

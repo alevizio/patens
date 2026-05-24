@@ -58,17 +58,20 @@ test('every project tab updates the URL AND mounts its content', async ({ page }
 	const id = await openDemoProject(page);
 
 	for (const tab of TABS) {
+		// Wait for the previous nav to fully settle BEFORE clicking the
+		// next tab. SvelteKit's CSR has a window where a click during
+		// route-load can be silently dropped — we'd rather take the time
+		// hit than catch a flake.
+		await page.waitForLoadState('networkidle');
 		await page
 			.getByRole('link', { name: new RegExp(`^${tab.label}(\\s|$|\\()`) })
 			.first()
 			.click();
-		await expect(page).toHaveURL(`/project/${id}${tab.path}`);
+		// waitForURL (not toHaveURL) so we get a single clear error when the
+		// nav doesn't take, instead of toHaveURL's poll timing out at 5s with
+		// a less-clear message.
+		await page.waitForURL(`**${tab.path}`);
 		await assertTabMounted(page, tab);
-		// Let SvelteKit fully settle between rapid clicks — without this, the
-		// next click can race the previous route's teardown and SvelteKit ends
-		// up rendering the wrong page (the symptom that has bitten this nav
-		// twice before; we'd rather catch it than mask it).
-		await page.waitForLoadState('networkidle');
 	}
 });
 

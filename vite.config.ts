@@ -31,5 +31,13 @@ export default defineConfig({
 	// without needing per-import gymnastics.
 	ssr: {
 		noExternal: ['opentype.js']
+	},
+	// HarfBuzzJS ships a .wasm next to its JS. Vite's dep-optimization
+	// inlines the JS but loses the wasm reference, then SSR handlers get
+	// asked for /node_modules/.vite/deps/harfbuzz.wasm and rightly 404.
+	// Excluding harfbuzzjs from pre-bundling routes the wasm via its
+	// natural path. (See https://vitejs.dev/config/dep-optimization-options)
+	optimizeDeps: {
+		exclude: ['harfbuzzjs']
 	}
 });
