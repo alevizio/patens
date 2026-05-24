@@ -1863,7 +1863,7 @@ body {
 			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
 				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Stat</div>
 				<div class="text-fg">
-					{@render typeRow('$12,847', 56)}
+					{@render typeRow('€12,847', 56)}
 				</div>
 				<div class="mt-1 text-fg-muted">
 					{@render typeRow('Monthly recurring revenue', 13)}
