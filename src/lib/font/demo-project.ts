@@ -1421,6 +1421,136 @@ const buildEquals = (): BezierContour[] => {
 	];
 };
 
+// Euro — C-form + two horizontal crossbars at upper-third and lower-
+// third heights. The upper bar extends past the left stem on the LEFT
+// — that's the euro convention; the bar protrudes beyond the glyph's
+// body so the symbol reads as euro at small sizes.
+const buildEuro = (): BezierContour[] => {
+	const w = CAP_W;
+	const upperBar = CAP_HEIGHT * 0.6;
+	const lowerBar = CAP_HEIGHT * 0.4;
+	return [
+		// Left stem
+		poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
+		// Top arm
+		poly([
+			[80, CAP_HEIGHT - BAR],
+			[w - 80, CAP_HEIGHT - BAR],
+			[w - 80, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		// Bottom arm
+		poly([
+			[80, 0],
+			[w - 80, 0],
+			[w - 80, BAR],
+			[80, BAR]
+		]),
+		// Upper crossbar — protrudes left of the stem
+		poly([
+			[20, upperBar - BAR / 2],
+			[w - 130, upperBar - BAR / 2],
+			[w - 130, upperBar + BAR / 2],
+			[20, upperBar + BAR / 2]
+		]),
+		// Lower crossbar — slightly shorter
+		poly([
+			[20, lowerBar - BAR / 2],
+			[w - 180, lowerBar - BAR / 2],
+			[w - 180, lowerBar + BAR / 2],
+			[20, lowerBar + BAR / 2]
+		])
+	];
+};
+
+// Pound — vertical stem with a top-right flag (the pound's curl
+// approximation), a crossbar at mid-height, and a horizontal foot at
+// the baseline extending right.
+const buildPound = (): BezierContour[] => {
+	const w = CAP_W;
+	const stemL = w * 0.3;
+	const stemR = stemL + STEM;
+	const midBar = CAP_HEIGHT * 0.55;
+	return [
+		// Main vertical stem
+		poly([
+			[stemL, BAR],
+			[stemR, BAR],
+			[stemR, CAP_HEIGHT - 40],
+			[stemL, CAP_HEIGHT - 40]
+		]),
+		// Top hook
+		poly([
+			[stemL, CAP_HEIGHT - 100],
+			[stemR + 140, CAP_HEIGHT - 100],
+			[stemR + 140, CAP_HEIGHT - 40],
+			[stemL, CAP_HEIGHT - 40]
+		]),
+		// Crossbar at mid-height
+		poly([
+			[stemL - 60, midBar - BAR / 2],
+			[stemR + 130, midBar - BAR / 2],
+			[stemR + 130, midBar + BAR / 2],
+			[stemL - 60, midBar + BAR / 2]
+		]),
+		// Base — horizontal foot extending right
+		poly([
+			[40, 0],
+			[w - 40, 0],
+			[w - 40, BAR],
+			[40, BAR]
+		])
+	];
+};
+
+// Yen — Y-form + two horizontal crossbars (the canonical CJK currency
+// construction; covers ¥ JPY and Chinese yuan).
+const buildYen = (): BezierContour[] => {
+	const w = CAP_W;
+	const cx = w / 2;
+	const mid = CAP_HEIGHT * 0.5;
+	const upperBar = CAP_HEIGHT * 0.4;
+	const lowerBar = CAP_HEIGHT * 0.25;
+	const armW = 60;
+	return [
+		// Left angled stem
+		poly([
+			[80, CAP_HEIGHT - armW],
+			[80 + armW, CAP_HEIGHT],
+			[cx + armW / 2, mid + armW / 2],
+			[cx - armW / 2, mid + armW / 2]
+		]),
+		// Right angled stem
+		poly([
+			[w - 80 - armW, CAP_HEIGHT],
+			[w - 80, CAP_HEIGHT - armW],
+			[cx + armW / 2, mid + armW / 2],
+			[cx - armW / 2, mid + armW / 2]
+		]),
+		// Vertical stub from center down to baseline
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, mid + armW / 2],
+			[cx - STEM / 2, mid + armW / 2]
+		]),
+		// Upper crossbar
+		poly([
+			[60, upperBar - BAR / 2],
+			[w - 60, upperBar - BAR / 2],
+			[w - 60, upperBar + BAR / 2],
+			[60, upperBar + BAR / 2]
+		]),
+		// Lower crossbar
+		poly([
+			[60, lowerBar - BAR / 2],
+			[w - 60, lowerBar - BAR / 2],
+			[w - 60, lowerBar + BAR / 2],
+			[60, lowerBar + BAR / 2]
+		])
+	];
+};
+
 // Ampersand — descends from the Latin "et" ligature. Geometric-sans
 // convention: small top bowl + larger bottom bowl + tail extending
 // right at the baseline. Built from two rings (each with a counter)
@@ -2015,6 +2145,10 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x26, contours: buildAmp(), advanceWidth: CAP_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // &
 	// At-sign — outer ring enclosing a small lowercase a core
 	{ codepoint: 0x40, contours: buildAtSign(), advanceWidth: CAP_W + 60, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // @
+	// Currency — euro / pound / yen for international body text
+	{ codepoint: 0x20ac, contours: buildEuro(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // €
+	{ codepoint: 0x00a3, contours: buildPound(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // £
+	{ codepoint: 0x00a5, contours: buildYen(), advanceWidth: CAP_W, leftSidebearing: 50, rightSidebearing: 50, status: 'sketch' }, // ¥
 	// Math + symbol operators — minimum set for code, prices, equations
 	{ codepoint: 0x2b, contours: buildPlus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // +
 	{ codepoint: 0x3d, contours: buildEquals(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // =
