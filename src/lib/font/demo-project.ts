@@ -2544,34 +2544,66 @@ export const createDemoProject = (): Project => {
 			maximum: 0
 		}
 	];
-	// Skew every drawn glyph's contours by -10° about y=0 (baseline).
-	// Math: x' = x + y * tan(10°); y' = y. tan(10°) ≈ 0.17633.
-	const SLANT_DEG = 10;
-	const SHEAR = Math.tan((SLANT_DEG * Math.PI) / 180);
-	const slantContours = (contours: BezierContour[]): BezierContour[] =>
-		contours.map((c) => ({
+	// Per-glyph slant amounts — a uniform 10° shear made every Italic glyph
+	// look like a rotated photocopy of its Regular. Real italic typefaces
+	// vary the slant by glyph class: caps slant LESS than lowercase (the
+	// classic foundry-italic convention), digits stay upright (tabular
+	// figures), punctuation gets a gentle lean, and lowercase varies
+	// slightly between rounded and angular forms. The result reads as
+	// drawn rather than rendered, even though the underlying transform
+	// is still a shear.
+	const slantDegFor = (cp: number): number => {
+		// Digits — stay upright (tabular figures convention).
+		if (cp >= 0x30 && cp <= 0x39) return 0;
+		// Punctuation + symbols — gentle lean so they don't visually clash
+		// with the slanted letters around them but don't out-italic them
+		// either.
+		if (
+			(cp >= 0x21 && cp <= 0x2f) ||
+			(cp >= 0x3a && cp <= 0x40) ||
+			(cp >= 0x5b && cp <= 0x60) ||
+			(cp >= 0x7b && cp <= 0x7e)
+		)
+			return 4;
+		// Caps — less slant than lowercase (foundry-italic convention).
+		if (cp >= 0x41 && cp <= 0x5a) return 8;
+		// Lowercase round-bowl letters get slightly MORE slant — the round
+		// counters absorb the angle and read more clearly italic.
+		if (cp === 0x61 || cp === 0x65 || cp === 0x67 || cp === 0x6f) return 11;
+		// Lowercase angular-stem letters get slightly LESS — the existing
+		// vertical stems already carry the slant signal; over-slanting
+		// makes them feel like they're falling over.
+		if (cp === 0x6e || cp === 0x6d || cp === 0x72 || cp === 0x75) return 9;
+		// Default for the remaining lowercase: the classic 10°.
+		return 10;
+	};
+	const slantContours = (contours: BezierContour[], deg: number): BezierContour[] => {
+		if (deg === 0) return contours;
+		const shear = Math.tan((deg * Math.PI) / 180);
+		return contours.map((c) => ({
 			...c,
 			commands: c.commands.map((cmd) => {
 				if (cmd.type === 'Z') return cmd;
 				if (cmd.type === 'M' || cmd.type === 'L') {
-					return { ...cmd, x: Math.round(cmd.x + cmd.y * SHEAR) };
+					return { ...cmd, x: Math.round(cmd.x + cmd.y * shear) };
 				}
 				if (cmd.type === 'Q') {
 					return {
 						...cmd,
-						x: Math.round(cmd.x + cmd.y * SHEAR),
-						x1: Math.round(cmd.x1 + cmd.y1 * SHEAR)
+						x: Math.round(cmd.x + cmd.y * shear),
+						x1: Math.round(cmd.x1 + cmd.y1 * shear)
 					};
 				}
 				// C
 				return {
 					...cmd,
-					x: Math.round(cmd.x + cmd.y * SHEAR),
-					x1: Math.round(cmd.x1 + cmd.y1 * SHEAR),
-					x2: Math.round(cmd.x2 + cmd.y2 * SHEAR)
+					x: Math.round(cmd.x + cmd.y * shear),
+					x1: Math.round(cmd.x1 + cmd.y1 * shear),
+					x2: Math.round(cmd.x2 + cmd.y2 * shear)
 				};
 			})
 		}));
+	};
 	const italicGlyphs: Record<number, import('./types').Glyph> = {};
 	for (const [cpStr, g] of Object.entries(project.glyphs)) {
 		const cp = Number(cpStr);
@@ -2581,12 +2613,14 @@ export const createDemoProject = (): Project => {
 			italicGlyphs[cp] = { ...g, updatedAt: new Date().toISOString() };
 			continue;
 		}
+		const deg = slantDegFor(cp);
+		const shear = deg === 0 ? 0 : Math.tan((deg * Math.PI) / 180);
 		italicGlyphs[cp] = {
 			...g,
-			contours: slantContours(g.contours),
+			contours: slantContours(g.contours, deg),
 			anchors: g.anchors?.map((a) => ({
 				...a,
-				x: Math.round(a.x + a.y * SHEAR)
+				x: Math.round(a.x + a.y * shear)
 			})),
 			updatedAt: new Date().toISOString()
 		};
