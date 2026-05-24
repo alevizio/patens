@@ -323,7 +323,7 @@
 				<textarea
 					value={brief.designNotes ?? ''}
 					oninput={(e) => projectStore.updateBrief({ designNotes: e.currentTarget.value })}
-					placeholder={`e.g., A digital-first reading face whose proportions were derived from… The italic was drawn first and informed the upright via shared stress angles… Vietnamese diacritics use a single shared shape across two-storey marks…`}
+					placeholder="e.g., A digital-first reading face whose proportions were derived from… The italic was drawn first and informed the upright via shared stress angles… Vietnamese diacritics use a single shared shape across two-storey marks…"
 					rows="6"
 					class="block w-full resize-y rounded-lg border border-border bg-surface px-3 py-2 text-sm leading-[1.55] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 				></textarea>

@@ -29,5 +29,11 @@ vite.config.ts.timestamp-*
 /blob-report
 /playwright/.cache
 
+# Vitest coverage
+/coverage
+
+# Bundle analysis (generated on demand by `pnpm run analyze`)
+/bundle-report.html
+
 # Claude Code runtime
 .claude/scheduled_tasks.lock

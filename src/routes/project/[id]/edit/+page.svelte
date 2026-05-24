@@ -1731,7 +1731,11 @@
 			trace();
 		} else if (ev.key === 's' || ev.key === 'S') {
 			showSketch = !showSketch;
-		} else if (ev.key === 'v' || ev.key === 'V') {
+		} else if ((ev.key === 'v' || ev.key === 'V') && !ev.metaKey && !ev.ctrlKey) {
+			// Bare V/Shift+V toggles vector layer. Cmd+Shift+V (paste glyph)
+			// is intentionally NOT this branch — it falls through to the
+			// modifier-aware handler below. Without the !meta/!ctrl guard
+			// this branch swallowed Cmd+Shift+V and paste was unreachable.
 			showVector = !showVector;
 		} else if (ev.key === 'g' || ev.key === 'G') {
 			showGrid = !showGrid;

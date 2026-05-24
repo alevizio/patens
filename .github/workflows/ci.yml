@@ -23,11 +23,26 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Lint (eslint)
+        # Baseline lint at v1.0.0-beta — fails only on errors (warnings
+        # surface in the report). The handful of remaining errors map
+        # back to a pre-existing audit; future PRs should add no new
+        # errors. Use `pnpm run lint:fix` locally to autofix.
+        run: pnpm exec eslint . --max-warnings 9999
+
       - name: Type-check (svelte-check)
         run: pnpm exec svelte-check --tsconfig ./tsconfig.json
 
       - name: Unit tests (vitest)
-        run: pnpm exec vitest run
+        run: pnpm exec vitest run --coverage
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage
+          retention-days: 7
 
       - name: Install Playwright browser
         run: pnpm exec playwright install --with-deps chromium

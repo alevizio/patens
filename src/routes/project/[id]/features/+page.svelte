@@ -905,26 +905,26 @@
 						<div class="mb-1 font-medium text-fg">Substitution (GSUB)</div>
 						<pre class="rounded bg-surface-2/40 p-2 text-[11px] text-fg-muted">feature liga {'{'}
     sub f i by fi;
-{'}'} liga;</pre>
+} liga;</pre>
 					</div>
 					<div>
 						<div class="mb-1 font-medium text-fg">Positioning (GPOS)</div>
 						<pre class="rounded bg-surface-2/40 p-2 text-[11px] text-fg-muted">feature kern {'{'}
     pos A V -90;
-{'}'} kern;</pre>
+} kern;</pre>
 					</div>
 					<div>
 						<div class="mb-1 font-medium text-fg">Glyph classes</div>
-						<pre class="rounded bg-surface-2/40 p-2 text-[11px] text-fg-muted">{'@A_left = [A Á Â Ä];'}
+						<pre class="rounded bg-surface-2/40 p-2 text-[11px] text-fg-muted">@A_left = [A Á Â Ä];
 {'feature kern {'}
-    {'pos @A_left V -80;'}
-{'}'} kern;</pre>
+    pos @A_left V -80;
+} kern;</pre>
 					</div>
 					<div>
 						<div class="mb-1 font-medium text-fg">Stylistic alternates</div>
 						<pre class="rounded bg-surface-2/40 p-2 text-[11px] text-fg-muted">feature ss01 {'{'}
     sub a by a.alt;
-{'}'} ss01;</pre>
+} ss01;</pre>
 					</div>
 				</div>
 				<p class="mt-3 text-[11px] text-fg-subtle">
