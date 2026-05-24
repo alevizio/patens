@@ -1482,6 +1482,69 @@ const buildAmp = (): BezierContour[] => {
 	];
 };
 
+// At-sign — outer ring + inner counter + a small lowercase "a" core.
+// Geometric three-ring construction at cap-height. The opening at the
+// bottom-right (where the spiral ends) is a small notch carved out of
+// the outer ring's counter so the "a" core reads as enclosed but not
+// fully surrounded — the canonical visual.
+const buildAtSign = (): BezierContour[] => {
+	const W = CAP_W + 60;
+	const h = CAP_HEIGHT;
+	const cx = W / 2;
+	const cy = h * 0.5;
+	const outerR = h * 0.5;
+	const innerR = outerR - STEM;
+	const sides = 24;
+	const ring = (
+		ccx: number,
+		ccy: number,
+		rx: number,
+		ry: number,
+		ccw = false,
+		startAngle = 0,
+		sweep = Math.PI * 2
+	): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const a = startAngle + (i / sides) * sweep * (ccw ? -1 : 1);
+			pts.push([ccx + Math.cos(a) * rx, ccy + Math.sin(a) * ry]);
+		}
+		return pts;
+	};
+	// Inner `a` core — small bowl centered slightly right of center.
+	const coreCx = cx + 40;
+	const coreCy = cy;
+	const coreR = innerR - STEM - 10;
+	const coreInner = coreR - STEM + 20;
+	// Notch at the bottom-right where the spiral opens. A small wedge
+	// punched out of the outer ring + the gap between outer and the `a`
+	// core so the eye reads it as a single connected stroke.
+	const notchAngle = Math.PI * 0.35;
+	return [
+		// Outer ring — full circle
+		poly(ring(cx, cy, outerR, outerR)),
+		// Outer ring counter (the white space between outer ring + the
+		// inner `a` core). 270° sweep so the bottom-right is open,
+		// reading as the spiral exit. ccw because counters punch holes.
+		poly(
+			ring(cx, cy, innerR, innerR, true, -Math.PI / 2 - notchAngle, Math.PI * 2 - notchAngle * 2),
+			'ccw'
+		),
+		// Inner `a` core outer bowl
+		poly(ring(coreCx, coreCy, coreR, coreR)),
+		// Inner `a` core counter (small hole in the middle of the `a`)
+		poly(ring(coreCx, coreCy, coreInner, coreInner, true), 'ccw'),
+		// Right stem of the inner `a` (visual closure of the lowercase
+		// a's right side, the part that hooks down past the bowl)
+		poly([
+			[coreCx + coreR - STEM / 2, coreCy - coreR],
+			[coreCx + coreR + STEM / 2, coreCy - coreR],
+			[coreCx + coreR + STEM / 2, coreCy + coreR + 30],
+			[coreCx + coreR - STEM / 2, coreCy + coreR + 30]
+		])
+	];
+};
+
 // Asterisk — six short bars rotated 60° each around a center near
 // cap-height. Six arms is the most-typographically-correct asterisk
 // shape (matches the historic five-point star + descender stub).
@@ -1950,6 +2013,8 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x29, contours: buildParenRight(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 40, rightSidebearing: 60, status: 'draft' }, // )
 	// Ampersand — descends from Latin "et"; geometric two-bowl + tail.
 	{ codepoint: 0x26, contours: buildAmp(), advanceWidth: CAP_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // &
+	// At-sign — outer ring enclosing a small lowercase a core
+	{ codepoint: 0x40, contours: buildAtSign(), advanceWidth: CAP_W + 60, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // @
 	// Math + symbol operators — minimum set for code, prices, equations
 	{ codepoint: 0x2b, contours: buildPlus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // +
 	{ codepoint: 0x3d, contours: buildEquals(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // =
