@@ -2332,11 +2332,44 @@ export const createDemoProject = (): Project => {
 		{ left: 0x46, right: 0x6e, value: -30 }, // Fn
 		{ left: 0x53, right: 0x61, value: -10 }, // Sa
 		{ left: 0x53, right: 0x6f, value: -10 }, // So
-		// Lowercase pairs.
+		// Lowercase pairs — the body-text bigrams that carry rhythm.
 		{ left: 0x6e, right: 0x6f, value: -10 }, // no
 		{ left: 0x6f, right: 0x6e, value: -10 }, // on
 		{ left: 0x61, right: 0x6e, value: -10 }, // an
 		{ left: 0x61, right: 0x6f, value: -10 }, // ao
+		{ left: 0x6f, right: 0x76, value: -20 }, // ov
+		{ left: 0x76, right: 0x6f, value: -20 }, // vo
+		{ left: 0x6f, right: 0x77, value: -20 }, // ow
+		{ left: 0x77, right: 0x6f, value: -20 }, // wo
+		{ left: 0x6f, right: 0x79, value: -20 }, // oy
+		{ left: 0x6f, right: 0x74, value: -10 }, // ot
+		{ left: 0x74, right: 0x6f, value: -20 }, // to
+		{ left: 0x74, right: 0x79, value: -10 }, // ty
+		{ left: 0x65, right: 0x77, value: -10 }, // ew
+		{ left: 0x65, right: 0x76, value: -10 }, // ev
+		{ left: 0x6c, right: 0x74, value: -20 }, // lt
+		{ left: 0x6c, right: 0x76, value: -30 }, // lv
+		{ left: 0x6c, right: 0x79, value: -30 }, // ly
+		{ left: 0x6c, right: 0x77, value: -30 }, // lw
+		{ left: 0x72, right: 0x74, value: -20 }, // rt
+		{ left: 0x72, right: 0x79, value: -10 }, // ry
+		{ left: 0x72, right: 0x76, value: -10 }, // rv
+		// Diphthong / vowel pairs that carry the lions share of English body.
+		{ left: 0x61, right: 0x69, value: -10 }, // ai
+		{ left: 0x65, right: 0x69, value: -10 }, // ei
+		{ left: 0x6f, right: 0x69, value: -10 }, // oi
+		{ left: 0x69, right: 0x6f, value: -10 }, // io
+		{ left: 0x65, right: 0x61, value: -10 }, // ea
+		// Lowercase after punctuation — comma + period kern the following
+		// letter slightly closer so the rhythm doesn't break at sentence
+		// ends.
+		{ left: 0x2c, right: 0x6f, value: -30 }, // ,o
+		{ left: 0x2c, right: 0x61, value: -30 }, // ,a
+		{ left: 0x2c, right: 0x65, value: -30 }, // ,e
+		{ left: 0x2e, right: 0x6f, value: -20 }, // .o
+		// Numbers next to operators (now that +, =, * are drawn).
+		{ left: 0x31, right: 0x32, value: -10 }, // 12
+		{ left: 0x32, right: 0x33, value: -10 }, // 23
 		// Mixed-case caps following lowercase (common after-period case).
 		{ left: 0x6e, right: 0x48, value: 10 }, // nH
 		{ left: 0x6f, right: 0x48, value: 10 } // oH
