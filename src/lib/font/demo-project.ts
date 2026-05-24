@@ -1421,6 +1421,67 @@ const buildEquals = (): BezierContour[] => {
 	];
 };
 
+// Ampersand — descends from the Latin "et" ligature. Geometric-sans
+// convention: small top bowl + larger bottom bowl + tail extending
+// right at the baseline. Built from two rings (each with a counter)
+// and a horizontal arm. Sits at cap-height like a real ampersand.
+const buildAmp = (): BezierContour[] => {
+	const W = CAP_W + 80;
+	const h = CAP_HEIGHT;
+	const sides = 20;
+	const innerT = STEM - 10;
+	const ring = (
+		cx: number,
+		cy: number,
+		rx: number,
+		ry: number,
+		ccw = false
+	): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * rx, cy + Math.sin(angle) * ry]);
+		}
+		return pts;
+	};
+	// Top bowl — small, upper-left of the glyph
+	const topCx = W * 0.4;
+	const topCy = h * 0.74;
+	const topR = 130;
+	// Bottom bowl — larger, slightly right of center
+	const botCx = W * 0.45;
+	const botCy = h * 0.3;
+	const botR = 200;
+	return [
+		// Top bowl outer ring
+		poly(ring(topCx, topCy, topR, topR)),
+		// Top bowl counter (ccw to punch a hole)
+		poly(ring(topCx, topCy, topR - innerT, topR - innerT, true), 'ccw'),
+		// Bottom bowl outer ring
+		poly(ring(botCx, botCy, botR, botR)),
+		// Bottom bowl counter
+		poly(ring(botCx, botCy, botR - innerT, botR - innerT, true), 'ccw'),
+		// Connecting diagonal — tilted rectangle from top bowl's
+		// top-right to bottom bowl's bottom-left, the visual line that
+		// reads as the et-ligature cross stroke.
+		poly([
+			[topCx + topR * 0.4, topCy + topR * 0.6],
+			[topCx + topR * 0.7, topCy + topR * 0.9],
+			[botCx - botR * 0.6, botCy - botR * 0.7],
+			[botCx - botR * 0.9, botCy - botR * 0.4]
+		]),
+		// Tail — extends from the bottom bowl's right side outward and
+		// down to the baseline. Reads as the swash exit of a real
+		// drawn ampersand without needing a curved stroke.
+		poly([
+			[botCx + botR - innerT, botCy - botR * 0.2],
+			[botCx + botR + 100, botCy - botR + 20],
+			[W - 20, BAR + 40],
+			[botCx + botR + 60, BAR + 100]
+		])
+	];
+};
+
 // Asterisk — six short bars rotated 60° each around a center near
 // cap-height. Six arms is the most-typographically-correct asterisk
 // shape (matches the historic five-point star + descender stub).
@@ -1887,6 +1948,8 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x21, contours: buildExclam(), advanceWidth: PUNCT_W, leftSidebearing: STEM, rightSidebearing: STEM, status: 'draft' }, // !
 	{ codepoint: 0x28, contours: buildParenLeft(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 60, rightSidebearing: 40, status: 'draft' }, // (
 	{ codepoint: 0x29, contours: buildParenRight(), advanceWidth: Math.round(PUNCT_W * 1.2), leftSidebearing: 40, rightSidebearing: 60, status: 'draft' }, // )
+	// Ampersand — descends from Latin "et"; geometric two-bowl + tail.
+	{ codepoint: 0x26, contours: buildAmp(), advanceWidth: CAP_W + 80, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // &
 	// Math + symbol operators — minimum set for code, prices, equations
 	{ codepoint: 0x2b, contours: buildPlus(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // +
 	{ codepoint: 0x3d, contours: buildEquals(), advanceWidth: PUNCT_W + 100, leftSidebearing: 50, rightSidebearing: 50, status: 'draft' }, // =
