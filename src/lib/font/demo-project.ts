@@ -2587,7 +2587,26 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x043e, contours: buildO_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // о
 	{ codepoint: 0x0440, contours: buildP_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // р — same as Latin p
 	{ codepoint: 0x0441, contours: buildC_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 60, status: 'sketch' }, // с
-	{ codepoint: 0x0445, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' } // х
+	{ codepoint: 0x0445, contours: buildX_lc(), advanceWidth: LC_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // х
+	// Greek uppercase look-alikes — same starter pattern as Cyrillic.
+	// 14 capitals whose shapes are identical (in a geometric sans) to
+	// their Latin counterparts. NOT a full Greek set; Γ Δ Θ Λ Ξ Π Σ Φ Ψ Ω
+	// + the entire lowercase script need bespoke shapes (Greek lowercase
+	// is its own design problem) and are deliberate future work.
+	{ codepoint: 0x0391, contours: buildA(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Α Alpha
+	{ codepoint: 0x0392, contours: buildB(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Β Beta
+	{ codepoint: 0x0395, contours: buildE(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Ε Epsilon
+	{ codepoint: 0x0396, contours: buildZ(), advanceWidth: CAP_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // Ζ Zeta
+	{ codepoint: 0x0397, contours: buildH(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Η Eta
+	{ codepoint: 0x0399, contours: buildI(), advanceWidth: Math.round(CAP_W * 0.6), leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Ι Iota
+	{ codepoint: 0x039a, contours: buildK(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 60, status: 'sketch' }, // Κ Kappa
+	{ codepoint: 0x039c, contours: buildM(), advanceWidth: CAP_W + 80, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Μ Mu
+	{ codepoint: 0x039d, contours: buildN(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Ν Nu
+	{ codepoint: 0x039f, contours: buildO(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Ο Omicron
+	{ codepoint: 0x03a1, contours: buildP(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Ρ Rho
+	{ codepoint: 0x03a4, contours: buildT(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Τ Tau
+	{ codepoint: 0x03a5, contours: buildY(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Υ Upsilon
+	{ codepoint: 0x03a7, contours: buildX(), advanceWidth: CAP_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' } // Χ Chi
 ];
 
 /** Build a fresh demo project. Caller is expected to saveProject() it. */
