@@ -1578,9 +1578,9 @@
 		const d = contoursToSvgPath(glyph.contours);
 		try {
 			await navigator.clipboard.writeText(d);
-			toast.success(`Copied path (${d.length} chars)`);
+			toast.success(`Copied SVG path for ${glyph.name}`);
 		} catch {
-			toast.error('Clipboard write failed.');
+			toast.error('Could not copy — try the keyboard shortcut Cmd+Shift+C.');
 		}
 	};
 
@@ -1899,7 +1899,7 @@
 						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors {skipEmptyNav
 							? 'bg-accent-soft text-accent-strong'
 							: 'text-fg-muted hover:bg-surface-2 hover:text-fg'}"
-						title="[ ] navigation skips empty glyphs"
+						title="When on, the [ and ] keys skip empty glyphs as you navigate."
 					>
 						Skip empty
 					</button>

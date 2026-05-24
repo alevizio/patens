@@ -695,6 +695,12 @@
 	ondrop={onDrop}
 	role="application"
 >
+	<!-- Non-blocking welcome strip — first-visit orientation. Shows the
+	     actual product immediately; the strip is short + dismissible. -->
+	<WelcomeDialog
+		open={!settings.welcomeDismissed}
+		onclose={() => settings.dismissWelcome()}
+	/>
 	<!-- Slim top bar: brand pill + secondary nav. Acts as the dashboard's
 	     chrome header — distinct from the editorial hero below. -->
 	<!-- Editorial wordmark header: Hoefler serif name acts as the identity, no
@@ -1480,10 +1486,6 @@
 		</div>
 	{/if}
 
-	<WelcomeDialog
-		open={!settings.welcomeDismissed}
-		onclose={() => settings.dismissWelcome()}
-	/>
 	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
 	<CreateFontDialog
 		open={createDialogOpen}
