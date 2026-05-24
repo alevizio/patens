@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { untrack } from 'svelte';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { STANDARD_AXES } from '$lib/font/types';
@@ -29,11 +30,20 @@
 	let previewLocation = $state<Record<string, number>>({});
 	$effect(() => {
 		// Initialise / reset the preview location whenever axes change.
-		const next: Record<string, number> = {};
-		for (const a of project?.axes ?? []) {
-			next[a.tag] = previewLocation[a.tag] ?? a.default;
-		}
-		previewLocation = next;
+		// Track the axes array (reactive dep); read+write previewLocation
+		// inside untrack so the effect doesn't loop on its own write.
+		// Without untrack, reading previewLocation[a.tag] subscribes the
+		// effect to previewLocation, the write retriggers the effect,
+		// infinite-update-depth-exceeded — which has been silently
+		// blowing the designspace route in test runs.
+		const axes = project?.axes ?? [];
+		untrack(() => {
+			const next: Record<string, number> = {};
+			for (const a of axes) {
+				next[a.tag] = previewLocation[a.tag] ?? a.default;
+			}
+			previewLocation = next;
+		});
 	});
 	const previewWeights = $derived.by(() => {
 		if (!project || (project.axes?.length ?? 0) === 0) return [];

@@ -1761,6 +1761,7 @@
 		<div class="mb-3 grid grid-cols-[1fr_180px_auto] items-center gap-3">
 			<input
 				bind:value={playgroundText}
+				aria-label="Playground text"
 				class="rounded-md border border-border bg-surface px-3 py-2 text-sm outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 				placeholder="Type to test spacing…"
 			/>
@@ -1864,6 +1865,7 @@
 			{/each}
 			<input
 				bind:value={referenceFont}
+				aria-label="Reference font family"
 				placeholder="Or any font family…"
 				class="ml-2 rounded-md border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent"
 			/>
@@ -2005,6 +2007,7 @@
 							<input
 								type="number"
 								value={avg.lsb}
+								aria-label="LSB for class {cls.name}"
 								onchange={(e) =>
 									projectStore.setSidebearingClassValues(
 										cls.id,
@@ -2017,6 +2020,7 @@
 							<input
 								type="number"
 								value={avg.rsb}
+								aria-label="RSB for class {cls.name}"
 								onchange={(e) =>
 									projectStore.setSidebearingClassValues(
 										cls.id,
