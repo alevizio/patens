@@ -1237,21 +1237,23 @@ body {
 	<title>{project.metadata.familyName} — {project.metadata.styleName}</title>
 	<meta name="description" content={shareDesc} />
 	<!-- OpenGraph for link unfurls on Twitter, Slack, Discord, iMessage.
-	     og:image points at the prerendered /og.png (Font Studio brand
-	     image). A project-specific dynamic OG would need a server-side
-	     project store which doesn't exist today — IndexedDB lives client-
-	     side. The brand image is better than no image for unfurl preview. -->
+	     og:image points at /og/{projectId} — a server-rendered PNG
+	     using satori + resvg that shows the family name + designer +
+	     glyph count for THIS specific project. Renders the demo on
+	     the fly; falls back to a generic Font Studio brand card if the
+	     project isn't in cloud storage. Bots that fetch the page get
+	     a project-specific preview instead of generic brand art. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content={shareTitle} />
 	<meta property="og:description" content={shareDesc} />
 	<meta property="og:site_name" content="Font Studio" />
-	<meta property="og:image" content="/og.png" />
+	<meta property="og:image" content="/og/{project.id}" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={shareTitle} />
 	<meta name="twitter:description" content={shareDesc} />
-	<meta name="twitter:image" content="/og.png" />
+	<meta name="twitter:image" content="/og/{project.id}" />
 </svelte:head>
 
 <!-- Reusable type-rendering snippets for the In context mockups.
