@@ -1,7 +1,26 @@
 {
-	"name": "font",
+	"name": "font-studio",
+	"version": "1.0.0-beta.0",
+	"description": "A browser-based type design environment. Draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required.",
+	"author": "Alejandro Vizio",
+	"license": "MIT",
+	"homepage": "https://github.com/alevizio/font-studio#readme",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/alevizio/font-studio.git"
+	},
+	"bugs": {
+		"url": "https://github.com/alevizio/font-studio/issues"
+	},
+	"keywords": [
+		"font",
+		"type-design",
+		"opentype",
+		"sveltekit",
+		"variable-font",
+		"glyph-editor"
+	],
 	"private": true,
-	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
 		"dev": "vite dev",

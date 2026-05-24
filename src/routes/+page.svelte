@@ -846,7 +846,7 @@
 			<div class="mb-6 flex items-baseline justify-between gap-3">
 				<h2
 					class="text-[18px] tracking-tight text-fg"
-					style="font-family: ui-serif, Georgia, serif;"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Or pick a kind
 				</h2>

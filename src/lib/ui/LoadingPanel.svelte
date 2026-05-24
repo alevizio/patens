@@ -21,12 +21,12 @@
 		{ name: 'Sans', font: 'ui-sans-serif, system-ui, sans-serif', weight: 400, style: 'normal' },
 		{ name: 'Serif', font: 'ui-serif, Georgia, "Times New Roman", serif', weight: 400, style: 'normal' },
 		{ name: 'Mono', font: 'ui-monospace, Menlo, "Courier New", monospace', weight: 400, style: 'normal' },
-		{ name: 'Italic', font: 'ui-serif, Georgia, serif', weight: 400, style: 'italic' },
+		{ name: 'Slab', font: '"Georgia", "Hoefler Text", serif', weight: 700, style: 'normal' },
 		{ name: 'Bold', font: 'ui-sans-serif, system-ui, sans-serif', weight: 800, style: 'normal' },
 		{ name: 'Light', font: 'ui-sans-serif, system-ui, sans-serif', weight: 200, style: 'normal' },
 		{ name: 'Black', font: 'ui-sans-serif, system-ui, sans-serif', weight: 900, style: 'normal' },
 		{ name: 'Display', font: '"Times New Roman", "Hoefler Text", serif', weight: 900, style: 'normal' },
-		{ name: 'Oblique', font: 'ui-sans-serif, system-ui, sans-serif', weight: 600, style: 'italic' }
+		{ name: 'Condensed', font: '"Arial Narrow", "Helvetica Neue Condensed", sans-serif', weight: 600, style: 'normal' }
 	] as const;
 
 	let styleIdx = $state(0);
