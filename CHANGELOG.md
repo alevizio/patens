@@ -2,6 +2,24 @@
 
 All notable changes to Patens. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/patens).
 
+## [1.5.2] — 2026-05-25
+
+### Security
+- **Closed open-redirect via `?returnTo` on `/auth/login`, `/auth/callback/github`, `/auth/logout`.** `safeReturnTo()` helper validates the redirect target resolves to the same origin; off-origin / scheme-relative / `javascript:` / `data:` URLs fall back to `/`. 13 unit tests cover the helper + the encode/decode/tamper paths.
+- **Replaced `===` token comparison with `timingSafeEqual`** in share POST + DELETE (`constantTimeEqual` in `src/lib/share-blob.ts`). Defense-in-depth against timing attacks.
+
+### Fixed
+- **Pointer-listener leak in the 2D variation explorer.** Inline-template handler was recreated on every reactive update + added new listeners on every pointerdown with no cleanup if pointerup was missed (pointercancel / lostpointercapture / ESC during drag). Hoisted to script block; added re-entrancy guard + listens for all drag-end events.
+
+### Added
+- **Family kerning UI panel on `/family/[id]`** — completes the v1.5.0 Day 9 data-only work. Table of family-wide pairs (left + right + value + delete) + inline add form. Pairs apply to every sibling at resolution time via `resolveKerning()`.
+- **e2e API smoke tests** (`e2e/api-smoke.spec.ts`) — 12 tests covering health version, sitemap + RSS XML validity, OG byte size with PNG magic-number check, manifest PWA shape, share endpoints 503/404 paths, auth gates. Catches the regression classes that `docs/qa-checklist.md` exists for, in CI instead of post-deploy.
+- **`session.test.ts`** — 13 unit tests for the signed-cookie session helpers + the new `safeReturnTo` open-redirect defense.
+
+### Changed
+- **Lint baseline ratcheted 22 → 2** (CI gate at 5). Cleaned vestigial vars across `svg-path.ts` (cx/cy/startX/startY current-point trackers that were never read), `audit.ts` (unused depth counter), `path.ts` (dead pts[] + last in reverseContour), `export.ts` (orphan effectiveContours wrapper), `GlyphBrowser.svelte` (orphan handleDelete), and a few placeholder/escape-character tightenings.
+- **Cold-load baseline refresh** at `patens.design` (post-rebrand + post-preload-mjs): home FCP **1057ms** (was 1319ms in v1.4.0 — 20% faster), editor FCP **906ms**, share FCP **1356ms**. 0 long tasks anywhere.
+
 ## [1.5.1] — 2026-05-25
 
 ### Changed

@@ -94,10 +94,12 @@ The script (`scripts/profile-cold-load.mjs`) drives headless Chromium against th
 
 Full trace dumped to `/tmp/font-studio-trace.json` — open in `chrome://tracing` or DevTools → Performance → Load profile for a graphical view.
 
-Baseline (v1.4.0, commit `d335121`):
-- `/`: 1319ms FCP, 0 long tasks, 20ms initial layout
-- `/share/demo`: 823ms FCP, 0 long tasks, 11.6ms initial layout
-- `/project/demo/edit`: 874ms FCP, 0 long tasks, 35ms layout at glyph-browser mount
+Baseline (v1.5.2 — at patens.design):
+- `/`: **1057ms FCP** (was 1319ms in v1.4.0 — 20% faster after preload-mjs landed), 0 long tasks, 11.2ms layout
+- `/share/demo`: **1356ms FCP**, 0 long tasks, 7.5ms layout
+- `/project/demo/edit`: **906ms FCP, 1028ms LCP**, 0 long tasks, 29.5ms layout at glyph-browser mount
+
+Total EvaluateScript ≤3ms on every route — the chunk graph is fully preloaded by the time JS evaluates.
 
 ## 8. Lighthouse + axe-core (deferred-but-tracked)
 
