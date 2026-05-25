@@ -1920,6 +1920,63 @@ body {
 			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Body</div>
 			{@render typeParagraph(bodyMock, 1800, 16)}
 		</div>
+		<!-- Two more mockups: Pricing tier card + Code block. Both
+		     exercise common UI surfaces designers actually buy fonts
+		     for. The pricing card uses tabular figures via the
+		     project's existing digit drawings; the code block uses
+		     the body sans set against a tinted background to read as
+		     "monospace context" without needing a real mono variant. -->
+		<div class="mt-4 grid gap-4 sm:grid-cols-2">
+			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
+					Pricing card
+				</div>
+				<div class="text-fg-muted">
+					{@render typeRow('Professional', 14)}
+				</div>
+				<div class="mt-1 flex items-baseline gap-1 text-fg">
+					{@render typeRow('€49', 48)}
+					<span class="ml-1 text-fg-muted">{@render typeRow('per month', 13)}</span>
+				</div>
+				<ul class="mt-3 space-y-1 text-fg-muted">
+					<li>{@render typeRow('Unlimited projects', 13)}</li>
+					<li>{@render typeRow('Cloud-shared specimen pages', 13)}</li>
+					<li>{@render typeRow('Priority support', 13)}</li>
+				</ul>
+			</div>
+			<div class="rounded-lg border border-border bg-surface-2/40 px-5 py-6">
+				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
+					Code block
+				</div>
+				<div class="space-y-1 text-fg-muted" style="line-height: 1.4;">
+					<div>{@render typeRow('@font-face {', 13)}</div>
+					<div class="pl-4">{@render typeRow(`font-family: '${project.metadata.familyName}';`, 13)}</div>
+					<div class="pl-4">{@render typeRow('src: url(font.woff2);', 13)}</div>
+					<div>{@render typeRow('}', 13)}</div>
+				</div>
+			</div>
+		</div>
+		<!-- Form mockup — label + input + helper text. Common UI shape
+		     and tests how the type behaves in dense, narrow widths
+		     (input labels, validation copy). -->
+		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-6">
+			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
+				Form field
+			</div>
+			<div class="max-w-sm">
+				<div class="mb-1.5 text-fg">
+					{@render typeRow('Email address', 13)}
+				</div>
+				<div
+					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-fg-muted"
+				>
+					{@render typeRow('you@studio.example', 14)}
+				</div>
+				<div class="mt-1.5 text-fg-subtle">
+					{@render typeRow('We never share your email.', 12)}
+				</div>
+			</div>
+		</div>
 		<p class="mt-2 text-[11px] text-fg-subtle">
 			Mockups re-render in step with the tester above — switch master, palette, or features and these update too.
 		</p>
