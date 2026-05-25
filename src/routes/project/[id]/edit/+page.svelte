@@ -1435,10 +1435,12 @@
 	const alignVertically = (target: 'baseline' | 'capHeight' | 'xHeight') => {
 		if (!glyph || glyph.contours.length === 0 || !metrics) return;
 		const bounds = glyphBounds(glyph.contours);
-		let dy = 0;
-		if (target === 'baseline') dy = -bounds.minY; // bbox bottom → 0
-		else if (target === 'capHeight') dy = metrics.capHeight - bounds.maxY; // bbox top → cap
-		else dy = metrics.xHeight - bounds.maxY; // bbox top → x-height
+		const dy =
+			target === 'baseline'
+				? -bounds.minY // bbox bottom → 0
+				: target === 'capHeight'
+					? metrics.capHeight - bounds.maxY // bbox top → cap
+					: metrics.xHeight - bounds.maxY; // bbox top → x-height
 		if (dy === 0) return;
 		const m: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: Math.round(dy) };
 		const allRefs = glyph.contours.flatMap((c, ci) =>

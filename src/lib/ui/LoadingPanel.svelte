@@ -54,7 +54,7 @@
 
 	const currentStyle = $derived(TYPE_STYLES[styleIdx]);
 	const currentMessage = $derived(messages?.[messageIdx]);
-	const loadingWord = $derived(label.toLowerCase().replace(/[…\.]+$/, ''));
+	const loadingWord = $derived(label.toLowerCase().replace(/[….]+$/, ''));
 </script>
 
 <div

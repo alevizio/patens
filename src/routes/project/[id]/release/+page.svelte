@@ -718,7 +718,7 @@
 						<Field label="Notes">
 							<textarea
 								bind:value={newChangelogNotes}
-								placeholder={`- Added X\n- Fixed Y kerning\n- Bumped UPM`}
+								placeholder="- Added X&#10;- Fixed Y kerning&#10;- Bumped UPM"
 								rows="3"
 								class="block w-full resize-y rounded-md border border-border bg-surface px-2.5 py-2 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 							></textarea>

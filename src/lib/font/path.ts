@@ -20,8 +20,7 @@ export const computeWinding = (commands: PathCommand[]): 'cw' | 'ccw' =>
 	signedArea(commands) >= 0 ? 'ccw' : 'cw';
 
 export const reverseContour = (commands: PathCommand[]): PathCommand[] => {
-	// Convert to point list first; reversing bezier handles requires swapping x1<->x2.
-	const pts: { x: number; y: number; cmd: PathCommand }[] = [];
+	// Reversing bezier handles requires swapping x1<->x2.
 	let mx = 0,
 		my = 0;
 	for (const c of commands) {
@@ -34,12 +33,10 @@ export const reverseContour = (commands: PathCommand[]): PathCommand[] => {
 	const result: PathCommand[] = [];
 	const segments: PathCommand[] = commands.filter((c) => c.type !== 'Z' && c.type !== 'M');
 	const start = { x: mx, y: my };
-	let last = start;
 	const points: { x: number; y: number }[] = [start];
 	for (const seg of segments) {
 		if (seg.type === 'L' || seg.type === 'C' || seg.type === 'Q') {
 			points.push({ x: seg.x, y: seg.y });
-			last = { x: seg.x, y: seg.y };
 		}
 	}
 	// Walk in reverse, swapping bezier handle order for C/Q.

@@ -298,11 +298,6 @@
 		queueMicrotask(() => node.querySelector<HTMLInputElement>('input')?.focus());
 	};
 
-	const handleDelete = (codepoint: number, name: string) => {
-		if (!confirm(`Remove glyph "${name}" from the font? Any kerning pairs and class members referencing it will also be removed.`)) return;
-		projectStore.removeGlyph(codepoint);
-	};
-
 	const matchesStatus = (g: Glyph): boolean => {
 		switch (statusFilter) {
 			case 'all':

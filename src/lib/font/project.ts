@@ -204,16 +204,16 @@ export const migrate = (raw: unknown): MigrationResult | null => {
 	if (typeof r.id !== 'string' || !r.glyphs || typeof r.glyphs !== 'object') return null;
 	const fromVersion = typeof r.schemaVersion === 'number' ? r.schemaVersion : 0;
 	let p = r as unknown as Project;
-	// Stepwise migrations (none required yet at v1, but the switch is ready)
-	let v = fromVersion;
-	// Example for future use:
-	// while (v < CURRENT_SCHEMA_VERSION) {
-	//   switch (v) {
-	//     case 0: p = migrateV0ToV1(p); v = 1; break;
-	//     case 1: p = migrateV1ToV2(p); v = 2; break;
+	// Stepwise migrations (none required yet at v1, but the switch is ready).
+	// Future shape:
+	//   let v = fromVersion;
+	//   while (v < CURRENT_SCHEMA_VERSION) {
+	//     switch (v) {
+	//       case 0: p = migrateV0ToV1(p); v = 1; break;
+	//       case 1: p = migrateV1ToV2(p); v = 2; break;
+	//     }
 	//   }
-	// }
-	v = CURRENT_SCHEMA_VERSION;
+	const v = CURRENT_SCHEMA_VERSION;
 	// Fill in any missing required fields with defaults, in case the stored
 	// record predates a field being added.
 	if (!p.metadata) p = { ...p, metadata: { ...({} as FontMetadata) } };
@@ -490,7 +490,7 @@ export const hasAnyContours = (project: Project): boolean =>
  * Add a registered axis to the project (idempotent — no-op if axis with the
  * same tag is already present).
  */
-export const addAxis = (project: Project, tag: string, location = 0): Project => {
+export const addAxis = (project: Project, tag: string, _location = 0): Project => {
 	const existing = project.axes ?? [];
 	if (existing.some((a) => a.tag === tag)) return project;
 	const def = STANDARD_AXES[tag];

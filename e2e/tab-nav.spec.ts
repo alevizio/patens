@@ -55,7 +55,7 @@ const assertTabMounted = async (page: Page, tab: Tab) => {
 };
 
 test('every project tab updates the URL AND mounts its content', async ({ page }) => {
-	const id = await openDemoProject(page);
+	await openDemoProject(page);
 
 	for (const tab of TABS) {
 		// Wait for the previous nav to fully settle BEFORE clicking the

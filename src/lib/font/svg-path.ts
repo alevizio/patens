@@ -84,10 +84,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 	const contours: BezierContour[] = [];
 	let currentCmds: PathCommand[] = [];
 	let cursor = 0;
-	let cx = 0; // current point (post-transform)
-	let cy = 0;
-	let startX = 0; // sub-path start for `Z`
-	let startY = 0;
 	let rawCx = 0; // pre-transform current point (needed for relative cmds + reflection)
 	let rawCy = 0;
 	let rawStartX = 0;
@@ -114,10 +110,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 	const emitMove = (rawX: number, rawY: number) => {
 		const [x, y] = transformPoint(rawX, rawY);
 		currentCmds.push({ type: 'M', x, y });
-		cx = x;
-		cy = y;
-		startX = x;
-		startY = y;
 		rawCx = rawX;
 		rawCy = rawY;
 		rawStartX = rawX;
@@ -127,8 +119,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 	const emitLine = (rawX: number, rawY: number) => {
 		const [x, y] = transformPoint(rawX, rawY);
 		currentCmds.push({ type: 'L', x, y });
-		cx = x;
-		cy = y;
 		rawCx = rawX;
 		rawCy = rawY;
 	};
@@ -145,8 +135,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 		const [x2, y2] = transformPoint(rawX2, rawY2);
 		const [x, y] = transformPoint(rawX, rawY);
 		currentCmds.push({ type: 'C', x1, y1, x2, y2, x, y });
-		cx = x;
-		cy = y;
 		rawCx = rawX;
 		rawCy = rawY;
 		lastCubicCtrl = [rawX2, rawY2];
@@ -157,8 +145,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 		const [x1, y1] = transformPoint(rawX1, rawY1);
 		const [x, y] = transformPoint(rawX, rawY);
 		currentCmds.push({ type: 'Q', x1, y1, x, y });
-		cx = x;
-		cy = y;
 		rawCx = rawX;
 		rawCy = rawY;
 		lastQuadCtrl = [rawX1, rawY1];
@@ -290,8 +276,6 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 			}
 			case 'Z': {
 				currentCmds.push({ type: 'Z' });
-				cx = startX;
-				cy = startY;
 				rawCx = rawStartX;
 				rawCy = rawStartY;
 				lastCubicCtrl = null;

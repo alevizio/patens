@@ -199,12 +199,6 @@
 		apply(ev);
 	};
 
-	const defaultLocation = $derived.by(() => {
-		const loc: Record<string, number> = {};
-		for (const a of project?.axes ?? []) loc[a.tag] = a.default;
-		return loc;
-	});
-
 	// Current selected glyph rendered across every master — quick visual sanity
 	// check that interpolation is structurally compatible.
 	const selectedCp = $derived(projectStore.selectedCodepoint);

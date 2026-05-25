@@ -2333,7 +2333,7 @@
 		<textarea
 			bind:value={bulkText}
 			rows="5"
-			placeholder={`A V -60\nT a -40\n@upper_left o -20`}
+			placeholder="A V -60&#10;T a -40&#10;@upper_left o -20"
 			class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-3 py-2 font-mono text-[12px] text-fg outline-none focus:border-accent focus:bg-surface"
 		></textarea>
 		<div class="mt-2 flex items-center justify-between gap-3">

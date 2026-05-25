@@ -63,7 +63,6 @@ export const traceBitmapToContours = async (
 	const { default: fitCurve } = await import('fit-curve');
 
 	const img = await loadImage(dataUrl);
-	const aspect = img.naturalWidth / img.naturalHeight;
 	const longest = Math.max(img.naturalWidth, img.naturalHeight);
 	const scale = Math.min(1, opts.maxDimension / longest);
 	const w = Math.max(2, Math.round(img.naturalWidth * scale));

@@ -25,7 +25,7 @@ import { onConnect } from 'y-partykit';
 export default class FontStudioServer implements Party.Server {
 	constructor(readonly party: Party.Party) {}
 
-	async onConnect(connection: Party.Connection, ctx: Party.ConnectionContext) {
+	async onConnect(connection: Party.Connection, _ctx: Party.ConnectionContext) {
 		// y-partykit handles the full Yjs sync protocol: handshake,
 		// update fan-out, awareness, persistence. We just hand it the
 		// connection and let it do its job.

@@ -106,12 +106,6 @@ const effectiveContoursWithMap = (
 	return out;
 };
 
-/** Back-compat wrapper that keeps the original Project-based signature. */
-const effectiveContours = (
-	glyph: ProjectGlyph,
-	project: Project,
-	depth = 0
-): BezierContour[] => effectiveContoursWithMap(glyph, project.glyphs, depth);
 
 /**
  * Find a pair of anchors where the base has 'X' and the mark has '_X'

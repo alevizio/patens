@@ -368,12 +368,10 @@ export const auditGlyph = (glyph: Glyph, project: Project): AuditIssue[] => {
 			for (let i = 0; i < sampled.length; i++) {
 				if (sampled[i].pts.length === 0) continue;
 				const probe = sampled[i].pts[0];
-				let depth = 0;
 				let directParent = -1;
 				for (let j = 0; j < sampled.length; j++) {
 					if (j === i || sampled[j].pts.length === 0) continue;
 					if (contains(sampled[j].pts, probe.x, probe.y)) {
-						depth++;
 						directParent = j;
 					}
 				}

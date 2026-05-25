@@ -228,7 +228,7 @@ const buildFont = ({ familyName, styleName, slabs }) => {
 
 	const glyphs = [notdef];
 	for (const spec of glyphSpecs) {
-		const { path, advance, lsb } = spec.build();
+		const { path, advance } = spec.build();
 		glyphs.push(
 			new opentype.Glyph({
 				name: spec.name,
