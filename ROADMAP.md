@@ -64,7 +64,7 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - **Lint warning baseline.** 47 pre-existing ESLint warnings as of `v1.4.0` — ratcheted down from 52 in Wave 8 (`ci.yml` enforces `--max-warnings 47`). Mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty` and `@typescript-eslint/no-unused-vars`. New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
 
-- **43 audit codes without descriptions.** `describeAuditCode()` in `src/lib/font/audit.ts` has 51 description entries; the audit module actually emits 94 distinct codes. The UI degrades gracefully (tooltip is absent rather than broken) but the missing descriptions are real polish debt. Volume work — needs a content-writing pass against the audit code list.
+- ~~**43 audit codes without descriptions.**~~ ✅ Closed — `describeAuditCode()` now covers all 94 emitted codes. New descriptions span brief completeness, coverage subsets, glyph count, UPM, naming top-level fields, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
 
 ## Anti-goals
 

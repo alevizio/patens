@@ -1483,7 +1483,113 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'naming-copyright-missing':
 			'Copyright line is empty. Recommended for any distributed font — sets ownership and reuse boundaries.',
 		'naming-license-missing':
-			'License field is empty. Distributing without a license leaves recipients guessing about terms. Pick an SPDX identifier (e.g. "OFL-1.1") or paste your custom EULA.'
+			'License field is empty. Distributing without a license leaves recipients guessing about terms. Pick an SPDX identifier (e.g. "OFL-1.1") or paste your custom EULA.',
+
+		// Brief completeness — fields the project's design intent depends on
+		'brief-no-intent':
+			'The brief\'s "intent" field is empty. Without a stated intent, audit and review tools can\'t check whether design choices match the goal. Set one sentence on the Brief tab — e.g. "a geometric sans for product UI at 14px+".',
+		'brief-no-design-notes':
+			'The brief has no design notes. Notes are where you record decisions ("contrast is monoline", "g is single-storey") so future-you doesn\'t reinvent them. Not required for export — recommended for any project you\'ll revisit.',
+
+		// Coverage groups — bulk audits that check whether a script-essential subset is present
+		'coverage-typo-essentials':
+			'The typographic essentials subset is incomplete — basic punctuation and spacing characters that every font needs to feel finished (period, comma, hyphen, space, colon, semicolon, quotes). Some text will render with system-font fallbacks for the missing glyphs.',
+		'coverage-latin-1-supp':
+			'The Latin-1 Supplement subset is incomplete — accented letters used across Western European languages (À É Ñ Ü etc.). Missing glyphs mean Spanish, French, German, Portuguese, etc. won\'t render in your font.',
+		'coverage-currency':
+			'The currency-symbol subset is incomplete (¥ £ € ¢ ¤ etc.). Missing currency glyphs fall back to system fonts in price text — a visible inconsistency on storefronts and invoices.',
+		'coverage-math':
+			'The math-symbol subset is incomplete (± × ÷ ≠ ≤ ≥ etc.). Missing math glyphs are mostly invisible in body text but show up sharply in data tables and technical writing.',
+
+		// Glyph count
+		'glyph-count-low':
+			'The project has fewer than ~95 drawn glyphs — the baseline for "usable font" (A–Z + a–z + 0–9 + basic punctuation). Below that, most real-world text will render with fallback fonts mixed in.',
+		'control-glyphs-missing':
+			'The 12-glyph control set (the letters foundries draw first to establish proportion + texture: H, O, n, o, +, period, etc.) is incomplete. These should land before mass-drawing the rest because they set the visual rhythm everything else has to match.',
+		'figures-non-tabular':
+			'The 0–9 digits have unequal advance widths — proportional figures. Fine for body text; broken for data tables, prices, and spreadsheets where columns of numbers must align. Run "Tabularise 0–9" on the Spacing tab to give every digit the same advance.',
+
+		// UPM
+		'upm-unusual':
+			'Units-per-em (UPM) sits outside the typical 1000–2048 range. Most foundries pick 1000 (PostScript convention) or 2048 (TrueType convention). Unusual values still work but may cause off-by-one rounding when other tools assume a standard UPM.',
+
+		// Naming — top-level name table fields
+		'naming-family':
+			'Family name is empty. The OpenType name table requires a non-empty family name (ID 1) — export will refuse to produce a file without it. Set it on the Brief or Export tab.',
+		'naming-style':
+			'Style name is empty. The name table requires a style name (ID 2 — e.g. "Regular", "Bold", "Italic"). Export refuses to ship without one.',
+		'naming-version':
+			'Version field is empty. The OpenType head.fontRevision is derived from this — when empty, export defaults to "1.000". Set it explicitly so each release has a recognisable version string in font dialogs.',
+		'naming-family-long':
+			'Family name exceeds 31 characters. Some legacy app menus truncate or refuse to list overly long family names — keeping the name compact avoids ugly fallback behavior in Word, Photoshop, and older Office builds.',
+		'naming-family-chars':
+			'Family name contains characters outside the safe set (letters / digits / space / hyphen). Some apps reject anything beyond that — limit to A–Z, a–z, 0–9, space, and hyphen unless you\'ve verified your target apps accept more.',
+
+		// Metadata (meta-* — OS/2 + name-table metadata)
+		'meta-no-copyright':
+			'Copyright notice is empty. Most foundries require it; Google Fonts review rejects fonts without one. Add a one-line copyright on the Export tab (e.g. "Copyright 2026 Your Name").',
+		'meta-no-designer':
+			'Designer field is empty. Name table ID 9 ships blank, so Glyphs / Font Book / OS font browsers show "Unknown designer". Set it on the Brief tab.',
+		'meta-no-designer-url':
+			'Designer URL is empty. A homepage or portfolio link surfaces in some font dialogs and in PDF metadata when the font is embedded. Recommended for any font you want credit on.',
+		'meta-no-license':
+			'License field is empty. Pick a preset on the Export tab (OFL 1.1 for open source, Proprietary for commercial) so downstream users know the terms — fonts without licenses get treated as untrusted by review tools.',
+		'meta-no-license-url':
+			'License is set but the license URL is empty. URLs let embedded apps link directly to the license text (e.g. https://scripts.sil.org/OFL for OFL). Strongly recommended for OFL fonts.',
+		'meta-no-manufacturer':
+			'Manufacturer (foundry) field is empty — the name table falls back to the designer name. If you ship under a foundry brand distinct from the designer, set it explicitly so attribution is correct.',
+		'meta-no-vendor-id':
+			'OS/2 vendor ID is empty — defaults to "NONE" in the exported file. Register a 4-letter foundry tag at https://learn.microsoft.com/typography/vendors/ to identify your fonts in font-management tooling and crash diagnostics.',
+		'meta-vendor-id-invalid':
+			'Vendor ID is more than 4 characters or contains non-ASCII. The OS/2 achVendID field is 4 bytes — Microsoft\'s registry uses 4-letter all-caps tags. Short tags will be space-padded; over-length tags get truncated.',
+		'meta-version-format':
+			'Version string doesn\'t match the OpenType "MAJOR.MINOR" convention (e.g. "1.000", "2.345"). Many tools parse it into head.fontRevision and round non-conforming strings — best to follow the convention for predictable behavior.',
+
+		// Vertical-metric mismatches (between OS/2 typo* and hhea fields)
+		'metrics-asc-mismatch':
+			'OS/2 typoAscender doesn\'t match hhea ascender. The two values should be equal — line-height computations on Mac/iOS read OS/2, on Windows browsers read hhea, and a mismatch causes line spacing to differ across platforms.',
+		'metrics-desc-mismatch':
+			'OS/2 typoDescender doesn\'t match hhea descender. Same platform-divergence story as the ascender mismatch — line spacing won\'t match between Mac and Windows.',
+		'metrics-gap-mismatch':
+			'OS/2 typoLineGap doesn\'t match hhea lineGap. The extra-line-gap above the ascender is platform-dependent unless both fields agree. Set them equal in the Metrics inspector.',
+		'metrics-use-typo-off':
+			'The USE_TYPO_METRICS flag (OS/2 fsSelection bit 7) is off. Without it, Windows uses winAscent / winDescent for line spacing while Mac uses typoAscender / typoDescender, producing different line heights across platforms. Almost always should be on.',
+		'metrics-win-clip-top':
+			'OS/2 winAscent is below typoAscender — top edges of glyphs may clip on Windows. winAscent is Windows\' clipping boundary; if it sits below the typoAscender, ascenders that reach typoAscender will be cropped. Bump winAscent up.',
+		'metrics-win-clip-bottom':
+			'OS/2 winDescent is below |typoDescender| — descenders may clip on Windows. winDescent is the clipping boundary for descenders; if it\'s smaller than the typoDescender\'s magnitude, descenders get cropped. Bump winDescent up.',
+
+		// Designspace / variable-font axes + masters + instances
+		'axis-range-invalid':
+			'A designspace axis has min/default/max values out of order. The interpolation engine requires min ≤ default ≤ max — fix the axis on the Designspace tab.',
+		'master-orphan-axis':
+			'A master references an axis the project doesn\'t declare. The unknown axis is ignored at export, which may produce unexpected interpolation results. Either remove the axis reference from the master\'s location or add the axis to project.axes.',
+		'master-out-of-range':
+			'A master\'s axis value sits outside the declared range. Interpolation will clip to the nearest valid value, producing unexpected geometry. Either move the master into range or widen the axis range to include it.',
+		'instance-orphan-axis':
+			'A named instance references an axis the project doesn\'t declare. The instance will fall back to axis defaults for the unknown axis — usually not what you want. Remove or re-tag the axis reference.',
+		'no-instances':
+			'The designspace has axes but no named instances. Most apps expect at least the default instance to be defined (e.g. "Regular") so users have something to pick from the font menu. Add one on the Designspace tab.',
+
+		// Kerning classes + class-aware pair audits
+		'class-empty':
+			'A kerning class has no members. Empty classes pull their weight on the maintenance side but contribute nothing at run time — either fill them with the glyphs they\'re meant to group, or delete them.',
+		'class-missing-member':
+			'A kerning class lists a codepoint that has no corresponding glyph in the project. The reference is dead — the class behaves as if that member weren\'t there. Either draw the glyph or remove the reference from the class.',
+		'class-name-format':
+			'A kerning class name doesn\'t start with "@" — the convention shared by Glyphs, FontLab, and FEA syntax for kerning groups. Renaming makes the class read uniformly across tools and any FEA you generate.',
+		'pair-missing-glyph':
+			'A kerning pair references a glyph that doesn\'t exist in the project. The pair is dead weight — either draw the missing glyph or remove the pair from the spacing tab.',
+		'pair-orphan-class':
+			'A kerning pair references an undefined kerning class. The pair silently does nothing at run time. Either define the class or change the pair to reference one that exists.',
+		'kerning-no-classes':
+			'The project has many flat kerning pairs and zero kerning classes. Once you have more than ~30 pairs, classes become much more maintainable than direct pairs — grouping accented variants (e.g. @A_left = [A Á Â Ä À]) consolidates kerning across the family.',
+		'sidebearings-no-classes':
+			'The project has no sidebearing classes — every glyph carries its sidebearings independently. For mid-to-large families this gets unmaintainable; sidebearing classes pin shape-similar glyphs (n / m / h / b / d / p / q) together so a tweak propagates.',
+
+		// Anchor coverage (separate from anchor-naming-*)
+		'anchors-missing':
+			'A meaningful number of Latin base glyphs have no anchors. Composites built from them (Á, È, Ñ, Ç) will use fixed offsets rather than proper GPOS mark positioning — marks will look mechanically placed rather than tuned to each letter\'s shape.'
 	};
 	return descriptions[code];
 };
