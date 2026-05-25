@@ -1,6 +1,7 @@
 <script lang="ts">
 	import '../app.css';
 	import ToastContainer from '$lib/ui/ToastContainer.svelte';
+	import OfflineIndicator from '$lib/ui/OfflineIndicator.svelte';
 	import { consoleHello, installKonamiListener, celebrate } from '$lib/delight';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { onMount, onDestroy } from 'svelte';
@@ -56,3 +57,4 @@
 	{@render children()}
 </div>
 <ToastContainer />
+<OfflineIndicator />
