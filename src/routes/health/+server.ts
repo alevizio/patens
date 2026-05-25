@@ -14,6 +14,7 @@
 
 import { json } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import pkg from '../../../package.json';
 
 const STARTED_AT = Date.now();
 
@@ -31,7 +32,7 @@ export const GET: RequestHandler = ({ setHeaders }) => {
 	return json({
 		status: 'ok',
 		service: 'font-studio',
-		version: '1.4.0',
+		version: pkg.version,
 		commit: VERCEL_COMMIT_SHA.slice(0, 7),
 		ref: VERCEL_COMMIT_REF,
 		uptimeMs: Date.now() - STARTED_AT,
