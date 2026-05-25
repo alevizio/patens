@@ -2,7 +2,11 @@
 	"name": "patens",
 	"version": "1.5.1",
 	"description": "Browser-native, open-source type design — draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
-	"author": "Alejandro Vizio",
+	"author": {
+		"name": "Alejandro Vizio",
+		"email": "hi@patens.design",
+		"url": "https://patens.design"
+	},
 	"license": "MIT",
 	"homepage": "https://patens.design",
 	"repository": {

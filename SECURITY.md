@@ -11,7 +11,7 @@
 
 If you've found a security issue in Patens, please **don't open a public issue**. Instead:
 
-- **Email**: open a draft email to the maintainer via GitHub: https://github.com/alevizio (use the "Contact" link on the profile, or open a private security advisory at https://github.com/alevizio/patens/security/advisories/new).
+- **Email**: `security@patens.design` (preferred). Or open a private security advisory at https://github.com/alevizio/patens/security/advisories/new.
 - Include the steps to reproduce, the affected route or component, the expected vs actual behavior, and (if relevant) the impact on a user's IndexedDB project data or the cloud-share blob.
 
 ## What counts

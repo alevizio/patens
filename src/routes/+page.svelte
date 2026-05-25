@@ -1426,6 +1426,13 @@
 				>
 					GitHub
 				</a>
+				<a
+					href="https://x.com/patenstype"
+					class="text-fg-muted hover:text-fg"
+					rel="noopener me"
+				>
+					@patenstype
+				</a>
 			</nav>
 			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
 				Personal type design tool &nbsp;·&nbsp; 2026

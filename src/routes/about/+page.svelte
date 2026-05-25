@@ -80,7 +80,7 @@
 	>
 		Maintainer
 	</h2>
-	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
+	<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
 		Built and maintained by
 		<a
 			href="https://github.com/alevizio"
@@ -99,7 +99,28 @@
 			class="text-accent-strong underline underline-offset-2"
 		>
 			CONTRIBUTING.md
-		</a>.
+		</a>.</p>
+	<p class="mb-8 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13px] text-fg-muted">
+		<a
+			href="https://x.com/patenstype"
+			rel="me noopener"
+			class="text-fg-muted hover:text-fg"
+		>
+			x.com/@patenstype
+		</a>
+		<a
+			href="https://bsky.app/profile/patens.design"
+			rel="me noopener"
+			class="text-fg-muted hover:text-fg"
+		>
+			bsky/@patens.design
+		</a>
+		<a
+			href="mailto:hi@patens.design"
+			class="text-fg-muted hover:text-fg"
+		>
+			hi@patens.design
+		</a>
 	</p>
 
 	<h2
