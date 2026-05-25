@@ -1,5 +1,6 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
+	import Rss from '@lucide/svelte/icons/rss';
 
 	let { data } = $props();
 	const source = $derived(data.source);
@@ -98,16 +99,35 @@
 	<meta name="twitter:title" content="Changelog · Font Studio" />
 	<meta name="twitter:description" content="Font Studio release history — every version since v0.4." />
 	<meta name="twitter:image" content="/og/brand" />
+	<!-- RSS autodiscovery — feed readers (Feedly, NetNewsWire, etc.) probe
+	     the homepage for <link rel="alternate" type="application/rss+xml">
+	     and surface the feed in their subscribe UI. -->
+	<link
+		rel="alternate"
+		type="application/rss+xml"
+		title="Font Studio · Changelog"
+		href="/changelog/rss.xml"
+	/>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-	<a
-		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
-	>
-		<ArrowLeft class="size-3" />
-		Back to the foundry
-	</a>
+	<div class="mb-8 flex items-baseline justify-between gap-3">
+		<a
+			href="/"
+			class="inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		>
+			<ArrowLeft class="size-3" />
+			Back to the foundry
+		</a>
+		<a
+			href="/changelog/rss.xml"
+			class="inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+			title="Subscribe to release notes via RSS"
+		>
+			<Rss class="size-3" />
+			RSS
+		</a>
+	</div>
 
 	<article class="prose-changelog text-fg">
 		{#each blocks as block, i (i)}
