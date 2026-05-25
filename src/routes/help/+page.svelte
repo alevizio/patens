@@ -113,6 +113,23 @@
 <svelte:head>
 	<title>Help · Font Studio</title>
 	<meta name="description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<!-- FAQPage JSON-LD so Google can show rich-result expanders on the
+	     search snippet. Same </script> escape trick as the share page —
+	     and the same eslint-disable for {@html} (content is fully
+	     controlled, built from the typed sections array). -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'FAQPage',
+		mainEntity: sections.flatMap((s) =>
+			s.items.map((it) => ({
+				'@type': 'Question',
+				name: it.q,
+				acceptedAnswer: { '@type': 'Answer', text: it.a }
+			}))
+		)
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
