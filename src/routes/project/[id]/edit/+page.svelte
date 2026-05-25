@@ -2370,7 +2370,7 @@
 					density="sm"
 					onclick={undoLastStroke}
 					disabled={!glyph.sketch?.length}
-					aria-label="Undo last stroke"
+					title="Undo last stroke"
 				>
 					{#snippet icon()}<RotateCcw class="size-3.5" />{/snippet}
 					Undo stroke
@@ -2410,7 +2410,7 @@
 						density="sm"
 						onclick={copyGlyphPath}
 						disabled={glyph.contours.length === 0}
-						aria-label="Copy SVG path attribute to clipboard"
+						title="Copy SVG path attribute to clipboard"
 					>
 						{#snippet icon()}<Copy class="size-3.5" />{/snippet}
 						Copy path
@@ -2420,7 +2420,7 @@
 						density="sm"
 						onclick={exportGlyphPng}
 						disabled={glyph.contours.length === 0}
-						aria-label="Export this glyph as PNG"
+						title="Export this glyph as PNG"
 					>
 						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
 						PNG
@@ -2430,7 +2430,7 @@
 						density="sm"
 						onclick={exportGlyphSvg}
 						disabled={glyph.contours.length === 0}
-						aria-label="Export this glyph as SVG"
+						title="Export this glyph as SVG"
 					>
 						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
 						Export SVG

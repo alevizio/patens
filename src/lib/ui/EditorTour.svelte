@@ -84,11 +84,16 @@
 
 	onMount(() => {
 		const onResize = () => measureTarget();
+		// Passive scroll listener — we only re-measure tooltip position,
+		// never preventDefault(). Passive lets Chrome run scroll on the
+		// compositor thread instead of blocking on this handler (the
+		// uses-passive-event-listeners Lighthouse rule).
+		const scrollOpts = { capture: true, passive: true } as const;
 		window.addEventListener('resize', onResize);
-		window.addEventListener('scroll', onResize, true);
+		window.addEventListener('scroll', onResize, scrollOpts);
 		return () => {
 			window.removeEventListener('resize', onResize);
-			window.removeEventListener('scroll', onResize, true);
+			window.removeEventListener('scroll', onResize, scrollOpts);
 		};
 	});
 
