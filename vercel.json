@@ -1,6 +1,26 @@
 {
 	"$schema": "https://openapi.vercel.sh/vercel.json",
 	"framework": "sveltekit",
+	"redirects": [
+		{
+			"source": "/:path*",
+			"has": [{ "type": "host", "value": "patens.app" }],
+			"destination": "https://patens.design/:path*",
+			"permanent": true
+		},
+		{
+			"source": "/:path*",
+			"has": [{ "type": "host", "value": "patens.studio" }],
+			"destination": "https://patens.design/:path*",
+			"permanent": true
+		},
+		{
+			"source": "/:path*",
+			"has": [{ "type": "host", "value": "font-studio.vercel.app" }],
+			"destination": "https://patens.design/:path*",
+			"permanent": true
+		}
+	],
 	"headers": [
 		{
 			"source": "/(.*)",

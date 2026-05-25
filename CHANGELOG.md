@@ -1,6 +1,13 @@
 # Changelog
 
-All notable changes to Font Studio. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/font-studio).
+All notable changes to Patens. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/patens).
+
+## [1.5.1] — 2026-05-25
+
+### Changed
+- **Rebrand: Font Studio → Patens.** Canonical domain `patens.design`. Latin for "lying open, accessible" — root of *patent*, the word for openness before lawyers got to it. Open-source positioning made explicit in the name.
+- **Canonical-domain 301 redirects** in `vercel.json` — `patens.app` / `patens.studio` / `font-studio.vercel.app` all permanently redirect to `patens.design`. One source of truth for SEO + OG previews.
+- **Storage namespaces deliberately preserved** as `font-studio-*` (IndexedDB, localStorage, cookies, service-worker cache, PartyKit room) — backward compatibility with existing browser data.
 
 ## [1.5.0] — 2026-05-25
 
