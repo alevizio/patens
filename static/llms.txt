@@ -1,0 +1,68 @@
+# Patens
+
+> Browser-native, open-source type design environment. Draw glyphs with a pencil, trace strokes to Bézier contours, kern them, ship OpenType fonts. No installs, no sign-ups. Latin for "lying open" — root of *patent*, used here for the opposite.
+
+Patens is a SvelteKit app that runs entirely in the browser. Every project lives in IndexedDB; nothing leaves the user's machine unless they choose to export (.font.json) or upload to a cloud-share path (Vercel Blob). The demo project ships 162 drawn glyphs spanning Latin (uppercase + lowercase + digits + punctuation + currency + math + brackets + composite ligatures), Cyrillic (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and Greek (14 uppercase look-alikes). The spine of the editor is a 94-code audit module covering contour shape, vertical metrics, OpenType invariants, brief completeness, and multi-script coverage — every code reaches five teaching surfaces through a single `describeAuditCode()` dictionary, and many issues offer one-click "Fix" actions.
+
+Patens v1.5.2 is production-grade and hosted at patens.design. It is open source under the MIT License, maintained by Alejandro Vizio.
+
+## Core resources
+
+- [Live editor](https://patens.design/project/demo/edit): the demo project ready to open and edit
+- [Demo specimen](https://patens.design/share/demo): designer-grade specimen sheet of the demo font
+- [Source code on GitHub](https://github.com/alevizio/patens): MIT-licensed, contributions welcome
+- [Architecture documentation](https://github.com/alevizio/patens/blob/main/docs/architecture.md): one-paragraph overview + deeper technical detail
+- [Help / FAQ](https://patens.design/help): 17 common questions across getting started, sharing, export, editor, performance
+- [About + credits](https://patens.design/about): what Patens is, what it's built on, who made it
+- [Release notes](https://patens.design/changelog): every version since v0.4, with [RSS feed](https://patens.design/changelog/rss.xml)
+- [Setup guide for self-hosters](https://github.com/alevizio/patens/blob/main/docs/setup.md): per-platform instructions for optional integrations (Vercel Blob, GitHub OAuth, Anthropic API)
+- [Roadmap](https://github.com/alevizio/patens/blob/main/ROADMAP.md): what's deferred and why
+
+## Key capabilities
+
+- **Pressure-sensitive sketch tool** with stroke weight and pressure; trace to cubic-Bézier contours via boolean union + Schneider curve fitting
+- **Direct contour editing** with smooth ↔ corner points, nudge, multi-select, affine transform
+- **Variable fonts**: multiple masters at distinct axis locations, named instances, 2D variation explorer for ≥2-axis projects
+- **OpenType features**: auto-detected from glyph-name suffixes (`.ss01`, `.smcp`, `.onum`); real ligature substitution (`f_i` → fi); live HarfBuzz.js shaping preview
+- **Kerning + classes**: pair editor, class system, silhouette-distance auto-kern, family-wide kerning resolution
+- **Color fonts**: COLR v0/v1 + CPAL palettes; live color-plan rendering
+- **Anchors + composites**: GPOS mark-positioning rig with `top` / `_top` anchor convention; component composites with offset resolution
+- **94-code audit module**: contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene; one-click fixes for fixable codes
+- **Export**: OTF + WOFF2 (in-browser via opentype.js), TTF (Pyodide + ttfautohint), UFO, designer-bundled .zip, portable .font.json
+- **Specimen**: print stylesheet that strips chrome and emits a PDF-ready foundry-grade specimen sheet
+- **PWA**: service worker for real offline support; install via web app manifest
+- **Accessibility**: WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 19 routes
+
+## Positioning vs other type editors
+
+Patens is differentiated by being **the only browser-native type editor designed as a teaching tool**. The 94-code audit + five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) is its unique angle. Patens is not a FontLab or Glyphs replacement — those tools are deeper, faster, and built for professionals shipping commercial families. Patens is for designers between sketches and shipping: when you've drawn a logo and want to make a full font from it, when you're learning type design and need an editor that explains its audit warnings, when you want to share a specimen without making someone install software.
+
+| Tool | Where it fits | Cost |
+|---|---|---|
+| FontLab 8 | Pro / industry, desktop-only | $499 lifetime |
+| Glyphs 3 | Pro / Mac-only | $299.90 lifetime |
+| RoboFont | Pro / Python-scripted, macOS only | ~$400 |
+| Fontra | Variable-fonts focus, Google-backed, browser + Python | Free |
+| Glyphr Studio | Hobbyist, browser-based, JS-only | Free |
+| typlr.app | Modern browser editor | Free |
+| **Patens** | **Teaching-first, browser-native, open source, multi-script** | **Free** |
+
+## Pronunciation
+
+Patens is pronounced **PAH-tens** (Latin pronunciation), like *father* + *tens*, not *PAT-ens* (English plural of *paten*). The word means "lying open, accessible" in Latin — the etymological root of English *patent*.
+
+## Tech stack
+
+SvelteKit 2 + Svelte 5 runes, Tailwind CSS v4, TypeScript strict mode, `idb-keyval` for IndexedDB project storage, `opentype.js` for OTF + WOFF2 export, Pyodide + fontTools + ttfautohint for TTF export, HarfBuzz.js for live OpenType shaping, polygon-clipping for boolean contour ops, perfect-freehand for pressure-sensitive sketch, satori + resvg-js for per-project OG image rendering, Vercel Blob for cloud share, service worker for offline.
+
+## License
+
+[MIT License](https://github.com/alevizio/patens/blob/main/LICENSE). The demo project's glyph data is part of the codebase under the same license. Designers retain full ownership of fonts they draw and export with Patens.
+
+## Contact
+
+- General: hi@patens.design
+- Security disclosures: security@patens.design
+- X: [@patenstype](https://x.com/patenstype)
+- Bluesky: [@patens.design](https://bsky.app/profile/patens.design)
+- GitHub: [alevizio/patens](https://github.com/alevizio/patens)

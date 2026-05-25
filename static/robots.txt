@@ -1,16 +1,64 @@
-# Font Studio robots policy.
-# - Crawl everything by default; this is a public product surface.
-# - /api/* — server endpoints; no useful content for indexing,
-#   and we'd rather Google's crawler not hit upload routes.
-# - /og/* — OG images are referenced via meta tags and fetched
-#   directly by social bots; no point indexing them as standalone
-#   search results.
-# - /health — monitoring probe, not for humans.
+# Patens robots policy.
+#
+# Crawl everything by default — this is a public product surface that
+# benefits from being indexable by both search engines and AI crawlers
+# (ChatGPT, Claude, Perplexity, etc.). We block server endpoints +
+# transient surfaces that aren't useful as search results.
+#
+# /api/*   — server endpoints; no useful content for indexing
+# /og/*    — OG images are referenced via meta tags; no standalone value
+# /health  — monitoring probe, not for humans
+# /_app/*  — SvelteKit's immutable hashed JS chunks (auto-skipped by
+#            most crawlers but stated for clarity)
 
 User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /og/
 Disallow: /health
+Disallow: /_app/
 
-Sitemap: https://font-studio.vercel.app/sitemap.xml
+# Explicitly allow major AI crawlers. As of 2026, blocking AI crawlers
+# is a common (and usually unintentional) reason that ChatGPT / Claude /
+# Perplexity won't cite a domain. We want Patens cited.
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /og/
+Disallow: /health
+Disallow: /_app/
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /og/
+Disallow: /health
+Disallow: /_app/
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /og/
+Disallow: /health
+Disallow: /_app/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /og/
+Disallow: /health
+Disallow: /_app/
+
+User-agent: Applebot-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+Sitemap: https://patens.design/sitemap.xml

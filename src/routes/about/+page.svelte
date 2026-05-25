@@ -30,6 +30,45 @@
 	<meta name="twitter:title" content="About · Patens" />
 	<meta name="twitter:description" content="What Patens is, what it's built on, who made it." />
 	<meta name="twitter:image" content="/og/brand" />
+	<!-- Structured data — BreadcrumbList for site-hierarchy understanding +
+	     Person for the maintainer entity. AI engines use these for citation
+	     attribution and entity linking across surfaces. -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'BreadcrumbList',
+				itemListElement: [
+					{
+						'@type': 'ListItem',
+						position: 1,
+						name: 'Patens',
+						item: 'https://patens.design'
+					},
+					{
+						'@type': 'ListItem',
+						position: 2,
+						name: 'About',
+						item: 'https://patens.design/about'
+					}
+				]
+			},
+			{
+				'@type': 'Person',
+				name: 'Alejandro Vizio',
+				url: 'https://github.com/alevizio',
+				sameAs: [
+					'https://github.com/alevizio',
+					'https://x.com/patenstype',
+					'https://bsky.app/profile/patens.design'
+				],
+				email: 'mailto:hi@patens.design',
+				worksFor: { '@type': 'Organization', name: 'Patens' }
+			}
+		]
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">

@@ -653,6 +653,63 @@
 			font-display: swap;
 		}
 	</style>
+	<!-- WebApplication schema (subtype of SoftwareApplication for browser-based
+	     apps). Helps Google emit rich-result snippets + gives LLM crawlers
+	     extractable structured facts. Same </script> escape pattern as the
+	     share page's Product JSON-LD to dodge tokenization breakage. -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'WebApplication',
+		name: 'Patens',
+		alternateName: 'Patens — browser-native type design',
+		description:
+			'Browser-native, open-source type design environment. Draw glyphs with a pencil, trace strokes to Bézier contours, kern them, ship OpenType fonts. No installs, no sign-ups. Latin for "lying open" — root of patent.',
+		applicationCategory: 'DesignApplication',
+		applicationSubCategory: 'Font Editor',
+		operatingSystem: 'Any (browser-based)',
+		browserRequirements: 'Requires JavaScript. Recommended: a modern Chromium-based browser, Firefox, or Safari 16+',
+		url: 'https://patens.design',
+		image: 'https://patens.design/og/brand',
+		offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+		license: 'https://opensource.org/licenses/MIT',
+		isAccessibleForFree: true,
+		softwareVersion: '1.5.2',
+		releaseNotes: 'https://patens.design/changelog',
+		featureList: [
+			'Pressure-sensitive sketch tool with trace-to-Bézier',
+			'Direct contour editing with smooth and corner points',
+			'Variable fonts with multiple masters and 2D variation explorer',
+			'OpenType features with live HarfBuzz shaping preview',
+			'Kerning pair editor and class system',
+			'Family-wide kerning resolution',
+			'Color fonts via COLR v0/v1 + CPAL palettes',
+			'GPOS anchor positioning and component composites',
+			'94-code audit with one-click fixes',
+			'OTF + WOFF2 + TTF + UFO export',
+			'Designer-grade printable specimen',
+			'Service worker for offline support',
+			'WCAG 2.0/2.1/2.2 A/AA accessibility'
+		],
+		author: {
+			'@type': 'Person',
+			name: 'Alejandro Vizio',
+			url: 'https://github.com/alevizio'
+		},
+		creator: {
+			'@type': 'Person',
+			name: 'Alejandro Vizio',
+			url: 'https://github.com/alevizio'
+		},
+		codeRepository: 'https://github.com/alevizio/patens',
+		programmingLanguage: ['TypeScript', 'Svelte'],
+		sameAs: [
+			'https://github.com/alevizio/patens',
+			'https://x.com/patenstype',
+			'https://bsky.app/profile/patens.design'
+		]
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <svelte:window onkeydown={handleGlobalKey} />
