@@ -1,3 +1,16 @@
-# allow crawling everything by default
+# Font Studio robots policy.
+# - Crawl everything by default; this is a public product surface.
+# - /api/* — server endpoints; no useful content for indexing,
+#   and we'd rather Google's crawler not hit upload routes.
+# - /og/* — OG images are referenced via meta tags and fetched
+#   directly by social bots; no point indexing them as standalone
+#   search results.
+# - /health — monitoring probe, not for humans.
+
 User-agent: *
-Disallow:
+Allow: /
+Disallow: /api/
+Disallow: /og/
+Disallow: /health
+
+Sitemap: https://font-studio.vercel.app/sitemap.xml

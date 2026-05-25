@@ -1281,6 +1281,33 @@ body {
 	<meta name="twitter:title" content={shareTitle} />
 	<meta name="twitter:description" content={shareDesc} />
 	<meta name="twitter:image" content="/og/{project.id}" />
+	<!-- JSON-LD structured data — tells search engines (and AI
+	     crawlers) that this is a font specimen page, what font is
+	     described, and who made it. Improves Google's understanding
+	     beyond the OG meta tags. Uses schema.org "Product" because
+	     "Font" isn't a real schema.org type yet; the additionalType
+	     property hints at the more specific category.
+
+	     The JSON.stringify output can't contain </script> verbatim
+	     because the JSON-encoded < + / + s sequence is escaped on
+	     output via the replace(); this guards against a user's
+	     brief field carrying a literal "</script>" string that
+	     would prematurely close the LD block. eslint-disable for
+	     the {@html}: content is fully controlled (we built it). -->
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'Product',
+		additionalType: 'https://schema.org/CreativeWork',
+		name: project.metadata.familyName,
+		description: shareDesc,
+		image: `/og/${project.id}`,
+		brand: project.metadata.designer
+			? { '@type': 'Brand', name: project.metadata.designer }
+			: undefined,
+		license: project.metadata.licenseURL ?? undefined,
+		datePublished: project.metadata.version ?? undefined
+	}).replace(/<\/script/g, '<\\/script')}</script>`}
 </svelte:head>
 
 <!-- Reusable type-rendering snippets for the In context mockups.
