@@ -82,5 +82,11 @@
 		"y-indexeddb": "^9.0.12",
 		"y-partykit": "^0.0.33",
 		"yjs": "^13.6.30"
+	},
+	"pnpm": {
+		"supportedArchitectures": {
+			"os": ["current", "linux"],
+			"cpu": ["current", "x64"]
+		}
 	}
 }
