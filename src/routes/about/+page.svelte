@@ -2,6 +2,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
+	let { data }: { data: { version: string } } = $props();
+
 	const deps: Array<{ name: string; what: string; url: string }> = [
 		{ name: 'SvelteKit', what: 'The application framework.', url: 'https://svelte.dev/docs/kit' },
 		{ name: 'Svelte 5', what: 'Reactivity via runes (`$state`, `$derived`, `$effect`).', url: 'https://svelte.dev' },
@@ -121,7 +123,7 @@
 		Status
 	</h2>
 	<p class="mb-3 text-[14px] leading-relaxed text-fg-muted">
-		v1.3.1, production-grade.
+		v{data.version}, production-grade.
 		<a
 			href="/changelog"
 			class="text-accent-strong underline-offset-2 hover:underline"
