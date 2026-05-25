@@ -38,8 +38,14 @@ const auditPage = async (page: Page) => {
 	await page.waitForFunction(() => document.title.length > 0, undefined, {
 		timeout: 5000
 	});
+	// Tag scope: WCAG 2.0 + 2.1 A/AA. Excludes wcag22aa because the
+	// target-size rule (WCAG 2.5.8) fails on the editor's intentionally
+	// compact filter chips (10px text, 1.5px/0.5px padding) across every
+	// project page. Tightening those chips to ≥24px would change the
+	// editor's information density substantially — captured as known
+	// polish debt in ROADMAP.md rather than blocked here.
 	const results = await new AxeBuilder({ page })
-		.withTags(['wcag2a', 'wcag2aa'])
+		.withTags(['wcag2a', 'wcag2aa', 'wcag21aa'])
 		.analyze();
 	const critical = results.violations.filter((v) => v.impact === 'critical');
 	const serious = results.violations.filter((v) => v.impact === 'serious');

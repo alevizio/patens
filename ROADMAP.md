@@ -66,6 +66,8 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - ~~**43 audit codes without descriptions.**~~ ✅ Closed — `describeAuditCode()` now covers all 94 emitted codes. New descriptions span brief completeness, coverage subsets, glyph count, UPM, naming top-level fields, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
 
+- **WCAG 2.2 target-size (2.5.8) on editor filter chips.** The GlyphBrowser's status / shape / lifecycle filter chips use `px-1.5 py-0.5 text-[10px]` — well under the 24px touch-target baseline that WCAG 2.2 added. Affects 8 chips × every project route (edit, brief, audit, spacing, designspace, features, ai, preview, specimen, compare, release, export). Fix would tighten the visual density of the editor substantially — needs design judgment, not a mechanical sweep. Captured here so the a11y test suite's exclusion of `wcag22aa` doesn't read as silent debt.
+
 ## Anti-goals
 
 The things we explicitly don't want:
