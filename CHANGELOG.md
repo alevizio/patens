@@ -2,6 +2,37 @@
 
 All notable changes to Font Studio. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/font-studio).
 
+## [1.5.0] — 2026-05-25
+
+### Added
+- **WCAG 2.0 + 2.1 + 2.2 A/AA test coverage.** axe-core via Playwright now runs the full WCAG A/AA tag set across 19 routes. Caught + fixed: scrollable-region-focusable on /share, link-in-text-block on 6 files (13 sites), label-content-name-mismatch on 4 editor toolbar buttons, and target-size on the 9 GlyphBrowser filter chips (now `min-h-[24px]`).
+- **Cold-load profiler.** `scripts/profile-cold-load.mjs` drives headless Chromium via CDP, captures the Performance trace, and digests long tasks + layout events + FCP/LCP markers. Wired as `pnpm profile [url]`. v1.4.0 baselines documented in `docs/qa-checklist.md`.
+- **Post-deploy QA checklist.** `docs/qa-checklist.md` — 9 sections covering URL smoke tests, OG image byte verification, health version drift, end-to-end editor walk, share + cloud, RSS validation, perf profile, lighthouse + axe, and CI status. Triggered by 2 production bugs caught during v1.4.0 deploy that the checklist now catches in 30 seconds.
+- **CODE_OF_CONDUCT.md** — Contributor Covenant 2.1, linked from CONTRIBUTING.
+
+### Fixed
+- **`/og/[id]` 500 in production** — `@resvg/resvg-js-linux-x64-gnu` native binding wasn't bundled when prebuilt-deploying from Mac. Fix: `pnpm.supportedArchitectures` config + deploy without `--prebuilt` so Vercel installs the right native bindings on Linux.
+- **`/og/[id]` 500 after first fix** — Lora + Inter fonts under `static/og-fonts/` aren't bundled with serverless functions. Moved to `src/lib/og-fonts/` and read via `$app/server`'s `read()` so the binaries embed in the function bundle.
+- **Lighthouse CI broken on every push** — the `lighthouse:no-pwa` preset's strict insight assertions were erroring on `forced-reflow-insight`, `network-dependency-tree-insight`, `target-size`, `uses-passive-event-listeners`, `uses-rel-preconnect`, `bf-cache`. Relaxed to `warn`; ratcheted category-score thresholds (perf 0.85, a11y 0.90) to `error` to gate on real regressions.
+
+### Changed
+- **Network preload strategy** → `preload-mjs`. Default `'modulepreload'` only emits inside the inline bootstrap script; switched to `'preload-mjs'` which puts `<link rel="preload" as="script">` in `<head>`. Home page went from 0 → 45 preload tags; the full chunk graph fetches in parallel with HTML parsing. Closes `network-dependency-tree-insight` + transitively eliminates the long-task waterfall behind `max-potential-fid`.
+- **EditorTour scroll listener** → passive (`{ capture: true, passive: true }`). Closes `uses-passive-event-listeners`.
+- **Editor toolbar buttons** — moved descriptive aria-label text to `title=` so the visible button text becomes the accessible name. Voice-control users can now say "click Undo stroke" / "click Copy path" / etc. Closes `label-content-name-mismatch`.
+- **describeAuditCode()** — added the 43 missing descriptions; full 94-code coverage. New entries span brief completeness, coverage subsets, glyph count, UPM, naming, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
+- **/changelog** — RSS 2.0 feed at `/changelog/rss.xml` (autodiscovered + visible link); h2 deep-link anchors; visible Subscribe-via-RSS affordance.
+- **/help** — h2 deep-link anchors on each section; FAQPage schema.org JSON-LD for Google rich results; per-page OG + Twitter meta with `og:image=/og/brand`.
+- **/about** — per-page OG + Twitter meta + `og:image=/og/brand`. Version read from `package.json` so it can't drift.
+- **/health** — version read from `package.json` (was hardcoded).
+- **Home page footer** — Help / Changelog / About / GitHub nav added.
+- **Sitemap** — adds /help, /changelog, /about, /changelog/rss.xml.
+- **`docs/next-90-days.md` + `docs/phase-c-sprint-plan.md`** — frozen as archival snapshots.
+
+### Deferred
+- `forced-reflow-insight` — closed via profiler measurement (max 35ms layout on editor cold-load, all normal first-render territory).
+- `max-potential-fid` — closed via profiler measurement (0 long tasks ≥50ms across all profiled routes).
+- `uses-rel-preconnect` — false positive (Vercel auto-injected analytics, not site code).
+
 ## [1.4.0] — 2026-05-24
 
 ### Added

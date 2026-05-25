@@ -94,7 +94,7 @@ Mutation flow: every glyph / kerning / metadata write goes through `projectStore
 
 ## Code of conduct
 
-Be kind, be specific, assume good faith. Disagreements are about the work, not the people. The maintainer has final say but will explain reasoning.
+See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). TL;DR: be kind, be specific, assume good faith. Disagreements are about the work, not the people. The maintainer has final say but will explain reasoning.
 
 ## License
 

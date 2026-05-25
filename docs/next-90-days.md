@@ -1,5 +1,7 @@
 # Next 90 days — improvement plan
 
+> **ARCHIVAL — frozen 2026-05-21.** This was the active plan during the 2026-05-20→21 research sessions and is preserved as a historical snapshot. For current state, see [`../ROADMAP.md`](../ROADMAP.md) in the repo root + [`../CHANGELOG.md`](../CHANGELOG.md). Items that landed since are no longer tracked here.
+
 Synthesises the five research arcs run in this session (2026-05-20→21)
 into a single prioritised sequence. Read alongside
 [`roadmap.md`](./roadmap.md) for inventory + per-arc detail.

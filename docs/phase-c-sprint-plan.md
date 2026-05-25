@@ -1,5 +1,7 @@
 # Phase C — Yjs store-binding sprint plan
 
+> **ARCHIVAL — frozen 2026-05-21.** This sprint plan was active during the Phase C arc and is preserved as a historical snapshot. The Yjs store-binding work has since shipped; see [`../CHANGELOG.md`](../CHANGELOG.md). For current direction, [`../ROADMAP.md`](../ROADMAP.md).
+
 The big internal refactor that swaps `projectStore.project` from a
 plain `$state<Project>` into a Y.Doc-backed reactive view. Once this
 lands, Phase A→B foundations from the 2026-05-20→21 session become a
