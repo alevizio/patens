@@ -19,6 +19,8 @@
 	import ScanSearch from '@lucide/svelte/icons/scan-search';
 	import Type from '@lucide/svelte/icons/type';
 	import KeyRound from '@lucide/svelte/icons/key-round';
+	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
+	import { preflightProject, describeAuditCode } from '$lib/font/audit';
 	import Copy from '@lucide/svelte/icons/copy';
 	import Loader from '@lucide/svelte/icons/loader-2';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
@@ -321,6 +323,46 @@ Write the design-notes essay.`;
 					throw new AnthropicError('No drawn glyphs yet — draw a few and try again.');
 				const system = `You are a typography proofreader. Generate test text using ONLY the provided characters (case-sensitive, including spaces). Aim for varied combinations exposing stem-stem, stem-round, round-round, and bowl interactions. 8-12 lines of varied content: words, short phrases, partial pangrams. Output plain text only, no markdown.`;
 				const prompt = `Allowed characters (use only these, including space): ${drawn}\n\nGenerate proof text.`;
+				return { system, text: prompt };
+			}
+		},
+		{
+			id: 'audit-explain',
+			label: 'Explain current audit issues',
+			icon: AlertTriangle,
+			run: async () => {
+				if (!project) return null;
+				// Pull the current audit report. We keep the prompt compact by
+				// summarising counts per code, then handing the model the
+				// curated description from describeAuditCode() as ground truth.
+				// The model's job is to explain in the designer's voice + give
+				// fix steps tailored to *this* project, not to invent meanings
+				// for codes (the description column is authoritative).
+				const issues = preflightProject(project);
+				if (issues.length === 0) {
+					throw new AnthropicError(
+						'No audit issues to explain — the project is currently clean. Try one of the other presets.'
+					);
+				}
+				const byCode = new Map<string, { severity: string; count: number; sample: string }>();
+				for (const i of issues) {
+					const cur = byCode.get(i.code);
+					if (cur) {
+						cur.count += 1;
+					} else {
+						byCode.set(i.code, { severity: i.severity, count: 1, sample: i.message });
+					}
+				}
+				const codeBlock = Array.from(byCode.entries())
+					.sort((a, b) => b[1].count - a[1].count)
+					.slice(0, 15)
+					.map(([code, info]) => {
+						const desc = describeAuditCode(code) ?? '(no description on file)';
+						return `[${info.severity}] ${code} (${info.count}× — e.g. "${info.sample}")\n  Curated description: ${desc}`;
+					})
+					.join('\n\n');
+				const system = `You are a senior type designer mentoring a junior. Given a list of audit issues from a font project, explain each one in 2-3 plain-language sentences using the curated description as ground truth, then give 1-2 concrete fix steps tailored to THIS project's design intent (which you'll read from the brief). Don't restate the description verbatim — translate it. Don't invent semantics; if the curated description is "(no description on file)", say "this code's meaning is undocumented in the editor" and explain what you can infer from the sample message. Group by severity (error / warn / info). Markdown.`;
+				const prompt = `Project: ${project.metadata.familyName} (${project.metadata.styleName})\nDesigner brief notes: ${project.brief?.designNotes ?? '(empty)'}\n\nTop audit issues:\n\n${codeBlock}`;
 				return { system, text: prompt };
 			}
 		}

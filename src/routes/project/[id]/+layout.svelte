@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { getShareToken, setShareToken, clearShareToken } from '$lib/share-token';
+	import AccountButton from '$lib/ui/AccountButton.svelte';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { listProjects, type ProjectIndexEntry } from '$lib/font/project';
@@ -898,6 +899,7 @@
 				>
 					<Settings class="size-3.5" />
 				</button>
+				<AccountButton />
 			</div>
 		</div>
 
