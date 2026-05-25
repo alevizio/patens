@@ -1088,7 +1088,7 @@
 							type="button"
 							onclick={handleOpenDemo}
 							disabled={openingDemo}
-							class="text-accent-strong underline-offset-2 hover:underline disabled:opacity-50"
+							class="text-accent-strong underline underline-offset-2 disabled:opacity-50"
 						>
 							{openingDemo ? 'opening the demo…' : 'open the example project →'}
 						</button>

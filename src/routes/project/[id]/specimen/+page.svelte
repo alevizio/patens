@@ -293,7 +293,7 @@
 									href={project.metadata.designerURL}
 									target="_blank"
 									rel="noopener"
-									class="underline-offset-2 hover:underline"
+									class="underline underline-offset-2"
 								>
 									{project.metadata.designerURL.replace(/^https?:\/\//, '')}
 								</a>
@@ -310,7 +310,7 @@
 										href={project.metadata.manufacturerURL}
 										target="_blank"
 										rel="noopener"
-										class="underline-offset-2 hover:underline"
+										class="underline underline-offset-2"
 									>
 										{project.metadata.manufacturerURL.replace(/^https?:\/\//, '')}
 									</a>
@@ -329,7 +329,7 @@
 									href={project.metadata.licenseURL}
 									target="_blank"
 									rel="noopener"
-									class="underline-offset-2 hover:underline"
+									class="underline underline-offset-2"
 								>
 									{project.metadata.licenseURL.replace(/^https?:\/\//, '')}
 								</a>

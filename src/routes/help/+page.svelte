@@ -154,13 +154,13 @@
 		The questions that come up most. For the deeper architecture, see
 		<a
 			href="https://github.com/alevizio/font-studio/blob/main/docs/architecture.md"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			docs/architecture.md
 		</a>. For everything else, the
 		<a
 			href="https://github.com/alevizio/font-studio/issues"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			GitHub issues
 		</a>

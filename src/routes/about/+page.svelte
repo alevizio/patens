@@ -67,19 +67,19 @@
 		Built and maintained by
 		<a
 			href="https://github.com/alevizio"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			Alejandro Vizio
 		</a>. Open source under the
 		<a
 			href="https://github.com/alevizio/font-studio/blob/main/LICENSE"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			MIT License
 		</a>. Contributions welcome — see
 		<a
 			href="https://github.com/alevizio/font-studio/blob/main/CONTRIBUTING.md"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			CONTRIBUTING.md
 		</a>.
@@ -126,7 +126,7 @@
 		v{data.version}, production-grade.
 		<a
 			href="/changelog"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			Full changelog →
 		</a>
@@ -135,7 +135,7 @@
 		What's deferred to a future arc lives in
 		<a
 			href="https://github.com/alevizio/font-studio/blob/main/ROADMAP.md"
-			class="text-accent-strong underline-offset-2 hover:underline"
+			class="text-accent-strong underline underline-offset-2"
 		>
 			ROADMAP.md
 		</a>

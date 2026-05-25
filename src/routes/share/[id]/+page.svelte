@@ -1646,9 +1646,17 @@ body {
 				{/each}
 			</div>
 		{/if}
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex — the tabindex is required
+		     by axe's scrollable-region-focusable rule (WCAG 2.1.1): an overflow-x:auto
+		     region needs keyboard focus so users can arrow-key scroll it. The role="region"
+		     + aria-label make this an accessible named landmark, which is precisely the
+		     pattern axe wants for scrollable content. -->
 		<div
-			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6"
+			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
 			style="--font-baseline: {ascender}px;"
+			tabindex="0"
+			role="region"
+			aria-label="Typeset preview"
 		>
 			<svg
 				viewBox="0 {descender} {Math.max(typeset.totalWidth, 100)} {fontSpan}"

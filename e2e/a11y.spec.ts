@@ -88,6 +88,26 @@ test('/families has no serious/critical a11y violations', async ({ page }) => {
 	await auditPage(page);
 });
 
+test('/help has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/help');
+	await auditPage(page);
+});
+
+test('/changelog has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/changelog');
+	await auditPage(page);
+});
+
+test('/about has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/about');
+	await auditPage(page);
+});
+
+test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/share/demo');
+	await auditPage(page);
+});
+
 test('/edit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {

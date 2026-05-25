@@ -3479,7 +3479,7 @@
 							No palettes yet. Create one on the
 							<a
 								href="/project/{projectStore.project.id}/features"
-								class="underline-offset-2 hover:underline hover:text-fg"
+								class="underline underline-offset-2 hover:text-fg"
 							>
 								Features tab
 							</a>
