@@ -106,7 +106,11 @@
 				},
 				{
 					q: 'I want to contribute code.',
-					a: 'Read CONTRIBUTING.md in the repo. Areas where help is wanted: more audit codes, curve-fitting refinements, bespoke Cyrillic / Greek shapes, and the cloud-share + OG image roadmap items.'
+					a: 'Read CONTRIBUTING.md in the repo. Areas where help is wanted: more audit codes, curve-fitting refinements, refining the bespoke Cyrillic shapes (Я / Ж / Ф ship as sketches), and the Greek-lowercase roadmap item.'
+				},
+				{
+					q: 'How do I enable Sign-in / AI / cloud share on my deployment?',
+					a: 'See docs/setup.md in the repo — per-platform instructions for Vercel, Cloudflare Pages, Netlify, and self-host. Each integration gracefully degrades when not configured, so you can enable them independently.'
 				}
 			]
 		}

@@ -30,15 +30,15 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 **`v1.4.0`** — production-grade. Cloud share works for recipients in any browser when the deployment has `BLOB_READ_WRITE_TOKEN` set (Vercel Blob); without it, share URLs work in the originator's browser only (the `.font.json` export remains the cross-machine option). See [ROADMAP.md](./ROADMAP.md) for what's deferred.
 
-### Configuring cloud share
+### Optional integrations
 
-The cloud-share path uses Vercel Blob. To enable it on your deployment:
+Font Studio runs fully in the browser by default. Three integrations are optional and gracefully degrade when not configured:
 
-1. In the Vercel dashboard → your project → Storage → Create a Blob store.
-2. The `BLOB_READ_WRITE_TOKEN` env var lands automatically.
-3. Redeploy. The "Copy share link" button now uploads on click and recipients in any browser see the project.
+- **Vercel Blob** — cloud share (recipients in other browsers)
+- **GitHub OAuth** — sign-in via GitHub
+- **Anthropic API key** — AI presets (audit-explain, consistency, etc.)
 
-Without the token, the API returns 503 and the client falls back to copying a local-only URL with a clear warning.
+See [`docs/setup.md`](./docs/setup.md) for per-platform setup instructions (Vercel, Cloudflare Pages, Netlify, self-host) including OAuth app registration, env var matrix, and local-dev `.env.local` template.
 
 ## Running locally
 

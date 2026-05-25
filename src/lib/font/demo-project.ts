@@ -1181,6 +1181,138 @@ const buildP_lc = (): BezierContour[] => {
 	];
 };
 
+// ---------- Bespoke Cyrillic uppercase ----------
+// These three shapes don't have Latin look-alikes that work in a
+// geometric sans — they need their own builders. Design idiom matches
+// the rest of the demo: constant STEM width, hard 90° corners, no
+// optical compensation. Status: 'sketch' so the audit panel flags
+// them as proof-of-concept until a real type designer refines.
+
+// Я (Ya, U+042F) — mirror image of R. Bowl on the LEFT, vertical stem
+// on the RIGHT, diagonal leg from the bowl junction down to the
+// bottom-LEFT. Implemented by x-mirroring buildR around CAP_W/2.
+const buildYa = (): BezierContour[] => {
+	return [
+		// Vertical stem on the RIGHT
+		poly([
+			[CAP_W - 80 - STEM, 0],
+			[CAP_W - 80, 0],
+			[CAP_W - 80, CAP_HEIGHT],
+			[CAP_W - 80 - STEM, CAP_HEIGHT]
+		]),
+		// Bowl top bar
+		poly([
+			[100, CAP_HEIGHT],
+			[CAP_W - 80, CAP_HEIGHT],
+			[CAP_W - 80, CAP_HEIGHT - BAR],
+			[100, CAP_HEIGHT - BAR]
+		]),
+		// Bowl left stem
+		poly([
+			[100, CAP_HEIGHT - BAR],
+			[100 + STEM, CAP_HEIGHT - BAR],
+			[100 + STEM, CAP_HEIGHT * 0.55 + BAR],
+			[100, CAP_HEIGHT * 0.55 + BAR]
+		]),
+		// Bowl bottom bar
+		poly([
+			[100, CAP_HEIGHT * 0.55],
+			[CAP_W - 80, CAP_HEIGHT * 0.55],
+			[CAP_W - 80, CAP_HEIGHT * 0.55 + BAR],
+			[100, CAP_HEIGHT * 0.55 + BAR]
+		]),
+		// Diagonal leg from junction to bottom-LEFT
+		poly([
+			[CAP_W - 80 - STEM, CAP_HEIGHT * 0.55],
+			[CAP_W - 80 - STEM - 40, CAP_HEIGHT * 0.55],
+			[60, 0],
+			[60 + 80, 0]
+		])
+	];
+};
+
+// Ж (Zhe, U+0416) — symmetric, like K mirrored back-to-back. Central
+// vertical stem with two diagonal arms reaching to each side at the
+// upper-half and lower-half angles. Wider advance than CAP_W because
+// of the splayed arms.
+const buildZhe = (): BezierContour[] => {
+	const mid = CAP_HEIGHT / 2;
+	const cx = (CAP_W + 80) / 2; // x-center accounting for wider advance
+	const armSpread = 220;
+	const armEdgeWidth = 80; // top edge width of each arm
+	return [
+		// Central vertical stem
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, CAP_HEIGHT],
+			[cx - STEM / 2, CAP_HEIGHT]
+		]),
+		// Upper-left arm — from stem upper-junction out to top-left
+		poly([
+			[cx - STEM / 2, mid + BAR / 2],
+			[cx - STEM / 2 - 30, mid],
+			[cx - armSpread, CAP_HEIGHT],
+			[cx - armSpread + armEdgeWidth, CAP_HEIGHT]
+		]),
+		// Upper-right arm — from stem upper-junction out to top-right
+		poly([
+			[cx + STEM / 2, mid + BAR / 2],
+			[cx + STEM / 2 + 30, mid],
+			[cx + armSpread, CAP_HEIGHT],
+			[cx + armSpread - armEdgeWidth, CAP_HEIGHT]
+		]),
+		// Lower-left arm — from stem lower-junction out to bottom-left
+		poly([
+			[cx - STEM / 2, mid - BAR / 2],
+			[cx - STEM / 2 - 30, mid],
+			[cx - armSpread + armEdgeWidth, 0],
+			[cx - armSpread, 0]
+		]),
+		// Lower-right arm — from stem lower-junction out to bottom-right
+		poly([
+			[cx + STEM / 2, mid - BAR / 2],
+			[cx + STEM / 2 + 30, mid],
+			[cx + armSpread - armEdgeWidth, 0],
+			[cx + armSpread, 0]
+		])
+	];
+};
+
+// Ф (Ef, U+0424) — vertical stem extending top + bottom past a
+// centered O. Stem caps approximate where ascender/descender of
+// the bowl meet — actually, geometric Ф has the stem reach the
+// cap-line + baseline, so the bowl sits inside.
+const buildEf = (): BezierContour[] => {
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = (CAP_W - 80 * 2) / 2 - 20;
+	const ry = CAP_HEIGHT / 2 - 40;
+	const t = STEM - 10;
+	const sides = 16;
+	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
+		const pts: Array<[number, number]> = [];
+		for (let i = 0; i < sides; i++) {
+			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
+			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
+		}
+		return pts;
+	};
+	return [
+		// Outer bowl (clockwise)
+		poly(ring(rx, ry), 'cw'),
+		// Inner bowl (counter-clockwise so the fill creates a counter)
+		poly(ring(rx - t, ry - t, true), 'ccw'),
+		// Vertical stem — full cap height, centered
+		poly([
+			[cx - STEM / 2, 0],
+			[cx + STEM / 2, 0],
+			[cx + STEM / 2, CAP_HEIGHT],
+			[cx - STEM / 2, CAP_HEIGHT]
+		])
+	];
+};
+
 // Lowercase letters — the high-frequency set so the Bringhurst sample
 // paragraph renders. Each one fits the x-height envelope (h, t use a
 // short ascender; r/s/i/e stay within x-height).
@@ -2581,6 +2713,11 @@ const DRAWN: GlyphSpec[] = [
 	{ codepoint: 0x0421, contours: buildC(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // С — same as Latin C
 	{ codepoint: 0x0422, contours: buildT(), advanceWidth: CAP_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // Т — same as Latin T
 	{ codepoint: 0x0425, contours: buildX(), advanceWidth: CAP_W, leftSidebearing: 40, rightSidebearing: 40, status: 'sketch' }, // Х — same as Latin X
+	// Bespoke Cyrillic uppercase — Я / Ж / Ф have no Latin look-alike. Status: 'sketch'
+	// (audit will flag for refinement). Builder docstrings in demo-project.ts.
+	{ codepoint: 0x0416, contours: buildZhe(), advanceWidth: CAP_W + 200, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Ж
+	{ codepoint: 0x0424, contours: buildEf(), advanceWidth: CAP_W + 40, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Ф
+	{ codepoint: 0x042f, contours: buildYa(), advanceWidth: CAP_W, leftSidebearing: 60, rightSidebearing: 60, status: 'sketch' }, // Я
 	// Lowercase (only the ones with unambiguous Latin twins in geometric sans):
 	{ codepoint: 0x0430, contours: buildA_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // а
 	{ codepoint: 0x0435, contours: buildE_lc(), advanceWidth: LC_W, leftSidebearing: 80, rightSidebearing: 80, status: 'sketch' }, // е
@@ -3129,7 +3266,7 @@ export const createDemoProject = (): Project => {
 			date: daysAgo(0),
 			decision: 'Cyrillic + Greek as look-alike starters first, bespoke shapes deferred',
 			rationale:
-				'Cyrillic А В Е Н К М О Р С Т Х and Greek Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ already share their Latin shapes in a geometric sans. Reusing the Latin builders honestly ships ~25 multi-script glyphs without inventing shapes I can\'t commit to. The bespoke letters (Я Ж Ф and the entire Greek lowercase) need a different design pass — I\'d rather ship the safe subset than fake the hard parts. Coverage heatmap will gain a Cyrillic/Greek baseline once the bespoke set lands.'
+				'Cyrillic А В Е Н К М О Р С Т Х and Greek Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ share their Latin shapes in a geometric sans — Latin builders are reused honestly. v1.5 added bespoke Я Ж Ф in the same idiom (constant STEM, hard 90° corners) as proof-of-concept; they ship with status:"sketch" so the audit panel flags them for designer refinement. Greek lowercase + the dotted-i family (й, ё etc.) remain explicit future work.'
 		}
 	];
 
