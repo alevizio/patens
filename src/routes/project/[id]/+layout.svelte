@@ -2,6 +2,7 @@
 	import { page } from '$app/state';
 	import { goto } from '$app/navigation';
 	import { projectStore } from '$lib/stores/project.svelte';
+	import { getShareToken, setShareToken, clearShareToken } from '$lib/share-token';
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { listProjects, type ProjectIndexEntry } from '$lib/font/project';
@@ -35,6 +36,7 @@
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
 	import Share2 from '@lucide/svelte/icons/share-2';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Printer from '@lucide/svelte/icons/printer';
 	import Loader from '@lucide/svelte/icons/loader-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -152,12 +154,24 @@
 		const url = `${location.origin}/share/${id}`;
 		sharing = true;
 		try {
+			const existingToken = getShareToken(p.id);
 			const res = await fetch('/api/share', {
 				method: 'POST',
-				headers: { 'content-type': 'application/json' },
+				headers: {
+					'content-type': 'application/json',
+					...(existingToken ? { 'X-Share-Token': existingToken } : {})
+				},
 				body: JSON.stringify(p)
 			});
 			if (res.ok) {
+				// Persist the returned token so future re-shares from this
+				// browser are authorized + so the Delete-share action has it.
+				try {
+					const body = (await res.clone().json()) as { deleteToken?: string };
+					if (body.deleteToken) setShareToken(p.id, body.deleteToken);
+				} catch {
+					/* ignore — token-binding is best-effort, share still works */
+				}
 				try {
 					await navigator.clipboard.writeText(url);
 					t.success('Share link copied — works for recipients in any browser');
@@ -183,6 +197,56 @@
 			t.error(`Network error: ${err instanceof Error ? err.message : String(err)}`);
 		} finally {
 			sharing = false;
+		}
+	};
+
+	// Unshare — remove the project's cloud blob + token. Only works for the
+	// originator (who has the delete-token in localStorage); recipients
+	// without the token get 403. After delete, the share URL 404s — the
+	// project still exists in the originator's IndexedDB.
+	let deletingShare = $state(false);
+	// Reactive: does the originator have a delete-token for this project?
+	// Drives whether the Unshare button is rendered. Updates when shareProject
+	// stores a fresh token or deleteShare clears it.
+	let hasShareToken = $state(false);
+	$effect(() => {
+		const pid = projectStore.project?.id;
+		if (pid) hasShareToken = getShareToken(pid) !== null;
+		// re-evaluate when sharing / deletingShare toggle
+		void sharing;
+		void deletingShare;
+	});
+
+	const deleteShare = async () => {
+		if (deletingShare) return;
+		const p = projectStore.project;
+		if (!p) return;
+		const token = getShareToken(p.id);
+		if (!token) {
+			t.warn(
+				'No delete-token stored in this browser. Either this project was never shared from here, or the token was cleared.'
+			);
+			return;
+		}
+		deletingShare = true;
+		try {
+			const res = await fetch(`/api/share/${p.id}`, {
+				method: 'DELETE',
+				headers: { 'X-Share-Token': token }
+			});
+			if (res.ok || res.status === 204) {
+				clearShareToken(p.id);
+				t.success('Share unpublished — the link now 404s.');
+			} else if (res.status === 503) {
+				t.warn('Cloud share not configured for this deployment.');
+			} else {
+				const detail = await res.text().catch(() => res.statusText);
+				t.error(`Unshare failed (${res.status}): ${detail}`);
+			}
+		} catch (err) {
+			t.error(`Network error: ${err instanceof Error ? err.message : String(err)}`);
+		} finally {
+			deletingShare = false;
 		}
 	};
 
@@ -739,10 +803,32 @@
 					aria-label="Copy share link"
 					title={sharing
 						? 'Uploading…'
-						: 'Copy share link — uploads to cloud so recipients in any browser see the project'}
+						: hasShareToken
+							? 'Re-share — uploads the latest project state to the existing URL'
+							: 'Copy share link — uploads to cloud so recipients in any browser see the project'}
 				>
 					<Share2 class="size-3.5" />
 				</button>
+				{#if hasShareToken}
+					<button
+						type="button"
+						onclick={async () => {
+							if (
+								confirm(
+									'Unshare this project? The cloud blob + share URL will be removed; the project itself stays in your browser.'
+								)
+							) {
+								await deleteShare();
+							}
+						}}
+						disabled={deletingShare}
+						class="inline-flex size-7 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-danger-soft hover:text-danger disabled:opacity-50"
+						aria-label="Unshare project"
+						title="Unshare — remove the cloud blob so the share URL 404s. Project stays in your browser."
+					>
+						<Trash2 class="size-3.5" />
+					</button>
+				{/if}
 				<button
 					type="button"
 					onclick={() =>

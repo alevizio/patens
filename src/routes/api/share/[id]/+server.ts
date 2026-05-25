@@ -13,8 +13,9 @@
  */
 
 import { error } from '@sveltejs/kit';
-import { list } from '@vercel/blob';
+import { list, del } from '@vercel/blob';
 import type { RequestHandler } from './$types';
+import { sharePath, tokenPath, fetchExistingToken, requireBlobToken } from '$lib/share-blob';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
@@ -60,4 +61,53 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 		'content-type': 'application/json'
 	});
 	return new Response(body, { status: 200 });
+};
+
+/**
+ * DELETE /api/share/[id] — remove a previously-shared project + its
+ * delete-token blob. Requires the originator's X-Share-Token header.
+ *
+ * Why a token: the share URL is public (link-as-capability for reads),
+ * so anyone with the URL could otherwise delete the sender's work. The
+ * token sits in the originator's IndexedDB project record alongside
+ * the cloud URL; recipients never see it.
+ */
+export const DELETE: RequestHandler = async ({ params, request, fetch }) => {
+	requireBlobToken();
+
+	const id = params.id;
+	if (!id || !isUuidish(id)) {
+		throw error(400, 'Invalid share id');
+	}
+
+	const provided = request.headers.get('X-Share-Token');
+	if (!provided) {
+		throw error(401, 'Delete requires X-Share-Token header');
+	}
+
+	const existing = await fetchExistingToken(id, fetch);
+	if (!existing) {
+		// No token blob — nothing to delete (or never uploaded). Idempotent 204.
+		return new Response(null, { status: 204 });
+	}
+
+	if (provided !== existing) {
+		throw error(403, 'Token does not match');
+	}
+
+	try {
+		// Look up both blobs via list so we can pass the resolved URLs to del().
+		const [shareList, tokenList] = await Promise.all([
+			list({ prefix: sharePath(id), limit: 1 }),
+			list({ prefix: tokenPath(id), limit: 1 })
+		]);
+		const urls = [
+			shareList.blobs.find((b) => b.pathname === sharePath(id))?.url,
+			tokenList.blobs.find((b) => b.pathname === tokenPath(id))?.url
+		].filter((u): u is string => typeof u === 'string');
+		if (urls.length > 0) await del(urls);
+		return new Response(null, { status: 204 });
+	} catch (e) {
+		throw error(500, `Delete failed: ${e instanceof Error ? e.message : String(e)}`);
+	}
 };

@@ -1,35 +1,27 @@
 /**
  * POST /api/share — upload a project blob to Vercel Blob, return the cloud key
- * so the originator's "Copy share link" button can produce a URL that works
- * for recipients in different browsers.
+ * + a delete-token. Token-based auth: re-shares + deletes need to present the
+ * token; reads are open (link-as-capability for recipients).
  *
- * Auth model: link-as-capability. The returned ID is an unguessable UUID,
- * stored as the blob's filename. Anyone who has the URL can read the blob;
- * no one without the URL can. Matches Font Studio's "browser-local first"
- * philosophy — no signup, no sessions, just opaque links.
+ * Re-share semantics:
+ *   - First POST: random token generated, project + token blobs stored,
+ *     token returned to the originator
+ *   - Subsequent POST without matching token: 403
+ *   - Subsequent POST with matching token: overwrites both blobs
  *
- * Size guard: project JSON for the 119-glyph demo is ~250KB. We cap at
- * 5MB which is generous (a project with thousands of glyphs + color layers
- * + many masters would still fit). Above that we 413 — the .font.json
- * download path is the right way to ship larger projects.
- *
- * Re-share semantics: the client passes its own project.id as the cloud
- * key. Re-shares from the same browser overwrite the existing blob (the
- * project moved forward; recipients should see the latest). Different
- * browsers that happen to know the same project.id can read it — that's
- * fine; project.id is itself an unguessable UUID generated client-side.
+ * Size guard: 5MB. Above that, .font.json export is the right path.
  */
 
 import { put } from '@vercel/blob';
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
+import { sharePath, tokenPath, isUuidish, requireBlobToken, fetchExistingToken } from '$lib/share-blob';
 
-const MAX_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
-const isUuidish = (s: unknown): s is string =>
-	typeof s === 'string' && /^[a-zA-Z0-9_-]{8,64}$/.test(s);
+export const POST: RequestHandler = async ({ request, fetch }) => {
+	requireBlobToken();
 
-export const POST: RequestHandler = async ({ request }) => {
 	const contentLength = Number(request.headers.get('content-length') ?? 0);
 	if (contentLength > MAX_SIZE_BYTES) {
 		throw error(413, 'Project too large for share — use the .font.json export instead');
@@ -58,24 +50,40 @@ export const POST: RequestHandler = async ({ request }) => {
 		throw error(413, 'Project too large for share — use the .font.json export instead');
 	}
 
-	// Vercel Blob requires BLOB_READ_WRITE_TOKEN at runtime. If it's not
-	// set (local dev without env vars, or self-hosted deploy without the
-	// service), surface a clear error instead of an opaque crash.
-	if (!process.env.BLOB_READ_WRITE_TOKEN) {
-		throw error(
-			503,
-			'Cloud share not configured for this deployment. Use the .font.json export instead.'
-		);
+	// Re-share auth — if a token already exists for this id, the caller must
+	// provide a matching one via the X-Share-Token header.
+	const existing = await fetchExistingToken(p.id, fetch);
+	const provided = request.headers.get('X-Share-Token');
+	let token: string;
+	if (existing) {
+		if (!provided || provided !== existing) {
+			throw error(
+				403,
+				'A share already exists for this project; only the originator (who has the delete-token) can re-share.'
+			);
+		}
+		token = existing;
+	} else {
+		// First upload — mint a fresh random token.
+		token = crypto.randomUUID() + '-' + crypto.randomUUID();
 	}
 
 	try {
-		const blob = await put(`shares/${p.id}.json`, body, {
-			access: 'public',
-			contentType: 'application/json',
-			addRandomSuffix: false,
-			allowOverwrite: true
-		});
-		return json({ id: p.id, url: blob.url });
+		const [blob] = await Promise.all([
+			put(sharePath(p.id), body, {
+				access: 'public',
+				contentType: 'application/json',
+				addRandomSuffix: false,
+				allowOverwrite: true
+			}),
+			put(tokenPath(p.id), token, {
+				access: 'public',
+				contentType: 'text/plain',
+				addRandomSuffix: false,
+				allowOverwrite: true
+			})
+		]);
+		return json({ id: p.id, url: blob.url, deleteToken: token });
 	} catch (e) {
 		throw error(500, `Upload failed: ${e instanceof Error ? e.message : String(e)}`);
 	}
