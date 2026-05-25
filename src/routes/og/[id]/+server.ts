@@ -21,8 +21,15 @@
 
 import type { RequestHandler } from './$types';
 import type { Project } from '$lib/font/types';
-import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { read } from '$app/server';
+// Bundled-asset imports — SvelteKit + Vite embed the binary into the
+// function bundle so it's available at runtime regardless of platform.
+// Previously read from `static/og-fonts/` via process.cwd()+readFile,
+// which broke on Vercel because static/ is served from the CDN, not
+// bundled with serverless functions. Lesson: anything the function
+// needs at runtime has to live under src/ + go through Vite.
+import loraUrl from '$lib/og-fonts/Lora-600.ttf';
+import interUrl from '$lib/og-fonts/Inter-500.ttf';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
@@ -62,27 +69,15 @@ const fetchProject = async (
 // disk once; subsequent renders are instant.
 let cachedFonts: { serif: ArrayBuffer; sans: ArrayBuffer } | null = null;
 
-const loadFontFromDisk = async (file: string): Promise<ArrayBuffer> => {
-	// Vercel deploys static/ alongside the function bundle; in dev
-	// it's served from disk. process.cwd() points to the repo root
-	// in both modes (dev + vercel adapter).
-	const path = join(process.cwd(), 'static', 'og-fonts', file);
-	const buf = await readFile(path);
-	const ab = new ArrayBuffer(buf.byteLength);
-	new Uint8Array(ab).set(buf);
-	return ab;
-};
-
 const loadFonts = async (): Promise<{ serif: ArrayBuffer; sans: ArrayBuffer }> => {
 	if (cachedFonts) return cachedFonts;
 	// Lora (serif) for the family name, Inter (sans) for the meta lines.
-	// Self-hosted under static/og-fonts/ so OG rendering doesn't depend
-	// on Google Fonts being reachable from the Vercel runtime — removes
-	// a network hop + a third-party SPOF. Files were fetched once at
-	// Wave 11; the .ttfs are committed to the repo.
+	// Both lifted in via Vite import + SvelteKit's $app/server read() so
+	// the binaries are embedded in the function bundle. No filesystem
+	// access at runtime, no dependency on static/ being co-located.
 	const [serif, sans] = await Promise.all([
-		loadFontFromDisk('Lora-600.ttf'),
-		loadFontFromDisk('Inter-500.ttf')
+		read(loraUrl).arrayBuffer(),
+		read(interUrl).arrayBuffer()
 	]);
 	cachedFonts = { serif, sans };
 	return cachedFonts;
