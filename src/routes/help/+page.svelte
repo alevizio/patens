@@ -4,6 +4,9 @@
 	type Q = { q: string; a: string };
 	type Section = { heading: string; items: Q[] };
 
+	const slugify = (s: string): string =>
+		s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 	const sections: Section[] = [
 		{
 			heading: 'Getting started',
@@ -166,10 +169,22 @@
 
 	{#each sections as section (section.heading)}
 		<h2
-			class="mt-10 mb-4 text-[18px] tracking-tight text-fg"
+			id={slugify(section.heading)}
+			class="group mt-10 mb-4 scroll-mt-8 text-[18px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
-			{section.heading}
+			<a
+				href={`#${slugify(section.heading)}`}
+				class="inline-flex items-baseline gap-2 hover:text-accent-strong"
+			>
+				{section.heading}
+				<span
+					class="text-[12px] text-fg-subtle opacity-0 transition-opacity group-hover:opacity-100"
+					aria-hidden="true"
+				>
+					#
+				</span>
+			</a>
 		</h2>
 		<div class="space-y-4">
 			{#each section.items as item (item.q)}
