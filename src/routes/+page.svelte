@@ -1480,13 +1480,25 @@
 	<!-- Quiet foundry signoff. Anchors the page; no border, no chrome —
 	     just type, breathing room, and a single horizontal rule. -->
 	<footer class="mt-28 mb-4 border-t border-border/60 pt-6">
-		<div class="flex flex-wrap items-baseline justify-between gap-3">
+		<div class="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3">
 			<span
 				class="text-[14px] text-fg-muted"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				Font Studio
 			</span>
+			<nav class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]" aria-label="Site">
+				<a href="/help" class="text-fg-muted hover:text-fg">Help</a>
+				<a href="/changelog" class="text-fg-muted hover:text-fg">Changelog</a>
+				<a href="/about" class="text-fg-muted hover:text-fg">About</a>
+				<a
+					href="https://github.com/alevizio/font-studio"
+					class="text-fg-muted hover:text-fg"
+					rel="noopener"
+				>
+					GitHub
+				</a>
+			</nav>
 			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
 				Personal type design tool &nbsp;·&nbsp; 2026
 			</span>
