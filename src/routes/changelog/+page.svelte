@@ -130,8 +130,8 @@
 					{/each}
 				</ul>
 			{:else if block.type === 'p'}
-				<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 				<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
+					<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 					{@html renderInline(escapeHtml(block.text))}
 				</p>
 			{/if}

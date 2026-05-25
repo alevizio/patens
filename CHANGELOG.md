@@ -2,6 +2,17 @@
 
 All notable changes to Font Studio. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/font-studio).
 
+## [1.4.0] — 2026-05-24
+
+### Added
+- **PWA install support.** `static/manifest.json` with name, short_name, description, start_url, scope, display: standalone, theme + background colors, 3 icons (svg + 192/512 PNG, "any maskable" purpose), categories. Linked from `app.html`. Installable on Chrome/Edge desktop and iOS home-screen "Add to Home Screen".
+- **Favicon variants.** Rasterized `static/icon-192.png` and `icon-512.png` from the favicon.svg (light-mode H-on-#fafaf9), wired as `<link rel="icon" type="image/png">` and `apple-touch-icon`.
+- **/help page.** FAQ across six sections (getting started, sharing, export, editor, performance, broken). 17 questions answered. Static, prerendered.
+
+### Fixed
+- **Share page JSON-LD parsing.** Escaped the inline `</script>` literal in the `{@html}` block as `<\/script>` so the svelte-eslint-parser doesn't terminate the script context prematurely. Functionally identical at runtime.
+- **Changelog `{@html}` lint.** Moved the eslint-disable-next-line comment to the same block as the actual `{@html}` paragraph render.
+
 ## [1.2.0] — 2026-05-24
 
 ### Added

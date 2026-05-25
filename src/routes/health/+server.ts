@@ -31,7 +31,7 @@ export const GET: RequestHandler = ({ setHeaders }) => {
 	return json({
 		status: 'ok',
 		service: 'font-studio',
-		version: '1.3.0',
+		version: '1.4.0',
 		commit: VERCEL_COMMIT_SHA.slice(0, 7),
 		ref: VERCEL_COMMIT_REF,
 		uptimeMs: Date.now() - STARTED_AT,

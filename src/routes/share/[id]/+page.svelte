@@ -1294,7 +1294,7 @@ body {
 	     brief field carrying a literal "</script>" string that
 	     would prematurely close the LD block. eslint-disable for
 	     the {@html}: content is fully controlled (we built it). -->
-	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
 		'@type': 'Product',
@@ -1307,7 +1307,8 @@ body {
 			: undefined,
 		license: project.metadata.licenseURL ?? undefined,
 		datePublished: project.metadata.version ?? undefined
-	}).replace(/<\/script/g, '<\\/script')}</script>`}
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <!-- Reusable type-rendering snippets for the In context mockups.
