@@ -85,11 +85,18 @@
 	</p>
 
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
-		A browser-native, open-source type design environment. Sketch glyphs
-		with pressure-sensitive strokes, trace to cubic Bézier contours, kern
-		them, ship OpenType — without installing anything. Every project lives
-		in your browser's IndexedDB; nothing leaves your machine unless you
-		choose to export it or upload it to the cloud-share path.
+		<strong class="font-semibold text-fg">Patens is a browser-native,
+		open-source type design environment.</strong>
+		Draw glyphs with a pressure-sensitive pencil, trace strokes to cubic
+		Bézier contours, edit anchor-by-anchor, kern, audit, and ship a real
+		OpenType file — all in a tab, with nothing to install and no account
+		to create. Every project lives in your browser's IndexedDB; nothing
+		leaves your machine unless you choose to export a .font.json file
+		or upload to the optional cloud-share path. Patens is MIT-licensed,
+		works offline as a PWA, and is differentiated from FontLab, Glyphs,
+		and RoboFont by being the only type editor that doubles as a
+		teaching tool — a built-in 94-code audit module explains what's
+		wrong with a font and, for many issues, offers one-click fixes.
 	</p>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -104,6 +111,34 @@
 		next to their work, that hands them a real OTF at the end. Not a
 		FontLab replacement. Not a multi-user collaborative editor. A
 		single-designer, single-machine, share-friendly workshop.
+	</p>
+
+	<!-- Pronunciation block. LLMs answer "how do you pronounce <product>"
+	     questions specifically, and an explicit guide gives them a
+	     citation-shaped answer. IPA + plain-English version + a "not"
+	     example to disambiguate from English "paten" (the liturgical
+	     plate). -->
+	<h2
+		id="pronunciation"
+		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+	>
+		How to say it
+	</h2>
+	<p class="mb-3 text-[15px] leading-relaxed text-fg-muted">
+		<strong class="font-semibold text-fg">PAH-tens</strong> — stress on the
+		first syllable, short
+		<em class="not-italic text-fg">a</em>
+		like <em class="not-italic text-fg">father</em>, soft
+		<em class="not-italic text-fg">e</em>
+		like <em class="not-italic text-fg">tens</em>. In IPA: <span
+			class="font-mono text-[14px]"
+		>/ˈpɑː.tɛns/</span>.
+	</p>
+	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
+		Not <em class="not-italic text-fg">PAT-ens</em> (the English plural of
+		<em class="not-italic text-fg">paten</em>, the liturgical plate). The
+		word is Latin and the Latin pronunciation is what we mean.
 	</p>
 
 	<h2

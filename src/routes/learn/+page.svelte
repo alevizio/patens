@@ -330,6 +330,48 @@
 
 		<div class="min-w-0">
 
+	<!-- PATENS-SPECIFIC GUIDES — surfaced first because most visitors
+	     arrived from a Patens search; the canonical reading list further
+	     down is reference. -->
+	<section id="patens-guides" class="mb-16 grid gap-4 sm:grid-cols-2">
+		<a
+			href="/learn/first-font"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Tutorial · 10 steps
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Make your first font
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				From opening the demo to exporting an OpenType file — the shortest
+				path through Patens.
+			</p>
+		</a>
+		<a
+			href="/learn/audit-codes"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Reference
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Audit codes
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Every warning the editor emits, what triggers it, and why it
+				matters — grouped by family.
+			</p>
+		</a>
+	</section>
+
 	<!-- TIMELINE — primary section, biggest treatment -->
 	<section id="timeline" class="mb-16 scroll-mt-8">
 		<div class="mb-6 flex items-baseline gap-3">

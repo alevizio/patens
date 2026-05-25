@@ -108,6 +108,17 @@
 		title="Patens · Changelog"
 		href="/changelog/rss.xml"
 	/>
+	<!-- BreadcrumbList for AI-engine hierarchy understanding. -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@type': 'BreadcrumbList',
+		itemListElement: [
+			{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
+			{ '@type': 'ListItem', position: 2, name: 'Changelog', item: 'https://patens.design/changelog' }
+		]
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">

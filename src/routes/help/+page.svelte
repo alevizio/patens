@@ -129,21 +129,32 @@
 	<meta name="twitter:title" content="Help · Patens" />
 	<meta name="twitter:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta name="twitter:image" content="/og/brand" />
-	<!-- FAQPage JSON-LD so Google can show rich-result expanders on the
-	     search snippet. Same </script> escape trick as the share page —
-	     and the same eslint-disable for {@html} (content is fully
-	     controlled, built from the typed sections array). -->
+	<!-- FAQPage + BreadcrumbList JSON-LD. FAQPage drives direct-answer
+	     extraction (Google deprecated rich snippets May 2026 but Claude
+	     / Perplexity / ChatGPT still parse it for answers). BreadcrumbList
+	     gives AI engines site-hierarchy context for entity linking. -->
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
-		'@type': 'FAQPage',
-		mainEntity: sections.flatMap((s) =>
-			s.items.map((it) => ({
-				'@type': 'Question',
-				name: it.q,
-				acceptedAnswer: { '@type': 'Answer', text: it.a }
-			}))
-		)
+		'@graph': [
+			{
+				'@type': 'FAQPage',
+				mainEntity: sections.flatMap((s) =>
+					s.items.map((it) => ({
+						'@type': 'Question',
+						name: it.q,
+						acceptedAnswer: { '@type': 'Answer', text: it.a }
+					}))
+				)
+			},
+			{
+				'@type': 'BreadcrumbList',
+				itemListElement: [
+					{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
+					{ '@type': 'ListItem', position: 2, name: 'Help', item: 'https://patens.design/help' }
+				]
+			}
+		]
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
