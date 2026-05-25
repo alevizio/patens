@@ -1,6 +1,6 @@
 # Roadmap
 
-What's deliberately deferred from `v1.0.0-beta` and why.
+What's deliberately deferred from `v1.4.0` and why.
 
 ## M3 — Cloud sharing ✅ SHIPPED in v1.0.0
 
@@ -16,17 +16,11 @@ What's still deferred:
 - **Delete API.** Today a share lives until the Vercel Blob store is wiped. A self-service delete by the originator (key signed by their IndexedDB project record) is future work.
 - **Per-project OG image.** Now achievable with cloud — server-render a preview at request time using the uploaded project. ~1 day on top of the cloud arc.
 
-## Per-project OG image
+## Per-project OG image ✅ SHIPPED in v1.1.0
 
-Cloud's twin problem. Social-media bots that fetch a share URL to render a link preview can't run JS; they can't see project data that lives in the originator's IndexedDB. The OG image meta tag points at a generic Font Studio brand image.
+`src/routes/og/[id]/+server.ts` renders a 1200×630 PNG via satori + resvg-js. Family name in self-hosted Lora serif, designer + version + glyph count below. Demo OG renders on the fly; uploaded projects render from cloud storage; brand variant at `/og/home` for the home-page unfurl. Font files self-hosted under `static/og-fonts/` (Wave 11) so OG rendering no longer depends on Google Fonts being reachable.
 
-Resolutions, in order of complexity:
-
-1. **Static OG with familyName via URL param.** Server-render an OG image using the project metadata embedded in the URL (familyName, designer). Doesn't show the actual font, but at least the link preview says the right name.
-2. **OG generated at upload time** (depends on cloud storage). When the project uploads, server renders a real OG image with the font's own glyphs.
-3. **Edge function on first OG request** (depends on cloud storage). Lazy generation — only renders the OG when first requested by a bot. Cached.
-
-Estimated effort: 1 day on top of M3 cloud.
+Still deferred: regenerating OG on re-share (today the OG is rendered at request time, so re-shares already pick up new metadata — but a cached-pre-rendered variant for higher hit rate is future work).
 
 ## Account system
 
@@ -44,7 +38,7 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 
 - **Real curve-fitting on existing geometric glyphs.** The polygon primitives that built the demo letters are honest but rough. Replacing them with hand-tuned Béziers (or with a curve-fit pass over the polygon data) would lift visual quality across the whole demo.
 - **Drawn Italic master** (vs the slant-axis shear). A real italic redraws specific glyphs (a, e, g especially) rather than transforming the upright. Marked as future work in the demo's decision log.
-- **Cyrillic / Greek glyph sets.** The demo is Latin-only by deliberate scope. Adding even a starter Cyrillic would make it a multi-script demo and substantially widen the audience.
+- **Cyrillic / Greek glyph sets — partial.** v1.2.0 added 17 Cyrillic look-alike glyphs (А В Е К М Н О Р С Т Х uppercase + а е о р с х lowercase) and 14 Greek look-alike glyphs (Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ uppercase) — all reuse Latin builders where the geometric-sans shape is identical. Bespoke Cyrillic shapes (Я Ж Ф) and the entire Greek lowercase set remain explicit future work.
 - **AI features.** "Explain this audit code in plain language" with an LLM; "Suggest a kerning value for this pair" via a learned model. Both need an API key + cost handling.
 
 ## Editor — features we've made progress on but haven't shipped
@@ -55,10 +49,10 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 ## Polish we deliberately deferred
 
 - **Per-device responsive test.** I (the maintainer) audited the share page at common breakpoints in CSS, but haven't tested on a real iPhone / iPad. PRs reporting issues with screenshots welcome.
-- **Real bundle-size budgets in CI.** Bundle analyzer ships as `pnpm run analyze`; wiring a `bundlewatch` or similar into CI to fail PRs that grow the bundle past a threshold is future work.
+- ~~**Real bundle-size budgets in CI.**~~ ✅ Shipped in v1.2.0 Wave 7 — `ci.yml` now has a "Bundle size budget" step that fails PRs exceeding 5120 KB of client output. Inspect the breakdown locally via `pnpm run analyze`.
 - **Accessibility audit beyond focus traps + accordion ARIA.** axe-core runs in Playwright E2E for the home + welcome + tab-nav routes; full audit across every route + every modal is future work.
 
-## Known issues (v1.0.0-beta)
+## Known issues (v1.4.0)
 
 Tracked here so future readers see them without re-discovering. Each links to the surface where it shows up:
 
@@ -68,7 +62,9 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - **Pre-existing a11y warnings (moderate / minor).** axe-core reports a small number of moderate / minor violations (color contrast on tinted backgrounds, sparse landmarks on some routes). These don't block CI but are logged via `[a11y minor/moderate]` lines in the test output. Each is small; future PRs should tighten as they touch the affected components.
 
-- **Lint warning baseline.** 52 pre-existing ESLint warnings as of `v1.0.0-beta` (mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty`). New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
+- **Lint warning baseline.** 47 pre-existing ESLint warnings as of `v1.4.0` — ratcheted down from 52 in Wave 8 (`ci.yml` enforces `--max-warnings 47`). Mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty` and `@typescript-eslint/no-unused-vars`. New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
+
+- **43 audit codes without descriptions.** `describeAuditCode()` in `src/lib/font/audit.ts` has 51 description entries; the audit module actually emits 94 distinct codes. The UI degrades gracefully (tooltip is absent rather than broken) but the missing descriptions are real polish debt. Volume work — needs a content-writing pass against the audit code list.
 
 ## Anti-goals
 
