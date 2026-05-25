@@ -21,9 +21,12 @@ import type { Project } from '$lib/font/types';
  *     project was never uploaded, the API returns 404 and we
  *     surface the standard share-404 recovery copy.
  */
-export const load: PageLoad = async ({ params, fetch }) => {
+export const load: PageLoad = async ({ params, fetch, url }) => {
 	if (params.id === 'demo') {
-		const existing = await loadProject('demo').catch(() => null);
+		// ?fresh=1 rebuilds the demo from source, ignoring any local
+		// IndexedDB copy. Same convention as /project/demo/edit?fresh=1.
+		const wantsFresh = url.searchParams.get('fresh') === '1';
+		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
 		if (existing) return { project: existing };
 		const demo = { ...createDemoProject(), id: 'demo' };
 		await saveProject(demo).catch(() => {

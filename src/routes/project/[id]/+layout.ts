@@ -9,14 +9,19 @@ import { createDemoProject } from '$lib/font/demo-project';
 // load works because the browser has IndexedDB.
 export const ssr = false;
 
-export const load: LayoutLoad = async ({ params }) => {
+export const load: LayoutLoad = async ({ params, url }) => {
 	// Demo fast path: /project/demo/edit always works, even on first
 	// visit with empty IndexedDB. Build the demo project on the fly
 	// and (best-effort) persist it so reloading the page picks the
 	// same instance. The persistence failure is non-fatal — the
 	// project is returned regardless so the editor renders.
+	//
+	// ?fresh=1 forces a rebuild — useful when a designer-friend has
+	// edited the demo (deleted glyphs, changed metadata) and wants
+	// to start from a pristine state without clearing IndexedDB.
 	if (params.id === 'demo') {
-		const existing = await loadProject('demo').catch(() => null);
+		const wantsFresh = url.searchParams.get('fresh') === '1';
+		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
 		if (existing) return { project: existing };
 		const demo = { ...createDemoProject(), id: 'demo' };
 		await saveProject(demo).catch(() => {

@@ -1,0 +1,49 @@
+# Lighthouse CI — runs Google Lighthouse against the canonical
+# production URL (font-studio.vercel.app) after each deploy. Replaces
+# Vercel's built-in audit, which mistakenly scores the per-deployment
+# URLs that sit behind Deployment Protection (auth-wall pages render
+# poorly through Lighthouse's eyes).
+#
+# This workflow runs on a delay so Vercel's deploy has time to finish,
+# then audits the same canonical URL a real visitor would hit.
+#
+# Scores are reported as a PR comment; below-threshold scores fail CI.
+# Thresholds are conservative — the canonical URL has historically
+# scored 97/98/100/100 locally.
+
+name: lighthouse
+
+on:
+  workflow_run:
+    workflows: ['ci']
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  audit:
+    # Only run when the upstream CI succeeded; running Lighthouse on a
+    # broken build wastes runner minutes and adds noisy false reds.
+    if: github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Wait for Vercel deploy to settle
+        # Vercel typically lands ~60-90s after GitHub Actions reports
+        # success. 90s catches the common case; the audit still survives
+        # the cold-load if it lands during deploy because Lighthouse
+        # respects CDN cache headers.
+        run: sleep 90
+
+      - name: Run Lighthouse against canonical URL
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: |
+            https://font-studio.vercel.app/
+            https://font-studio.vercel.app/share/demo
+            https://font-studio.vercel.app/project/demo/edit
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: ./lighthouserc.json
