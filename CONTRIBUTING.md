@@ -22,7 +22,7 @@ pnpm test              # Vitest unit tests (~450 tests)
 pnpm test:e2e          # Playwright + axe-core a11y
 ```
 
-CI runs all four on every PR. The lint baseline has 52 known warnings; new code should add zero.
+CI runs all four on every PR. The lint baseline has 47 known warnings (ratcheted from 52 in v1.2.x); new code should add zero. CI also enforces a 5120 KB client-bundle budget — inspect locally via `pnpm run analyze`.
 
 ## Branch model
 
@@ -83,14 +83,14 @@ Mutation flow: every glyph / kerning / metadata write goes through `projectStore
 
 - **More audit codes.** The audit module is the spine; new checks land cleanly. See `src/lib/font/audit.ts` and the five-surface contract in `docs/architecture.md`.
 - **Curve fitting refinements.** The Schneider trace is competent but doesn't handle every sketch shape well. Real type designers have opinions; PRs welcome.
-- **Cyrillic / Greek glyph builders.** The demo project is Latin-only by deliberate scope. Building a starter Cyrillic / Greek set the same way the Latin glyphs are built would be a real contribution.
-- **Cloud-shared viewing (PartyKit).** The share-link recipient story is browser-local today. See [ROADMAP.md](./ROADMAP.md).
+- **Bespoke Cyrillic / Greek glyph builders.** v1.2.0 shipped 17 Cyrillic + 14 Greek look-alike glyphs that reuse Latin builders. The script-specific shapes (Я Ж Ф for Cyrillic; entire Greek lowercase) need real type-design work. Real type designers have opinions here; PRs welcome.
+- **More audit code descriptions** — `describeAuditCode()` covers all 94 codes today (closed in v1.4.0), but tightening copy for clarity + adding fix-action hints in the audit panel UI would be a polish win.
 
 ## Anti-goals
 
 - We don't accept changes that introduce a new framework / state library / styling system. Font Studio is SvelteKit + Tailwind + Svelte 5 runes; stay inside that.
-- No new third-party fonts in the repo — the demo project's "font" is its own SVG path data.
-- No backend yet. Cloud features are the M3 arc; we don't add servers piecemeal.
+- No new third-party fonts in the repo — the demo project's "font" is its own SVG path data. (The 2 fonts under `static/og-fonts/` are exceptions: Lora + Inter used only for server-rendered OG cards.)
+- No new backend services. Cloud sharing went through Vercel Blob in v1.1.0 — additional cloud features (delete API, per-share versioning, account systems) need explicit roadmap buy-in before PRs.
 
 ## Code of conduct
 
