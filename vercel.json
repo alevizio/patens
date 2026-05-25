@@ -3,21 +3,21 @@
 	"framework": "sveltekit",
 	"redirects": [
 		{
-			"source": "/:path*",
+			"source": "/(.*)",
 			"has": [{ "type": "host", "value": "patens.app" }],
-			"destination": "https://patens.design/:path*",
+			"destination": "https://patens.design/$1",
 			"permanent": true
 		},
 		{
-			"source": "/:path*",
+			"source": "/(.*)",
 			"has": [{ "type": "host", "value": "patens.studio" }],
-			"destination": "https://patens.design/:path*",
+			"destination": "https://patens.design/$1",
 			"permanent": true
 		},
 		{
-			"source": "/:path*",
+			"source": "/(.*)",
 			"has": [{ "type": "host", "value": "font-studio.vercel.app" }],
-			"destination": "https://patens.design/:path*",
+			"destination": "https://patens.design/$1",
 			"permanent": true
 		}
 	],
