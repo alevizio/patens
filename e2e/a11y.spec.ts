@@ -106,6 +106,21 @@ test('/about has no serious/critical a11y violations', async ({ page }) => {
 	await auditPage(page);
 });
 
+test('/compare has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/compare');
+	await auditPage(page);
+});
+
+test('/learn/first-font has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/first-font');
+	await auditPage(page);
+});
+
+test('/learn/audit-codes has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/audit-codes');
+	await auditPage(page);
+});
+
 test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/share/demo');
 	await auditPage(page);
