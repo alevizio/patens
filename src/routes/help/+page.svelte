@@ -121,8 +121,10 @@
 	     a shared link unfurls with the page-specific title and description. -->
 	<meta property="og:title" content="Help · Font Studio" />
 	<meta property="og:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<meta property="og:image" content="/og/brand" />
 	<meta name="twitter:title" content="Help · Font Studio" />
 	<meta name="twitter:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<meta name="twitter:image" content="/og/brand" />
 	<!-- FAQPage JSON-LD so Google can show rich-result expanders on the
 	     search snippet. Same </script> escape trick as the share page —
 	     and the same eslint-disable for {@html} (content is fully
