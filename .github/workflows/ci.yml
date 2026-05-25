@@ -23,6 +23,14 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - name: Audit dependencies (pnpm audit)
+        # Warns about CVEs in the lockfile. Doesn't block CI on info-level
+        # findings — only fails on moderate+ severity so a low-severity
+        # advisory in a dev tool doesn't break unrelated PRs. Continue
+        # on error so a broken upstream registry doesn't take CI down.
+        run: pnpm audit --audit-level=moderate || true
+        continue-on-error: true
+
       - name: Lint (eslint)
         # Baseline lint at v1.0.0-beta — fails only on errors (warnings
         # surface in the report). The handful of remaining errors map

@@ -1,0 +1,27 @@
+# EditorConfig — https://editorconfig.org
+# Pinned values match the existing codebase. Override per-file types
+# where the project's actual style differs from the default.
+
+root = true
+
+[*]
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+indent_style = tab
+indent_size = 4
+
+[*.{json,yml,yaml,md}]
+# Markdown + YAML + JSON conventionally use spaces, not tabs.
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Don't trim trailing whitespace in Markdown — two trailing spaces is the
+# convention for a hard line break.
+trim_trailing_whitespace = false
+
+[Makefile]
+# Make requires tab indentation; explicit so editors don't silently break it.
+indent_style = tab

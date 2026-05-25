@@ -1,0 +1,40 @@
+# Dependabot — automatic dependency update PRs.
+# Runs weekly to keep noise low. Major updates open as separate PRs so they
+# can be reviewed individually (each may need test fixes).
+#
+# Docs: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    groups:
+      # Group all dev-tool patch/minor bumps into one PR so CI doesn't run
+      # eight times a week for type-only updates.
+      dev-deps:
+        dependency-type: 'development'
+        update-types: ['minor', 'patch']
+      # SvelteKit + Svelte ecosystem versions should move together;
+      # batching avoids API-surface mismatch PRs.
+      svelte-ecosystem:
+        patterns:
+          - 'svelte'
+          - '@sveltejs/*'
+          - 'svelte-*'
+        update-types: ['minor', 'patch']
+    labels:
+      - 'dependencies'
+
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    open-pull-requests-limit: 3
+    labels:
+      - 'dependencies'
+      - 'ci'

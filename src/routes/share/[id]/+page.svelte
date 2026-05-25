@@ -828,6 +828,33 @@
 				// Common ligatures + ß
 				0xdf, 0xfb01, 0xfb02
 			]
+		},
+		{
+			// Basic Cyrillic — the "common subset" most foundries ship in
+			// their multi-script v1. Includes the look-alikes (A B E H K M O P
+			// C T X — already drawn in the demo as composites) + the bespoke
+			// shapes the demo doesn't have yet (Я Ж Ц Щ Б Г Д Ы Ю Э Ч П Л Ф).
+			// Empty cells in this row are an honest signal of what's missing.
+			id: 'cyrillic',
+			label: 'Cyrillic (basic)',
+			codepoints: [
+				// Uppercase: А Б В Г Д Е Ж З И Й К Л М Н О П Р С Т У Ф Х Ц Ч Ш Щ Ъ Ы Ь Э Ю Я
+				...Array.from({ length: 32 }, (_, i) => 0x0410 + i),
+				// Lowercase: а б в г д е ж з и й к л м н о п р с т у ф х ц ч ш щ ъ ы ь э ю я
+				...Array.from({ length: 32 }, (_, i) => 0x0430 + i)
+			]
+		},
+		{
+			// Greek uppercase — most-common subset (skipping the obsolete
+			// archaic letters). 24-letter classical alphabet.
+			id: 'greek',
+			label: 'Greek (uppercase)',
+			codepoints: [
+				// Α Β Γ Δ Ε Ζ Η Θ Ι Κ Λ Μ Ν Ξ Ο Π Ρ Σ Τ Υ Φ Χ Ψ Ω
+				0x0391, 0x0392, 0x0393, 0x0394, 0x0395, 0x0396, 0x0397, 0x0398,
+				0x0399, 0x039a, 0x039b, 0x039c, 0x039d, 0x039e, 0x039f, 0x03a0,
+				0x03a1, 0x03a3, 0x03a4, 0x03a5, 0x03a6, 0x03a7, 0x03a8, 0x03a9
+			]
 		}
 	];
 	type CoverageCell = {
