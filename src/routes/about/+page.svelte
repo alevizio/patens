@@ -24,6 +24,10 @@
 <svelte:head>
 	<title>About · Font Studio</title>
 	<meta name="description" content="What Font Studio is, what it's built on, who made it." />
+	<meta property="og:title" content="About · Font Studio" />
+	<meta property="og:description" content="What Font Studio is, what it's built on, who made it." />
+	<meta name="twitter:title" content="About · Font Studio" />
+	<meta name="twitter:description" content="What Font Studio is, what it's built on, who made it." />
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">

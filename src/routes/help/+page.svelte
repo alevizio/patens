@@ -116,6 +116,13 @@
 <svelte:head>
 	<title>Help · Font Studio</title>
 	<meta name="description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<!-- Per-page OG overrides — same pattern as /share. The global layout
+	     sets generic "Font Studio" defaults; these override for /help so
+	     a shared link unfurls with the page-specific title and description. -->
+	<meta property="og:title" content="Help · Font Studio" />
+	<meta property="og:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<meta name="twitter:title" content="Help · Font Studio" />
+	<meta name="twitter:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
 	<!-- FAQPage JSON-LD so Google can show rich-result expanders on the
 	     search snippet. Same </script> escape trick as the share page —
 	     and the same eslint-disable for {@html} (content is fully

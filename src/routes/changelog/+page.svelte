@@ -92,6 +92,10 @@
 <svelte:head>
 	<title>Changelog · Font Studio</title>
 	<meta name="description" content="Font Studio release history — every version since v0.4." />
+	<meta property="og:title" content="Changelog · Font Studio" />
+	<meta property="og:description" content="Font Studio release history — every version since v0.4." />
+	<meta name="twitter:title" content="Changelog · Font Studio" />
+	<meta name="twitter:description" content="Font Studio release history — every version since v0.4." />
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
