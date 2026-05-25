@@ -47,7 +47,9 @@
 
 	// Page navigation commands — prefix-based ">audit" syntax. Returns a
 	// flat list of {label, target} pairs filtered by the query suffix.
-	type PageCmd = { label: string; slug: string; hint?: string };
+	// Project pages have a slug joined to the active project ID; site
+	// pages have an absolute path used as-is.
+	type PageCmd = { label: string; slug: string; hint?: string; absolute?: boolean };
 	const PAGES: PageCmd[] = [
 		{ label: 'Edit', slug: 'edit', hint: 'Draw glyphs' },
 		{ label: 'Brief', slug: 'brief', hint: 'Project intent + decisions' },
@@ -60,7 +62,12 @@
 		{ label: 'Specimen', slug: 'specimen', hint: 'Printable sample sheet' },
 		{ label: 'Release', slug: 'release', hint: 'Pre-flight + snapshots' },
 		{ label: 'Export', slug: 'export', hint: 'OTF / TTF / WOFF2 / bundle' },
-		{ label: 'AI', slug: 'ai', hint: 'Suggestions + drafts' }
+		{ label: 'AI', slug: 'ai', hint: 'Suggestions + drafts' },
+		// Site-wide pages — absolute path; not project-scoped.
+		{ label: 'Help', slug: '/help', hint: 'FAQ — sharing, export, editor', absolute: true },
+		{ label: 'Changelog', slug: '/changelog', hint: 'Release history + RSS', absolute: true },
+		{ label: 'About', slug: '/about', hint: 'Credits + stack', absolute: true },
+		{ label: 'Home', slug: '/', hint: 'Foundry — all projects', absolute: true }
 	];
 
 	const pageMode = $derived(query.startsWith('>'));
@@ -107,8 +114,12 @@
 		if (pageMode) {
 			const p = pageResults[idx];
 			if (!p) return;
-			const projectId = projectStore.project?.id;
-			if (projectId) goto(`/project/${projectId}/${p.slug}`);
+			if (p.absolute) {
+				goto(p.slug);
+			} else {
+				const projectId = projectStore.project?.id;
+				if (projectId) goto(`/project/${projectId}/${p.slug}`);
+			}
 			onclose();
 			return;
 		}

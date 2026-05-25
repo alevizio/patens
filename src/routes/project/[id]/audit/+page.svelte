@@ -682,15 +682,29 @@
 												{/if}
 											</span>
 											<div class="min-w-0 flex-1">
-												<div class="text-[12px] text-fg" title={describeAuditCode(i.code)}>
+												<div class="text-[12px] text-fg">
 													{i.message}
 												</div>
-												<div
-													class="mt-0.5 font-mono text-[10px] text-fg-subtle"
-													title={describeAuditCode(i.code)}
-												>
-													{i.code}
-												</div>
+												{#if describeAuditCode(i.code)}
+													<!-- Native <details> disclosure: keyboard/touch/voice
+													     users can expand the description; sighted users still
+													     get the hover tooltip via the title attribute. -->
+													<details class="mt-0.5">
+														<summary
+															class="cursor-pointer list-none font-mono text-[10px] text-fg-subtle hover:text-fg [&::-webkit-details-marker]:hidden"
+															title={describeAuditCode(i.code)}
+														>
+															{i.code} <span class="text-fg-subtle/60">·</span> <span class="text-fg-subtle/60">explain</span>
+														</summary>
+														<p class="mt-1 max-w-prose text-[11px] leading-snug text-fg-muted">
+															{describeAuditCode(i.code)}
+														</p>
+													</details>
+												{:else}
+													<div class="mt-0.5 font-mono text-[10px] text-fg-subtle">
+														{i.code}
+													</div>
+												{/if}
 											</div>
 											{#if FIXABLE_CODES.has(i.code)}
 												<button
