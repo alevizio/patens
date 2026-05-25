@@ -19,39 +19,15 @@
 		{ name: 'Vercel Blob', what: 'Cloud storage for cross-browser share links.', url: 'https://vercel.com/docs/storage/vercel-blob' },
 		{ name: 'Vercel', what: 'Deploys + edge CDN.', url: 'https://vercel.com' }
 	];
-</script>
 
-<svelte:head>
-	<title>About · Patens</title>
-	<meta name="description" content="What Patens is, what it's built on, who made it." />
-	<meta property="og:title" content="About · Patens" />
-	<meta property="og:description" content="What Patens is, what it's built on, who made it." />
-	<meta property="og:image" content="/og/brand" />
-	<meta name="twitter:title" content="About · Patens" />
-	<meta name="twitter:description" content="What Patens is, what it's built on, who made it." />
-	<meta name="twitter:image" content="/og/brand" />
-	<!-- Structured data — BreadcrumbList for site-hierarchy understanding +
-	     Person for the maintainer entity. AI engines use these for citation
-	     attribution and entity linking across surfaces. -->
-	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
-	{@html `<script type="application/ld+json">${JSON.stringify({
+	const jsonLd = `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
 		'@graph': [
 			{
 				'@type': 'BreadcrumbList',
 				itemListElement: [
-					{
-						'@type': 'ListItem',
-						position: 1,
-						name: 'Patens',
-						item: 'https://patens.design'
-					},
-					{
-						'@type': 'ListItem',
-						position: 2,
-						name: 'About',
-						item: 'https://patens.design/about'
-					}
+					{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
+					{ '@type': 'ListItem', position: 2, name: 'About', item: 'https://patens.design/about' }
 				]
 			},
 			{
@@ -67,7 +43,24 @@
 				worksFor: { '@type': 'Organization', name: 'Patens' }
 			}
 		]
-	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`;
+</script>
+
+<svelte:head>
+	<title>About · Patens</title>
+	<meta name="description" content="What Patens is, what it's built on, who made it." />
+	<meta property="og:title" content="About · Patens" />
+	<meta property="og:description" content="What Patens is, what it's built on, who made it." />
+	<meta property="og:image" content="/og/brand" />
+	<meta name="twitter:title" content="About · Patens" />
+	<meta name="twitter:description" content="What Patens is, what it's built on, who made it." />
+	<meta name="twitter:image" content="/og/brand" />
+	<!-- Structured data — injected as raw HTML because Svelte 5's
+	     compiler strips the body of literal <script> tags inside
+	     components. {@html} bypasses that and renders the script
+	     verbatim into the SSR HTML, which is what AI engines read. -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 

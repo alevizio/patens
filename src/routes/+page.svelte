@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
 	import { toast } from '$lib/stores/toast.svelte';
 	import {
 		createProject,
@@ -219,7 +220,10 @@
 			loading = false;
 		}
 	};
-	refresh();
+	// SSR can't list projects (IndexedDB lives in the browser). Skip the
+	// initial fetch server-side — hydration calls refresh() on mount via
+	// the effect below.
+	if (browser) refresh();
 
 	let storage = $state<{ used: number; quota: number } | null>(null);
 	$effect(() => {
@@ -1518,6 +1522,7 @@
 			</span>
 			<nav class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]" aria-label="Site">
 				<a href="/help" class="text-fg-muted hover:text-fg">Help</a>
+				<a href="/compare" class="text-fg-muted hover:text-fg">Compare</a>
 				<a href="/changelog" class="text-fg-muted hover:text-fg">Changelog</a>
 				<a href="/about" class="text-fg-muted hover:text-fg">About</a>
 				<a

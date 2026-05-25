@@ -17,6 +17,7 @@ const ROUTES: Array<{ path: string; changefreq: string; priority: number }> = [
 	{ path: '/learn', changefreq: 'monthly', priority: 0.8 },
 	{ path: '/families', changefreq: 'monthly', priority: 0.5 },
 	{ path: '/help', changefreq: 'monthly', priority: 0.7 },
+	{ path: '/compare', changefreq: 'monthly', priority: 0.7 },
 	{ path: '/changelog', changefreq: 'weekly', priority: 0.6 },
 	{ path: '/changelog/rss.xml', changefreq: 'weekly', priority: 0.3 },
 	{ path: '/llms.txt', changefreq: 'monthly', priority: 0.3 },
