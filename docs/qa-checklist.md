@@ -12,8 +12,8 @@ Returns 200 + correct Content-Type:
 for url in / /help /changelog /about /sitemap.xml /changelog/rss.xml \
            /health /manifest.json /icon-192.png /icon-512.png \
            /og/brand /og/demo /og/home /share/demo /share/nonexistent-404; do
-  code=$(curl -s -o /dev/null -w "%{http_code}" "https://font-studio.vercel.app$url")
-  ctype=$(curl -s -I "https://font-studio.vercel.app$url" | grep -i "^content-type:" | head -1 | tr -d '\r')
+  code=$(curl -s -o /dev/null -w "%{http_code}" "https://patens.design$url")
+  ctype=$(curl -s -I "https://patens.design$url" | grep -i "^content-type:" | head -1 | tr -d '\r')
   printf "%-32s %s %s\n" "$url" "$code" "$ctype"
 done
 ```
@@ -33,7 +33,7 @@ Expected:
 OG endpoints can return 200 with a JSON error payload if the catchall function fails late (the error gets serialised after headers go out). Verify the body is a PNG, not text:
 
 ```sh
-curl -s "https://font-studio.vercel.app/og/brand" | wc -c
+curl -s "https://patens.design/og/brand" | wc -c
 # expect: ~30,000 bytes (a real PNG)
 # if: < 1000 bytes, fetch the body and inspect — likely a JSON error
 ```
@@ -45,7 +45,7 @@ If it's a JSON error, the most common causes (in order seen):
 ## 3. Health endpoint reports the right version
 
 ```sh
-curl -s https://font-studio.vercel.app/health | jq
+curl -s https://patens.design/health | jq
 ```
 
 The `version` field should match `package.json`'s version. If it lags behind, the drift fix from v1.4.0 (commits `83f0744` + `520acf6`) regressed.
@@ -53,7 +53,7 @@ The `version` field should match `package.json`'s version. If it lags behind, th
 ## 4. Open the demo project end-to-end
 
 In a real browser:
-1. Visit `https://font-studio.vercel.app/`
+1. Visit `https://patens.design/`
 2. Click "Open the example project"
 3. Lands on `/project/{uuid}/edit` with 128 glyphs visible in the left strip
 4. Click a few glyph tiles — each loads in the canvas
@@ -72,7 +72,7 @@ If any tab crashes or a glyph fails to draw, the editor regression coverage miss
 ## 6. RSS feed parses
 
 ```sh
-curl -s https://font-studio.vercel.app/changelog/rss.xml | xmllint --noout -
+curl -s https://patens.design/changelog/rss.xml | xmllint --noout -
 # expect: no output (valid XML)
 ```
 
@@ -82,8 +82,8 @@ Each `<item>`'s `<link>` should land on the right `/changelog#1-4-0-2026-05-24` 
 
 ```sh
 pnpm profile                                      # home
-pnpm profile https://font-studio.vercel.app/share/demo
-pnpm profile https://font-studio.vercel.app/project/demo/edit
+pnpm profile https://patens.design/share/demo
+pnpm profile https://patens.design/project/demo/edit
 ```
 
 The script (`scripts/profile-cold-load.mjs`) drives headless Chromium against the URL, captures the CDP Performance trace, and digests:
@@ -103,7 +103,7 @@ Baseline (v1.4.0, commit `d335121`):
 
 CI runs both:
 - `axe-core` via Playwright on /home, /learn, /families, /help, /changelog, /about, /share/demo + every project tab. Fails on critical/serious violations.
-- `lighthouse-ci` via `treosh/lighthouse-ci-action` against `font-studio.vercel.app/`, `/share/demo`, `/project/demo/edit`. Category scores capped via `lighthouserc.json`.
+- `lighthouse-ci` via `treosh/lighthouse-ci-action` against `patens.design/`, `/share/demo`, `/project/demo/edit`. Category scores capped via `lighthouserc.json`.
 
 After deploy, watch the Lighthouse action — it triggers on `ci` workflow_run success, waits 90s for Vercel to roll, then runs. Failures here often surface AFTER the smoke test passes.
 

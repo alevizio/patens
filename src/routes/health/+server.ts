@@ -31,7 +31,7 @@ export const GET: RequestHandler = ({ setHeaders }) => {
 	});
 	return json({
 		status: 'ok',
-		service: 'font-studio',
+		service: 'patens',
 		version: pkg.version,
 		commit: VERCEL_COMMIT_SHA.slice(0, 7),
 		ref: VERCEL_COMMIT_REF,

@@ -1,6 +1,6 @@
 # Setup — enabling the optional integrations
 
-Font Studio runs fully in the browser by default. Three optional integrations require server-side credentials. Each gracefully degrades when not configured — the editor still works, the integration is just hidden.
+Patens runs fully in the browser by default. Three optional integrations require server-side credentials. Each gracefully degrades when not configured — the editor still works, the integration is just hidden.
 
 This file documents what to set up for each, on each hosting platform.
 
@@ -43,7 +43,7 @@ Required env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `AUTH_SECRET` (al
 ### Step 1 — register a GitHub OAuth app (one-time, ~2 minutes)
 
 1. https://github.com/settings/applications/new
-2. Application name: `Font Studio` (or your fork's name)
+2. Application name: `Patens` (or your fork's name)
 3. Homepage URL: `https://your-domain.com`
 4. Authorization callback URL: `https://your-domain.com/auth/callback/github`
 5. Click **Register application**
@@ -108,7 +108,7 @@ The Anthropic key is **per-user, stored in localStorage**, not a deployment-wide
 
 1. Open https://console.anthropic.com → Settings → API Keys
 2. Create a new key (any name). Copy it before navigating away.
-3. In Font Studio: top-right ⚙ Settings → paste into "Anthropic API key" → Save.
+3. In Patens: top-right ⚙ Settings → paste into "Anthropic API key" → Save.
 4. AI tab on any project now activates. Each preset run is metered against your own Anthropic account.
 
 The key stays in `localStorage` keyed by origin. It's sent to `/api/ai/messages` on each AI request (server-side proxy that adds CORS handling); the server doesn't persist the key.

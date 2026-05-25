@@ -15,7 +15,7 @@ import { parseReleases } from './parse';
 
 export const prerender = true;
 
-const BASE = 'https://font-studio.vercel.app';
+const BASE = 'https://patens.design';
 
 const escapeXml = (s: string): string =>
 	s
@@ -48,10 +48,10 @@ export const GET: RequestHandler = ({ setHeaders }) => {
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 	<channel>
-		<title>Font Studio · Changelog</title>
+		<title>Patens · Changelog</title>
 		<link>${BASE}/changelog</link>
 		<atom:link href="${BASE}/changelog/rss.xml" rel="self" type="application/rss+xml" />
-		<description>Release notes for Font Studio, a browser-native type design tool.</description>
+		<description>Release notes for Patens — browser-native, open-source type design.</description>
 		<language>en</language>
 ${items}
 	</channel>

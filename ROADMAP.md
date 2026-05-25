@@ -80,6 +80,6 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 The things we explicitly don't want:
 
-- **A FontLab / Glyphs competitor.** Font Studio is a specific bet: browser-native, single-designer, share-friendly. Trying to match desktop-grade type-design tools feature-for-feature would dilute the bet.
+- **A FontLab / Glyphs competitor.** Patens is a specific bet: browser-native, single-designer, share-friendly. Trying to match desktop-grade type-design tools feature-for-feature would dilute the bet.
 - **A multi-user collaborative editor.** Type design is mostly solo work; the collaboration story we want is async share + comment, not Figma-style co-editing.
 - **An npm package.** This is an app, not a library. The reusable bits (audit module, opentype.js wrapper) might one day ship as packages, but not by default.

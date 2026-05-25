@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a capability Font Studio doesn't have yet
+about: Suggest a capability Patens doesn't have yet
 title: '[feat] '
 labels: enhancement
 ---

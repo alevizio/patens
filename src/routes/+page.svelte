@@ -245,7 +245,7 @@
 			const text = await file.text();
 			const parsed = JSON.parse(text);
 			if (!parsed?.projects || !Array.isArray(parsed.projects)) {
-				throw new Error('Not a Font Studio backup file.');
+				throw new Error('Not a Patens backup file.');
 			}
 			const overwrite = confirm(
 				`Restore ${parsed.projects.length} projects from "${file.name}"?\n\nClick OK to OVERWRITE existing ones with the same ID, or Cancel to skip duplicates.`
@@ -274,7 +274,7 @@
 			const a = document.createElement('a');
 			a.href = url;
 			const stamp = new Date().toISOString().slice(0, 10);
-			a.download = `font-studio-backup-${stamp}.json`;
+			a.download = `patens-backup-${stamp}.json`;
 			document.body.appendChild(a);
 			a.click();
 			a.remove();
@@ -522,7 +522,7 @@
 				const text = await file.text();
 				const parsed = JSON.parse(text);
 				if (!parsed || typeof parsed !== 'object' || !parsed.metadata?.familyName) {
-					throw new Error('Not a Font Studio project file — missing metadata.familyName.');
+					throw new Error('Not a Patens project file — missing metadata.familyName.');
 				}
 				const ts = new Date().toISOString();
 				const project: Parameters<typeof saveProject>[0] = {
@@ -617,24 +617,24 @@
 </script>
 
 <svelte:head>
-	<title>Font Studio — browser type editor</title>
+	<title>Patens — open-source type design in the browser</title>
 	<meta
 		name="description"
 		content="Sketch-first browser type editor. Variable fonts, color (COLR), kerning, mark positioning, OpenType features, audit + auto-fix across every workflow surface."
 	/>
 	<!-- OpenGraph / Twitter card meta for link unfurls. -->
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="Font Studio" />
+	<meta property="og:title" content="Patens" />
 	<meta
 		property="og:description"
 		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
 	/>
-	<meta property="og:site_name" content="Font Studio" />
+	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="/og/home" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Font Studio" />
+	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
 		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
@@ -685,7 +685,7 @@
 				class="text-[20px] leading-none tracking-tight text-fg transition-colors group-hover:text-accent-strong"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
-				Font Studio
+				Patens
 			</span>
 			{#if todayTotals.editedToday > 0}
 				<span
@@ -1413,14 +1413,14 @@
 				class="text-[14px] text-fg-muted"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
-				Font Studio
+				Patens
 			</span>
 			<nav class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]" aria-label="Site">
 				<a href="/help" class="text-fg-muted hover:text-fg">Help</a>
 				<a href="/changelog" class="text-fg-muted hover:text-fg">Changelog</a>
 				<a href="/about" class="text-fg-muted hover:text-fg">About</a>
 				<a
-					href="https://github.com/alevizio/font-studio"
+					href="https://github.com/alevizio/patens"
 					class="text-fg-muted hover:text-fg"
 					rel="noopener"
 				>

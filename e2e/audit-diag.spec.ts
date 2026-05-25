@@ -2,7 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 const seed = async (page: Page) => {
 	await page.goto('/');
-	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
+	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
 	if (
 		await strip
 			.waitFor({ state: 'visible', timeout: 2000 })

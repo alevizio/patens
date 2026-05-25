@@ -1,4 +1,4 @@
-# Font Studio — architecture
+# Patens — architecture
 
 One page. The intent is "load this in your head before reading code."
 

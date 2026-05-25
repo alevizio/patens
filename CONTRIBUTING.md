@@ -1,12 +1,12 @@
-# Contributing to Font Studio
+# Contributing to Patens
 
-Thanks for your interest. Font Studio is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics; for "what does this code do," see [`docs/architecture.md`](./docs/architecture.md).
+Thanks for your interest. Patens is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics; for "what does this code do," see [`docs/architecture.md`](./docs/architecture.md).
 
 ## Getting set up
 
 ```sh
-git clone https://github.com/alevizio/font-studio.git
-cd font-studio
+git clone https://github.com/alevizio/patens.git
+cd patens
 pnpm install
 pnpm dev
 ```
@@ -88,7 +88,7 @@ Mutation flow: every glyph / kerning / metadata write goes through `projectStore
 
 ## Anti-goals
 
-- We don't accept changes that introduce a new framework / state library / styling system. Font Studio is SvelteKit + Tailwind + Svelte 5 runes; stay inside that.
+- We don't accept changes that introduce a new framework / state library / styling system. Patens is SvelteKit + Tailwind + Svelte 5 runes; stay inside that.
 - No new third-party fonts in the repo — the demo project's "font" is its own SVG path data. (The 2 fonts under `static/og-fonts/` are exceptions: Lora + Inter used only for server-rendered OG cards.)
 - No new backend services. Cloud sharing went through Vercel Blob in v1.1.0 — additional cloud features (delete API, per-share versioning, account systems) need explicit roadmap buy-in before PRs.
 

@@ -98,11 +98,11 @@
 			items: [
 				{
 					q: 'I found a bug.',
-					a: 'Open an issue on GitHub: https://github.com/alevizio/font-studio/issues/new?template=bug.md — the template asks for browser, OS, project, and steps to reproduce.'
+					a: 'Open an issue on GitHub: https://github.com/alevizio/patens/issues/new?template=bug.md — the template asks for browser, OS, project, and steps to reproduce.'
 				},
 				{
 					q: 'I have a feature idea.',
-					a: 'Same path with the feature template: https://github.com/alevizio/font-studio/issues/new?template=feature.md — lead with the problem you want to solve before suggesting how.'
+					a: 'Same path with the feature template: https://github.com/alevizio/patens/issues/new?template=feature.md — lead with the problem you want to solve before suggesting how.'
 				},
 				{
 					q: 'I want to contribute code.',
@@ -118,16 +118,16 @@
 </script>
 
 <svelte:head>
-	<title>Help · Font Studio</title>
-	<meta name="description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<title>Help · Patens</title>
+	<meta name="description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<!-- Per-page OG overrides — same pattern as /share. The global layout
 	     sets generic "Font Studio" defaults; these override for /help so
 	     a shared link unfurls with the page-specific title and description. -->
-	<meta property="og:title" content="Help · Font Studio" />
-	<meta property="og:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<meta property="og:title" content="Help · Patens" />
+	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta property="og:image" content="/og/brand" />
-	<meta name="twitter:title" content="Help · Font Studio" />
-	<meta name="twitter:description" content="Common questions about Font Studio — sharing, export, the editor, performance." />
+	<meta name="twitter:title" content="Help · Patens" />
+	<meta name="twitter:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta name="twitter:image" content="/og/brand" />
 	<!-- FAQPage JSON-LD so Google can show rich-result expanders on the
 	     search snippet. Same </script> escape trick as the share page —
@@ -166,13 +166,13 @@
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		The questions that come up most. For the deeper architecture, see
 		<a
-			href="https://github.com/alevizio/font-studio/blob/main/docs/architecture.md"
+			href="https://github.com/alevizio/patens/blob/main/docs/architecture.md"
 			class="text-accent-strong underline underline-offset-2"
 		>
 			docs/architecture.md
 		</a>. For everything else, the
 		<a
-			href="https://github.com/alevizio/font-studio/issues"
+			href="https://github.com/alevizio/patens/issues"
 			class="text-accent-strong underline underline-offset-2"
 		>
 			GitHub issues

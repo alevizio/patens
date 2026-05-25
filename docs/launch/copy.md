@@ -22,9 +22,9 @@ Variants:
 Type design in the browser.
 No installs, no sign-ups. Draw, trace, ship OpenType.
 
-font-studio.vercel.app
+patens.design
 
-[attach: home OG image — 1200×630 "Font Studio" serif card]
+[attach: home OG image — 1200×630 "Patens" serif card]
 
 **Post 2** (what it can do):
 The demo project ships 128 glyphs across Latin upper + lowercase, digits, punctuation, currency (€ £ ¥ $), math (± × ÷ °), brackets, and a ß. Two masters (Regular + Italic via slnt axis). Five composite ligatures. Six live OpenType features.
@@ -50,20 +50,20 @@ Cmd+P → designer PDF.
 **Post 5** (close):
 Open source (MIT). The 88-code audit module, the export pipeline (OTF + WOFF2 in-browser, TTF via Pyodide), and every screenshot in this thread are in:
 
-github.com/alevizio/font-studio
+github.com/alevizio/patens
 
 ---
 
 ## Show HN
 
-**Title:** Show HN: Font Studio – type design in the browser, no installs
+**Title:** Show HN: Patens – type design in the browser, no installs
 
 **Body:**
 
 I built a browser-native type design environment. The whole thing runs client-side: sketch with a pencil (pressure-sensitive), trace strokes to cubic Bézier contours via boolean union + Schneider fitting, edit points, ship OpenType. Every project lives in your browser's IndexedDB; nothing leaves your machine unless you export it (.font.json) or upload to the cloud-share path (Vercel Blob).
 
-Try it: https://font-studio.vercel.app/project/demo/edit
-Specimen view of the demo: https://font-studio.vercel.app/share/demo
+Try it: https://patens.design/project/demo/edit
+Specimen view of the demo: https://patens.design/share/demo
 
 What the demo project ships:
 - 128 glyphs across Latin upper/lower, digits, punctuation, currency, math, brackets, ß
@@ -78,7 +78,7 @@ The audit module is the spine of the app — 88+ codes covering contour shape, v
 Stack: SvelteKit + Svelte 5 runes, Tailwind v4, idb-keyval, opentype.js (OTF/WOFF2 in browser), Pyodide + ttfautohint (TTF), Vercel Blob (cloud share), satori + resvg-js (per-project OG images).
 
 MIT licensed. The repo has a CONTRIBUTING guide and a one-page architecture doc:
-https://github.com/alevizio/font-studio
+https://github.com/alevizio/patens
 
 Happy to answer anything.
 
@@ -94,8 +94,8 @@ I've been working on this for a while. It's a sketch-first editor where you draw
 
 The demo project is a 128-glyph geometric sans called Studio Geometric. Two masters (Regular + Italic), six OpenType features, real ligature substitutions (fi, fl). Five composite ligatures, a drawn ß, full currency + math + brackets. The whole thing reads like a real WIP type project, with a populated design brief and a decision journal.
 
-Open source under MIT: github.com/alevizio/font-studio
-Try it: font-studio.vercel.app
+Open source under MIT: github.com/alevizio/patens
+Try it: patens.design
 
 Would love to hear what's missing, what's broken, what feels off.
 
@@ -103,7 +103,7 @@ Would love to hear what's missing, what's broken, what feels off.
 
 ## Designer-friend DM (text-message friendly)
 
-hey — finally shipped the type editor thing i've been making. demo at font-studio.vercel.app, open it on desktop. type stuff in the "try it" panel, click a glyph to inspect, hit cmd+p to print a specimen. let me know what feels off
+hey — finally shipped the type editor thing i've been making. demo at patens.design, open it on desktop. type stuff in the "try it" panel, click a glyph to inspect, hit cmd+p to print a specimen. let me know what feels off
 
 ---
 
@@ -113,11 +113,11 @@ Subject: A type editor that runs in the browser
 
 [Name],
 
-I just shipped Font Studio — a type design environment that runs entirely in the browser, no installs.
+I just shipped Patens — a type design environment that runs entirely in the browser, no installs.
 
-Link: https://font-studio.vercel.app
+Link: https://patens.design
 
-The example project (https://font-studio.vercel.app/share/demo) is the easiest entry point. It's a 128-glyph geometric sans I built to exercise every feature in the editor.
+The example project (https://patens.design/share/demo) is the easiest entry point. It's a 128-glyph geometric sans I built to exercise every feature in the editor.
 
 If you have 10 minutes:
 - Open the share view
@@ -130,7 +130,7 @@ I'm specifically looking for two things:
 1. What's confusing / where do you get stuck?
 2. What's missing that you'd use this for?
 
-The repo is open source (MIT): https://github.com/alevizio/font-studio
+The repo is open source (MIT): https://github.com/alevizio/patens
 
 Thanks.
 

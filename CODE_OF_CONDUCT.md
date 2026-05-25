@@ -2,7 +2,7 @@
 
 ## Our pledge
 
-We — contributors and maintainers of Font Studio — pledge to make participation in this project a respectful, harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+We — contributors and maintainers of Patens — pledge to make participation in this project a respectful, harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
 ## Our standards
 

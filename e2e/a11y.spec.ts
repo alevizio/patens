@@ -20,7 +20,7 @@ const dismissWelcomeIfPresent = async (page: Page) => {
 	// Welcome is a non-blocking region in v1.0.0-beta (was a modal pre-Day 11).
 	// Strip exposes a "Dismiss welcome" aria-label; if present, click to remove
 	// it before scanning the page so axe doesn't see the strip's own DOM.
-	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
+	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
 	if (
 		await strip
 			.waitFor({ state: 'visible', timeout: 1500 })

@@ -1,4 +1,4 @@
-# Font Studio — Architecture Notes
+# Patens — Architecture Notes
 
 Last updated: 2026-05-19 · Last covered commit: `5a35e48` (Phase B1 — VF master compatibility checker)
 
@@ -202,8 +202,8 @@ artifacts; condensed findings below.
   fonts** as of this writing.
 - All other in-browser tools are inspectors (FontDrop, Wakamai Fondue) or
   format converters (Webfont Generator).
-- Font Studio's differentiators: VF editing, designspace, AI assistance,
-  sketch-first input. The first three are share-of-mind unique to Font Studio
+- Patens's differentiators: VF editing, designspace, AI assistance,
+  sketch-first input. The first three are share-of-mind unique to Patens
   in the browser space.
 - Strategic note: optimize for first-time designers, not pros switching from
   Glyphs / FontLab. Pros stay on desktop tools; new designers don't have
@@ -223,7 +223,7 @@ artifacts; condensed findings below.
   validation against geometry-sanity rules (shipped in `5e3a8e8`).
 - Glyphs forum sentiment: pros want AI as *assist*, hate AI as *replacement*.
   Bitmap-output approaches are dealbreakers; vector output is required.
-- The "/ai" feature category is uniquely Font Studio's — no other browser
+- The "/ai" feature category is uniquely Patens's — no other browser
   editor surfaces it. Highest-ceiling differentiator.
 
 ### WebGPU + GPU font rendering
@@ -253,7 +253,7 @@ the current state.
 
 | Move | Effort | Why it's high-ROI now |
 |---|---|---|
-| 🟢 **Watch a non-designer use the app for 15 min** | 15 min + writeup | Single biggest unknown about Font Studio. Likely re-prioritizes everything below. No code can answer this. |
+| 🟢 **Watch a non-designer use the app for 15 min** | 15 min + writeup | Single biggest unknown about Patens. Likely re-prioritizes everything below. No code can answer this. |
 | 🟢 **Profile `/preview` + `/specimen` + `/compare` render times** | 3 hours | Empirically settles "is WebGPU worth it?" Playwright-driven, frame-time table. Either justifies an MSDF spike or kills the WebGPU thread. |
 | 🟢 **Verify Track A against 5-10 real OFL fonts** | 1 day | The GPOS splice has 83 spec tests but hasn't seen Inter, Source Serif, Noto, Recursive in production. Find edge cases before users do. |
 | 🟢 **Instrument `buildVariableFont` usage** | 30 min | Single counter + 7 days of data settles the B2 decision. |

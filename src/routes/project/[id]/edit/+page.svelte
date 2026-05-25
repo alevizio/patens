@@ -1219,7 +1219,7 @@
 			const text = await navigator.clipboard.readText();
 			const dStrings = extractSvgPathD(text);
 			if (dStrings.length === 0) {
-				toast.warn('Clipboard does not contain a Font Studio glyph or SVG path.');
+				toast.warn('Clipboard does not contain a Patens glyph or SVG path.');
 				return;
 			}
 			const { parseSvgPath } = await import('$lib/font/svg-path');
@@ -1267,7 +1267,7 @@
 				`Imported ${reparsed.length} contour${reparsed.length === 1 ? '' : 's'} from SVG path`
 			);
 		} catch {
-			toast.warn('Clipboard does not contain a Font Studio glyph or SVG path.');
+			toast.warn('Clipboard does not contain a Patens glyph or SVG path.');
 		}
 	};
 
@@ -2398,7 +2398,7 @@
 					density="sm"
 					onclick={pasteGlyph}
 					aria-label="Paste glyph or SVG path (⌘⇧V)"
-					title="Paste a Font Studio glyph or SVG path data — try copying a shape from Figma / Illustrator"
+					title="Paste a Patens glyph or SVG path data — try copying a shape from Figma / Illustrator"
 				>
 					{#snippet icon()}<ClipboardPaste class="size-3.5" />{/snippet}
 					Paste

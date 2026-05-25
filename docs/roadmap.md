@@ -99,7 +99,7 @@ Production users in 2026: Google Noto Color Emoji (COLRv1+SVG fallback),
 Microsoft Fluent (hybrid v0+v1+monochrome), expressive display foundries
 (Nabla, Foldit, Plakato Color), Material Icons two-tone. Apple still
 ships sbix bitmaps. Glyphs 3 and FontLab 8 both have full COLR v1
-editors — Font Studio enters as a follower, not a pioneer.
+editors — Patens enters as a follower, not a pioneer.
 
 Free wins already in the codebase:
 - **opentype.js can read + write COLR v0 + CPAL** since PR #490 (2022).
@@ -282,7 +282,7 @@ feaLib via Pyodide until we ship the M2 visual rule builder.
 
 **Pattern from pro tools — declarative suffix detection:** Glyphs and
 FontLab both auto-generate features from glyph naming conventions.
-Mirror that in Font Studio:
+Mirror that in Patens:
 
   `.sc` / `.smcp` → `smcp` lookup
   `.c2sc`        → `c2sc`
@@ -541,7 +541,7 @@ Things that aren't features but compound over time.
 
 For clarity on what we've ruled out:
 
-- Native desktop app — Font Studio is browser-first by design.
+- Native desktop app — Patens is browser-first by design.
 - Built-in bitmap-glyph editor — bitmap fonts are a niche; modern fonts
   are vector + hinting.
 - Server-side rendering of the editor canvas itself — local-only is the

@@ -1,13 +1,13 @@
-# Font Studio
+# Patens
 
 > A browser-based type design environment. Draw glyphs, kern them, ship OpenType fonts — no server required.
 
-Font Studio is a self-contained SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The demo project ships 119 glyphs across Latin uppercase + lowercase, numerals, punctuation, currency, math, brackets, ligatures, and two stylistic-alternate slots — enough to set a UI, a price table, or a legal footer without falling back to system fonts.
+Patens is a self-contained SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The demo project ships 119 glyphs across Latin uppercase + lowercase, numerals, punctuation, currency, math, brackets, ligatures, and two stylistic-alternate slots — enough to set a UI, a price table, or a legal footer without falling back to system fonts.
 
 ## Try it
 
-- **Live demo:** [font-studio.vercel.app](https://font-studio-2ix8myy64-alevizio.vercel.app/project/demo/edit)
-- **Demo specimen:** [font-studio.vercel.app/share/demo](https://font-studio-2ix8myy64-alevizio.vercel.app/share/demo)
+- **Live demo:** [patens.design](https://font-studio-2ix8myy64-alevizio.vercel.app/project/demo/edit)
+- **Demo specimen:** [patens.design/share/demo](https://font-studio-2ix8myy64-alevizio.vercel.app/share/demo)
 
 The share view is a designer-grade specimen sheet: pangram waterfall at five sizes, multi-line reading specimens at three tiers, in-context mockups (button, headline, paragraph, stat), CPAL palette switcher, master compare, glyph coverage heatmap, glyph inspector with metric guides + sidebearings + anchor visualizer, deep-linkable glyph URLs, and a one-click print → PDF specimen.
 
@@ -32,7 +32,7 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 ### Optional integrations
 
-Font Studio runs fully in the browser by default. Three integrations are optional and gracefully degrade when not configured:
+Patens runs fully in the browser by default. Three integrations are optional and gracefully degrade when not configured:
 
 - **Vercel Blob** — cloud share (recipients in other browsers)
 - **GitHub OAuth** — sign-in via GitHub

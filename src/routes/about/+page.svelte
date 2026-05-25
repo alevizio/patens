@@ -22,13 +22,13 @@
 </script>
 
 <svelte:head>
-	<title>About · Font Studio</title>
-	<meta name="description" content="What Font Studio is, what it's built on, who made it." />
-	<meta property="og:title" content="About · Font Studio" />
-	<meta property="og:description" content="What Font Studio is, what it's built on, who made it." />
+	<title>About · Patens</title>
+	<meta name="description" content="What Patens is, what it's built on, who made it." />
+	<meta property="og:title" content="About · Patens" />
+	<meta property="og:description" content="What Patens is, what it's built on, who made it." />
 	<meta property="og:image" content="/og/brand" />
-	<meta name="twitter:title" content="About · Font Studio" />
-	<meta name="twitter:description" content="What Font Studio is, what it's built on, who made it." />
+	<meta name="twitter:title" content="About · Patens" />
+	<meta name="twitter:description" content="What Patens is, what it's built on, who made it." />
 	<meta name="twitter:image" content="/og/brand" />
 </svelte:head>
 
@@ -45,15 +45,26 @@
 		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
-		About Font Studio
+		About Patens
 	</h1>
 
+	<p class="mb-2 text-[13px] uppercase tracking-[0.18em] text-fg-subtle">
+		Pa·tens · Latin: lying open, wide open, accessible
+	</p>
+
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
-		A browser-native type design environment. Sketch glyphs with pressure-
-		sensitive strokes, trace to cubic Bézier contours, kern them, ship
-		OpenType — without installing anything. Every project lives in your
-		browser's IndexedDB; nothing leaves your machine unless you choose to
-		export it or upload it to the cloud-share path.
+		A browser-native, open-source type design environment. Sketch glyphs
+		with pressure-sensitive strokes, trace to cubic Bézier contours, kern
+		them, ship OpenType — without installing anything. Every project lives
+		in your browser's IndexedDB; nothing leaves your machine unless you
+		choose to export it or upload it to the cloud-share path.
+	</p>
+
+	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
+		The name is the Latin word for <em class="not-italic font-medium text-fg">open</em>
+		— root of <em class="not-italic font-medium text-fg">patent</em>, the
+		legal instrument for owning ideas. Patens is the same word, before
+		lawyers got to it.
 	</p>
 
 	<p class="mb-8 text-[15px] leading-relaxed text-fg-muted">
@@ -78,13 +89,13 @@
 			Alejandro Vizio
 		</a>. Open source under the
 		<a
-			href="https://github.com/alevizio/font-studio/blob/main/LICENSE"
+			href="https://github.com/alevizio/patens/blob/main/LICENSE"
 			class="text-accent-strong underline underline-offset-2"
 		>
 			MIT License
 		</a>. Contributions welcome — see
 		<a
-			href="https://github.com/alevizio/font-studio/blob/main/CONTRIBUTING.md"
+			href="https://github.com/alevizio/patens/blob/main/CONTRIBUTING.md"
 			class="text-accent-strong underline underline-offset-2"
 		>
 			CONTRIBUTING.md
@@ -98,7 +109,7 @@
 		Standing on
 	</h2>
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
-		Font Studio is small code on top of large ideas. The pieces that did
+		Patens is small code on top of large ideas. The pieces that did
 		the heavy lifting:
 	</p>
 
@@ -140,7 +151,7 @@
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		What's deferred to a future arc lives in
 		<a
-			href="https://github.com/alevizio/font-studio/blob/main/ROADMAP.md"
+			href="https://github.com/alevizio/patens/blob/main/ROADMAP.md"
 			class="text-accent-strong underline underline-offset-2"
 		>
 			ROADMAP.md

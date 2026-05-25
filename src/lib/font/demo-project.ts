@@ -1,5 +1,5 @@
 /**
- * In-app example project — opens a fully-set-up Font Studio project in the
+ * In-app example project — opens a fully-set-up Patens project in the
  * editor with several drawn glyphs, a brief, and project metadata. The point
  * is to let a new user explore a font mid-design instead of staring at empty
  * slots, then "Start a new font" once they understand the surfaces.
@@ -3642,7 +3642,7 @@ export const createDemoProject = (): Project => {
 			version: '0.1.0-demo',
 			date: new Date().toISOString(),
 			notes:
-				'Initial example project shipped with Font Studio. Eight drawn glyphs across uppercase + lowercase, kerning pairs, sidebearing classes, and a stylistic-alternate set.'
+				'Initial example project shipped with Patens. Eight drawn glyphs across uppercase + lowercase, kerning pairs, sidebearing classes, and a stylistic-alternate set.'
 		}
 	];
 

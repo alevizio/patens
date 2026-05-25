@@ -10,7 +10,7 @@
 
 import type { RequestHandler } from './$types';
 
-const BASE = 'https://font-studio.vercel.app';
+const BASE = 'https://patens.design';
 
 const ROUTES: Array<{ path: string; changefreq: string; priority: number }> = [
 	{ path: '/', changefreq: 'weekly', priority: 1.0 },

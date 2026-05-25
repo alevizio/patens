@@ -23,7 +23,7 @@ labels: bug
 
 - Browser:
 - OS:
-- Font Studio version (visible in the Stats popover):
+- Patens version (visible in the Stats popover):
 - Project: <!-- demo / a project you created / imported .font.json -->
 
 ## Screenshots / recording

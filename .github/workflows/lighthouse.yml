@@ -1,5 +1,5 @@
 # Lighthouse CI — runs Google Lighthouse against the canonical
-# production URL (font-studio.vercel.app) after each deploy. Replaces
+# production URL (patens.design) after each deploy. Replaces
 # Vercel's built-in audit, which mistakenly scores the per-deployment
 # URLs that sit behind Deployment Protection (auth-wall pages render
 # poorly through Lighthouse's eyes).
@@ -41,9 +41,9 @@ jobs:
         uses: treosh/lighthouse-ci-action@v12
         with:
           urls: |
-            https://font-studio.vercel.app/
-            https://font-studio.vercel.app/share/demo
-            https://font-studio.vercel.app/project/demo/edit
+            https://patens.design/
+            https://patens.design/share/demo
+            https://patens.design/project/demo/edit
           uploadArtifacts: true
           temporaryPublicStorage: true
           configPath: ./lighthouserc.json

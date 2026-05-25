@@ -68,7 +68,7 @@ The remaining algorithmic + UI work:
    `applyColorRenderToCanvas` into the glyph editor — when a glyph
    has color layers, show the composite instead of monochrome.
 5. **Twemoji-shape round-trip test** (2 d). Fetch a small Twemoji
-   subset (Apache-2.0), import it into a Font Studio project,
+   subset (Apache-2.0), import it into a Patens project,
    export, verify Chromium renders our COLR table identically. Save
    as a vitest+playwright fixture.
 

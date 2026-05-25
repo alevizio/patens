@@ -87,7 +87,7 @@ const draw = async (
 	project: Project | null
 ): Promise<{ png: Buffer; status: number }> => {
 	const isBrand = !project;
-	const familyName = project?.metadata.familyName ?? 'Font Studio';
+	const familyName = project?.metadata.familyName ?? 'Patens';
 	const designer = isBrand
 		? 'Browser-native type design'
 		: project!.metadata.designer || 'Unsigned';
@@ -143,7 +143,7 @@ const draw = async (
 									},
 									children: isBrand
 										? 'Type design in the browser'
-										: 'Font Studio · specimen'
+										: 'Patens · specimen'
 								}
 							},
 							{
@@ -217,7 +217,7 @@ const draw = async (
 										letterSpacing: '0.2em',
 										textTransform: 'uppercase'
 									},
-									children: 'font-studio.vercel.app'
+									children: 'patens.design'
 								}
 							}
 						]

@@ -1,16 +1,16 @@
 {
-	"name": "font-studio",
+	"name": "patens",
 	"version": "1.5.0",
-	"description": "A browser-based type design environment. Draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required.",
+	"description": "Browser-native, open-source type design — draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
 	"author": "Alejandro Vizio",
 	"license": "MIT",
-	"homepage": "https://github.com/alevizio/font-studio#readme",
+	"homepage": "https://patens.design",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/alevizio/font-studio.git"
+		"url": "git+https://github.com/alevizio/patens.git"
 	},
 	"bugs": {
-		"url": "https://github.com/alevizio/font-studio/issues"
+		"url": "https://github.com/alevizio/patens/issues"
 	},
 	"keywords": [
 		"font",
