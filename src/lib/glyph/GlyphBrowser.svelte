@@ -497,7 +497,7 @@
 				<button
 					type="button"
 					onclick={() => (statusFilter = opt.id)}
-					class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
+					class="inline-flex min-h-[24px] items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors {statusFilter ===
 					opt.id
 						? 'bg-accent-soft text-accent-strong'
 						: 'text-fg-subtle hover:bg-surface-2 hover:text-fg'}"
