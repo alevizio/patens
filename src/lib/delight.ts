@@ -145,6 +145,10 @@ export const consoleHello = () => {
 		'     ╚═╝      ╚═╝   ╚═╝     ╚══════╝',
 		''
 	].join('\n');
+	// Easter-egg banner shown to anyone who opens DevTools. Intentional
+	// console.log usage; the rule is "no debug console.log", not "no
+	// branding console.log."
+	/* eslint-disable no-console */
 	console.log(`%c${banner}`, 'color: hsl(220, 60%, 55%); font-family: monospace; line-height: 1.0;');
 	console.log(
 		'%cFont Studio — a personal type design tool.',
@@ -154,6 +158,7 @@ export const consoleHello = () => {
 		'%cPoking around the source? It\'s SvelteKit + opentype.js + Pyodide.',
 		'color: #666; font-size: 11px;'
 	);
+	/* eslint-enable no-console */
 };
 
 /** Konami code detector — fires `onFound` when the sequence is entered. */

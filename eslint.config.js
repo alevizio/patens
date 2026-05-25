@@ -96,11 +96,17 @@ export default [
 		}
 	},
 	{
-		// Tests can use any/console freely
-		files: ['**/*.test.ts', '**/*.spec.ts', 'e2e/**'],
+		// Tests + build scripts use console freely (and Node globals).
+		files: ['**/*.test.ts', '**/*.spec.ts', 'e2e/**', 'scripts/**'],
 		rules: {
 			'@typescript-eslint/no-explicit-any': 'off',
-			'no-console': 'off'
+			'no-console': 'off',
+			// Build scripts intentionally declare constants they may not
+			// use yet (BASELINE etc.); don't flag them.
+			'@typescript-eslint/no-unused-vars': ['warn', {
+				argsIgnorePattern: '^_',
+				varsIgnorePattern: '^(_|[A-Z_]+$)'
+			}]
 		}
 	}
 ];
