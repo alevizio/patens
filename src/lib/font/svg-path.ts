@@ -298,7 +298,7 @@ export const parseSvgPath = (d: string, opts: ParseSvgPathOptions = {}): BezierC
 
 /**
  * Convenience: build a `transformPoint` that maps SVG-y-down coords
- * into Font Studio y-up font units. Given the source SVG viewBox
+ * into Patens y-up font units. Given the source SVG viewBox
  * (height) and the destination font ascender/descender, produces an
  * affine that:
  *   - flips y around the SVG midline

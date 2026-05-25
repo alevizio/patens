@@ -1,5 +1,5 @@
 /**
- * PartyKit server for Font Studio collab sync.
+ * PartyKit server for Patens collab sync.
  *
  * Each connected client streams Yjs updates here; we relay them to
  * every other client in the room and persist a snapshot to durable
@@ -9,7 +9,7 @@
  *   pnpm dlx partykit deploy
  *
  * Cloudflare Workers free tier covers 100K req/day — plenty for the
- * indie scale Font Studio targets. PartyKit was acquired by
+ * indie scale Patens targets. PartyKit was acquired by
  * Cloudflare in 2024; deployments run on Workers + Durable Objects
  * under the hood.
  *

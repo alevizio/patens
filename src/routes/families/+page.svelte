@@ -11,7 +11,7 @@
 </script>
 
 <svelte:head>
-	<title>Families — Font Studio</title>
+	<title>Families — Patens</title>
 	<meta name="description" content="Every type family in your foundry — siblings, axes, and family-wide audits." />
 </svelte:head>
 
@@ -30,7 +30,7 @@
 				class="text-[13px] font-medium tracking-tight text-fg"
 				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
 			>
-				Font Studio
+				Patens
 			</span>
 		</a>
 		<div class="flex items-center gap-1">

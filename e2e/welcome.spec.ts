@@ -31,7 +31,7 @@ const setUnseen = async (page: Page) => {
 
 test('Welcome strip appears on a fresh visit', async ({ page }) => {
 	await setUnseen(page);
-	await expect(page.getByRole('region', { name: /Welcome to Font Studio/i })).toBeVisible();
+	await expect(page.getByRole('region', { name: /Welcome to Patens/i })).toBeVisible();
 	// Strip should NOT be a modal — the home-page content underneath stays
 	// reachable. Verify the example-project CTA inside the strip is visible.
 	await expect(
@@ -43,7 +43,7 @@ test('Welcome strip dismisses via the X button', async ({ page }) => {
 	await setUnseen(page);
 	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
 	await expect(
-		page.getByRole('region', { name: /Welcome to Font Studio/i })
+		page.getByRole('region', { name: /Welcome to Patens/i })
 	).toBeHidden();
 });
 
@@ -56,7 +56,7 @@ test('Once dismissed, the home-page CTAs are clickable', async ({ page }) => {
 	await setUnseen(page);
 	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
 	await expect(
-		page.getByRole('region', { name: /Welcome to Font Studio/i })
+		page.getByRole('region', { name: /Welcome to Patens/i })
 	).toBeHidden();
 	// The home page has its own "Open the example project" button in the
 	// "See it in action" section; click that to confirm navigation works.
@@ -71,10 +71,10 @@ test('Welcome strip persists dismissal across reloads', async ({ page }) => {
 	await setUnseen(page);
 	await page.getByRole('button', { name: 'Dismiss welcome' }).click();
 	await expect(
-		page.getByRole('region', { name: /Welcome to Font Studio/i })
+		page.getByRole('region', { name: /Welcome to Patens/i })
 	).toBeHidden();
 	await page.reload();
 	await expect(
-		page.getByRole('region', { name: /Welcome to Font Studio/i })
+		page.getByRole('region', { name: /Welcome to Patens/i })
 	).toBeHidden();
 });

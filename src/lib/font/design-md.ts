@@ -238,7 +238,7 @@ export const generateDesignMd = (project: Project): string => {
 	// Footer
 	lines.push(`---`);
 	lines.push(
-		`_Generated from Font Studio on ${new Date().toISOString().slice(0, 10)}. Project ID: \`${project.id}\`._`
+		`_Generated from Patens on ${new Date().toISOString().slice(0, 10)}. Project ID: \`${project.id}\`._`
 	);
 
 	return lines.filter((l) => l !== null && l !== undefined).join('\n');

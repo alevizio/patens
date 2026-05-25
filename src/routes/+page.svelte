@@ -514,7 +514,7 @@
 		importWarning = null;
 		try {
 			if (name.endsWith('.font.json') || name.endsWith('.json')) {
-				// Native Font Studio project file. The editor's header has a
+				// Native Patens project file. The editor's header has a
 				// matching "Export project" action that produces these. Lets
 				// designer-friends exchange whole projects asynchronously
 				// (email/Drive/etc.) without UFO+Pyodide or screen-sharing.
@@ -641,7 +641,7 @@
 	/>
 	<meta name="twitter:image" content="/og/home" />
 	<!-- Load the demo OTF as 'StudioGeometric' so the home page's big "Hn"
-	     mark renders in Font Studio's own typeface — the home page literally
+	     mark renders in Patens's own typeface — the home page literally
 	     shows the product's output. `swap` keeps the fallback (Hoefler Text)
 	     visible until the OTF loads, so no FOIT. -->
 	<style>
@@ -1358,7 +1358,7 @@
 		{/if}
 	</div>
 
-	<!-- See it in action — editorial split. The "Hn" mark uses Font Studio's
+	<!-- See it in action — editorial split. The "Hn" mark uses Patens's
 	     own demo OTF as its rendering surface (via the @font-face loaded by
 	     the FontFace promise below), which is the point: the home page's
 	     biggest typographic statement is the product's own output. The

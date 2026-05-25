@@ -106,7 +106,7 @@
 </script>
 
 <svelte:head>
-	<title>Sync playground — Font Studio dev</title>
+	<title>Sync playground — Patens dev</title>
 </svelte:head>
 
 <div class="mx-auto max-w-3xl space-y-4 p-6">

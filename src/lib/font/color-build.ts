@@ -1,7 +1,7 @@
 /**
  * Color-font build plan — day-6 of the color-fonts milestone-1.
  *
- * Bridges the gap between Font Studio's per-glyph `colorLayers` data
+ * Bridges the gap between Patens's per-glyph `colorLayers` data
  * model and the COLR v0 binary format. For each glyph that has visible
  * color layers, emits:
  *

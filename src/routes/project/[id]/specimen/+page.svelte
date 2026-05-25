@@ -131,7 +131,7 @@
 						{today}
 					</div>
 					<div class="text-[10px] uppercase tracking-[0.2em] text-neutral-500">
-						Font Studio specimen
+						Patens specimen
 					</div>
 				</header>
 				<div class="mt-16">

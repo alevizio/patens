@@ -16,13 +16,13 @@
 {#if open}
 	<div
 		role="region"
-		aria-label="Welcome to Font Studio"
+		aria-label="Welcome to Patens"
 		class="mb-6 flex items-start gap-3 rounded-lg border border-accent/30 bg-accent-soft/30 px-4 py-3 text-[13px]"
 	>
 		<Sparkles class="mt-0.5 size-4 shrink-0 text-accent-strong" aria-hidden="true" />
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-				<span class="font-medium text-fg">Welcome to Font Studio.</span>
+				<span class="font-medium text-fg">Welcome to Patens.</span>
 				<span class="text-fg-muted">
 					Draw type with a pencil, trace it to vectors, ship OpenType. Every project
 					lives in this browser — nothing leaves your machine unless you export it.

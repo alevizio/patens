@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head>
-	<title>Font Studio</title>
+	<title>Patens</title>
 	<meta
 		name="description"
 		content="Sketch-first personal type design tool. Draw, vectorize, space, kern, and export OTF in the browser."
@@ -33,8 +33,8 @@
 	     image at /og.png is dynamically rendered from the demo OTF + Satori
 	     (see src/routes/og.png/+server.ts). -->
 	<meta property="og:type" content="website" />
-	<meta property="og:site_name" content="Font Studio" />
-	<meta property="og:title" content="Font Studio" />
+	<meta property="og:site_name" content="Patens" />
+	<meta property="og:title" content="Patens" />
 	<meta
 		property="og:description"
 		content="Sketch-first browser type editor — variable fonts, AI completion, OTF export."
@@ -42,10 +42,10 @@
 	<meta property="og:image" content="/og.png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
-	<meta property="og:image:alt" content="Font Studio — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
+	<meta property="og:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
 
 	<meta name="twitter:card" content="summary_large_image" />
-	<meta name="twitter:title" content="Font Studio" />
+	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
 		content="Sketch-first browser type editor — variable fonts, AI completion, OTF export."

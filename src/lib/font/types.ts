@@ -1,5 +1,5 @@
 /**
- * Font Studio data model.
+ * Patens data model.
  * Coordinate system: font space, Y+ is UP, origin at glyph baseline.
  */
 
@@ -394,7 +394,7 @@ export type ProjectFeatures = {
 	 * auto-kern only ADDS pairs the user hasn't tuned.
 	 *
 	 * Defaults to `undefined` → treated as `true` for new projects, so
-	 * a freshly-installed Font Studio export feels well-spaced without
+	 * a freshly-installed Patens export feels well-spaced without
 	 * the user having to kern every pair manually.
 	 *
 	 * Gated on at least one reference pair existing in

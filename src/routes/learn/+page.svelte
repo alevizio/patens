@@ -255,7 +255,7 @@
 </script>
 
 <svelte:head>
-	<title>Learn — Font Studio</title>
+	<title>Learn — Patens</title>
 	<meta name="description" content="A 8–12 week beginner path for type design — research, control set, vectorizing, spacing, hinting, and shipping your first font." />
 </svelte:head>
 
@@ -274,7 +274,7 @@
 				class="text-[13px] font-medium tracking-tight text-fg"
 				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
 			>
-				Font Studio
+				Patens
 			</span>
 		</a>
 		<a

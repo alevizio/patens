@@ -91,13 +91,13 @@
 </script>
 
 <svelte:head>
-	<title>Changelog · Font Studio</title>
-	<meta name="description" content="Font Studio release history — every version since v0.4." />
-	<meta property="og:title" content="Changelog · Font Studio" />
-	<meta property="og:description" content="Font Studio release history — every version since v0.4." />
+	<title>Changelog · Patens</title>
+	<meta name="description" content="Patens release history — every version since v0.4." />
+	<meta property="og:title" content="Changelog · Patens" />
+	<meta property="og:description" content="Patens release history — every version since v0.4." />
 	<meta property="og:image" content="/og/brand" />
-	<meta name="twitter:title" content="Changelog · Font Studio" />
-	<meta name="twitter:description" content="Font Studio release history — every version since v0.4." />
+	<meta name="twitter:title" content="Changelog · Patens" />
+	<meta name="twitter:description" content="Patens release history — every version since v0.4." />
 	<meta name="twitter:image" content="/og/brand" />
 	<!-- RSS autodiscovery — feed readers (Feedly, NetNewsWire, etc.) probe
 	     the homepage for <link rel="alternate" type="application/rss+xml">
@@ -105,7 +105,7 @@
 	<link
 		rel="alternate"
 		type="application/rss+xml"
-		title="Font Studio · Changelog"
+		title="Patens · Changelog"
 		href="/changelog/rss.xml"
 	/>
 </svelte:head>

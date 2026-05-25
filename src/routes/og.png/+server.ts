@@ -1,5 +1,5 @@
 /**
- * Dynamic OG image — Font Studio's own demo OTF for the wordmark + type sample.
+ * Dynamic OG image — Patens's own demo OTF for the wordmark + type sample.
  *
  * Architecture note: we don't use Satori here because Satori bundles a fork of
  * opentype.js that fails to parse our generated demo OTF (missing ltag table).

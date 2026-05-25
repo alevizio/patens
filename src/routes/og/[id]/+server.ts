@@ -14,7 +14,7 @@
  *      /api/share/[id]); cache aggressively because OG previews are
  *      requested by social bots that follow URL changes rarely.
  *
- * If the project can't be found, returns a generic Font Studio brand
+ * If the project can't be found, returns a generic Patens brand
  * card so Slack/Twitter previews still look professional rather than
  * 404'd.
  */
@@ -38,7 +38,7 @@ const fetchProject = async (
 	fetchFn: typeof fetch
 ): Promise<Project | null> => {
 	if (id === 'home' || id === 'brand') {
-		// The home/brand variant renders the generic Font Studio card —
+		// The home/brand variant renders the generic Patens card —
 		// no project lookup. Returning null causes draw() to fall back to
 		// the brand-only layout.
 		return null;

@@ -15,7 +15,7 @@
 </script>
 
 <svelte:head>
-	<title>{status} · Font Studio</title>
+	<title>{status} · Patens</title>
 </svelte:head>
 
 <div class="grid min-h-screen place-items-center bg-canvas px-6">

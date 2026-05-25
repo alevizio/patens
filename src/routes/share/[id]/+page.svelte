@@ -975,7 +975,7 @@
 			: 'Good design is honest. It does not attempt to manipulate the reader with promises it cannot keep. Letterforms are not decoration — they are the medium through which an idea reaches a reader. The work of the type designer is to make that reaching feel effortless.';
 		const caption =
 			'Set in ' + project.metadata.familyName + '. ' +
-			(project.brief?.references?.[0] ?? 'Drawn glyph-by-glyph in Font Studio.');
+			(project.brief?.references?.[0] ?? 'Drawn glyph-by-glyph in Patens.');
 		return [
 			{ id: 'display', label: 'Display', size: 64, text: display },
 			{ id: 'body', label: 'Body', size: 18, text: body },
@@ -1267,13 +1267,13 @@ body {
 	     og:image points at /og/{projectId} — a server-rendered PNG
 	     using satori + resvg that shows the family name + designer +
 	     glyph count for THIS specific project. Renders the demo on
-	     the fly; falls back to a generic Font Studio brand card if the
+	     the fly; falls back to a generic Patens brand card if the
 	     project isn't in cloud storage. Bots that fetch the page get
 	     a project-specific preview instead of generic brand art. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content={shareTitle} />
 	<meta property="og:description" content={shareDesc} />
-	<meta property="og:site_name" content="Font Studio" />
+	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="/og/{project.id}" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />

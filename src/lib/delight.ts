@@ -151,7 +151,7 @@ export const consoleHello = () => {
 	/* eslint-disable no-console */
 	console.log(`%c${banner}`, 'color: hsl(220, 60%, 55%); font-family: monospace; line-height: 1.0;');
 	console.log(
-		'%cFont Studio — a personal type design tool.',
+		'%cPatens — a personal type design tool.',
 		'color: #888; font-family: ui-serif, serif; font-style: italic;'
 	);
 	console.log(

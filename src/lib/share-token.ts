@@ -7,7 +7,7 @@
  * "Copy share link" presses can re-share without 403, and so a "Delete
  * share" action has the token to send.
  *
- * localStorage scoping is per-browser, which matches Font Studio's
+ * localStorage scoping is per-browser, which matches Patens's
  * "browser-local first" model: if the originator moves to a different
  * browser, they lose delete capability on shares they made — that's an
  * accepted trade-off vs the complexity of a real account system.

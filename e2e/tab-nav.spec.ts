@@ -29,7 +29,7 @@ const openDemoProject = async (page: Page): Promise<string> => {
 	await page.goto('/');
 	// Welcome is a non-blocking region in v1.0.0-beta. Dismiss it if present
 	// so the strip isn't visible during the rest of the test.
-	const strip = page.getByRole('region', { name: /Welcome to Font Studio/i });
+	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
 	if (
 		await strip
 			.waitFor({ state: 'visible', timeout: 2000 })

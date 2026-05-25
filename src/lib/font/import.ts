@@ -1,5 +1,5 @@
 /**
- * Import an existing OTF/TTF file and produce a Font Studio Project.
+ * Import an existing OTF/TTF file and produce a Patens Project.
  * Adopts the source font's UPM, metrics, naming, and glyph outlines.
  */
 
