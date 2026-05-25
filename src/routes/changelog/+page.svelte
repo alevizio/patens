@@ -26,6 +26,9 @@
 	const escapeHtml = (s: string): string =>
 		s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
+	const slugify = (s: string): string =>
+		s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
 	type Block =
 		| { type: 'h1' | 'h2' | 'h3'; text: string }
 		| { type: 'p'; text: string }
@@ -111,10 +114,22 @@
 				</h1>
 			{:else if block.type === 'h2'}
 				<h2
-					class="mt-10 mb-3 text-[24px] tracking-tight"
+					id={slugify(block.text)}
+					class="group mt-10 mb-3 scroll-mt-8 text-[24px] tracking-tight"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
-					{block.text}
+					<a
+						href={`#${slugify(block.text)}`}
+						class="inline-flex items-baseline gap-2 hover:text-accent-strong"
+					>
+						{block.text}
+						<span
+							class="text-[14px] text-fg-subtle opacity-0 transition-opacity group-hover:opacity-100"
+							aria-hidden="true"
+						>
+							#
+						</span>
+					</a>
 				</h2>
 			{:else if block.type === 'h3'}
 				<h3 class="mt-5 mb-2 text-[14px] font-semibold uppercase tracking-wider text-fg-subtle">
