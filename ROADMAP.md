@@ -68,6 +68,14 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - **WCAG 2.2 target-size (2.5.8) on editor filter chips.** The GlyphBrowser's status / shape / lifecycle filter chips use `px-1.5 py-0.5 text-[10px]` — well under the 24px touch-target baseline that WCAG 2.2 added. Affects 8 chips × every project route (edit, brief, audit, spacing, designspace, features, ai, preview, specimen, compare, release, export). Fix would tighten the visual density of the editor substantially — needs design judgment, not a mechanical sweep. Captured here so the a11y test suite's exclusion of `wcag22aa` doesn't read as silent debt.
 
+- **Lighthouse insights — 4 still surfacing as warnings.** Triaged from the production lighthouse audit at v1.4.0. Each is now `warn` (not `error`) in `lighthouserc.json` so CI doesn't block, but they're real and needs profiling to address:
+	- **`forced-reflow-insight`** — at least one handler causes a synchronous layout. Probable cause: reactive store writes that trigger a relayout-and-paint inside the same frame (Svelte 5 runes can batch, but `$effect`s that read DOM measurements first then write store state will sync-layout). Fix: profile in DevTools Performance → find the long task → batch the read+write into a `requestAnimationFrame`.
+	- **`network-dependency-tree-insight`** — chained network requests on cold load. SvelteKit's adapter-vercel emits `<link rel="modulepreload">` for direct chunk deps but not for transitively-imported ones. Fix: add explicit `<link rel="modulepreload">` for the top-2 transitive deps surfaced in the report.
+	- **`max-potential-fid`** — first input delay > 200ms on cold load. Probable cause: the demo project's 128 glyphs deserialize on first interaction. Fix: defer the demo-project store hydration until after the first paint, or memoize the path-rebuild step that runs per glyph.
+	- **`uses-rel-preconnect`** — Lighthouse suggests `<link rel="preconnect">` for cross-origin connections. The home-page HTML is fully same-origin; the warning likely comes from Vercel auto-injected analytics scripts. Either configure Vercel to skip the injection, or add explicit preconnects for `vitals.vercel-insights.com` and `va.vercel-scripts.com`.
+
+	Two related insights were already closed in commit 31f3ef4: `uses-passive-event-listeners` (EditorTour scroll listener → passive) and `label-content-name-mismatch` (4 toolbar buttons → moved aria-label to title).
+
 ## Anti-goals
 
 The things we explicitly don't want:
