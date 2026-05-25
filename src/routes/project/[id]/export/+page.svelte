@@ -34,7 +34,6 @@
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Sparkles from '@lucide/svelte/icons/sparkles';
 	import Globe from '@lucide/svelte/icons/globe';
-	import Loader from '@lucide/svelte/icons/loader-2';
 
 	import { preflightProject } from '$lib/font/audit';
 	import { expandKerningClasses } from '$lib/font/kerning-classes';

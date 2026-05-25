@@ -14,7 +14,7 @@ import { buildFont } from './export';
 import { generateDesignMd } from './design-md';
 import { loadProject } from './project';
 import { loadFamily, listSiblings } from './family';
-import type { Project, FamilyAxes } from './types';
+import type { FamilyAxes } from './types';
 
 /** Convert family axes into the OS/2 patches needed to identify a static style. */
 const os2PatchFromAxes = (axes?: FamilyAxes) => {

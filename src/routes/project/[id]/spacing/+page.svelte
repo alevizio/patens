@@ -27,7 +27,6 @@
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
 	import Check from '@lucide/svelte/icons/check';
 	import X from '@lucide/svelte/icons/x';
-	import Loader from '@lucide/svelte/icons/loader-2';
 	import { settings } from '$lib/stores/settings.svelte';
 	import {
 		requestKerningProposal,

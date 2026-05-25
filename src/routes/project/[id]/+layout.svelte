@@ -34,10 +34,8 @@
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
-	import Save from '@lucide/svelte/icons/save';
 	import Share2 from '@lucide/svelte/icons/share-2';
 	import Printer from '@lucide/svelte/icons/printer';
-	import Check from '@lucide/svelte/icons/check';
 	import Loader from '@lucide/svelte/icons/loader-2';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 

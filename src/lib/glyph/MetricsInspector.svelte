@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { glyphBounds } from '$lib/font/path';
-	import type { BezierContour } from '$lib/font/types';
 
 	const glyph = $derived(projectStore.selectedGlyph);
 	const metrics = $derived(projectStore.project?.metrics);

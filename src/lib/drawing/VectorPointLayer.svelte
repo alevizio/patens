@@ -345,7 +345,7 @@
 	{/each}
 
 	<!-- Bezier handles for the primary-selected point -->
-	{#each handles as h, hi (h.ref.contour + ':' + h.ref.cmdIndex + ':' + h.ref.which)}
+	{#each handles as h, _hi (h.ref.contour + ':' + h.ref.cmdIndex + ':' + h.ref.which)}
 		<line
 			x1={h.anchorX}
 			y1={-h.anchorY}

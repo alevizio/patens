@@ -32,7 +32,6 @@
 	import Layers from '@lucide/svelte/icons/layers';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Download from '@lucide/svelte/icons/download';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Unlink from '@lucide/svelte/icons/unlink';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';

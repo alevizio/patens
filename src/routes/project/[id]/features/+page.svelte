@@ -10,7 +10,7 @@
 		rgbaToHex,
 		palettesAgreeOnLength
 	} from '$lib/font/color';
-	import type { ColorPalette, RGBA } from '$lib/font/types';
+	import type { ColorPalette } from '$lib/font/types';
 	import {
 		ensurePython,
 		compileFeaIntoFont,

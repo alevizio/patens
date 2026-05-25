@@ -13,20 +13,16 @@
 		backupAllProjects,
 		restoreFromBackup,
 		addScriptPack,
-		KIND_PRESETS,
 		type ProjectKind,
 		type ProjectIndexEntry
 	} from '$lib/font/project';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
 	import Button from '$lib/ui/Button.svelte';
-	import Field from '$lib/ui/Field.svelte';
-	import Input from '$lib/ui/Input.svelte';
-	import Panel from '$lib/ui/Panel.svelte';
 	import Sparkline from '$lib/ui/Sparkline.svelte';
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import { importFromOtf } from '$lib/font/import';
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
-	import { importFromUrl, STARTER_FONTS } from '$lib/font/url-import';
+	import { importFromUrl } from '$lib/font/url-import';
 	import { settings } from '$lib/stores/settings.svelte';
 	import WelcomeDialog from '$lib/ui/WelcomeDialog.svelte';
 	import CreateFontDialog from '$lib/ui/CreateFontDialog.svelte';
@@ -210,10 +206,6 @@
 		}
 	};
 	let importWarning = $state<string | null>(null);
-	let newName = $state('');
-	let newFamily = $state('');
-	let newKind = $state<ProjectKind | undefined>(undefined);
-	let urlInput = $state('');
 
 	const refresh = async () => {
 		try {
@@ -242,13 +234,6 @@
 			})
 			.catch(() => {});
 	});
-
-	const formatBytes = (n: number): string => {
-		if (n < 1024) return `${n} B`;
-		if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-		if (n < 1024 * 1024 * 1024) return `${(n / 1024 / 1024).toFixed(1)} MB`;
-		return `${(n / 1024 / 1024 / 1024).toFixed(2)} GB`;
-	};
 
 	let restoring = $state(false);
 	let restoreMessage = $state<string | null>(null);
@@ -342,7 +327,6 @@
 		menuOpen ? projects.find((p) => p.id === menuOpen!.id) : undefined
 	);
 
-	let newScriptPacks = $state<Set<string>>(new Set());
 	const handleCreate = async (input: {
 		name: string;
 		familyName: string;
@@ -502,30 +486,6 @@
 		return `"${trimmed}" looks like a derivative of the OFL-licensed "${hit}" family. The OFL requires you to change the family name in derivative work before redistributing. Rename the project in Export → Metadata before sharing.`;
 	};
 
-	const handleImport = async (ev: Event) => {
-		const input = ev.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) return;
-		importing = true;
-		importError = null;
-		importWarning = null;
-		try {
-			const { project } = await importFromOtf(file);
-			importWarning = checkReservedName(project.metadata.familyName);
-			await saveProject(project);
-			if (importWarning) {
-				// Surface warning before navigating away
-				toast.warn(importWarning);
-			}
-			await goto(`/project/${project.id}/edit`);
-		} catch (err) {
-			importError = err instanceof Error ? err.message : 'Could not read this font file.';
-		} finally {
-			importing = false;
-			input.value = '';
-		}
-	};
-
 	const handleUrlImport = async (url: string) => {
 		if (!url.trim() || urlImporting) return;
 		urlImporting = true;
@@ -652,38 +612,6 @@
 		dragCounter = 0;
 		const file = ev.dataTransfer?.files?.[0];
 		if (file) await importFile(file);
-	};
-
-	const handleUfoImport = async (ev: Event) => {
-		const input = ev.currentTarget as HTMLInputElement;
-		const file = input.files?.[0];
-		if (!file) return;
-		ufoImporting = true;
-		importError = null;
-		importWarning = null;
-		try {
-			await ensurePython();
-			const buffer = await file.arrayBuffer();
-			const projectJson = await ufoZipToProject(buffer);
-			const parsed = JSON.parse(projectJson);
-			const ts = new Date().toISOString();
-			const project: Parameters<typeof saveProject>[0] = {
-				...parsed,
-				id: crypto.randomUUID(),
-				name: `${parsed.metadata?.familyName ?? 'Untitled'} (UFO)`,
-				createdAt: ts,
-				updatedAt: ts
-			};
-			importWarning = checkReservedName(project.metadata.familyName);
-			await saveProject(project);
-			if (importWarning) toast.warn(importWarning);
-			await goto(`/project/${project.id}/edit`);
-		} catch (err) {
-			importError = err instanceof Error ? err.message : 'Could not read UFO archive.';
-		} finally {
-			ufoImporting = false;
-			input.value = '';
-		}
 	};
 
 </script>

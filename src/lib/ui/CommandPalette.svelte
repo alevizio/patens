@@ -5,7 +5,6 @@
 	import type { Glyph } from '$lib/font/types';
 	import Search from '@lucide/svelte/icons/search';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import { onMount } from 'svelte';
 
 	type Props = {
 		open: boolean;

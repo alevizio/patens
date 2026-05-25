@@ -4,7 +4,7 @@
 	import { previewStore } from '$lib/stores/preview.svelte';
 	import DrawingCanvas from '$lib/drawing/DrawingCanvas.svelte';
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
-	import type { Anchor, BezierContour, ColorLayer, ColorPalette, Glyph, SketchStroke } from '$lib/font/types';
+	import type { Anchor, BezierContour, ColorLayer, Glyph, SketchStroke } from '$lib/font/types';
 	import { createColorLayer, defaultPalette, rgbaToCss } from '$lib/font/color';
 	import { glyphBounds, contoursToSvgPath, roundToFontUnits } from '$lib/font/path';
 	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
@@ -12,7 +12,6 @@
 		chaikinSmooth,
 		booleanContours,
 		transformPoints,
-		selectionCentroid,
 		simplifyContours,
 		type AffineMatrix,
 		type PathOp

@@ -62,7 +62,7 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - **Pre-existing a11y warnings (moderate / minor).** axe-core reports a small number of moderate / minor violations (color contrast on tinted backgrounds, sparse landmarks on some routes). These don't block CI but are logged via `[a11y minor/moderate]` lines in the test output. Each is small; future PRs should tighten as they touch the affected components.
 
-- **Lint warning baseline.** 47 pre-existing ESLint warnings as of `v1.4.0` — ratcheted down from 52 in Wave 8 (`ci.yml` enforces `--max-warnings 47`). Mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty` and `@typescript-eslint/no-unused-vars`. New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
+- **Lint warning baseline.** 22 pre-existing ESLint warnings as of `v1.5.0` — ratcheted down from 52 → 47 → 30 (CI gate). Mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty` and `@typescript-eslint/no-unused-vars` in function-body locals. New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
 
 - ~~**43 audit codes without descriptions.**~~ ✅ Closed — `describeAuditCode()` now covers all 94 emitted codes. New descriptions span brief completeness, coverage subsets, glyph count, UPM, naming top-level fields, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
 
