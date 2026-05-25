@@ -28,7 +28,7 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 ## Project status
 
-**`v1.0.0`** — production-grade. Cloud share works for recipients in any browser when the deployment has `BLOB_READ_WRITE_TOKEN` set (Vercel Blob); without it, share URLs work in the originator's browser only (the `.font.json` export remains the cross-machine option). See [ROADMAP.md](./ROADMAP.md) for what's deferred.
+**`v1.4.0`** — production-grade. Cloud share works for recipients in any browser when the deployment has `BLOB_READ_WRITE_TOKEN` set (Vercel Blob); without it, share URLs work in the originator's browser only (the `.font.json` export remains the cross-machine option). See [ROADMAP.md](./ROADMAP.md) for what's deferred.
 
 ### Configuring cloud share
 
