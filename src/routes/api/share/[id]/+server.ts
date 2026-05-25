@@ -15,7 +15,13 @@
 import { error } from '@sveltejs/kit';
 import { list, del } from '@vercel/blob';
 import type { RequestHandler } from './$types';
-import { sharePath, tokenPath, fetchExistingToken, requireBlobToken } from '$lib/share-blob';
+import {
+	sharePath,
+	tokenPath,
+	fetchExistingToken,
+	requireBlobToken,
+	constantTimeEqual
+} from '$lib/share-blob';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
@@ -91,7 +97,7 @@ export const DELETE: RequestHandler = async ({ params, request, fetch }) => {
 		return new Response(null, { status: 204 });
 	}
 
-	if (provided !== existing) {
+	if (!constantTimeEqual(provided, existing)) {
 		throw error(403, 'Token does not match');
 	}
 

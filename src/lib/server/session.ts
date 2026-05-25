@@ -84,3 +84,24 @@ export const oauthEnabled = (): boolean =>
 	Boolean(
 		process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET && process.env.AUTH_SECRET
 	);
+
+/**
+ * Sanitize a returnTo URL param so it can't be used as an open redirect
+ * to an attacker-controlled host. We accept only same-origin paths:
+ *   - resolves the input against our origin
+ *   - if the resolved URL's origin matches ours, returns the path + query + hash
+ *   - otherwise falls back to "/"
+ *
+ * Defeats `?returnTo=https://evil.com`, `?returnTo=//evil.com`,
+ * `?returnTo=/\evil.com`, and any other scheme-relative trick.
+ */
+export const safeReturnTo = (raw: string | null | undefined, origin: string): string => {
+	if (!raw) return '/';
+	try {
+		const u = new URL(raw, origin);
+		if (u.origin !== origin) return '/';
+		return u.pathname + u.search + u.hash;
+	} catch {
+		return '/';
+	}
+};

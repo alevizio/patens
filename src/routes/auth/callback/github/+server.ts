@@ -20,6 +20,7 @@ import type { RequestHandler } from './$types';
 import {
 	encodeSession,
 	oauthEnabled,
+	safeReturnTo,
 	sessionCookieOptions,
 	SESSION_COOKIE,
 	type Session
@@ -50,7 +51,8 @@ export const GET: RequestHandler = async ({ cookies, url, fetch }) => {
 
 	const code = url.searchParams.get('code');
 	const returnedState = url.searchParams.get('state');
-	const returnTo = url.searchParams.get('returnTo') ?? '/';
+	// Sanitize against open redirect — see safeReturnTo doc in session.ts.
+	const returnTo = safeReturnTo(url.searchParams.get('returnTo'), url.origin);
 
 	if (!code) throw error(400, 'Missing authorization code');
 	if (!returnedState) throw error(400, 'Missing state');

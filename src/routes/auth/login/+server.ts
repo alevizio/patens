@@ -12,7 +12,7 @@
 
 import { error, redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { oauthEnabled } from '$lib/server/session';
+import { oauthEnabled, safeReturnTo } from '$lib/server/session';
 import { createHmac, randomBytes } from 'node:crypto';
 
 const STATE_COOKIE = 'font-studio-oauth-state';
@@ -35,7 +35,10 @@ export const GET: RequestHandler = ({ cookies, url }) => {
 		maxAge: 600 // 10 minutes — OAuth round-trip should take seconds
 	});
 
-	const returnTo = url.searchParams.get('returnTo') ?? '/';
+	// Sanitize returnTo BEFORE round-tripping it through GitHub. Defeats
+	// open-redirect via ?returnTo=https://evil.com — anything off-origin
+	// silently falls back to "/".
+	const returnTo = safeReturnTo(url.searchParams.get('returnTo'), url.origin);
 	const callback = new URL('/auth/callback/github', url.origin);
 	callback.searchParams.set('returnTo', returnTo);
 

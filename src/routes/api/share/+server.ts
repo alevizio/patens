@@ -15,7 +15,14 @@
 import { put } from '@vercel/blob';
 import { json, error } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { sharePath, tokenPath, isUuidish, requireBlobToken, fetchExistingToken } from '$lib/share-blob';
+import {
+	sharePath,
+	tokenPath,
+	isUuidish,
+	requireBlobToken,
+	fetchExistingToken,
+	constantTimeEqual
+} from '$lib/share-blob';
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
@@ -56,7 +63,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 	const provided = request.headers.get('X-Share-Token');
 	let token: string;
 	if (existing) {
-		if (!provided || provided !== existing) {
+		if (!provided || !constantTimeEqual(provided, existing)) {
 			throw error(
 				403,
 				'A share already exists for this project; only the originator (who has the delete-token) can re-share.'

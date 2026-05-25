@@ -152,6 +152,53 @@
 	let newMasterName = $state('Bold');
 	let newMasterLocation = $state<Record<string, number>>({});
 
+	/**
+	 * 2D-explorer pointer handler — hoisted out of the template so we don't
+	 * recreate the function on every reactive update (which would also leak
+	 * listeners when pointer-up is missed mid-drag, e.g. on pointercancel).
+	 *
+	 * Strategy:
+	 *  - `setPointerCapture` routes all subsequent events to the SVG even
+	 *    when the cursor leaves it
+	 *  - We attach pointermove + pointerup + pointercancel + lostpointercapture
+	 *    so listeners are always cleaned up regardless of how the drag ends
+	 *  - Each new pointerdown bails early if a drag is already in flight
+	 */
+	let exploreDragActive = $state(false);
+	const handleExplorerPointerDown = (
+		ev: PointerEvent,
+		ax0: { tag: string; minimum: number; maximum: number },
+		ax1: { tag: string; minimum: number; maximum: number }
+	) => {
+		if (exploreDragActive) return;
+		exploreDragActive = true;
+		const svg = ev.currentTarget as SVGSVGElement;
+		svg.setPointerCapture(ev.pointerId);
+		const apply = (e: PointerEvent) => {
+			const rect = svg.getBoundingClientRect();
+			const xp = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+			const yp = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+			previewLocation = {
+				...previewLocation,
+				[ax0.tag]: Math.round(ax0.minimum + xp * (ax0.maximum - ax0.minimum)),
+				// y inverted so up = higher value (visual convention)
+				[ax1.tag]: Math.round(ax1.minimum + (1 - yp) * (ax1.maximum - ax1.minimum))
+			};
+		};
+		const cleanup = () => {
+			svg.removeEventListener('pointermove', apply);
+			svg.removeEventListener('pointerup', cleanup);
+			svg.removeEventListener('pointercancel', cleanup);
+			svg.removeEventListener('lostpointercapture', cleanup);
+			exploreDragActive = false;
+		};
+		svg.addEventListener('pointermove', apply);
+		svg.addEventListener('pointerup', cleanup);
+		svg.addEventListener('pointercancel', cleanup);
+		svg.addEventListener('lostpointercapture', cleanup);
+		apply(ev);
+	};
+
 	const defaultLocation = $derived.by(() => {
 		const loc: Record<string, number> = {};
 		for (const a of project?.axes ?? []) loc[a.tag] = a.default;
@@ -351,28 +398,6 @@
 								{@const yVal = previewLocation[ax1.tag] ?? ax1.default}
 								{@const toPx = (v: number, min: number, max: number) =>
 									max === min ? 100 : ((v - min) / (max - min)) * 200}
-								{@const onSurfaceDown = (ev: PointerEvent) => {
-									const svg = ev.currentTarget as SVGSVGElement;
-									svg.setPointerCapture(ev.pointerId);
-									const move = (e: PointerEvent) => {
-										const rect = svg.getBoundingClientRect();
-										const xp = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-										const yp = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
-										previewLocation = {
-											...previewLocation,
-											[ax0.tag]: Math.round(ax0.minimum + xp * (ax0.maximum - ax0.minimum)),
-											// y inverted so up = higher value (visual convention)
-											[ax1.tag]: Math.round(ax1.minimum + (1 - yp) * (ax1.maximum - ax1.minimum))
-										};
-									};
-									move(ev);
-									const up = () => {
-										svg.removeEventListener('pointermove', move);
-										svg.removeEventListener('pointerup', up);
-									};
-									svg.addEventListener('pointermove', move);
-									svg.addEventListener('pointerup', up);
-								}}
 								<div>
 									<div class="mb-1 flex items-baseline justify-between gap-2">
 										<span class="text-[12px] font-medium text-fg">
@@ -385,7 +410,7 @@
 									<svg
 										viewBox="0 0 200 200"
 										class="aspect-square w-full max-w-[260px] cursor-crosshair touch-none rounded border border-border bg-surface-2/30"
-										onpointerdown={onSurfaceDown}
+										onpointerdown={(ev) => handleExplorerPointerDown(ev, ax0, ax1)}
 										role="application"
 										aria-label="2D variation explorer — drag to set preview location"
 									>

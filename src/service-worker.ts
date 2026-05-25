@@ -4,7 +4,7 @@
 /// <reference lib="webworker" />
 
 /**
- * Service worker — turns Font Studio into a real offline-capable PWA.
+ * Service worker — turns Patens into a real offline-capable PWA.
  *
  * Strategy:
  *  - Install: pre-cache `build/` (immutable hashed chunks) + `files/`

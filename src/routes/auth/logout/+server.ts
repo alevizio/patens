@@ -7,10 +7,11 @@
 
 import { redirect } from '@sveltejs/kit';
 import type { RequestHandler } from './$types';
-import { SESSION_COOKIE } from '$lib/server/session';
+import { SESSION_COOKIE, safeReturnTo } from '$lib/server/session';
 
 export const POST: RequestHandler = ({ cookies, url }) => {
 	cookies.delete(SESSION_COOKIE, { path: '/' });
-	const returnTo = url.searchParams.get('returnTo') ?? '/';
+	// Sanitize against open redirect — see safeReturnTo doc in session.ts.
+	const returnTo = safeReturnTo(url.searchParams.get('returnTo'), url.origin);
 	throw redirect(303, returnTo);
 };

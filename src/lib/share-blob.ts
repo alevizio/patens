@@ -5,6 +5,20 @@
 
 import { list } from '@vercel/blob';
 import { error } from '@sveltejs/kit';
+import { timingSafeEqual } from 'node:crypto';
+
+/**
+ * Constant-time string compare for security-sensitive token comparison.
+ * Defends against timing attacks that could leak the token byte-by-byte
+ * from response time differences. Returns false (not throws) on length
+ * mismatch — Node's timingSafeEqual would throw otherwise.
+ */
+export const constantTimeEqual = (a: string, b: string): boolean => {
+	const aBuf = Buffer.from(a);
+	const bBuf = Buffer.from(b);
+	if (aBuf.length !== bBuf.length) return false;
+	return timingSafeEqual(aBuf, bBuf);
+};
 
 export const sharePath = (id: string): string => `shares/${id}.json`;
 export const tokenPath = (id: string): string => `shares/${id}.token`;
