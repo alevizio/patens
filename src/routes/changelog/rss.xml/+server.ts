@@ -11,6 +11,7 @@
 
 import type { RequestHandler } from './$types';
 import changelogSource from '../../../../CHANGELOG.md?raw';
+import { parseReleases } from './parse';
 
 export const prerender = true;
 
@@ -23,30 +24,6 @@ const escapeXml = (s: string): string =>
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;')
 		.replace(/'/g, '&apos;');
-
-const slugify = (s: string): string =>
-	s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-
-type Release = { version: string; date: string; anchor: string; body: string };
-
-const parseReleases = (md: string): Release[] => {
-	const releases: Release[] = [];
-	// Capture: "## [X.Y.Z] — YYYY-MM-DD" then everything until the next
-	// "## [" (or end of file). The version sits in group 1; the date in 2.
-	// The body match is non-greedy; an end-of-file boundary isn't needed
-	// since the non-greedy quantifier + global flag walk to file end.
-	const re = /^## \[([^\]]+)\] — (\d{4}-\d{2}-\d{2})\n([\s\S]*?)(?=^## \[|$(?![\s\S]))/gm;
-	let m: RegExpExecArray | null;
-	while ((m = re.exec(md)) !== null) {
-		releases.push({
-			version: m[1],
-			date: m[2],
-			anchor: slugify(`${m[1]} — ${m[2]}`),
-			body: m[3].trim()
-		});
-	}
-	return releases;
-};
 
 export const GET: RequestHandler = ({ setHeaders }) => {
 	const releases = parseReleases(changelogSource);
