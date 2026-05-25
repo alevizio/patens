@@ -36,7 +36,8 @@
 		"test:e2e": "playwright test",
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
-		"analyze": "ANALYZE=1 vite build"
+		"analyze": "ANALYZE=1 vite build",
+		"profile": "node scripts/profile-cold-load.mjs"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.3",

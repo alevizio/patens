@@ -78,7 +78,28 @@ curl -s https://font-studio.vercel.app/changelog/rss.xml | xmllint --noout -
 
 Each `<item>`'s `<link>` should land on the right `/changelog#1-4-0-2026-05-24` anchor when clicked.
 
-## 7. Lighthouse + axe-core (deferred-but-tracked)
+## 7. Cold-load profile (perf sanity check)
+
+```sh
+pnpm profile                                      # home
+pnpm profile https://font-studio.vercel.app/share/demo
+pnpm profile https://font-studio.vercel.app/project/demo/edit
+```
+
+The script (`scripts/profile-cold-load.mjs`) drives headless Chromium against the URL, captures the CDP Performance trace, and digests:
+
+- **FCP / LCP / DOMContentLoaded** — should be < 1500ms on prod for `/` and `/share/demo`; the editor allows up to ~1700ms because of bigger bundles.
+- **Long tasks (≥50ms)** — drive `max-potential-fid` in Lighthouse. Should be 0; if any appear, the JS bundle is doing more work on cold load than it should.
+- **Layout events (≥4ms)** — drive `forced-reflow-insight`. Initial layout is fine; multiple ≥20ms passes after FCP indicate `$effect`s reading + writing DOM in the same frame.
+
+Full trace dumped to `/tmp/font-studio-trace.json` — open in `chrome://tracing` or DevTools → Performance → Load profile for a graphical view.
+
+Baseline (v1.4.0, commit `d335121`):
+- `/`: 1319ms FCP, 0 long tasks, 20ms initial layout
+- `/share/demo`: 823ms FCP, 0 long tasks, 11.6ms initial layout
+- `/project/demo/edit`: 874ms FCP, 0 long tasks, 35ms layout at glyph-browser mount
+
+## 8. Lighthouse + axe-core (deferred-but-tracked)
 
 CI runs both:
 - `axe-core` via Playwright on /home, /learn, /families, /help, /changelog, /about, /share/demo + every project tab. Fails on critical/serious violations.
@@ -86,7 +107,7 @@ CI runs both:
 
 After deploy, watch the Lighthouse action — it triggers on `ci` workflow_run success, waits 90s for Vercel to roll, then runs. Failures here often surface AFTER the smoke test passes.
 
-## 8. CI status
+## 9. CI status
 
 ```sh
 gh run list --branch main --limit 3 --json status,conclusion,name
