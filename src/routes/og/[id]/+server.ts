@@ -21,6 +21,8 @@
 
 import type { RequestHandler } from './$types';
 import type { Project } from '$lib/font/types';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
@@ -56,41 +58,31 @@ const fetchProject = async (
 };
 
 // Module-level cache so the font buffers persist across requests
-// within the same serverless function instance. Cold start fetches
-// once (~500ms via Google's CDN); subsequent renders are instant.
+// within the same serverless function instance. Cold start reads from
+// disk once; subsequent renders are instant.
 let cachedFonts: { serif: ArrayBuffer; sans: ArrayBuffer } | null = null;
 
-const fetchFontFromGoogle = async (
-	family: string,
-	weight: number
-): Promise<ArrayBuffer> => {
-	// Google Fonts' CSS API returns a stylesheet with @font-face rules
-	// containing direct font URLs. Format depends on User-Agent: a
-	// recent Chrome UA gets woff2 (smallest), a vintage IE6 UA gets ttf.
-	// Satori parses woff, woff2, AND ttf, so we accept whichever the
-	// first @font-face src returns.
-	const cssRes = await fetch(
-		`https://fonts.googleapis.com/css2?family=${family.replace(/ /g, '+')}:wght@${weight}`,
-		{
-			// IE6 UA is the canonical "give me TTF" trick — satori's
-			// example docs use the same approach.
-			headers: { 'User-Agent': 'Mozilla/4.0' }
-		}
-	);
-	const css = await cssRes.text();
-	const m = css.match(/url\(([^)]+)\) format\(['"]?(\w+)['"]?\)/);
-	if (!m) throw new Error(`No font URL in Google Fonts CSS for ${family}`);
-	const fontRes = await fetch(m[1]);
-	return fontRes.arrayBuffer();
+const loadFontFromDisk = async (file: string): Promise<ArrayBuffer> => {
+	// Vercel deploys static/ alongside the function bundle; in dev
+	// it's served from disk. process.cwd() points to the repo root
+	// in both modes (dev + vercel adapter).
+	const path = join(process.cwd(), 'static', 'og-fonts', file);
+	const buf = await readFile(path);
+	const ab = new ArrayBuffer(buf.byteLength);
+	new Uint8Array(ab).set(buf);
+	return ab;
 };
 
 const loadFonts = async (): Promise<{ serif: ArrayBuffer; sans: ArrayBuffer }> => {
 	if (cachedFonts) return cachedFonts;
 	// Lora (serif) for the family name, Inter (sans) for the meta lines.
-	// Both shipped by Google Fonts, both well-tested with satori.
+	// Self-hosted under static/og-fonts/ so OG rendering doesn't depend
+	// on Google Fonts being reachable from the Vercel runtime — removes
+	// a network hop + a third-party SPOF. Files were fetched once at
+	// Wave 11; the .ttfs are committed to the repo.
 	const [serif, sans] = await Promise.all([
-		fetchFontFromGoogle('Lora', 600),
-		fetchFontFromGoogle('Inter', 500)
+		loadFontFromDisk('Lora-600.ttf'),
+		loadFontFromDisk('Inter-500.ttf')
 	]);
 	cachedFonts = { serif, sans };
 	return cachedFonts;

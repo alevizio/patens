@@ -56,14 +56,13 @@ jobs:
         run: pnpm exec vite build
 
       - name: Bundle size budget
-        # Budget: 4MB total client output. Current baseline is ~3.3MB
-        # (see ROADMAP "Known issues" for the prior measurement); 4MB
-        # gives headroom for small additions but flags major regressions.
-        # Inspect the offender via `pnpm run analyze` locally — produces
-        # bundle-report.html with a treemap of every chunk.
+        # Budget: 5MB total client output. Current baseline is ~3.9MB
+        # (includes ~500KB of self-hosted OG fonts as static assets).
+        # 5MB flags real JS bloat without being so tight that adding
+        # a new static asset blocks PRs. Inspect via `pnpm run analyze`.
         run: |
           set -e
-          BUDGET_KB=4096
+          BUDGET_KB=5120
           ACTUAL_KB=$(du -sk .svelte-kit/output/client | cut -f1)
           echo "Client bundle: ${ACTUAL_KB} KB (budget: ${BUDGET_KB} KB)"
           if [ "$ACTUAL_KB" -gt "$BUDGET_KB" ]; then
