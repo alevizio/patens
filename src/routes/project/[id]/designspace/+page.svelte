@@ -338,6 +338,119 @@
 									</div>
 								</div>
 							{/each}
+							{#if (project.axes ?? []).length >= 2}
+								<!-- 2D variation explorer — visualizes the first two axes as a
+								     square, plots every master as a dot, lets the designer drag
+								     a crosshair through the space to set previewLocation. Snaps
+								     visually but the underlying numeric state is continuous.
+								     Beyond 2 axes, this still shows axes[0]×axes[1]; a future
+								     iteration adds axis-pair picker dropdowns. -->
+								{@const ax0 = (project.axes ?? [])[0]}
+								{@const ax1 = (project.axes ?? [])[1]}
+								{@const xVal = previewLocation[ax0.tag] ?? ax0.default}
+								{@const yVal = previewLocation[ax1.tag] ?? ax1.default}
+								{@const toPx = (v: number, min: number, max: number) =>
+									max === min ? 100 : ((v - min) / (max - min)) * 200}
+								{@const onSurfaceDown = (ev: PointerEvent) => {
+									const svg = ev.currentTarget as SVGSVGElement;
+									svg.setPointerCapture(ev.pointerId);
+									const move = (e: PointerEvent) => {
+										const rect = svg.getBoundingClientRect();
+										const xp = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+										const yp = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
+										previewLocation = {
+											...previewLocation,
+											[ax0.tag]: Math.round(ax0.minimum + xp * (ax0.maximum - ax0.minimum)),
+											// y inverted so up = higher value (visual convention)
+											[ax1.tag]: Math.round(ax1.minimum + (1 - yp) * (ax1.maximum - ax1.minimum))
+										};
+									};
+									move(ev);
+									const up = () => {
+										svg.removeEventListener('pointermove', move);
+										svg.removeEventListener('pointerup', up);
+									};
+									svg.addEventListener('pointermove', move);
+									svg.addEventListener('pointerup', up);
+								}}
+								<div>
+									<div class="mb-1 flex items-baseline justify-between gap-2">
+										<span class="text-[12px] font-medium text-fg">
+											2D explorer
+										</span>
+										<span class="font-mono text-[10px] text-fg-subtle">
+											drag through designspace
+										</span>
+									</div>
+									<svg
+										viewBox="0 0 200 200"
+										class="aspect-square w-full max-w-[260px] cursor-crosshair touch-none rounded border border-border bg-surface-2/30"
+										onpointerdown={onSurfaceDown}
+										role="application"
+										aria-label="2D variation explorer — drag to set preview location"
+									>
+										<!-- Grid -->
+										{#each [0, 50, 100, 150, 200] as g (g)}
+											<line x1={g} y1="0" x2={g} y2="200" stroke="var(--color-border)" stroke-width="0.5" />
+											<line x1="0" y1={g} x2="200" y2={g} stroke="var(--color-border)" stroke-width="0.5" />
+										{/each}
+										<!-- Masters -->
+										{#each project.masters ?? [] as m (m.id)}
+											{@const mx = toPx(m.location[ax0.tag] ?? ax0.default, ax0.minimum, ax0.maximum)}
+											{@const my = 200 - toPx(m.location[ax1.tag] ?? ax1.default, ax1.minimum, ax1.maximum)}
+											<g>
+												<circle cx={mx} cy={my} r="6" fill="var(--color-accent)" fill-opacity="0.25" />
+												<circle cx={mx} cy={my} r="3" fill="var(--color-accent-strong)" />
+												<text
+													x={mx + 8}
+													y={my + 3}
+													class="font-mono"
+													font-size="8"
+													fill="var(--color-fg-muted)"
+												>{m.name}</text>
+											</g>
+										{/each}
+										<!-- Default location -->
+										<circle
+											cx={toPx(ax0.default, ax0.minimum, ax0.maximum)}
+											cy={200 - toPx(ax1.default, ax1.minimum, ax1.maximum)}
+											r="2"
+											fill="var(--color-fg-subtle)"
+										/>
+										<!-- Current preview crosshair + dot -->
+										<line
+											x1={toPx(xVal, ax0.minimum, ax0.maximum)}
+											y1="0"
+											x2={toPx(xVal, ax0.minimum, ax0.maximum)}
+											y2="200"
+											stroke="var(--color-fg)"
+											stroke-width="0.5"
+											stroke-dasharray="2 2"
+										/>
+										<line
+											x1="0"
+											y1={200 - toPx(yVal, ax1.minimum, ax1.maximum)}
+											x2="200"
+											y2={200 - toPx(yVal, ax1.minimum, ax1.maximum)}
+											stroke="var(--color-fg)"
+											stroke-width="0.5"
+											stroke-dasharray="2 2"
+										/>
+										<circle
+											cx={toPx(xVal, ax0.minimum, ax0.maximum)}
+											cy={200 - toPx(yVal, ax1.minimum, ax1.maximum)}
+											r="5"
+											fill="var(--color-fg)"
+											stroke="var(--color-canvas)"
+											stroke-width="1.5"
+										/>
+									</svg>
+									<div class="mt-1 flex justify-between font-mono text-[10px] text-fg-subtle">
+										<span>← {ax0.name}</span>
+										<span>{ax1.name} ↑</span>
+									</div>
+								</div>
+							{/if}
 							<details class="text-[12px] text-fg-muted">
 								<summary class="cursor-pointer text-fg hover:text-fg-strong">
 									Master weights

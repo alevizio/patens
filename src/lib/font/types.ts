@@ -480,6 +480,17 @@ export type Family = {
 	designer?: string;
 	copyright?: string;
 	license?: string;
+	/**
+	 * Family-wide kerning. Each sibling inherits these pairs at export
+	 * time via `resolveKerning(project, family)`. A sibling can override
+	 * by setting a pair with the same (left, right) tuple in its own
+	 * `project.kerning` — the local value wins. Use family kerning for
+	 * spacing that's structurally identical across the family (e.g. the
+	 * AV pair where the geometry of A and V is the same in every style).
+	 */
+	kerning?: KerningPair[];
+	/** Family-wide kerning classes — same inheritance model as `kerning`. */
+	classes?: KerningClass[];
 	createdAt: string;
 	updatedAt: string;
 };
