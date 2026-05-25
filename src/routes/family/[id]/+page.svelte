@@ -23,7 +23,7 @@
 	import { downloadFamilyBundle } from '$lib/font/family-export';
 	import { auditFamily, type FamilyIssue } from '$lib/font/family-audit';
 	import { auditProject, auditCompatibility, preflightProject } from '$lib/font/audit';
-	import type { Family, FamilyAxes } from '$lib/font/types';
+	import type { Family, FamilyAxes, KerningPair, KerningSide } from '$lib/font/types';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
@@ -32,6 +32,7 @@
 	import Layers from '@lucide/svelte/icons/layers';
 	import Plus from '@lucide/svelte/icons/plus';
 	import Download from '@lucide/svelte/icons/download';
+	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import Unlink from '@lucide/svelte/icons/unlink';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
@@ -236,6 +237,60 @@
 		if (!ok) return;
 		await unlinkProjectFromFamily(id);
 		await refresh();
+	};
+
+	// ---------- Family kerning panel ----------
+	// Family.kerning is inherited by every sibling at resolution time (see
+	// src/lib/font/family-kerning.ts). Editing here propagates immediately —
+	// no per-sibling propagation pass needed, the resolver runs on read.
+	let newKernLeft = $state('');
+	let newKernRight = $state('');
+	let newKernValue = $state(-40);
+
+	/**
+	 * Parses a kerning-side input. Accepts:
+	 *   - a single character (e.g. "A") → returns its codepoint
+	 *   - a string starting with "@" (e.g. "@A_left") → returns the string
+	 * Returns null if the input is empty / multi-char without @-prefix.
+	 */
+	const parseKerningSide = (input: string): KerningSide | null => {
+		const trimmed = input.trim();
+		if (!trimmed) return null;
+		if (trimmed.startsWith('@')) return trimmed;
+		if ([...trimmed].length !== 1) return null; // strict: one char or @class
+		return [...trimmed][0].codePointAt(0) ?? null;
+	};
+
+	const formatKerningSide = (side: KerningSide): string => {
+		if (typeof side === 'string') return side;
+		return String.fromCodePoint(side);
+	};
+
+	const addFamilyKern = async () => {
+		const left = parseKerningSide(newKernLeft);
+		const right = parseKerningSide(newKernRight);
+		if (left == null || right == null) {
+			toast.warn('Each side must be either one character or an @class-name.');
+			return;
+		}
+		const pair: KerningPair = { left, right, value: Math.round(newKernValue) };
+		const existing = family.kerning ?? [];
+		// Replace any existing pair with the same (left, right) tuple.
+		const filtered = existing.filter(
+			(p) => !(p.left === left && p.right === right)
+		);
+		family = { ...family, kerning: [...filtered, pair] };
+		await saveFamily(family);
+		newKernLeft = '';
+		newKernRight = '';
+		newKernValue = -40;
+	};
+
+	const deleteFamilyKern = async (idx: number) => {
+		const existing = family.kerning ?? [];
+		const next = existing.filter((_, i) => i !== idx);
+		family = { ...family, kerning: next };
+		await saveFamily(family);
 	};
 
 	const fixableCodes = new Set([
@@ -511,6 +566,129 @@
 		<p class="mt-2 text-[11px] text-fg-subtle">
 			Aggregated across every sibling. Per-sibling master breakdown shows in the row below.
 		</p>
+	</Panel>
+
+	<Panel>
+		<h2 class="mb-1 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			Family kerning
+		</h2>
+		<p class="mb-3 text-[12px] leading-relaxed text-fg-muted">
+			Pairs that apply across every sibling. Resolved at export time — a sibling can
+			override locally by setting the same (left, right) pair in its own kerning. Useful
+			for structurally identical spacing (e.g. <span class="font-mono">AV</span> in a
+			geometric sans where the bowl + diagonal are the same in every style).
+		</p>
+
+		{#if (family.kerning ?? []).length > 0}
+			<div class="mb-3 overflow-x-auto">
+				<table class="w-full text-[12px]">
+					<thead>
+						<tr class="border-b border-border text-[10px] uppercase tracking-wider text-fg-subtle">
+							<th class="py-1.5 pr-3 text-left font-medium">Left</th>
+							<th class="py-1.5 pr-3 text-left font-medium">Right</th>
+							<th class="py-1.5 pr-3 text-right font-medium" data-numeric>Value (fu)</th>
+							<th class="w-8 py-1.5 text-right font-medium"></th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each family.kerning ?? [] as pair, idx (idx + ':' + JSON.stringify(pair.left) + '|' + JSON.stringify(pair.right))}
+							<tr class="border-b border-border/40 hover:bg-surface-2/40">
+								<td class="py-1.5 pr-3 font-mono text-fg">
+									{formatKerningSide(pair.left)}
+									{#if typeof pair.left === 'number'}
+										<span class="ml-1 text-[10px] text-fg-subtle">
+											U+{pair.left.toString(16).toUpperCase().padStart(4, '0')}
+										</span>
+									{/if}
+								</td>
+								<td class="py-1.5 pr-3 font-mono text-fg">
+									{formatKerningSide(pair.right)}
+									{#if typeof pair.right === 'number'}
+										<span class="ml-1 text-[10px] text-fg-subtle">
+											U+{pair.right.toString(16).toUpperCase().padStart(4, '0')}
+										</span>
+									{/if}
+								</td>
+								<td
+									class="py-1.5 pr-3 text-right font-mono text-fg {pair.value < 0
+										? 'text-warn-strong'
+										: pair.value > 0
+											? 'text-accent-strong'
+											: ''}"
+									data-numeric
+								>
+									{pair.value}
+								</td>
+								<td class="py-1.5 text-right">
+									<button
+										type="button"
+										onclick={() => deleteFamilyKern(idx)}
+										class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-danger-soft hover:text-danger"
+										aria-label="Remove pair"
+										title="Remove this family pair"
+									>
+										<Trash2 class="size-3" />
+									</button>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{:else}
+			<p class="mb-3 rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-4 text-center text-[12px] text-fg-subtle">
+				No family-wide pairs yet. Add one below — it'll apply to every sibling at export.
+			</p>
+		{/if}
+
+		<form
+			class="flex flex-wrap items-end gap-2"
+			onsubmit={(e) => {
+				e.preventDefault();
+				void addFamilyKern();
+			}}
+		>
+			<div class="grow-0">
+				<label class="mb-1 block text-[10px] uppercase tracking-wider text-fg-subtle" for="fk-left">
+					Left
+				</label>
+				<Input
+					id="fk-left"
+					bind:value={newKernLeft}
+					placeholder="A or @class"
+					density="sm"
+					class="w-24 font-mono"
+				/>
+			</div>
+			<div class="grow-0">
+				<label class="mb-1 block text-[10px] uppercase tracking-wider text-fg-subtle" for="fk-right">
+					Right
+				</label>
+				<Input
+					id="fk-right"
+					bind:value={newKernRight}
+					placeholder="V or @class"
+					density="sm"
+					class="w-24 font-mono"
+				/>
+			</div>
+			<div class="grow-0">
+				<label class="mb-1 block text-[10px] uppercase tracking-wider text-fg-subtle" for="fk-value">
+					Value
+				</label>
+				<Input
+					id="fk-value"
+					type="number"
+					bind:value={newKernValue}
+					density="sm"
+					class="w-20 font-mono"
+				/>
+			</div>
+			<Button type="submit" density="sm">
+				{#snippet icon()}<Plus class="size-3.5" />{/snippet}
+				Add pair
+			</Button>
+		</form>
 	</Panel>
 
 	<Panel>
