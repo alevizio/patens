@@ -17,7 +17,6 @@
 				"uses-text-compression": "off",
 				"unused-javascript": "off",
 				"unused-css-rules": "off",
-				"//": "Insights are advisory not gating — the lighthouse:no-pwa preset elevates them to errors; we downgrade to warn so they show in the report but don't fail CI on every push. Triage them on a cadence, not on every PR.",
 				"forced-reflow-insight": "warn",
 				"network-dependency-tree-insight": "warn",
 				"dom-size-insight": "warn",
@@ -27,7 +26,8 @@
 				"uses-rel-preconnect": "warn",
 				"legacy-javascript": "warn",
 				"max-potential-fid": "warn",
-				"dom-size": "warn"
+				"dom-size": "warn",
+				"bf-cache": "warn"
 			}
 		},
 		"upload": {
