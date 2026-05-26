@@ -139,7 +139,7 @@
 	{onclick}
 	oncontextmenu={oncontextmenu ?? undefined}
 	aria-pressed={selected}
-	class="group relative flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
+	class="group relative flex flex-col items-center gap-1 rounded-md border p-1.5 transition-all duration-100 ease-out active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {selected
 		? 'border-accent bg-accent-soft'
 		: 'border-transparent bg-transparent hover:border-border hover:bg-surface-2/60'}"
 	title="{glyph.name} · U+{glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}{dimsLabel} · adv {glyph.advanceWidth}{componentCount > 0 ? ` · ${componentCount} component${componentCount === 1 ? '' : 's'}` : ''}{noteSnippet}"
