@@ -58,6 +58,7 @@
 	} from '$lib/editor/glyph-export';
 	import { parseSvgPasteToGlyph } from '$lib/editor/glyph-paste';
 	import { SAMPLE_WORDS } from '$lib/editor/sample-words';
+	import { CONTROL_GLYPHS, useCaseTargets } from '$lib/editor/onboarding-targets';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -593,8 +594,6 @@
 		return { medianAdv, diff, pct, peerCount: peers.length };
 	});
 
-	// Control-glyph onboarding (n o H O a e s c p v y f g — the canonical proportion/texture set)
-	const CONTROL_GLYPHS = [0x006e, 0x006f, 0x0048, 0x004f, 0x0061, 0x0065, 0x0073, 0x0063, 0x0070, 0x0076, 0x0079, 0x0066, 0x0067];
 	const totalDrawn = $derived(
 		projectStore.project
 			? Object.values(projectStore.project.glyphs).filter((g) => g.contours.length > 0).length
@@ -606,31 +605,6 @@
 			: []
 	);
 	const showControlHint = $derived(totalDrawn < 13 && controlMissing.length > 0);
-
-	/**
-	 * Priority codepoints by use case. We surface up to 8 missing glyphs in
-	 * priority order — control glyphs first, then use-case-specific picks
-	 * derived from the Brief.
-	 */
-	const useCaseTargets = (uc: string | undefined): number[] => {
-		const digits = [0x0030, 0x0031, 0x0032, 0x0033, 0x0034, 0x0035, 0x0036, 0x0037, 0x0038, 0x0039];
-		const corePunct = [0x002e, 0x002c, 0x003a, 0x003b, 0x0021, 0x003f, 0x0027, 0x0022];
-		const wrap = [0x0028, 0x0029, 0x002d, 0x002013, 0x2014];
-		switch (uc) {
-			case 'web-ui':
-				return [...digits, ...corePunct];
-			case 'body-text':
-				return [...corePunct, ...wrap, ...digits];
-			case 'data-tables':
-				return [...digits, 0x002e, 0x002c, 0x0025, 0x0024];
-			case 'code':
-				return [...digits, 0x005b, 0x005d, 0x007b, 0x007d, 0x002f, 0x005c, 0x003d];
-			case 'display':
-				return [];
-			default:
-				return [...digits, ...corePunct];
-		}
-	};
 
 	const suggestedNext = $derived.by(() => {
 		if (!projectStore.project) return [] as number[];
