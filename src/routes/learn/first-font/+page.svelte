@@ -104,7 +104,7 @@
 </script>
 
 <svelte:head>
-	<title>Make your first font in the browser — Patens tutorial</title>
+	<title>Make your first font in the browser (2026) — Patens tutorial</title>
 	<meta
 		name="description"
 		content="A 10-step walkthrough for making your first OpenType font in Patens. Open the demo, sketch a glyph, trace to Bézier, refine, space, kern, audit, export — no installs, no account."

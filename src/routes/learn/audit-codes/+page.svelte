@@ -224,7 +224,7 @@
 </script>
 
 <svelte:head>
-	<title>Patens audit codes — reference of every warning the editor emits</title>
+	<title>Patens audit codes (2026) — reference of every warning the editor emits</title>
 	<meta
 		name="description"
 		content="Reference for all {all.length} audit codes in Patens, grouped by family — contour shape, metric alignment, OpenType invariants, vertical metrics, naming, multi-script coverage, color fonts. What each code means, why it matters, how to fix."

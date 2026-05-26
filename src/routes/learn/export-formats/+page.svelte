@@ -149,7 +149,7 @@
 </script>
 
 <svelte:head>
-	<title>Font export formats — OTF vs WOFF2 vs TTF vs UFO · Patens guide</title>
+	<title>Font export formats (2026) — OTF vs WOFF2 vs TTF vs UFO · Patens guide</title>
 	<meta
 		name="description"
 		content="Which format to export from Patens — OTF for design apps, WOFF2 for web, TTF + autohinting for Windows screens, UFO for tool interop, .font.json for backup, designer-bundle .zip for handoff."

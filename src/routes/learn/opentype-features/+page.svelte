@@ -100,7 +100,7 @@
 </script>
 
 <svelte:head>
-	<title>How to add OpenType features to your font — Patens guide</title>
+	<title>How to add OpenType features to your font (2026) — Patens guide</title>
 	<meta
 		name="description"
 		content="The Patens guide to OpenType features — auto-detection from glyph names, ligatures, small caps, stylistic sets, figures, contextual alternates, live HarfBuzz shaping preview, and exporting a working OTF."

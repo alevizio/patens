@@ -410,7 +410,7 @@
 </script>
 
 <svelte:head>
-	<title>Patens vs FontLab, Glyphs, Fontra and other type editors</title>
+	<title>Patens vs FontLab, Glyphs, Fontra — type editor comparison (2026)</title>
 	<meta
 		name="description"
 		content="How Patens compares to FontLab 8, Glyphs 3, RoboFont, Fontra, Glyphr Studio, typlr.app, BirdFont, and FontForge — pricing, browser-native vs desktop, audit + teaching features, OpenType + variable + color fonts, export formats."

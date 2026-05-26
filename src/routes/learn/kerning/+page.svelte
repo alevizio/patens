@@ -100,7 +100,7 @@
 </script>
 
 <svelte:head>
-	<title>How to kern a font in the browser — Patens tutorial</title>
+	<title>How to kern a font in the browser (2026) — Patens tutorial</title>
 	<meta
 		name="description"
 		content="The Patens guide to kerning — sidebearings vs kerning, class-based kerning, when to use class-class vs literal-pair, family-wide kerning, the audit codes that catch common mistakes. Browser-native, no installs."

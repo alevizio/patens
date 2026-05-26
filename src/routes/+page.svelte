@@ -622,7 +622,7 @@
 </script>
 
 <svelte:head>
-	<title>Patens — open-source type design in the browser</title>
+	<title>Patens (2026) — open-source type design in the browser</title>
 	<meta
 		name="description"
 		content="Sketch-first browser type editor. Variable fonts, color (COLR), kerning, mark positioning, OpenType features, audit + auto-fix across every workflow surface."

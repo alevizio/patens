@@ -51,7 +51,7 @@
 </script>
 
 <svelte:head>
-	<title>About · Patens</title>
+	<title>About Patens (2026) — browser-native, open-source type design</title>
 	<meta name="description" content="What Patens is, what it's built on, who made it." />
 	<meta property="og:title" content="About · Patens" />
 	<meta property="og:description" content="What Patens is, what it's built on, who made it." />

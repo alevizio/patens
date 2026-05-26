@@ -100,7 +100,7 @@
 </script>
 
 <svelte:head>
-	<title>How to design a variable font in the browser — Patens guide</title>
+	<title>How to design a variable font in the browser (2026) — Patens guide</title>
 	<meta
 		name="description"
 		content="The Patens guide to variable fonts — axes, masters, instances, the 2D variation explorer, the audit codes that catch interpolation problems, and exporting a working .otf / .woff2."

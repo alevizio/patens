@@ -100,7 +100,7 @@
 </script>
 
 <svelte:head>
-	<title>How to design a multi-script font — Patens guide</title>
+	<title>How to design a multi-script font (2026) — Patens guide</title>
 	<meta
 		name="description"
 		content="The Patens guide to multi-script font design — Latin + Cyrillic + Greek look-alike reuse, bespoke shape design (Я Ж Ф, Γ Δ Θ), OS/2 ulUnicodeRange, OpenType coverage audits, multi-script export."
