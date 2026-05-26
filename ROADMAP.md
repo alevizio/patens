@@ -1,6 +1,6 @@
 # Roadmap
 
-What's deliberately deferred from `v1.4.0` and why.
+What's deliberately deferred from the current line (v1.5.2 → v1.6.0) and why. Sections are tagged with the version where each item was last touched; ✅ marks items that shipped since the original deferral.
 
 ## M3 — Cloud sharing ✅ SHIPPED in v1.0.0
 
@@ -48,11 +48,11 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 
 ## Polish we deliberately deferred
 
-- **Per-device responsive test.** I (the maintainer) audited the share page at common breakpoints in CSS, but haven't tested on a real iPhone / iPad. PRs reporting issues with screenshots welcome.
+- **Per-device responsive test.** Code-level audit shipped in v1.6.0 at `docs/launch/responsive-audit.md` (covers iOS Safari input-zoom risk, touch-target findings, viewport-meta verification, editor mobile-gate). The remaining iPhone + iPad device-test sign-off list is documented in that doc; needs real hardware in hand and is tagged as Tier-3 (human-only) on the launch plan. PRs reporting issues with screenshots welcome — match against the sign-off checklist for the route.
 - ~~**Real bundle-size budgets in CI.**~~ ✅ Shipped in v1.2.0 Wave 7 — `ci.yml` now has a "Bundle size budget" step that fails PRs exceeding 5120 KB of client output. Inspect the breakdown locally via `pnpm run analyze`.
 - **Accessibility audit beyond focus traps + accordion ARIA.** axe-core runs in Playwright E2E for the home + welcome + tab-nav routes; full audit across every route + every modal is future work.
 
-## Known issues (v1.4.0)
+## Known issues
 
 Tracked here so future readers see them without re-discovering. Each links to the surface where it shows up:
 
@@ -62,7 +62,7 @@ Tracked here so future readers see them without re-discovering. Each links to th
 
 - **Pre-existing a11y warnings (moderate / minor).** axe-core reports a small number of moderate / minor violations (color contrast on tinted backgrounds, sparse landmarks on some routes). These don't block CI but are logged via `[a11y minor/moderate]` lines in the test output. Each is small; future PRs should tighten as they touch the affected components.
 
-- **Lint warning baseline.** 22 pre-existing ESLint warnings as of `v1.5.0` — ratcheted down from 52 → 47 → 30 (CI gate). Mostly `no-useless-mustaches`, `no-useless-escape`, `no-useless-assignment`, plus a handful of `no-empty` and `@typescript-eslint/no-unused-vars` in function-body locals. New code should add zero new warnings; the baseline is intentionally tolerated to ship the tooling.
+- ~~**Lint warning baseline.**~~ ✅ Closed — 0 warnings / 0 errors as of the v1.6.0 prep pass. Ratchet: 52 → 47 → 30 → 22 → 2 → 0 across v1.4.x → v1.5.2 → v1.6.0. CI gate remains at 5 to absorb future drift without immediate failure; new code must continue adding zero new warnings.
 
 - ~~**43 audit codes without descriptions.**~~ ✅ Closed — `describeAuditCode()` now covers all 94 emitted codes. New descriptions span brief completeness, coverage subsets, glyph count, UPM, naming top-level fields, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
 
