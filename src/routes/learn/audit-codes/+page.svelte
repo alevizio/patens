@@ -2,6 +2,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import { describeAuditCode } from '$lib/font/audit';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	// Hand-curated grouping — the dictionary in describeAuditCode is the
 	// source of truth for descriptions. This array adds taxonomy + order
 	// for the reference page. Order matches the dictionary file so it's
@@ -247,6 +249,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/learn/audit-codes" />
+
 	<a
 		href="/learn"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -362,4 +366,5 @@
 		</a>. Accuracy here is the difference between the audit module
 		feeling like a teaching tool and feeling like noise.
 	</p>
+	<SiteFooter />
 </div>

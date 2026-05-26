@@ -7,6 +7,8 @@
 	import Type from '@lucide/svelte/icons/type';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	// Sidebar nav: anchors + scroll-spy. `mountedSections` is populated by
 	// the per-section IntersectionObserver effect; whichever one is closest
 	// to the top of the viewport wins `activeId`.
@@ -312,31 +314,7 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
-	<!-- Slim top bar — matches home + families pages -->
-	<header
-		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
-	>
-		<a href="/" class="group inline-flex items-center gap-2.5">
-			<span
-				class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
-			>
-				<Type class="size-3.5" />
-			</span>
-			<span
-				class="text-[13px] font-medium tracking-tight text-fg"
-				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
-			>
-				Patens
-			</span>
-		</a>
-		<a
-			href="/"
-			class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-		>
-			<ArrowLeft class="size-3.5" />
-			Back to projects
-		</a>
-	</header>
+	<SiteHeader current="/learn" />
 
 	<!-- Hero -->
 	<section class="mb-16 max-w-3xl">
@@ -808,4 +786,5 @@
 
 		</div>
 	</div>
+	<SiteFooter />
 </div>

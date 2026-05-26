@@ -2,6 +2,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	type Step = { n: number; title: string; body: string; hint?: string };
 
 	const steps: Step[] = [
@@ -123,6 +125,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/learn/kerning" />
+
 	<a
 		href="/learn"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -213,4 +217,5 @@
 			class="size-3 translate-y-0.5 transition-transform group-hover:translate-x-0.5"
 		/>
 	</a>
+	<SiteFooter />
 </div>

@@ -3,6 +3,8 @@
 	import Download from '@lucide/svelte/icons/download';
 	import Camera from '@lucide/svelte/icons/camera';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	// Press kit factsheet — the structured-data canonical source for
 	// journalists writing about Patens. Pulled inline as a TS const so
 	// the JSON-LD + the visible factsheet table can't drift apart.
@@ -88,6 +90,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/press" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -356,4 +360,5 @@
 		Last updated: 2026-05-25. Maintained by hand; if anything is stale,
 		<a href="mailto:hi@patens.design" class="text-accent-strong underline underline-offset-2">drop me a note</a>.
 	</p>
+	<SiteFooter />
 </div>

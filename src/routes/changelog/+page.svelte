@@ -2,6 +2,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Rss from '@lucide/svelte/icons/rss';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	let { data } = $props();
 	const source = $derived(data.source);
 
@@ -125,6 +127,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/changelog" />
+
 	<div class="mb-8 flex items-baseline justify-between gap-3">
 		<a
 			href="/"
@@ -192,6 +196,7 @@
 			{/if}
 		{/each}
 	</article>
+	<SiteFooter />
 </div>
 
 <style>

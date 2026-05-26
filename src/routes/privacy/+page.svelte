@@ -1,6 +1,8 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	const jsonLd = `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
 		'@graph': [
@@ -48,6 +50,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/privacy" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -192,4 +196,5 @@
 		Last updated: 2026-05-25. Send questions to
 		<a href="mailto:hi@patens.design" class="text-accent-strong underline underline-offset-2">hi@patens.design</a>.
 	</p>
+	<SiteFooter />
 </div>

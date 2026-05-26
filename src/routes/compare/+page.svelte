@@ -3,6 +3,8 @@
 	import Check from '@lucide/svelte/icons/check';
 	import Minus from '@lucide/svelte/icons/minus';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	type Cell = true | false | 'partial' | string;
 	type Row = {
 		feature: string;
@@ -433,6 +435,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/compare" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -692,4 +696,5 @@
 		</a>
 		and it'll be corrected — accuracy beats marketing.
 	</p>
+	<SiteFooter />
 </div>

@@ -1,6 +1,8 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	type Q = { q: string; a: string };
 	type Section = { heading: string; items: Q[] };
 
@@ -163,6 +165,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/help" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -233,4 +237,5 @@
 			{/each}
 		</div>
 	{/each}
+	<SiteFooter />
 </div>

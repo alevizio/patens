@@ -2,6 +2,8 @@
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	let { data }: { data: { version: string } } = $props();
 
 	const deps: Array<{ name: string; what: string; url: string }> = [
@@ -72,6 +74,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/about" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -257,4 +261,5 @@
 		— most notably a real drawn Italic master, bespoke Cyrillic + Greek
 		shapes, and a proper account system.
 	</p>
+	<SiteFooter />
 </div>

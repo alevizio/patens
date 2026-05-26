@@ -3,6 +3,8 @@
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 	import Terminal from '@lucide/svelte/icons/terminal';
 
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	// The 9 audit families with the count of codes in each. Numbers add to 94
 	// (the canonical total surfaced everywhere else: README, llms.txt,
 	// ARCHITECTURE.md, /press, the home trust band).
@@ -158,6 +160,8 @@
 </svelte:head>
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+	<SiteHeader current="/audit" />
+
 	<a
 		href="/"
 		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
@@ -342,4 +346,5 @@ npx patens audit fonts/*.font.json --github</code></pre>
 			Full reference (all 94 codes) →
 		</a>
 	</div>
+	<SiteFooter />
 </div>
