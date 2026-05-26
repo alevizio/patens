@@ -33,14 +33,24 @@ import interUrl from '$lib/og-fonts/Inter-500.ttf';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
+// Variant types that have dedicated OG layouts. 'project' is the default
+// for any UUID-ish id; 'audit' renders the differentiator card; 'brand'
+// renders the generic Patens card.
+type Variant = 'brand' | 'audit' | 'project';
+
+const variantFor = (id: string): Variant => {
+	if (id === 'home' || id === 'brand') return 'brand';
+	if (id === 'audit') return 'audit';
+	return 'project';
+};
+
 const fetchProject = async (
 	id: string,
 	fetchFn: typeof fetch
 ): Promise<Project | null> => {
-	if (id === 'home' || id === 'brand') {
-		// The home/brand variant renders the generic Patens card —
-		// no project lookup. Returning null causes draw() to fall back to
-		// the brand-only layout.
+	if (id === 'home' || id === 'brand' || id === 'audit') {
+		// Variant cards — no project lookup. Returning null causes draw()
+		// to fall through to the variant-specific layout.
 		return null;
 	}
 	if (id === 'demo') {
@@ -84,20 +94,40 @@ const loadFonts = async (): Promise<{ serif: ArrayBuffer; sans: ArrayBuffer }> =
 };
 
 const draw = async (
-	project: Project | null
+	project: Project | null,
+	variant: Variant = 'brand'
 ): Promise<{ png: Buffer; status: number }> => {
-	const isBrand = !project;
-	const familyName = project?.metadata.familyName ?? 'Patens';
-	const designer = isBrand
-		? 'Browser-native type design'
-		: project!.metadata.designer || 'Unsigned';
-	const meta = isBrand
-		? 'Open source · MIT · v1.0'
-		: `${project!.metadata.version} · ${
-				Object.values(project!.glyphs).filter(
-					(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
-				).length
-			} glyphs`;
+	// Variant-specific content. The layout shape (eyebrow + headline +
+	// bottom-left meta + bottom-right domain) is shared across variants;
+	// only the text changes.
+	let eyebrow: string;
+	let headline: string;
+	let metaLeftTop: string;
+	let metaLeftBottom: string;
+
+	if (variant === 'audit') {
+		// Differentiator card — what unfurls when someone shares
+		// https://patens.design/audit on Bluesky / X / Show HN / Slack.
+		eyebrow = 'The audit module · Patens';
+		headline = 'Teaches as you draw.';
+		metaLeftTop = '94 codes · 30 one-click fixes';
+		metaLeftBottom = 'OPEN SOURCE · MIT · TYPE DESIGN';
+	} else if (project) {
+		// Per-project specimen card (the default for /og/[uuid] paths).
+		const glyphCount = Object.values(project.glyphs).filter(
+			(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
+		).length;
+		eyebrow = 'Patens · specimen';
+		headline = project.metadata.familyName ?? 'Patens';
+		metaLeftTop = project.metadata.designer || 'Unsigned';
+		metaLeftBottom = `${project.metadata.version} · ${glyphCount} glyphs`;
+	} else {
+		// Generic brand card — /og/brand and /og/home.
+		eyebrow = 'Type design in the browser';
+		headline = 'Patens';
+		metaLeftTop = 'Browser-native type design';
+		metaLeftBottom = 'OPEN SOURCE · MIT · v1.0';
+	}
 
 	// Lazy-load the heavy bits so unrelated routes don't pay.
 	const [{ default: satori }, { Resvg }] = await Promise.all([
@@ -141,22 +171,22 @@ const draw = async (
 										color: '#737373',
 										fontFamily: 'Sans'
 									},
-									children: isBrand
-										? 'Type design in the browser'
-										: 'Patens · specimen'
+									children: eyebrow
 								}
 							},
 							{
 								type: 'div',
 								props: {
 									style: {
-										fontSize: '140px',
+										// Audit headline is wider (longer text); shrink font
+										// to fit comfortably without truncation.
+										fontSize: variant === 'audit' ? '104px' : '140px',
 										lineHeight: '1.05',
 										letterSpacing: '-0.02em',
 										fontFamily: 'Serif',
 										maxWidth: '1040px'
 									},
-									children: familyName
+									children: headline
 								}
 							}
 						]
@@ -189,7 +219,7 @@ const draw = async (
 													fontFamily: 'Serif',
 													color: '#404040'
 												},
-												children: designer
+												children: metaLeftTop
 											}
 										},
 										{
@@ -201,7 +231,7 @@ const draw = async (
 													color: '#737373',
 													letterSpacing: '0.1em'
 												},
-												children: meta
+												children: metaLeftBottom
 											}
 										}
 									]
@@ -217,7 +247,7 @@ const draw = async (
 										letterSpacing: '0.2em',
 										textTransform: 'uppercase'
 									},
-									children: 'patens.design'
+									children: variant === 'audit' ? 'patens.design/audit' : 'patens.design'
 								}
 							}
 						]
@@ -242,13 +272,19 @@ const draw = async (
 };
 
 export const GET: RequestHandler = async ({ params, fetch, setHeaders }) => {
+	const variant = variantFor(params.id);
 	const project = await fetchProject(params.id, fetch);
-	const { png } = await draw(project);
+	const { png } = await draw(project, variant);
 	setHeaders({
 		'content-type': 'image/png',
 		// 60s edge cache + 10 min SWR matches the project payload route
 		// so OG updates after a re-share land within the same window.
-		'cache-control': 'public, max-age=60, s-maxage=60, stale-while-revalidate=600'
+		// Static variants (brand/audit) get longer SWR since their
+		// content is fixed.
+		'cache-control':
+			variant === 'project'
+				? 'public, max-age=60, s-maxage=60, stale-while-revalidate=600'
+				: 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400'
 	});
 	return new Response(new Uint8Array(png), { status: 200 });
 };
