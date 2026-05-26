@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { KIND_PRESETS, type ProjectKind } from '$lib/font/project';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
-	import { STARTER_FONTS } from '$lib/font/url-import';
+	import { STARTER_FONTS } from '$lib/font/starter-fonts';
 	import Panel from './Panel.svelte';
 	import Button from './Button.svelte';
 	import Field from './Field.svelte';
