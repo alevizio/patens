@@ -28,7 +28,10 @@
 	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import LockIcon from '@lucide/svelte/icons/lock';
 	import UnlockIcon from '@lucide/svelte/icons/unlock';
-	import { auditProject, preflightProject, auditCompatibility } from '$lib/font/audit';
+	// Audit module is dynamically imported below — keeps the 1622-line
+	// audit.ts out of the editor's cold-load critical chunk. Badge count
+	// settles ~200ms after first paint instead of blocking it.
+	import type * as AuditModule from '$lib/font/audit';
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
@@ -363,13 +366,32 @@
 		if (projectSwitcherOpen) listProjects().then((list) => (allProjects = list));
 	});
 
+	// Lazy-load the audit module after first paint via requestIdleCallback.
+	// The 1622-line audit.ts costs ~25-40KB gzipped + ~30-80ms parse on cold
+	// load; off the critical path it's free. Badge reads 0 until ready
+	// (~200ms typical), which is invisible at editor-load speeds.
+	let auditMod = $state<typeof AuditModule | null>(null);
+	$effect(() => {
+		if (auditMod) return;
+		const load = () => {
+			import('$lib/font/audit').then((m) => {
+				auditMod = m;
+			});
+		};
+		if (typeof requestIdleCallback !== 'undefined') {
+			requestIdleCallback(load, { timeout: 1000 });
+		} else {
+			setTimeout(load, 200);
+		}
+	});
+
 	const auditErrorCount = $derived.by(() => {
 		const p = projectStore.project;
-		if (!p) return 0;
+		if (!p || !auditMod) return 0;
 		let n = 0;
-		for (const i of auditProject(p)) if (i.severity === 'error') n++;
-		for (const i of auditCompatibility(p)) if (i.severity === 'error') n++;
-		for (const i of preflightProject(p)) if (i.severity === 'error') n++;
+		for (const i of auditMod.auditProject(p)) if (i.severity === 'error') n++;
+		for (const i of auditMod.auditCompatibility(p)) if (i.severity === 'error') n++;
+		for (const i of auditMod.preflightProject(p)) if (i.severity === 'error') n++;
 		return n;
 	});
 
