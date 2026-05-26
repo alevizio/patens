@@ -60,6 +60,15 @@
 	import { SAMPLE_WORDS } from '$lib/editor/sample-words';
 	import { CONTROL_GLYPHS, useCaseTargets } from '$lib/editor/onboarding-targets';
 	import { fixAuditIssue } from '$lib/editor/fix-issue';
+	import {
+		snapPointsToGrid,
+		flipContours,
+		scaleContours,
+		alignContoursVertically,
+		centerContoursHorizontally,
+		autoSpaceContours,
+		runAutoClean
+	} from '$lib/editor/path-edit-transforms';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1033,9 +1042,8 @@
 
 	const reverseAllContours = () => {
 		if (!glyph || glyph.contours.length === 0) return;
-		// Reuse the existing reverseContour helper from path.ts
 		import('$lib/font/path').then(({ reverseContour }) => {
-			projectStore.updateGlyph(glyph.codepoint, (g) => ({
+			projectStore.updateGlyph(glyph!.codepoint, (g) => ({
 				...g,
 				contours: g.contours.map((c) => ({
 					...c,
@@ -1048,28 +1056,7 @@
 
 	const snapAllPointsToGrid = (step = 10) => {
 		if (!glyph || glyph.contours.length === 0) return;
-		const snap = (n: number) => Math.round(n / step) * step;
-		const next = glyph.contours.map((c) => ({
-			...c,
-			commands: c.commands.map((cmd) => {
-				if (cmd.type === 'Z') return cmd;
-				if (cmd.type === 'M' || cmd.type === 'L') {
-					return { ...cmd, x: snap(cmd.x), y: snap(cmd.y) };
-				}
-				if (cmd.type === 'Q') {
-					return { ...cmd, x: snap(cmd.x), y: snap(cmd.y), x1: snap(cmd.x1), y1: snap(cmd.y1) };
-				}
-				return {
-					...cmd,
-					x: snap(cmd.x),
-					y: snap(cmd.y),
-					x1: snap(cmd.x1),
-					y1: snap(cmd.y1),
-					x2: snap(cmd.x2),
-					y2: snap(cmd.y2)
-				};
-			})
-		}));
+		const next = snapPointsToGrid(glyph.contours, step);
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
@@ -1078,42 +1065,17 @@
 		if (!glyph || glyph.contours.length === 0 || autoCleaning) return;
 		autoCleaning = true;
 		try {
-			// Same auto-snapshot policy as audit fixes — Auto-clean reshapes
-			// the outline (simplify + grid-snap), so deposit a labelled
-			// snapshot first when the most-recent one is older than 30s.
 			const latest = glyph.revisions?.[glyph.revisions.length - 1];
-			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
+			const recent = latest
+				? Date.now() - new Date(latest.takenAt).getTime() < 30_000
+				: false;
 			if (!recent) projectStore.saveRevision(glyph.codepoint, 'pre-auto-clean');
-			// 1. Simplify (re-sample, DP, refit cubics) for noise reduction
-			const simplified = await simplifyContours(glyph.contours);
-			if (simplified.length === 0) {
+			const next = await runAutoClean(glyph.contours);
+			if (!next) {
 				toast.warn('Simplify returned empty geometry; nothing changed.');
 				return;
 			}
-			// 2. Snap every command coordinate to nearest 10 units
-			const snap = (n: number) => Math.round(n / 10) * 10;
-			const snapped = simplified.map((c) => ({
-				...c,
-				commands: c.commands.map((cmd) => {
-					if (cmd.type === 'Z') return cmd;
-					if (cmd.type === 'M' || cmd.type === 'L') {
-						return { ...cmd, x: snap(cmd.x), y: snap(cmd.y) };
-					}
-					if (cmd.type === 'Q') {
-						return { ...cmd, x: snap(cmd.x), y: snap(cmd.y), x1: snap(cmd.x1), y1: snap(cmd.y1) };
-					}
-					return {
-						...cmd,
-						x: snap(cmd.x),
-						y: snap(cmd.y),
-						x1: snap(cmd.x1),
-						y1: snap(cmd.y1),
-						x2: snap(cmd.x2),
-						y2: snap(cmd.y2)
-					};
-				})
-			}));
-			projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: snapped }));
+			projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 			toast.success('Auto-clean: simplified + snapped to 10u grid');
 		} finally {
 			autoCleaning = false;
@@ -1136,26 +1098,7 @@
 
 	const flipSelection = (axis: 'horizontal' | 'vertical') => {
 		if (!glyph || glyph.contours.length === 0) return;
-		// Flip the whole glyph around its bbox center (selection-aware variants
-		// could be added later; for now we mirror the whole outline).
-		const bounds = glyphBounds(glyph.contours);
-		const cx = (bounds.minX + bounds.maxX) / 2;
-		const cy = (bounds.minY + bounds.maxY) / 2;
-		const m: AffineMatrix =
-			axis === 'horizontal'
-				? { a: -1, b: 0, c: 0, d: 1, tx: 2 * cx, ty: 0 }
-				: { a: 1, b: 0, c: 0, d: -1, tx: 0, ty: 2 * cy };
-		// Build a fake "all points" PointRef list
-		const allRefs = glyph.contours.flatMap((c, ci) =>
-			c.commands
-				.map((cmd, i) =>
-					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
-						? { contour: ci, index: i }
-						: null
-				)
-				.filter((r): r is { contour: number; index: number } => r !== null)
-		);
-		const next = transformPoints(glyph.contours, allRefs, m);
+		const next = flipContours(glyph.contours, axis);
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
@@ -1171,105 +1114,31 @@
 
 	const alignVertically = (target: 'baseline' | 'capHeight' | 'xHeight') => {
 		if (!glyph || glyph.contours.length === 0 || !metrics) return;
-		const bounds = glyphBounds(glyph.contours);
-		const dy =
-			target === 'baseline'
-				? -bounds.minY // bbox bottom → 0
-				: target === 'capHeight'
-					? metrics.capHeight - bounds.maxY // bbox top → cap
-					: metrics.xHeight - bounds.maxY; // bbox top → x-height
-		if (dy === 0) return;
-		const m: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, tx: 0, ty: Math.round(dy) };
-		const allRefs = glyph.contours.flatMap((c, ci) =>
-			c.commands
-				.map((cmd, i) =>
-					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
-						? { contour: ci, index: i }
-						: null
-				)
-				.filter((r): r is { contour: number; index: number } => r !== null)
-		);
-		const next = transformPoints(glyph.contours, allRefs, m);
+		const next = alignContoursVertically(glyph.contours, target, metrics);
+		if (!next) return;
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
 	const centerHorizontally = () => {
 		if (!glyph || glyph.contours.length === 0) return;
-		const bounds = glyphBounds(glyph.contours);
-		const targetCenter = glyph.advanceWidth / 2;
-		const currentCenter = (bounds.minX + bounds.maxX) / 2;
-		const dx = Math.round(targetCenter - currentCenter);
-		if (dx === 0) return;
-		const m: AffineMatrix = { a: 1, b: 0, c: 0, d: 1, tx: dx, ty: 0 };
-		const allRefs = glyph.contours.flatMap((c, ci) =>
-			c.commands
-				.map((cmd, i) =>
-					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
-						? { contour: ci, index: i }
-						: null
-				)
-				.filter((r): r is { contour: number; index: number } => r !== null)
-		);
-		const next = transformPoints(glyph.contours, allRefs, m);
+		const next = centerContoursHorizontally(glyph.contours, glyph.advanceWidth);
+		if (!next) return;
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
 	const scaleGlyph = (factor: number) => {
 		if (!glyph || glyph.contours.length === 0) return;
-		const bounds = glyphBounds(glyph.contours);
-		const cx = (bounds.minX + bounds.maxX) / 2;
-		const cy = (bounds.minY + bounds.maxY) / 2;
-		const m: AffineMatrix = {
-			a: factor,
-			b: 0,
-			c: 0,
-			d: factor,
-			tx: cx - factor * cx,
-			ty: cy - factor * cy
-		};
-		const allRefs = glyph.contours.flatMap((c, ci) =>
-			c.commands
-				.map((cmd, i) =>
-					cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
-						? { contour: ci, index: i }
-						: null
-				)
-				.filter((r): r is { contour: number; index: number } => r !== null)
-		);
-		const next = transformPoints(glyph.contours, allRefs, m);
+		const next = scaleContours(glyph.contours, factor);
 		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, contours: next }));
 	};
 
 	const autoSpace = () => {
 		if (!glyph || !projectStore.project || glyph.contours.length === 0) return;
-		const bounds = glyphBounds(glyph.contours);
-		const sb = projectStore.project.metrics.defaultSidebearing;
-		const dx = Math.round(sb - bounds.minX);
-		projectStore.updateGlyph(glyph.codepoint, (g) => {
-			const shifted =
-				dx === 0
-					? g.contours
-					: g.contours.map((c) => ({
-							...c,
-							commands: c.commands.map((cmd) => {
-								if (cmd.type === 'M' || cmd.type === 'L') return { ...cmd, x: cmd.x + dx };
-								if (cmd.type === 'Q')
-									return { ...cmd, x1: cmd.x1 + dx, x: cmd.x + dx };
-								if (cmd.type === 'C')
-									return { ...cmd, x1: cmd.x1 + dx, x2: cmd.x2 + dx, x: cmd.x + dx };
-								return cmd;
-							})
-						}));
-			const newBounds = glyphBounds(shifted);
-			const width = newBounds.maxX - newBounds.minX;
-			return {
-				...g,
-				contours: shifted,
-				leftSidebearing: sb,
-				rightSidebearing: sb,
-				advanceWidth: Math.max(50, Math.round(sb * 2 + width))
-			};
-		});
+		const patch = autoSpaceContours(
+			glyph.contours,
+			projectStore.project.metrics.defaultSidebearing
+		);
+		projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, ...patch }));
 	};
 
 	const exportGlyphPng = async () => {
