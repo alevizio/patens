@@ -17,15 +17,8 @@
 	} from '$lib/font/path-edit';
 	import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
 	import { aglfnName } from '$lib/font/aglfn';
-	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
-	import Trash2 from '@lucide/svelte/icons/trash-2';
-	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import AlignHorizontalSpaceAround from '@lucide/svelte/icons/align-horizontal-space-around';
-	import FileText from '@lucide/svelte/icons/file-text';
-	import Copy from '@lucide/svelte/icons/copy';
-	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
 	import type EditorTourType from '$lib/ui/EditorTour.svelte';
 	// First decomposition target from the 4219-line editor +page.svelte —
@@ -52,6 +45,7 @@
 	import GlyphPanel from '$lib/editor/GlyphPanel.svelte';
 	import ShortcutsPanel from '$lib/editor/ShortcutsPanel.svelte';
 	import EditorViewToggles from '$lib/editor/EditorViewToggles.svelte';
+	import EditorActionBar from '$lib/editor/EditorActionBar.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2191,102 +2185,19 @@
 				</div>
 			</div>
 
-			<!-- Bottom action bar -->
-			<div class="flex items-center gap-2 border-t border-border bg-surface px-4 py-2.5">
-				<Button variant="primary" density="sm" onclick={trace} disabled={!glyph.sketch?.length}>
-					{#snippet icon()}<Wand class="size-3.5" />{/snippet}
-					Trace to vector (T)
-				</Button>
-				<Button
-					variant="ghost"
-					density="sm"
-					onclick={undoLastStroke}
-					disabled={!glyph.sketch?.length}
-					title="Undo last stroke"
-				>
-					{#snippet icon()}<RotateCcw class="size-3.5" />{/snippet}
-					Undo stroke
-				</Button>
-				<Button
-					variant="secondary"
-					density="sm"
-					onclick={autoSpace}
-					disabled={glyph.contours.length === 0}
-				>
-					{#snippet icon()}<AlignHorizontalSpaceAround class="size-3.5" />{/snippet}
-					Auto-space
-				</Button>
-				<Button
-					variant="ghost"
-					density="sm"
-					onclick={copyGlyph}
-					disabled={glyph.contours.length === 0}
-					aria-label="Copy glyph (⌘⇧C)"
-				>
-					{#snippet icon()}<Copy class="size-3.5" />{/snippet}
-					Copy
-				</Button>
-				<Button
-					variant="ghost"
-					density="sm"
-					onclick={pasteGlyph}
-					aria-label="Paste glyph or SVG path (⌘⇧V)"
-					title="Paste a Patens glyph or SVG path data — try copying a shape from Figma / Illustrator"
-				>
-					{#snippet icon()}<ClipboardPaste class="size-3.5" />{/snippet}
-					Paste
-				</Button>
-				<div class="ml-auto flex items-center gap-2">
-					<Button
-						variant="ghost"
-						density="sm"
-						onclick={copyGlyphPath}
-						disabled={glyph.contours.length === 0}
-						title="Copy SVG path attribute to clipboard"
-					>
-						{#snippet icon()}<Copy class="size-3.5" />{/snippet}
-						Copy path
-					</Button>
-					<Button
-						variant="ghost"
-						density="sm"
-						onclick={exportGlyphPng}
-						disabled={glyph.contours.length === 0}
-						title="Export this glyph as PNG"
-					>
-						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
-						PNG
-					</Button>
-					<Button
-						variant="ghost"
-						density="sm"
-						onclick={exportGlyphSvg}
-						disabled={glyph.contours.length === 0}
-						title="Export this glyph as SVG"
-					>
-						{#snippet icon()}<FileText class="size-3.5" />{/snippet}
-						Export SVG
-					</Button>
-					<Button
-						variant="ghost"
-						density="sm"
-						onclick={clearSketch}
-						disabled={!glyph.sketch?.length}
-					>
-						{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
-						Clear sketch
-					</Button>
-					<Button
-						variant="ghost"
-						density="sm"
-						onclick={clearVector}
-						disabled={glyph.contours.length === 0}
-					>
-						{#snippet icon()}<Trash2 class="size-3.5" />{/snippet}
-						Clear vector
-					</Button>
-				</div>
-			</div>
+			<EditorActionBar
+				{glyph}
+				onTrace={trace}
+				onUndoStroke={undoLastStroke}
+				onAutoSpace={autoSpace}
+				onCopy={copyGlyph}
+				onPaste={pasteGlyph}
+				onCopyPath={copyGlyphPath}
+				onExportPng={exportGlyphPng}
+				onExportSvg={exportGlyphSvg}
+				onClearSketch={clearSketch}
+				onClearVector={clearVector}
+			/>
 			{/if}
 		</div>
 
