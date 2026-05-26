@@ -15,7 +15,7 @@
 		type AffineMatrix,
 		type PathOp
 	} from '$lib/font/path-edit';
-	import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
+	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
@@ -66,7 +66,16 @@
 		computeSuggestedNext,
 		isBriefEmpty,
 		pickReferenceGlyph,
-		pickOnionNeighbours
+		pickOnionNeighbours,
+		computeGlyphStats,
+		computeAglfnSuggestion,
+		computeCurrentGlyphIssues,
+		computeAllProjectTags,
+		pickFamilyReferenceGlyph,
+		pickPinnedSnapshotGhost,
+		computeUsedByGlyphs,
+		computeInvolvedKerning,
+		computeCopyableMetricSources
 	} from '$lib/editor/glyph-deriveds';
 	import { fixAuditIssue } from '$lib/editor/fix-issue';
 	import {
@@ -189,62 +198,19 @@
 			familyRegularProject = await lp(reg.id);
 		})();
 	});
-	const familyReferenceGlyph = $derived.by(() => {
-		if (!showFamilyRegular || !familyRegularProject || !glyph) return null;
-		const same = familyRegularProject.glyphs[glyph.codepoint];
-		return same && same.contours.length > 0 ? same : null;
-	});
-
-	// When any snapshot is pinned for the current glyph, render the most-recent
-	// pinned one as a ghost overlay on the canvas. Turns "pin" from a passive
-	// safe-keep marker into an active comparison tool: pin the version you
-	// like, iterate, see the delta in real time.
-	const pinnedSnapshotGhost = $derived.by(() => {
-		const pins = glyph?.revisions?.filter((r) => r.pinned) ?? [];
-		if (pins.length === 0) return null;
-		// Newest pinned first — most recently chosen baseline wins.
-		const newest = pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
-		return newest.contours;
-	});
-
-	// Combined audit + compatibility issues for the current glyph. Lifted
-	// from the template so the O(masters × glyphs × contours) compatibility
-	// scan only re-runs when the project actually changes — not on every
-	// accordion render.
-	const currentGlyphIssues = $derived.by(() => {
-		if (!glyph || !projectStore.project) return [];
-		return sortBySeverity([
-			...auditGlyph(glyph, projectStore.project),
-			...auditCompatibility(projectStore.project).filter(
-				(i) => i.codepoint === glyph.codepoint
-			)
-		]);
-	});
-
-	// Unique tag set across the whole project — drives the datalist on the
-	// per-glyph Tags accordion so designers can autocomplete existing tags
-	// instead of typing fresh ones from scratch every time.
-	const existingProjectTags = $derived.by(() => {
-		const p = projectStore.project;
-		if (!p) return [] as string[];
-		const set = new Set<string>();
-		for (const g of Object.values(p.glyphs)) {
-			for (const t of g.tags ?? []) set.add(t);
-		}
-		return [...set].sort();
-	});
-
-	// AGLFN name suggestion. Returns the canonical Adobe Glyph List for
-	// New Fonts name for the current codepoint when (a) one exists, (b) it
-	// differs from the current name, and (c) it's a valid PostScript
-	// glyph name. Null otherwise — no suggestion to surface.
-	const aglfnSuggestion = $derived.by(() => {
-		if (!glyph) return null;
-		const aglfn = aglfnName(glyph.codepoint);
-		if (!aglfn || aglfn === glyph.name) return null;
-		if (!/^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(aglfn)) return null;
-		return aglfn;
-	});
+	const familyReferenceGlyph = $derived(
+		showFamilyRegular
+			? pickFamilyReferenceGlyph(glyph ?? null, familyRegularProject)
+			: null
+	);
+	const pinnedSnapshotGhost = $derived(pickPinnedSnapshotGhost(glyph ?? null));
+	const currentGlyphIssues = $derived(
+		computeCurrentGlyphIssues(glyph ?? null, projectStore.project ?? null)
+	);
+	const existingProjectTags = $derived(
+		computeAllProjectTags(projectStore.project ?? null)
+	);
+	const aglfnSuggestion = $derived(computeAglfnSuggestion(glyph ?? null));
 
 	// Persist editor toggles. Single $effect with explicit untrack on the
 	// write side so the loop never bounces back through the store's $state.
@@ -285,9 +251,6 @@
 		thinning: strokeThinning
 	});
 
-	const countPathPoints = (commands: BezierContour['commands']) =>
-		commands.filter((c) => c.type === 'M' || c.type === 'L' || c.type === 'C' || c.type === 'Q')
-			.length;
 
 	let vfPreviewOpen = $state(false);
 	let vfAxisValues = $state<Record<string, number>>({});
@@ -372,12 +335,9 @@
 		return out;
 	});
 
-	const usedByGlyphs = $derived.by(() => {
-		if (!projectStore.project || !glyph) return [];
-		return Object.values(projectStore.project.glyphs).filter((g) =>
-			(g.components ?? []).some((c) => c.baseCodepoint === glyph.codepoint)
-		);
-	});
+	const usedByGlyphs = $derived(
+		computeUsedByGlyphs(glyph ?? null, projectStore.project ?? null)
+	);
 
 	// Per-glyph sample words for the bottom-bar metrics input. Designers
 	// click "Sample" to fill with a word that exercises the current glyph
@@ -478,30 +438,9 @@
 	// codepoint or via membership in a kerning class. Useful inline so the
 	// designer knows whether spacing edits ripple into pairs, without
 	// jumping to the spacing page.
-	const involvedKerning = $derived.by(() => {
-		const p = projectStore.project;
-		if (!p || !glyph) return { asLeft: 0, asRight: 0 };
-		const cp = glyph.codepoint;
-		const classes = p.classes ?? [];
-		const memberClassNames = new Set(
-			classes.filter((c) => c.members.includes(cp)).map((c) => c.name)
-		);
-		let asLeft = 0;
-		let asRight = 0;
-		const matches = (side: import('$lib/font/types').KerningSide, role: 'left' | 'right') => {
-			const hit =
-				(typeof side === 'number' && side === cp) ||
-				(typeof side === 'string' && memberClassNames.has(side));
-			if (!hit) return;
-			if (role === 'left') asLeft++;
-			else asRight++;
-		};
-		for (const pair of p.kerning) {
-			matches(pair.left, 'left');
-			matches(pair.right, 'right');
-		}
-		return { asLeft, asRight };
-	});
+	const involvedKerning = $derived(
+		computeInvolvedKerning(glyph ?? null, projectStore.project ?? null)
+	);
 
 	const spacingSuggestion = $derived(
 		glyph && projectStore.project
@@ -518,12 +457,9 @@
 		}));
 	};
 
-	const copyableMetricSources = $derived.by(() => {
-		if (!projectStore.project || !glyph) return [];
-		return Object.values(projectStore.project.glyphs)
-			.filter((g) => g.codepoint !== glyph.codepoint && g.contours.length > 0)
-			.sort((a, b) => a.codepoint - b.codepoint);
-	});
+	const copyableMetricSources = $derived(
+		computeCopyableMetricSources(glyph ?? null, projectStore.project ?? null)
+	);
 
 	const copyMetricsFrom = (codepoint: number) => {
 		if (!projectStore.project || !glyph || !codepoint) return;
@@ -537,23 +473,7 @@
 		}));
 	};
 
-	const glyphStats = $derived.by(() => {
-		if (!glyph || glyph.contours.length === 0) {
-			return { contours: 0, points: 0, minX: 0, maxX: 0, minY: 0, maxY: 0, width: 0, height: 0 };
-		}
-		const b = glyphBounds(glyph.contours);
-		const points = glyph.contours.reduce((n, c) => n + countPathPoints(c.commands), 0);
-		return {
-			contours: glyph.contours.length,
-			points,
-			minX: Math.round(b.minX),
-			maxX: Math.round(b.maxX),
-			minY: Math.round(b.minY),
-			maxY: Math.round(b.maxY),
-			width: Math.round(b.maxX - b.minX),
-			height: Math.round(b.maxY - b.minY)
-		};
-	});
+	const glyphStats = $derived(computeGlyphStats(glyph ?? null));
 
 	const anatomyTip = $derived(glyph ? tipFor(glyph.codepoint) : null);
 

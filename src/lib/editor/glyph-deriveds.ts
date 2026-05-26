@@ -7,7 +7,14 @@
 
 import { glyphBounds } from '$lib/font/path';
 import { CONTROL_GLYPHS, useCaseTargets } from '$lib/editor/onboarding-targets';
-import type { Glyph, Project } from '$lib/font/types';
+import { aglfnName } from '$lib/font/aglfn';
+import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
+import type {
+	BezierContour,
+	Glyph,
+	Project,
+	KerningSide
+} from '$lib/font/types';
 
 // ---- "Glyph" panel ----------------------------------------------------
 
@@ -162,6 +169,183 @@ export const pickReferenceGlyph = (glyph: Glyph, project: Project): Glyph | null
 
 // Picks the nearest drawn glyphs before + after the current one for
 // onion-skinning. Skips empty glyphs in either direction.
+// ---- Glyph-panel bbox stats ------------------------------------------
+
+export type GlyphStats = {
+	contours: number;
+	points: number;
+	minX: number;
+	maxX: number;
+	minY: number;
+	maxY: number;
+	width: number;
+	height: number;
+};
+
+const EMPTY_STATS: GlyphStats = {
+	contours: 0,
+	points: 0,
+	minX: 0,
+	maxX: 0,
+	minY: 0,
+	maxY: 0,
+	width: 0,
+	height: 0
+};
+
+const countPathPoints = (commands: BezierContour['commands']) =>
+	commands.reduce(
+		(n, cmd) =>
+			cmd.type === 'M' || cmd.type === 'L' || cmd.type === 'Q' || cmd.type === 'C'
+				? n + 1
+				: n,
+		0
+	);
+
+export const computeGlyphStats = (glyph: Glyph | null): GlyphStats => {
+	if (!glyph || glyph.contours.length === 0) return EMPTY_STATS;
+	const b = glyphBounds(glyph.contours);
+	const points = glyph.contours.reduce((n, c) => n + countPathPoints(c.commands), 0);
+	return {
+		contours: glyph.contours.length,
+		points,
+		minX: Math.round(b.minX),
+		maxX: Math.round(b.maxX),
+		minY: Math.round(b.minY),
+		maxY: Math.round(b.maxY),
+		width: Math.round(b.maxX - b.minX),
+		height: Math.round(b.maxY - b.minY)
+	};
+};
+
+// ---- AGLFN name suggestion -------------------------------------------
+
+// Canonical Adobe Glyph List for New Fonts name for the glyph's
+// codepoint, if (a) one exists, (b) it differs from the current name,
+// (c) it's a valid PostScript glyph name.
+export const computeAglfnSuggestion = (glyph: Glyph | null): string | null => {
+	if (!glyph) return null;
+	const aglfn = aglfnName(glyph.codepoint);
+	if (!aglfn || aglfn === glyph.name) return null;
+	if (!/^[A-Za-z._][A-Za-z0-9._-]{0,62}$/.test(aglfn)) return null;
+	return aglfn;
+};
+
+// ---- Combined audit issues for the current glyph ---------------------
+
+// Audit + compatibility issues merged + severity-sorted. The
+// auditCompatibility scan is O(masters × glyphs × contours) so caching
+// this $derived means it only re-runs when project state changes — not
+// on every accordion render.
+export const computeCurrentGlyphIssues = (
+	glyph: Glyph | null,
+	project: Project | null
+) => {
+	if (!glyph || !project) return [];
+	return sortBySeverity([
+		...auditGlyph(glyph, project),
+		...auditCompatibility(project).filter((i) => i.codepoint === glyph.codepoint)
+	]);
+};
+
+// ---- Project-wide tag catalogue --------------------------------------
+
+// Unique tag set across every glyph, sorted. Drives the autocomplete
+// datalist on the per-glyph Tags accordion so designers can reuse
+// existing tags instead of drifting between "wip", "WIP", "in-progress".
+export const computeAllProjectTags = (project: Project | null): string[] => {
+	if (!project) return [];
+	const set = new Set<string>();
+	for (const g of Object.values(project.glyphs)) {
+		for (const t of g.tags ?? []) set.add(t);
+	}
+	return [...set].sort();
+};
+
+// ---- Family-Regular overlay glyph ------------------------------------
+
+// When the editor's "Regular" overlay is enabled and a family Regular
+// project is loaded, returns the same-codepoint glyph from that family
+// (only when it has any contours).
+export const pickFamilyReferenceGlyph = (
+	glyph: Glyph | null,
+	familyRegular: Project | null
+): Glyph | null => {
+	if (!familyRegular || !glyph) return null;
+	const same = familyRegular.glyphs[glyph.codepoint];
+	return same && same.contours.length > 0 ? same : null;
+};
+
+// ---- Pinned-snapshot ghost contours ----------------------------------
+
+// Most-recent pinned revision's contours. Turns "pin" into an active
+// comparison tool: pin the version you like, iterate, see the delta.
+export const pickPinnedSnapshotGhost = (
+	glyph: Glyph | null
+): BezierContour[] | null => {
+	const pins = glyph?.revisions?.filter((r) => r.pinned) ?? [];
+	if (pins.length === 0) return null;
+	const newest = pins.reduce((a, b) => (a.takenAt > b.takenAt ? a : b));
+	return newest.contours;
+};
+
+// ---- "Used by" — composite-glyph back-references ---------------------
+
+export const computeUsedByGlyphs = (
+	glyph: Glyph | null,
+	project: Project | null
+): Glyph[] => {
+	if (!project || !glyph) return [];
+	return Object.values(project.glyphs).filter((g) =>
+		(g.components ?? []).some((c) => c.baseCodepoint === glyph.codepoint)
+	);
+};
+
+// ---- Kerning involvement count --------------------------------------
+
+// Counts the kerning pairs in which the current glyph appears, either
+// directly via codepoint or through membership in a kerning class.
+export const computeInvolvedKerning = (
+	glyph: Glyph | null,
+	project: Project | null
+): { asLeft: number; asRight: number } => {
+	if (!project || !glyph) return { asLeft: 0, asRight: 0 };
+	const cp = glyph.codepoint;
+	const classes = project.classes ?? [];
+	const memberClassNames = new Set(
+		classes.filter((c) => c.members.includes(cp)).map((c) => c.name)
+	);
+	let asLeft = 0;
+	let asRight = 0;
+	const matches = (side: KerningSide, role: 'left' | 'right') => {
+		const hit =
+			(typeof side === 'number' && side === cp) ||
+			(typeof side === 'string' && memberClassNames.has(side));
+		if (!hit) return;
+		if (role === 'left') asLeft++;
+		else asRight++;
+	};
+	for (const pair of project.kerning) {
+		matches(pair.left, 'left');
+		matches(pair.right, 'right');
+	}
+	return { asLeft, asRight };
+};
+
+// ---- Metric-copy source dropdown -------------------------------------
+
+// Every other drawn glyph, ordered by codepoint — populates the
+// Metrics panel "Copy from…" dropdown.
+export const computeCopyableMetricSources = (
+	glyph: Glyph | null,
+	project: Project | null
+): Glyph[] => {
+	if (!project || !glyph) return [];
+	return Object.values(project.glyphs)
+		.filter((g) => g.codepoint !== glyph.codepoint && g.contours.length > 0)
+		.sort((a, b) => a.codepoint - b.codepoint);
+};
+
 export const pickOnionNeighbours = (
 	glyph: Glyph,
 	project: Project
