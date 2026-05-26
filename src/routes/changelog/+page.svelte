@@ -39,7 +39,7 @@
 			// a citation-friendly summary.
 			description: r.body
 				.replace(/^###?\s+\S+\s*\n/, '')
-				.replace(/[#*`\[\]()]/g, '')
+				.replace(/[#*`[\]()]/g, '')
 				.replace(/\s+/g, ' ')
 				.trim()
 				.slice(0, 200)
