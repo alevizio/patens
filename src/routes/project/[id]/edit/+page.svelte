@@ -5,7 +5,7 @@
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { Anchor, BezierContour, ColorLayer, Glyph, SketchStroke } from '$lib/font/types';
 	import { defaultPalette } from '$lib/font/color';
-	import { glyphBounds, contoursToSvgPath, roundToFontUnits } from '$lib/font/path';
+	import { glyphBounds, roundToFontUnits } from '$lib/font/path';
 	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
 	import {
 		chaikinSmooth,
@@ -51,6 +51,11 @@
 	import OnboardingHints from '$lib/editor/OnboardingHints.svelte';
 	import CollapsedBottomBar from '$lib/editor/CollapsedBottomBar.svelte';
 	import { createCanvasDropController } from '$lib/editor/canvas-drop.svelte';
+	import {
+		downloadGlyphPng,
+		downloadGlyphSvg,
+		glyphSvgPathString
+	} from '$lib/editor/glyph-export';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1568,48 +1573,16 @@
 		});
 	};
 
-	const exportGlyphPng = () => {
-		if (!glyph || !metrics || glyph.contours.length === 0) return;
-		const bounds = glyphBounds(glyph.contours);
-		const padX = 60;
-		const padY = 60;
-		const left = Math.min(0, bounds.minX) - padX;
-		const right = Math.max(glyph.advanceWidth, bounds.maxX) + padX;
-		const top = metrics.ascender + padY;
-		const bottom = metrics.descender - padY;
-		const width = right - left;
-		const height = top - bottom;
-		const px = 800; // canvas pixel width
-		const scale = px / width;
-		const c = document.createElement('canvas');
-		c.width = Math.round(px);
-		c.height = Math.round(height * scale);
-		const ctx = c.getContext('2d');
-		if (!ctx) return;
-		ctx.fillStyle = 'white';
-		ctx.fillRect(0, 0, c.width, c.height);
-		ctx.save();
-		ctx.translate(-left * scale, top * scale);
-		ctx.scale(scale, -scale);
-		ctx.fillStyle = 'black';
-		ctx.fill(new Path2D(contoursToSvgPath(glyph.contours)), 'evenodd');
-		ctx.restore();
-		c.toBlob((blob) => {
-			if (!blob) return;
-			const safeName = (glyph.name || 'glyph').replace(/[^a-zA-Z0-9_-]/g, '_');
-			const url = URL.createObjectURL(blob);
-			const a = document.createElement('a');
-			a.href = url;
-			a.download = `${safeName}.png`;
-			a.click();
-			URL.revokeObjectURL(url);
-			toast.success(`Exported ${safeName}.png`);
-		}, 'image/png');
+	const exportGlyphPng = async () => {
+		if (!glyph || !metrics) return;
+		const name = await downloadGlyphPng(glyph, metrics);
+		if (name) toast.success(`Exported ${name}`);
 	};
 
 	const copyGlyphPath = async () => {
-		if (!glyph || glyph.contours.length === 0) return;
-		const d = contoursToSvgPath(glyph.contours);
+		if (!glyph) return;
+		const d = glyphSvgPathString(glyph);
+		if (!d) return;
 		try {
 			await navigator.clipboard.writeText(d);
 			toast.success(`Copied SVG path for ${glyph.name}`);
@@ -1619,32 +1592,8 @@
 	};
 
 	const exportGlyphSvg = () => {
-		if (!glyph || !metrics || glyph.contours.length === 0) return;
-		const bounds = glyphBounds(glyph.contours);
-		const padX = 40;
-		const padY = 40;
-		const left = Math.min(0, bounds.minX) - padX;
-		const right = Math.max(glyph.advanceWidth, bounds.maxX) + padX;
-		const top = metrics.ascender + padY;
-		const bottom = metrics.descender - padY;
-		const width = right - left;
-		const height = top - bottom;
-		const pathD = contoursToSvgPath(glyph.contours);
-		const safeName = (glyph.name || 'glyph').replace(/[^a-zA-Z0-9_-]/g, '_');
-		const svg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="${left} ${-top} ${width} ${height}" width="${width}" height="${height}">
-	<g transform="scale(1, -1)">
-		<path d="${pathD}" fill="black" fill-rule="evenodd" />
-	</g>
-</svg>
-`;
-		const blob = new Blob([svg], { type: 'image/svg+xml' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = `${safeName}.svg`;
-		a.click();
-		URL.revokeObjectURL(url);
+		if (!glyph || !metrics) return;
+		downloadGlyphSvg(glyph, metrics);
 	};
 
 	const clearSketch = () => {
