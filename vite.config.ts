@@ -49,10 +49,26 @@ export default defineConfig({
 	server: {
 		watch: {
 			ignored: [
+				// Build outputs — these get regenerated on every build,
+				// not edits. Watching them is the biggest source of the
+				// dev-server cache-thrash we hit during the launch-prep
+				// arc (Vercel build → 17 .html files written →
+				// 17 HMR page-reload events → optimizer dep-cache desync).
+				'**/.vercel/**',
+				'**/.svelte-kit/output/**',
+				'**/build/**',
+				'**/dist/**',
+				// Doc churn — frequent release-prep edits to these has
+				// no module-graph dependency.
 				'**/docs/**',
 				'**/.claude/**',
 				'**/memory/**',
-				'**/*.md'
+				'**/*.md',
+				// Common dotfiles that change on every commit
+				'**/.git/**',
+				'**/coverage/**',
+				'**/playwright-report/**',
+				'**/test-results/**'
 			]
 		}
 	}
