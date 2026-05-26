@@ -32,8 +32,6 @@
 	import AlignHorizontalSpaceAround from '@lucide/svelte/icons/align-horizontal-space-around';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import FileText from '@lucide/svelte/icons/file-text';
-	import Lock from '@lucide/svelte/icons/lock';
-	import Unlock from '@lucide/svelte/icons/unlock';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
@@ -57,6 +55,7 @@
 	import BrushAccordion from '$lib/editor/BrushAccordion.svelte';
 	import PathOpsAccordion from '$lib/editor/PathOpsAccordion.svelte';
 	import ColorLayersPanel from '$lib/editor/ColorLayersPanel.svelte';
+	import MetricsPanel from '$lib/editor/MetricsPanel.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2519,103 +2518,13 @@
 				{/if}
 			</div>
 
-			<div class="border-b border-border p-4">
-				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					<span class="inline-flex items-center gap-1.5">
-						Metrics
-						<button
-							type="button"
-							onclick={() =>
-								projectStore.updateGlyph(glyph.codepoint, (g) => ({
-									...g,
-									metricsLocked: !g.metricsLocked
-								}))}
-							class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 {glyph.metricsLocked
-								? 'text-warn'
-								: 'hover:text-fg'}"
-							aria-label={glyph.metricsLocked ? 'Unlock metrics' : 'Lock metrics'}
-							title={glyph.metricsLocked
-								? 'Unlock — allow LSB/RSB/Adv edits'
-								: 'Lock — prevent accidental LSB/RSB/Adv edits'}
-						>
-							{#if glyph.metricsLocked}
-								<Lock class="size-3" />
-							{:else}
-								<Unlock class="size-3" />
-							{/if}
-						</button>
-					</span>
-					<select
-						value=""
-						disabled={glyph.metricsLocked}
-						onchange={(e) => copyMetricsFrom(Number(e.currentTarget.value))}
-						class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40"
-						title="Copy LSB / RSB / advance from another glyph"
-					>
-						<option value="" disabled selected>Copy from…</option>
-						{#each copyableMetricSources as g (g.codepoint)}
-							<option value={g.codepoint}
-								>{g.name} · {g.advanceWidth}/{g.leftSidebearing}/{g.rightSidebearing}</option
-							>
-						{/each}
-					</select>
-				</h3>
-				<div class="grid grid-cols-3 gap-2">
-					<Field label="Adv">
-						<Input
-							type="number"
-							density="sm"
-							value={glyph.advanceWidth}
-							disabled={glyph.metricsLocked}
-							onchange={(e) =>
-								projectStore.updateGlyph(glyph.codepoint, (g) => ({
-									...g,
-									advanceWidth: Number(e.currentTarget.value)
-								}))}
-						/>
-					</Field>
-					<Field label="LSB">
-						<Input
-							type="number"
-							density="sm"
-							value={glyph.leftSidebearing}
-							disabled={glyph.metricsLocked}
-							onchange={(e) =>
-								projectStore.updateGlyph(glyph.codepoint, (g) => ({
-									...g,
-									leftSidebearing: Number(e.currentTarget.value)
-								}))}
-						/>
-					</Field>
-					<Field label="RSB">
-						<Input
-							type="number"
-							density="sm"
-							value={glyph.rightSidebearing}
-							disabled={glyph.metricsLocked}
-							onchange={(e) =>
-								projectStore.updateGlyph(glyph.codepoint, (g) => ({
-									...g,
-									rightSidebearing: Number(e.currentTarget.value)
-								}))}
-						/>
-					</Field>
-				</div>
-				{#if spacingSuggestion}
-					<button
-						type="button"
-						onclick={applySpacingSuggestion}
-						class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-accent/40 bg-accent-soft/30 px-2 py-1.5 text-left text-[11px] text-fg-muted hover:border-accent hover:bg-accent-soft"
-						title="Apply suggested LSB/RSB from a similar-width peer"
-					>
-						<span>Match peer</span>
-						<span class="preview-font text-fg">{spacingSuggestion.peerChar}</span>
-						<span class="ml-auto font-mono text-accent" data-numeric>
-							{spacingSuggestion.lsb} / {spacingSuggestion.rsb}
-						</span>
-					</button>
-				{/if}
-			</div>
+			<MetricsPanel
+				{glyph}
+				copyableSources={copyableMetricSources}
+				{spacingSuggestion}
+				onCopyMetricsFrom={copyMetricsFrom}
+				onApplySpacingSuggestion={applySpacingSuggestion}
+			/>
 
 			<div class="border-b border-border p-4">
 				<h3 class="mb-3 flex items-center justify-between text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
