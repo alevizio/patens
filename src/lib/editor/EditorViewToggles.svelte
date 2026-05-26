@@ -6,9 +6,9 @@
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import Maximize from '@lucide/svelte/icons/maximize';
 	import Eye from '@lucide/svelte/icons/eye';
-	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
+	import ToolbarToggle from './ToolbarToggle.svelte';
 
 	type Props = {
 		skipEmptyNav: boolean;
@@ -52,7 +52,8 @@
 	<button
 		type="button"
 		onclick={() => (skipEmptyNav = !skipEmptyNav)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors {skipEmptyNav
+		aria-pressed={skipEmptyNav}
+		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {skipEmptyNav
 			? 'bg-accent-soft text-accent-strong'
 			: 'text-fg-muted hover:bg-surface-2 hover:text-fg'}"
 		title="When on, the [ and ] keys skip empty glyphs as you navigate."
@@ -62,7 +63,7 @@
 	<button
 		type="button"
 		onclick={onOpenTour}
-		class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+		class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 		title="Show editor tour"
 		aria-label="Show editor tour"
 	>
@@ -71,123 +72,95 @@
 	<button
 		type="button"
 		onclick={onFit}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 		title="Fit to glyph (⌘0)"
 	>
 		<Maximize class="size-3.5" />
 		<span data-numeric>{zoomPercent}%</span>
 	</button>
-	<button
-		type="button"
+	<ToolbarToggle
+		active={showReference}
 		onclick={() => (showReference = !showReference)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showReference
-			? 'bg-fg/10 text-fg'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Toggle reference glyph (R)"
 	>
-		{#if showReference}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 		Ref
-	</button>
+	</ToolbarToggle>
 	{#if hasFamilyRegular}
-		<button
-			type="button"
+		<ToolbarToggle
+			variant="accent"
+			active={showFamilyRegular}
 			onclick={() => (showFamilyRegular = !showFamilyRegular)}
-			class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showFamilyRegular
-				? 'bg-accent-soft text-accent-strong'
-				: 'text-fg-subtle hover:bg-surface-2'}"
 			title="Overlay the family Regular's same-glyph contour as a ghost (⇧R)"
 		>
-			{#if showFamilyRegular}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 			Regular
-		</button>
+		</ToolbarToggle>
 	{/if}
-	<button
-		type="button"
+	<ToolbarToggle
+		variant="warn"
+		active={showAnchors}
 		onclick={() => (showAnchors = !showAnchors)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnchors
-			? 'bg-warn/10 text-warn-strong'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Toggle anchors (X)"
 	>
-		{#if showAnchors}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 		Anchors
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		active={showOnion}
 		onclick={() => (showOnion = !showOnion)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showOnion
-			? 'bg-fg/10 text-fg'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Onion-skin previous/next glyph (O)"
 	>
-		{#if showOnion}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 		Onion
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		kind="plain"
+		active={snapToMetrics}
 		onclick={() => (snapToMetrics = !snapToMetrics)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {snapToMetrics
-			? 'bg-fg/10 text-fg'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Snap to metrics while editing points"
 	>
 		Snap
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		variant="warn"
+		active={showSketch}
 		onclick={() => (showSketch = !showSketch)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showSketch
-			? 'bg-warn/10 text-warn-strong'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Toggle sketch layer (S)"
 	>
-		{#if showSketch}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 		Sketch
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		variant="accent"
+		active={showVector}
 		onclick={() => (showVector = !showVector)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showVector
-			? 'bg-accent/10 text-accent-strong'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Toggle vector layer (V)"
 	>
-		{#if showVector}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
 		Vector
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		kind="plain"
+		active={showGrid}
 		onclick={() => (showGrid = !showGrid)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showGrid
-			? 'bg-fg/10 text-fg'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Toggle grid (G)"
 	>
-		<Grid3x3 class="size-3.5" />
+		{#snippet icon()}<Grid3x3 class="size-3.5" />{/snippet}
 		Grid
-	</button>
-	<button
-		type="button"
+	</ToolbarToggle>
+	<ToolbarToggle
+		kind="plain"
+		active={showAnatomy}
 		onclick={() => (showAnatomy = !showAnatomy)}
-		class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnatomy
-			? 'bg-fg/10 text-fg'
-			: 'text-fg-subtle hover:bg-surface-2'}"
 		title="Show overshoot zones for round glyphs"
 	>
-		<Eye class="size-3.5" />
+		{#snippet icon()}<Eye class="size-3.5" />{/snippet}
 		Overshoot
-	</button>
+	</ToolbarToggle>
 	{#if hasMasters}
-		<button
-			type="button"
+		<ToolbarToggle
+			kind="plain"
+			active={vfPreviewOpen}
 			onclick={() => (vfPreviewOpen = !vfPreviewOpen)}
-			class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {vfPreviewOpen
-				? 'bg-fg/10 text-fg'
-				: 'text-fg-subtle hover:bg-surface-2'}"
 			title="Live interpolation preview"
 		>
-			<Sliders class="size-3.5" />
+			{#snippet icon()}<Sliders class="size-3.5" />{/snippet}
 			VF
-		</button>
+		</ToolbarToggle>
 	{/if}
 </div>
