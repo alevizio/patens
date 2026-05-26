@@ -62,11 +62,6 @@ test('every project tab updates the URL AND mounts its content', async ({ page }
 	await openDemoProject(page);
 
 	for (const tab of TABS) {
-		// Wait for the previous nav to fully settle BEFORE clicking the
-		// next tab. SvelteKit's CSR has a window where a click during
-		// route-load can be silently dropped — we'd rather take the time
-		// hit than catch a flake.
-		await page.waitForLoadState('networkidle');
 		await page
 			.getByRole('link', { name: new RegExp(`^${tab.label}(\\s|$|\\()`) })
 			.first()
@@ -75,6 +70,11 @@ test('every project tab updates the URL AND mounts its content', async ({ page }
 		// nav doesn't take, instead of toHaveURL's poll timing out at 5s with
 		// a less-clear message.
 		await page.waitForURL(`**${tab.path}`);
+		// assertTabMounted is the natural sync point — it waits for the
+		// destination route's content. The previous `networkidle` wait
+		// before each click traced to the welcome-strip-flicker race that
+		// no longer exists (see 6473204), so it's unnecessary AND it added
+		// 0.5–2s per tab in dev mode where HMR keeps the network busy.
 		await assertTabMounted(page, tab);
 	}
 });

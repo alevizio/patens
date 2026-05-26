@@ -56,7 +56,7 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 
 Tracked here so future readers see them without re-discovering. Each links to the surface where it shows up:
 
-- **`tab-nav.spec.ts` Designspace timing.** When the project-tab nav runs through tabs rapidly in sequence (Brief → Edit → Spacing → Designspace → ...), the Spacing-to-Designspace click occasionally races SvelteKit's CSR teardown and the URL update doesn't fire. v1.0.0-beta added `waitForLoadState('networkidle')` before each click to make the test deterministic; if the flake returns, the underlying nav probably needs a guard against rapid-fire clicks.
+- ~~**`tab-nav.spec.ts` Designspace timing.**~~ ✅ Closed in v1.5.x SSR work. The rapid-fire tab-nav flake traced to the welcome-strip flicker during route transitions, not a SvelteKit CSR race. With SSR enabled the strip landed in the SSR'd HTML and got removed by hydration milliseconds later — the DOM repaint during that window competed for the click event with the URL update. Seeding `welcomeDismissed=true` via `addInitScript` (commit `6473204`) means the strip never renders, the flicker doesn't happen, and the `networkidle` workaround was removed in favour of `assertTabMounted` as the natural sync point. 5/5 consecutive runs ~7s each (was ~11s with the wait).
 
 - **`harfbuzz.wasm` 404 in dev mode.** Vite's dep-optimisation pre-bundles `harfbuzzjs` but loses the wasm reference, then the SSR handler 404s on `/node_modules/.vite/deps/harfbuzz.wasm`. v1.0.0-beta added `optimizeDeps.exclude: ['harfbuzzjs']` to route the wasm via its natural path; if the error returns, check whether `harfbuzzjs` was upgraded and now needs a different exclusion.
 
