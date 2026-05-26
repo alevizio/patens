@@ -21,9 +21,12 @@
 	import Button from '$lib/ui/Button.svelte';
 	import Sparkline from '$lib/ui/Sparkline.svelte';
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
-	import { importFromOtf } from '$lib/font/import';
+	// importFromOtf pulls in opentype.js (~240KB) — lazy-load it on first
+	// use so the home page initial payload stays small. The user only pays
+	// the cost when they actually drop/select an OTF to import.
 	import { ensurePython, ufoZipToProject } from '$lib/font/python';
-	import { importFromUrl } from '$lib/font/url-import';
+	// importFromUrl transitively pulls in opentype.js via $lib/font/import —
+	// lazy-load here for the same reason as importFromOtf above.
 	import { settings } from '$lib/stores/settings.svelte';
 	import WelcomeDialog from '$lib/ui/WelcomeDialog.svelte';
 	import CreateFontDialog from '$lib/ui/CreateFontDialog.svelte';
@@ -496,6 +499,7 @@
 		importError = null;
 		importWarning = null;
 		try {
+			const { importFromUrl } = await import('$lib/font/url-import');
 			const { project } = await importFromUrl(url);
 			importWarning = checkReservedName(project.metadata.familyName);
 			await saveProject(project);
@@ -581,6 +585,7 @@
 				await goto(`/project/${project.id}/edit`);
 			} else {
 				importing = true;
+				const { importFromOtf } = await import('$lib/font/import');
 				const { project } = await importFromOtf(file);
 				importWarning = checkReservedName(project.metadata.familyName);
 				await saveProject(project);
