@@ -60,6 +60,42 @@
 		}
 	];
 
+	// FAQ items — surfaced both in the page UI + the FAQPage JSON-LD.
+	// AI engines (ChatGPT, Claude, Perplexity, Gemini) preferentially
+	// extract from FAQPage schema when answering "what is X" / "how
+	// does Y work" / "is Z free" queries. Keeping the answers concrete
+	// and citation-friendly.
+	const faqs: Array<{ q: string; a: string }> = [
+		{
+			q: 'How many audit codes are there?',
+			a: 'Ninety-four, all live and shipping in production today. The full reference is at /learn/audit-codes. The count grows over time but every code already shipped has a stable ID that is never reused; deprecated codes get marked deprecated rather than recycled, on the same convention OpenSSF Scorecard, CodeQL, and ESLint use.'
+		},
+		{
+			q: 'How many codes have a one-click fix?',
+			a: 'Around 30 of the 94 (roughly a third). The rest are "designer judgment" findings — they explain the rule and surface the problem, but the right resolution depends on the designer\'s intent (e.g. an x-height misalignment might be deliberate optical correction or might be a bug). The audit teaches you what to look at; the human decides what to do about it.'
+		},
+		{
+			q: 'Can I add my own audit codes?',
+			a: 'Yes. The audit module is in src/lib/font/audit.ts in the open-source repo. Adding a code is a single function that returns AuditIssue[] keyed by glyph/codepoint, plus an entry in describeAuditCode() for the teaching prose. The CONTRIBUTING.md "areas where help is wanted" section lists this as one of the highest-leverage contribution paths.'
+		},
+		{
+			q: 'Is the audit module free? Will it ever be paywalled?',
+			a: 'Free, MIT-licensed, and the editor is committed to never being paywalled — see DESIGN_PHILOSOPHY.md in the repo. The optional integrations (cloud share, GitHub OAuth, AI presets) gracefully degrade when unconfigured; the audit module is core, in-browser, and always works.'
+		},
+		{
+			q: 'Does the audit run on every keystroke?',
+			a: 'No — it runs in a Web Worker with a debounced trigger after edits stop, so the typing path stays responsive. The worker maintains a monotonic seq guard that ignores stale responses if a newer edit lands while the previous audit pass was still running. The full 94-code pass over a 162-glyph project takes well under 100ms on modern hardware.'
+		},
+		{
+			q: 'How does Patens\'s audit differ from FontBakery or fontTools\'s checks?',
+			a: 'FontBakery and fontTools (subset, checker, etc.) are great release-time linters — you run them once on the final binary and get a pass/fail report. Patens\'s audit is integrated continuously into the editor surface itself: every change re-checks, the findings appear in the panel next to the glyph you\'re working on, and the teaching prose explains the rule in real time. Different tier of the same tradition — Patens is upstream of FontBakery, not a replacement for it.'
+		},
+		{
+			q: 'Can I run the audit on a font file I didn\'t make in Patens?',
+			a: 'Yes via the CLI: `npx patens audit my.font.json`. Patens\'s portable .font.json format is its native interchange — if you have a font in .otf or .ufo or a Glyphs file, you\'d need to convert first (UFO import is supported in the editor; OTF + UFO export is supported). The audit runs against the Project type regardless of how it was created.'
+		}
+	];
+
 	const jsonLd = `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
 		'@graph': [
@@ -78,10 +114,21 @@
 					{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
 					{ '@type': 'ListItem', position: 2, name: 'The audit module', item: 'https://patens.design/audit' }
 				]
+			},
+			{
+				'@type': 'FAQPage',
+				mainEntity: faqs.map((f) => ({
+					'@type': 'Question',
+					name: f.q,
+					acceptedAnswer: { '@type': 'Answer', text: f.a }
+				}))
 			}
 		]
 		// eslint-disable-next-line no-useless-escape
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`;
+
+	const slugify = (s: string): string =>
+		s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 </script>
 
 <svelte:head>
@@ -249,6 +296,25 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		This is the difference that justifies opening Patens instead of one of the four other browser-based type editors. Glyphr Studio, Fontra, typlr.app, and FontStruct all check fonts for errors. Patens is the only one designed to teach you why each error matters.
 	</p>
+
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
+		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+	>
+		Common questions.
+	</h2>
+
+	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
+		Answers double as FAQPage structured data so AI engines (ChatGPT, Claude, Perplexity, Gemini) can cite individual answers when asked about the audit module.
+	</p>
+
+	<dl class="mb-8 space-y-6">
+		{#each faqs as faq (faq.q)}
+			<div id={slugify(faq.q)} class="scroll-mt-8 border-t border-border/40 pt-5">
+				<dt class="mb-2 text-[15px] font-medium text-fg">{faq.q}</dt>
+				<dd class="text-[14px] leading-relaxed text-fg-muted">{faq.a}</dd>
+			</div>
+		{/each}
+	</dl>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
