@@ -107,19 +107,26 @@ describe('buildFont — per-call cost', () => {
 	];
 
 	for (const { n, iter } of SIZES) {
-		it(`size=${n}: buildFont()`, () => {
-			const project = synthProject(n);
-			console.log(`\n[${n} glyphs]`);
-			const cost = measure('buildFont', () => buildFont(project), iter);
-			// Sanity bound — catastrophic-regression guard, not a perf budget.
-			// Local dev hardware: 50/162/500 glyphs cost roughly 2/19/126ms.
-			// CI ubuntu-latest baseline (cold runner, no isolation): roughly
-			// 290/1260/2520ms — about 15–20× slower. We want this bound
-			// loose enough to absorb CI variance + warm-up noise, tight
-			// enough to catch a truly O(n²) regression or an opentype.js
-			// hot-loop introduction. 8s for 500 glyphs ≈ 3× the current CI
-			// baseline; a real regression will overshoot massively.
-			expect(cost, `${n} glyphs catastrophically slow`).toBeLessThan(8000);
-		});
+		// 30s test timeout — vitest's 5s default kills the 500-glyph case
+		// on CI runners where one iteration alone runs ~2.5s and we
+		// execute warm-up + iter iterations. The per-call bound below
+		// is the real regression guard; the test-level timeout just has
+		// to be wider than warm-up + iter × per-call.
+		it(
+			`size=${n}: buildFont()`,
+			() => {
+				const project = synthProject(n);
+				console.log(`\n[${n} glyphs]`);
+				const cost = measure('buildFont', () => buildFont(project), iter);
+				// Sanity bound — catastrophic-regression guard, not a perf
+				// budget. Local dev: 50/162/500 = ~2/19/126ms per call.
+				// CI ubuntu-latest baseline: ~290/1260/2520ms — 15-20×
+				// slower. Bound at 8s for 500 ≈ 3× CI baseline; a real
+				// O(n²) regression or opentype.js hot-loop introduction
+				// will overshoot massively.
+				expect(cost, `${n} glyphs catastrophically slow`).toBeLessThan(8000);
+			},
+			30000
+		);
 	}
 });
