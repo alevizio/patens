@@ -168,3 +168,26 @@ The remaining items in the plan above are all Tier 3 (you-only): file
 the USPTO trademark, set up Sponsors + Polar accounts, submit NLnet,
 run the Show HN launch, attend TypeCon Portland. Each is documented
 to paste-ready depth in the corresponding `docs/launch/*.md` file.
+
+---
+
+## ✅ Update — Maintainer-experience polish arc (2026-05-26)
+
+A second autonomous arc landed nine more OSS-readiness items the
+research pass had on the wishlist. All shipped, all gates green.
+
+**Commits (9):**
+
+- `94ec8f6` feat(cli): `npx patens audit` — terminal audit engine. Single bundled ESM via esbuild, 3 output formats (text / json / github), exit code 2 on any errors. Lets the audit module reach CI pipelines + pre-commit hooks without booting the editor.
+- `de9d451` perf(home): lazy-load Pyodide off the home-page eager chain. UFO import now dynamic-imports `$lib/font/python` on first use, so first-visit home no longer ships the Python runtime in the preload graph.
+- `c6084d5` docs(adr): 10 Architecture Decision Records under `docs/decisions/` (Nygard format). Locks in the load-bearing decisions — browser-native, MIT-forever, SSR-at-root, audit worker, share-as-capability, storage namespace stays `font-studio-*`, BYOK AI, strict quality gates, demo open-by-default.
+- `27367f1` docs: TypeDoc setup. `pnpm run docs:api` generates HTML reference for the audit / export / family-kerning / kerning-classes / path / font-machinery surfaces. Output gitignored.
+- `7f80be8` a11y(home): wrap home content in `<main>` landmark. Closes the Lighthouse 98→100 a11y gap (axe `landmark-one-main`). Drag-drop handlers unchanged.
+- `16a9552` test(bench): two new perf-regression guards — `buildFont` (50/162/500 glyphs: 2.4ms / 19ms / 126ms) and `expandKerningClasses` (small/medium/large: 0.08ms / 1.1ms / 19ms).
+- `ad06f1d` docs: `docs/release-process.md` (solo-maintainer playbook) + CONTRIBUTING cross-links to DESIGN_PHILOSOPHY, ADRs, MAINTAINERS, AGENTS, release-process, and ADR-009 for the gates rationale.
+
+**Verification this arc**: lint 0/0, svelte-check 0/0, vitest 528 passing across 44 files, production build 3180 KB client (under the 5120 KB cap).
+
+**Skipped after re-evaluation**: per-tutorial OG image variants (1.5h work for unfurl polish 99% of social readers won't click through — diminishing returns).
+
+The remaining open work is unchanged from the prior arc — all Tier 3 (you-only): USPTO trademark, Sponsors + Polar accounts, NLnet submission, Show HN launch, TypeCon Portland.

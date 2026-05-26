@@ -93,7 +93,6 @@ const measure = (label: string, fn: () => unknown, iterations: number) => {
 	for (let i = 0; i < iterations; i++) fn();
 	const total = performance.now() - start;
 	const per = total / iterations;
-	// eslint-disable-next-line no-console
 	console.log(`  ${label.padEnd(28)} ${per.toFixed(2)}ms/call (${iterations}× iter)`);
 	return per;
 };
@@ -110,7 +109,6 @@ describe('buildFont — per-call cost', () => {
 	for (const { n, iter } of SIZES) {
 		it(`size=${n}: buildFont()`, () => {
 			const project = synthProject(n);
-			// eslint-disable-next-line no-console
 			console.log(`\n[${n} glyphs]`);
 			const cost = measure('buildFont', () => buildFont(project), iter);
 			// Sanity bound — 500-glyph project on CI hardware should

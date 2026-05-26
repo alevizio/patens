@@ -59,7 +59,6 @@ const measure = (label: string, fn: () => unknown, iterations: number) => {
 	for (let i = 0; i < iterations; i++) fn();
 	const total = performance.now() - start;
 	const per = total / iterations;
-	// eslint-disable-next-line no-console
 	console.log(`  ${label.padEnd(28)} ${per.toFixed(3)}ms/call (${iterations}× iter)`);
 	return per;
 };
@@ -79,7 +78,6 @@ describe('expandKerningClasses — per-call cost', () => {
 		it(`scenario=${s.name}: expandKerningClasses()`, () => {
 			const classes = synthClasses(s.classes, s.members);
 			const pairs = synthPairs(classes, s.classPairs, s.direct);
-			// eslint-disable-next-line no-console
 			console.log(
 				`\n[${s.name}] ${s.classes} classes × ${s.members} members, ` +
 					`${s.classPairs} class pairs + ${s.direct} direct`

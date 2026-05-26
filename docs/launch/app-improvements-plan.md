@@ -51,6 +51,32 @@ Don't redo any of this:
 
 ---
 
+## Update 4 — maintainer-experience polish arc (2026-05-26)
+
+Companion arc to the second OSS-readiness pass logged in
+`docs/launch/oss-readiness-plan.md`. App-side wins:
+
+- `de9d451` Pyodide is no longer in the home preload — first-visit
+  cost dropped without touching the UFO-import code path.
+- `7f80be8` Home page Lighthouse A11y 98 → 100 (added missing
+  `<main>` landmark; Drag-drop unchanged).
+- `16a9552` Two new perf-regression guards land in CI: buildFont +
+  expandKerningClasses. 500-glyph export budgets at 126ms; the
+  large kerning-class scenario expands ~360k pairs in 19ms.
+- `94ec8f6` CLI distribution path — `npx patens audit` runs the
+  full 94-code audit + preflight against any `.font.json` from
+  any terminal, with text / json / github-workflow output modes.
+  Closes the "audit module is locked inside the editor" critique.
+
+Production build now 3180 KB client (well under the 5120 KB cap),
+528 unit + 6 bench tests passing.
+
+Nothing on the P0/P1 list above was touched — this arc was
+entirely below-the-waterline maintainer-experience work that
+clears the path for external contributors before TypeCon.
+
+---
+
 ## Update 3 — eight-piece launch-prep sweep
 
 Picked up the "what's left for ME" list + did all 8 autonomous picks

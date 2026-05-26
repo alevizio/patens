@@ -29,6 +29,8 @@ export default [
 			'static/**',
 			'public/**',
 			'coverage/**',
+			'cli/dist/**',
+			'docs/api/**',
 			'**/*.d.ts'
 		]
 	},
