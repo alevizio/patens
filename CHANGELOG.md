@@ -25,19 +25,31 @@ The OSS-readiness arc + TypeCon Portland launch prep. Accumulates since v1.5.2; 
 - **`/privacy` + `/security` pages** — plain-English, GDPR-shaped data inventory + responsible-disclosure flow. Both prerendered with full JSON-LD.
 - **`/press` kit** — factsheet (structured-data canonical), three-length descriptions, brand assets + screenshots placeholder, milestones.
 - **Re-share version picker UI** on `/share/[id]` + multi-master axis-pair picker on `/designspace`. Closes the two "server-ready, UI pending" items from the v1.5 backlog.
+- **NEW: dedicated `/audit` marketing page** — differentiator landing for the 94-code audit module. Hero + 9-family breakdown + 6 verbatim sample codes + CLI integration + 7-Q&A FAQPage + see-it-in-action CTAs. Prerendered to ~33KB. WebPage + BreadcrumbList + FAQPage JSON-LD for AI-engine citation.
+- **Trust band** on home page — 4-column Swiss-disciplined "by the numbers" row below the hero: 94 audit codes · 162 demo glyphs · 528 tests · MIT open source. Mono-uppercase labels + Hoefler-serif numerals.
+- **"How the audit teaches" 3-card sample** on home — verbatim `describeAuditCode()` prose for `self-intersecting` (fixable), `xheight-misaligned` (designer judgment), `sidebearing-class-drift-lsb` (designer judgment). Demonstrates the differentiator IN SITU.
+- **SiteHeader + SiteFooter components** — `src/lib/ui/SiteHeader.svelte` (sticky top nav, audit-led 4-item navigation with prefix-match active state) + `src/lib/ui/SiteFooter.svelte` (4-column grid: Product · Learn · Company · Legal & Source). Wired into 16 marketing pages + the 404 page.
+- **6 dedicated Satori-rendered OG variants** — `/og/audit`, `/og/learn`, `/og/compare`, `/og/press`, `/og/about`, plus the existing `/og/brand` and `/og/home`. Each marketing page's `og:image` + `twitter:image` now point at its route-specific card with route-specific copy + URL stamp.
+- **Article schema per release on `/changelog`** — top 10 releases now ship as discrete schema-typed entities (Article + datePublished + author + publisher + description) so AI engines can cite "what changed in Patens v1.5.2" as a specific citable answer.
 
 ### Changed
-- **Audit-led home welcome strip copy.** The first-visit non-blocking strip now leads with the audit module as the differentiator: "A type design tool that teaches as you draw." Compresses cleanly to a tweet or a Show HN headline.
+- **Audit-led home welcome strip copy.** The first-visit non-blocking strip now leads with the audit module as the differentiator: "A type design tool that teaches as you draw." Compresses cleanly to a tweet or a Show HN headline. Welcome dialog later enriched with a mono-uppercase metadata row (94 codes · 30 one-click fixes · MIT · no installs) + a new "Why audit-as-teaching →" CTA pointing at `/audit`.
 - **Swiss-influenced heading scale-up across 8 marketing pages.** Hero `sm:64` → `sm:80`, h1 `36` → `48`, h2 canonical `20` → `28` (incl. `/changelog` `24` → `28`, `/learn` `22/40` → `28/48`). h2 vertical rhythm `mt-12 mb-3` → `mt-16 mb-4`. Body sizes unchanged — Patens's density (14-15) is deliberate.
 - **Section rules on document-flow pages** (`/about`, `/privacy`, `/security`) — `border-t border-border/30 pt-12` above each h2 for structural skeleton.
 - **CONTRIBUTING + MAINTAINERS cross-links** to ADRs, DESIGN_PHILOSOPHY, AGENTS, release-process. Lint-gate exception rationale points at ADR-009.
-- **README opening blurb** reworked to lead with audit-as-teaching positioning, not feature-list. Capability table reorders Audit to the top as the headline row.
+- **README opening blurb** reworked to lead with audit-as-teaching positioning, not feature-list. Capability table reorders Audit to the top as the headline row. Closing paragraph back-links to `/audit` so GitHub visitors can drill into the differentiator marketing page.
+- **Comprehensive SEO + AIO completeness sweep.** Every public route now ships: JSON-LD (WebSite + Organization + Person + WebApplication on home; CollectionPage + ItemList on /learn; FAQPage on /audit + /help; Article × 10 on /changelog; TechArticle on reference pages; HowTo on tutorials), canonical URLs, absolute `og:image` URLs, `og:image:alt` + `twitter:image:alt`, `twitter:site` + `twitter:creator` (@patenstype), `meta name="author"`, `og:locale` en_US, `og:image:type` image/png. Sitemap shipped with per-route honest `lastmod` dates (replacing the "everything updated today" anti-pattern that lowers crawler trust).
+- **PWA manifest enrichment** — added `id`, `display_override` (window-controls-overlay), `screenshots`, and 2 app `shortcuts` (Demo + Audit) for richer install prompts on Chrome Desktop + Android.
 
 ### Fixed
 - **Home page Lighthouse A11y 98 → 100.** axe-core flagged `landmark-one-main`: the home page lacked a `<main>` landmark. The outer drag-drop surface (`<div role="application">`) became `<main>`; drag-drop event handlers unchanged.
 - **Editor mobile-gate.** A phone hitting `/project/[id]/edit` used to get the desktop editor crammed into a 375px viewport with no warning. Non-dismissible `<1024px` banner inside the project layout now names the constraint. iPad in landscape (≈1180px) clears it.
 - **Pin button on home cards** was invisible on touch devices (`opacity-0 group-hover:`). Now `opacity-60` on mobile, hover-revealed on `sm:+`.
 - **Stale `security.txt`** pointed at `font-studio.vercel.app`; updated to canonical `patens.design` URLs.
+- **`/families` 500 in production** — `+page.ts` called `listFamilies()` (idb-keyval) in the SSR load function, where `indexedDB` is undefined. Added `export const ssr = false;` matching the posture of `/share/[id]` and `/project/[id]/*`.
+- **Dev-server cache thrash** — Vite's HMR file-watcher was firing on every `.vercel/output/static/**` regeneration (~17 HTML files per build × 50 commits = hundreds of bogus reload cycles, corrupting the dep-optimizer cache). Watcher now ignores `.vercel/**`, `.svelte-kit/output/**`, `build/`, `dist/`, all `*.md`, and doc trees. Also added `pnpm run clean` script for one-command cache wipes.
+- **Bench test bounds + timeouts for CI** — `buildFont` 500-glyph bench bound 2000ms → 8000ms (CI runners are 15-20× slower than local); vitest test timeout raised to 30s to absorb the warm-up + iter × per-call walltime.
+- **Stale "88 glyphs" + "8 glyphs drawn" copy** on home page's "See it in action" Hn section — last of the 88→162 surface sweep that earlier passes missed.
 
 ### Performance
 - **Editor cold-load: 593 KB → 486 KB (−106 KB / −17.9%).** Four-stage defer pass:
