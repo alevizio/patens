@@ -56,6 +56,7 @@
 	import BrushSizeSlider from '$lib/editor/BrushSizeSlider.svelte';
 	import TemplatesAccordion from '$lib/editor/TemplatesAccordion.svelte';
 	import NotesAccordion from '$lib/editor/NotesAccordion.svelte';
+	import TagsAccordion from '$lib/editor/TagsAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2935,69 +2936,7 @@
 
 			<NotesAccordion {glyph} />
 
-			<Accordion id="edit-tags" label="Tags" defaultOpen={false}>
-				{#snippet badge()}
-					{#if (glyph.tags?.length ?? 0) > 0}
-						<span
-							class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted"
-							data-numeric
-						>
-							{glyph.tags?.length}
-						</span>
-					{/if}
-				{/snippet}
-				<!-- Inline tag list — each existing tag is a chip with an
-				     × button; adding a tag is a small input + Enter. -->
-				{#if (glyph.tags?.length ?? 0) > 0}
-					<div class="mb-2 flex flex-wrap gap-1">
-						{#each glyph.tags ?? [] as t (t)}
-							<span
-								class="inline-flex items-center gap-1 rounded bg-accent-soft/40 px-1.5 py-0.5 text-[11px] text-accent-strong"
-							>
-								{t}
-								<button
-									type="button"
-									onclick={() => projectStore.removeGlyphTag(glyph.codepoint, t)}
-									class="text-fg-subtle hover:text-danger-strong"
-									aria-label="Remove tag {t}"
-									title="Remove tag"
-								>
-									×
-								</button>
-							</span>
-						{/each}
-					</div>
-				{/if}
-				<input
-					type="text"
-					placeholder="Add tag — Enter to save"
-					list="glyph-tag-suggestions"
-					onkeydown={(e) => {
-						if (e.key === 'Enter') {
-							const v = (e.currentTarget as HTMLInputElement).value;
-							if (v.trim()) {
-								projectStore.addGlyphTag(glyph.codepoint, v);
-								(e.currentTarget as HTMLInputElement).value = '';
-							}
-						}
-					}}
-					class="block w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent"
-				/>
-				<!-- Autocomplete from existing project tags — prevents drift
-				     (designer typing "wip" then later "WIP" then "in-progress"
-				     when they all should be one tag). datalist surfaces the
-				     full deduped tag set; lowercase normalisation happens at
-				     addGlyphTag time anyway. -->
-				<datalist id="glyph-tag-suggestions">
-					{#each existingProjectTags as t (t)}
-						<option value={t}></option>
-					{/each}
-				</datalist>
-				<p class="mt-1 text-[10px] text-fg-subtle">
-					Free-form taxonomy — lowercase, deduped. Useful for "needs-redraw",
-					"WIP", "v2", etc.
-				</p>
-			</Accordion>
+			<TagsAccordion {glyph} existingTags={existingProjectTags} />
 
 			<Accordion id="edit-pathops" label="Path operations" defaultOpen={false}>
 				<button
