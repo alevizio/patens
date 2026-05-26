@@ -70,7 +70,7 @@ const buildPng = async (): Promise<Buffer> => {
 		<path d="${tonePath}" fill="${FG}" />
 
 		<!-- subtitle -->
-		<text x="80" y="560" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">Sketch-first browser type editor · variable fonts · AI completion</text>
+		<text x="80" y="560" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">Browser-native type design · 94-code audit · variable fonts · open source</text>
 	</svg>`;
 
 	const resvg = new Resvg(svg, {
