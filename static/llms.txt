@@ -1,8 +1,8 @@
 # Patens
 
-> Browser-native, open-source type design environment. Draw glyphs with a pencil, trace strokes to Bézier contours, kern them, ship OpenType fonts. No installs, no sign-ups. Latin for "lying open" — root of *patent*, used here for the opposite.
+> A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native. Latin for "lying open" — root of *patent*, used here for the opposite.
 
-Patens is a SvelteKit app that runs entirely in the browser. Every project lives in IndexedDB; nothing leaves the user's machine unless they choose to export (.font.json) or upload to a cloud-share path (Vercel Blob). The demo project ships 162 drawn glyphs spanning Latin (uppercase + lowercase + digits + punctuation + currency + math + brackets + composite ligatures), Cyrillic (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and Greek (14 uppercase look-alikes). The spine of the editor is a 94-code audit module covering contour shape, vertical metrics, OpenType invariants, brief completeness, and multi-script coverage — every code reaches five teaching surfaces through a single `describeAuditCode()` dictionary, and many issues offer one-click "Fix" actions.
+Patens is a SvelteKit app that runs entirely in the browser. Every project lives in IndexedDB; nothing leaves the user's machine unless they choose to export (.font.json) or upload to a cloud-share path (Vercel Blob). The spine of the editor is a 94-code audit module covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene, and anchor naming — every code reaches five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary, and many issues offer one-click "Fix" actions. The audit is also distributed as a CLI (`npx patens audit my.font.json`) for CI pipelines and foundry lint workflows. The demo project ships 162 drawn glyphs spanning Latin (uppercase + lowercase + digits + punctuation + currency + math + brackets + composite ligatures), Cyrillic (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and Greek (14 uppercase look-alikes).
 
 Patens v1.5.2 is production-grade and hosted at patens.design. It is open source under the MIT License, maintained by Alejandro Vizio.
 
@@ -12,7 +12,7 @@ Patens v1.5.2 is production-grade and hosted at patens.design. It is open source
 - [Demo specimen](https://patens.design/share/demo): designer-grade specimen sheet of the demo font
 - [Source code on GitHub](https://github.com/alevizio/patens): MIT-licensed, contributions welcome
 - [Architecture documentation](https://github.com/alevizio/patens/blob/main/docs/architecture.md): one-paragraph overview + deeper technical detail
-- [Help / FAQ](https://patens.design/help): 17 common questions across getting started, sharing, export, editor, performance
+- [Help / FAQ](https://patens.design/help): 20 common questions across 7 sections (getting started, sharing, export, editor, performance, AI, security)
 - [About + credits](https://patens.design/about): what Patens is, what it's built on, who made it
 - [Release notes](https://patens.design/changelog): every version since v0.4, with [RSS feed](https://patens.design/changelog/rss.xml)
 - [Setup guide for self-hosters](https://github.com/alevizio/patens/blob/main/docs/setup.md): per-platform instructions for optional integrations (Vercel Blob, GitHub OAuth, Anthropic API)
@@ -27,11 +27,11 @@ Patens v1.5.2 is production-grade and hosted at patens.design. It is open source
 - **Kerning + classes**: pair editor, class system, silhouette-distance auto-kern, family-wide kerning resolution
 - **Color fonts**: COLR v0/v1 + CPAL palettes; live color-plan rendering
 - **Anchors + composites**: GPOS mark-positioning rig with `top` / `_top` anchor convention; component composites with offset resolution
-- **94-code audit module**: contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene; one-click fixes for fixable codes
+- **94-code audit module**: contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene; one-click fixes for fixable codes; also runs from the terminal via `npx patens audit` for CI integration
 - **Export**: OTF + WOFF2 (in-browser via opentype.js), TTF (Pyodide + ttfautohint), UFO, designer-bundled .zip, portable .font.json
 - **Specimen**: print stylesheet that strips chrome and emits a PDF-ready foundry-grade specimen sheet
 - **PWA**: service worker for real offline support; install via web app manifest
-- **Accessibility**: WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 19 routes
+- **Accessibility**: WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 31 routes
 
 ## Positioning vs other type editors
 
