@@ -645,6 +645,21 @@
 		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
 	/>
 	<meta name="twitter:image" content="/og/home" />
+	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark
+	     rendered in StudioGeometric) paints as soon as HTML parsing is
+	     done — without this link the browser only discovers the font URL
+	     after parsing the @font-face block below, costing 100–300ms in
+	     LCP on slow connections. The file is tiny (~2.3KB) so the preload
+	     cost is negligible. `fetchpriority="high"` outranks the rest of
+	     the page's chunk-preloads in the network queue. -->
+	<link
+		rel="preload"
+		href="/demo-fonts/StudioGeometric-Regular.otf"
+		as="font"
+		type="font/otf"
+		fetchpriority="high"
+		crossorigin="anonymous"
+	/>
 	<!-- Load the demo OTF as 'StudioGeometric' so the home page's big "Hn"
 	     mark renders in Patens's own typeface — the home page literally
 	     shows the product's output. `swap` keeps the fallback (Hoefler Text)
