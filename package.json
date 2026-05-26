@@ -46,7 +46,8 @@
 		"lint": "eslint .",
 		"lint:fix": "eslint . --fix",
 		"analyze": "ANALYZE=1 vite build",
-		"profile": "node scripts/profile-cold-load.mjs"
+		"profile": "node scripts/profile-cold-load.mjs",
+		"clean": "rm -rf .svelte-kit node_modules/.vite && echo 'cleaned — run pnpm dev to rebuild'"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.3",
