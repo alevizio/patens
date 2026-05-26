@@ -1,8 +1,8 @@
 # Patens Lighthouse Baseline
 
-**Last refreshed**: 2026-05-26 (post-perf-arc, v1.6.0 prep)
+**Last refreshed**: 2026-05-26 (post landing+SEO+nav arc, v1.6.0 prep)
 **Method**: `scripts/profile-cold-load.mjs <url>` (CDP-instrumented Playwright run against production patens.design). Lighthouse-equivalent metrics (FCP, LCP, layout events, long tasks, EvaluateScript total).
-**Build**: post-`cff6adc` — every defer + lazy-mount + audit-led copy commit deployed via Vercel.
+**Build**: post-`225bbd4` — every defer + lazy-mount + audit-led copy + new /audit subpage + SiteHeader/Footer + 6 OG variants commit deployed via Vercel.
 
 This is the **launch-day baseline** for the "by-the-numbers" sidebar of the launch post + a regression guard for everything that ships after.
 
@@ -12,7 +12,9 @@ This is the **launch-day baseline** for the "by-the-numbers" sidebar of the laun
 
 | Route | FCP | LCP | Long tasks (≥50ms) | EvaluateScript |
 |---|---|---|---|---|
-| `/` (home, SSR) | **453ms** | **453ms** | 0 | 10.8ms |
+| `/` (home, SSR) | **571ms** | **571ms** | 0 | 10.0ms |
+| `/audit` (NEW, prerendered) | **1013ms** | **1013ms** | 0 | 1.5ms |
+| `/learn` (CollectionPage) | **512ms** | **512ms** | 0 | 1.5ms |
 | `/project/demo/edit` (editor) | **766ms** | **921ms** | 0 | 12.9ms |
 | `/share/demo` (specimen) | **1102ms** | **1102ms** | 0 | 1.9ms |
 
@@ -30,9 +32,13 @@ Zero long tasks anywhere. EvaluateScript stays well under 15ms on every route.
 
 | Route | v1.5.0 FCP | v1.6.0 FCP | Δ | v1.5.0 LCP | v1.6.0 LCP | Δ |
 |---|---|---|---|---|---|---|
-| `/` (home) | 1057ms | 453ms | **−57%** | 2.6s | 453ms | **−83%** |
+| `/` (home) | 1057ms | 571ms | **−46%** | 2.6s | 571ms | **−78%** |
 | `/project/demo/edit` | 906ms | 766ms | **−15%** | 2.8s | 921ms | **−67%** |
 | `/share/demo` | 1356ms | 1102ms | **−19%** | — | 1102ms | — |
+
+Home regressed ~120ms FCP from the absolute-low post-defer measurement (453ms → 571ms) when the trust band + audit-in-action 3-card section landed. Net result is still 46% faster than the v1.5.0 baseline, and the trade-off is two new above-the-fold marketing surfaces (audit-led credentials at glance + the differentiator-in-situ teaching demo) — net positive.
+
+Note: numbers vary ±50ms run-to-run depending on Vercel edge cache state + network conditions; CDP-trace single-shot measurements are directionally accurate, not statistically rigorous.
 
 What moved these numbers (v1.5.x → v1.6.0 prep):
 
