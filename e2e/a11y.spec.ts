@@ -165,6 +165,11 @@ test('/security has no serious/critical a11y violations', async ({ page }) => {
 	await auditPage(page);
 });
 
+test('/press has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/press');
+	await auditPage(page);
+});
+
 test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/share/demo');
 	await auditPage(page);

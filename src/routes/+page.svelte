@@ -1541,6 +1541,7 @@
 				<a href="/compare" class="text-fg-muted hover:text-fg">Compare</a>
 				<a href="/changelog" class="text-fg-muted hover:text-fg">Changelog</a>
 				<a href="/about" class="text-fg-muted hover:text-fg">About</a>
+				<a href="/press" class="text-fg-muted hover:text-fg">Press</a>
 				<a href="/privacy" class="text-fg-muted hover:text-fg">Privacy</a>
 				<a href="/security" class="text-fg-muted hover:text-fg">Security</a>
 				<a
