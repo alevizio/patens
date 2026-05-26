@@ -62,6 +62,7 @@
 		"globals": "^17.6.0",
 		"rollup-plugin-visualizer": "^7.0.1",
 		"satori": "^0.26.0",
+		"subset-font": "^2.5.0",
 		"svelte": "^5.55.2",
 		"svelte-check": "^4.4.6",
 		"svelte-eslint-parser": "^1.6.1",
@@ -90,8 +91,14 @@
 	},
 	"pnpm": {
 		"supportedArchitectures": {
-			"os": ["current", "linux"],
-			"cpu": ["current", "x64"]
+			"os": [
+				"current",
+				"linux"
+			],
+			"cpu": [
+				"current",
+				"x64"
+			]
 		}
 	}
 }

@@ -18,6 +18,8 @@ import type { RequestHandler } from './$types';
 import {
 	sharePath,
 	tokenPath,
+	historyPath,
+	historyPrefix,
 	fetchExistingToken,
 	requireBlobToken,
 	constantTimeEqual
@@ -25,17 +27,33 @@ import {
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
-export const GET: RequestHandler = async ({ params, setHeaders }) => {
+export const GET: RequestHandler = async ({ params, url, setHeaders }) => {
 	const id = params.id;
 	if (!id || !isUuidish(id)) {
 		throw error(400, 'Invalid share id');
+	}
+
+	// ?v=N returns the immutable snapshot at version N; absent or "latest"
+	// returns the canonical (most-recent) share. Stays backward-compatible
+	// with every existing share link. Validation fires before the
+	// cloud-config check so malformed requests fail fast regardless of
+	// deploy state.
+	const versionParam = url.searchParams.get('v');
+	let prefix: string;
+	if (versionParam && versionParam !== 'latest') {
+		const v = Number(versionParam);
+		if (!Number.isInteger(v) || v < 1 || v > 10_000) {
+			throw error(400, 'Invalid version number');
+		}
+		prefix = historyPath(id, v);
+	} else {
+		prefix = sharePath(id);
 	}
 
 	if (!process.env.BLOB_READ_WRITE_TOKEN) {
 		throw error(404, 'Cloud share not configured');
 	}
 
-	const prefix = `shares/${id}.json`;
 	let blobUrl: string | undefined;
 	try {
 		// Vercel Blob doesn't expose a direct "get by pathname" yet; list
@@ -47,7 +65,7 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 	}
 
 	if (!blobUrl) {
-		throw error(404, 'Share not found');
+		throw error(404, versionParam ? `Version ${versionParam} not found` : 'Share not found');
 	}
 
 	// Fetch the blob's content from its public URL. Vercel Blob's public
@@ -102,14 +120,19 @@ export const DELETE: RequestHandler = async ({ params, request, fetch }) => {
 	}
 
 	try {
-		// Look up both blobs via list so we can pass the resolved URLs to del().
-		const [shareList, tokenList] = await Promise.all([
+		// Look up the current + token + every version blob, then pass them
+		// all to del() in one transaction. limit=1000 caps the version
+		// count per share — far beyond anything a real designer would
+		// re-share, and Vercel Blob's list paginates if you exceed it.
+		const [shareList, tokenList, historyList] = await Promise.all([
 			list({ prefix: sharePath(id), limit: 1 }),
-			list({ prefix: tokenPath(id), limit: 1 })
+			list({ prefix: tokenPath(id), limit: 1 }),
+			list({ prefix: historyPrefix(id), limit: 1000 })
 		]);
 		const urls = [
 			shareList.blobs.find((b) => b.pathname === sharePath(id))?.url,
-			tokenList.blobs.find((b) => b.pathname === tokenPath(id))?.url
+			tokenList.blobs.find((b) => b.pathname === tokenPath(id))?.url,
+			...historyList.blobs.map((b) => b.url)
 		].filter((u): u is string => typeof u === 'string');
 		if (urls.length > 0) await del(urls);
 		return new Response(null, { status: 204 });

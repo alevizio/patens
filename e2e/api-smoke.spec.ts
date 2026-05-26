@@ -126,6 +126,22 @@ test('/api/share/[id] DELETE returns 503 when cloud is unconfigured', async ({ r
 	expect(res.status()).toBe(503);
 });
 
+test('/api/share/[id]/versions GET returns 404 when cloud is unconfigured', async ({
+	request
+}) => {
+	const res = await request.get('/api/share/nonexistent-share-id-12345/versions');
+	// 404 (matching GET /api/share/[id]) so the share-page version-history UI
+	// gracefully renders "no history" rather than a configuration warning.
+	expect(res.status()).toBe(404);
+});
+
+test('/api/share/[id]?v=abc returns 400 for non-numeric version', async ({ request }) => {
+	const res = await request.get('/api/share/some-share-id-12345?v=abc');
+	// Version validation runs before the cloud-config check so the
+	// error fires deterministically regardless of deploy state.
+	expect(res.status()).toBe(400);
+});
+
 test('/auth/login returns 503 when OAuth env vars are unset (CI default)', async ({ request }) => {
 	const res = await request.get('/auth/login', { maxRedirects: 0 });
 	expect(res.status()).toBe(503);

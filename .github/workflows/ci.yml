@@ -81,11 +81,19 @@ jobs:
           CI: 'true'
         run: pnpm exec playwright test
 
-      - name: Upload Playwright trace on failure
+      - name: Upload Playwright trace + report on failure
+        # Uploads:
+        #   - playwright-report/  → the HTML reporter bundle (open
+        #     index.html locally to browse test results + failures).
+        #   - test-results/       → trace.zip + screenshots + videos for
+        #     every failed test, viewable via `npx playwright show-trace`.
+        # `if: failure()` keeps successful runs from uploading an empty
+        # artifact every time. 7-day retention is short enough to not
+        # cost much, long enough to triage a Monday-morning regression.
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-${{ github.run_id }}
           path: |
             playwright-report
             test-results

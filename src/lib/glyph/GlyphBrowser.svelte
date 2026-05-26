@@ -898,7 +898,20 @@
 							{stats.drawn}/{stats.total}
 						</span>
 					</h3>
-					<div class="grid grid-cols-4 gap-0.5">
+					<!--
+						content-visibility: auto lets the browser skip layout +
+						paint for off-screen tile rows. With ~6 categories of
+						20–40 glyphs each, the cold-mount layout used to fire
+						across every section even if most were below the fold.
+						contain-intrinsic-size is the placeholder hint so the
+						scrollbar doesn't jump as sections come into view; the
+						value is rows * (tile height + gap). 4 cols at 44px +
+						0.5 gap = ~46px per row.
+					-->
+					<div
+						class="grid grid-cols-4 gap-0.5"
+						style="content-visibility: auto; contain-intrinsic-size: auto {Math.ceil(list.length / 4) * 46}px;"
+					>
 						{#each list as g (g.codepoint)}
 							<GlyphTile
 								glyph={g}
