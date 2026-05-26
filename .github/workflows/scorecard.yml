@@ -1,0 +1,64 @@
+# OpenSSF Scorecard — automated supply-chain security analysis.
+# Runs the same checks the OpenSSF Best Practices badge measures,
+# but as a CI workflow that publishes results to the repo's Security
+# tab + (optionally) the OpenSSF Scorecard dashboard.
+#
+# Output: a SARIF file uploaded to GitHub Code Scanning, plus a
+# scorecard.yaml artifact for offline review.
+#
+# Public scoring: if the repo has Branch-Protected and is published
+# to securityscorecards.dev, scores feed into the OpenSSF Best
+# Practices badge automatically. No additional action needed once
+# this workflow runs once on main.
+#
+# Schedule: weekly + on push to main. Per-PR runs are unnecessary
+# (the checks are repo-level, not diff-level).
+
+name: scorecard
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '15 6 * * 1'
+  workflow_dispatch:
+
+permissions: read-all
+
+jobs:
+  analysis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      security-events: write
+      id-token: write
+      contents: read
+      actions: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run OpenSSF Scorecard analysis
+        uses: ossf/scorecard-action@v2.4.0
+        with:
+          results_file: results.sarif
+          results_format: sarif
+          # Public-scoring requires the workflow to publish results
+          # to the dashboard. Set to false until you're ready to
+          # appear on https://securityscorecards.dev/viewer/.
+          publish_results: true
+
+      - name: Upload SARIF results to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+
+      - name: Upload SARIF artifact for offline review
+        uses: actions/upload-artifact@v4
+        with:
+          name: scorecard-results
+          path: results.sarif
+          retention-days: 30

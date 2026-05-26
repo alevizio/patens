@@ -1,0 +1,50 @@
+# Dependency Review — flags new vulnerabilities introduced by a PR.
+# https://github.com/actions/dependency-review-action
+#
+# Runs only on pull_request events (the value is in the diff). Posts a
+# rich summary comment on the PR + fails CI if any HIGH or CRITICAL
+# severity vuln is being introduced — caller can override with the
+# `allow-ghsas` list if a downgrade isn't realistic.
+#
+# License gate is intentionally permissive: this is an MIT app that
+# ships JS to the client, so any license that's compatible with MIT
+# distribution is acceptable. The deny list catches the rare strong-
+# copyleft import (GPL into the client bundle would be a real
+# license-friction problem at downstream-use time).
+
+name: dependency-review
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dependency review
+        uses: actions/dependency-review-action@v4
+        with:
+          # Fail on any newly-introduced High or Critical CVE.
+          fail-on-severity: high
+
+          # Deny strong-copyleft licenses that would be a problem to
+          # ship in the client bundle. Everything else is compatible
+          # with MIT redistribution.
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+          # Post a summary comment + table on the PR.
+          comment-summary-in-pr: always
+
+          # Don't fail the build for license violations alone; they
+          # need maintainer judgement. The summary comment surfaces
+          # them.
+          fail-on-scopes: runtime

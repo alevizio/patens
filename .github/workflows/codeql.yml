@@ -1,0 +1,54 @@
+# CodeQL — GitHub's free SAST. Surfaces results in the repo's
+# Security → Code scanning alerts tab and (after OpenSSF Scorecard's
+# next run) contributes to the Best Practices badge.
+#
+# Schedule: weekly + on every push to main + every PR touching the
+# main branch. The Monday 06:00 UTC slot is the GitHub-recommended
+# off-peak time for action runners.
+
+name: codeql
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # Patens is JS/TS-only. If a server language ever lands (Rust
+        # for a font helper, Python beyond Pyodide), extend the matrix.
+        language: ['javascript-typescript']
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # `security-extended` adds ~30 extra queries on top of the
+          # default suite; runtime cost is ~2 minutes for a project
+          # this size and the rules catch the OWASP-flavored stuff.
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: '/language:${{ matrix.language }}'

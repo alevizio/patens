@@ -1,0 +1,118 @@
+# Release Drafter — auto-builds the next release's notes from merged
+# PR titles + labels. The maintainer just hits "Publish" each cycle.
+# https://github.com/release-drafter/release-drafter
+#
+# Categories are grouped by conventional-commit prefix so a quick read
+# of the prefix tells you which section a PR will land in. Patens
+# uses: feat / fix / perf / polish / refactor / docs / test / chore.
+
+name-template: 'v$RESOLVED_VERSION'
+tag-template: 'v$RESOLVED_VERSION'
+include-pre-releases: false
+
+categories:
+  - title: '✨ New features'
+    labels:
+      - 'feature'
+      - 'enhancement'
+    collapse-after: 8
+  - title: '🐛 Bug fixes'
+    labels:
+      - 'bug'
+      - 'fix'
+  - title: '⚡ Performance'
+    labels:
+      - 'performance'
+      - 'perf'
+  - title: '✏️ Polish + UX'
+    labels:
+      - 'polish'
+      - 'ux'
+  - title: '♻️ Refactor'
+    labels:
+      - 'refactor'
+  - title: '📚 Documentation'
+    labels:
+      - 'documentation'
+      - 'docs'
+  - title: '🧪 Tests + CI'
+    labels:
+      - 'test'
+      - 'ci'
+      - 'tests'
+  - title: '🏠 Housekeeping'
+    labels:
+      - 'chore'
+      - 'dependencies'
+
+change-template: '- $TITLE ([#$NUMBER]($URL)) by @$AUTHOR'
+change-title-escapes: '\<*_&'
+
+# Semver bump rules — auto-bumps minor on feat/feature labels, patch
+# on everything else, major only on explicit `breaking` label.
+version-resolver:
+  major:
+    labels:
+      - 'breaking'
+      - 'major'
+  minor:
+    labels:
+      - 'feature'
+      - 'enhancement'
+      - 'minor'
+  patch:
+    labels:
+      - 'bug'
+      - 'fix'
+      - 'patch'
+      - 'documentation'
+      - 'docs'
+      - 'chore'
+      - 'refactor'
+      - 'performance'
+      - 'perf'
+      - 'polish'
+      - 'test'
+      - 'ci'
+  default: patch
+
+# Auto-label PRs from their title prefix, so the categorisation above
+# works even when the contributor forgets to add labels manually.
+autolabeler:
+  - label: 'feature'
+    title:
+      - '/^feat(\(.+\))?:/'
+  - label: 'bug'
+    title:
+      - '/^fix(\(.+\))?:/'
+  - label: 'performance'
+    title:
+      - '/^perf(\(.+\))?:/'
+  - label: 'polish'
+    title:
+      - '/^polish(\(.+\))?:/'
+      - '/^ux(\(.+\))?:/'
+  - label: 'refactor'
+    title:
+      - '/^refactor(\(.+\))?:/'
+  - label: 'documentation'
+    title:
+      - '/^docs(\(.+\))?:/'
+  - label: 'chore'
+    title:
+      - '/^chore(\(.+\))?:/'
+  - label: 'test'
+    title:
+      - '/^test(\(.+\))?:/'
+
+template: |
+  $CHANGES
+
+  ## Contributors
+
+  Thanks to everyone who made this release possible:
+  $CONTRIBUTORS
+
+  ---
+
+  **Full Changelog**: https://github.com/alevizio/patens/compare/$PREVIOUS_TAG...v$RESOLVED_VERSION
