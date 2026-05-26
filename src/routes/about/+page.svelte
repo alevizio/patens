@@ -58,12 +58,12 @@
 	<link rel="canonical" href="https://patens.design/about" />
 	<meta property="og:title" content="About · Patens" />
 	<meta property="og:description" content="What Patens is, what it's built on, who made it." />
-	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
+	<meta property="og:image" content="https://patens.design/og/about" />
+	<meta property="og:image:alt" content="Patens — About · browser-native, open source MIT · by Alejandro Vizio" />
 	<meta name="twitter:title" content="About · Patens" />
 	<meta name="twitter:description" content="What Patens is, what it's built on, who made it." />
-	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
+	<meta name="twitter:image" content="https://patens.design/og/about" />
+	<meta name="twitter:image:alt" content="Patens — About · browser-native, open source MIT · by Alejandro Vizio" />
 	<!-- Structured data — injected as raw HTML because Svelte 5's
 	     compiler strips the body of literal <script> tags inside
 	     components. {@html} bypasses that and renders the script

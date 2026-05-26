@@ -34,13 +34,19 @@ import interUrl from '$lib/og-fonts/Inter-500.ttf';
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
 // Variant types that have dedicated OG layouts. 'project' is the default
-// for any UUID-ish id; 'audit' renders the differentiator card; 'brand'
-// renders the generic Patens card.
-type Variant = 'brand' | 'audit' | 'project';
+// for any UUID-ish id; the named variants each render a marketing-page-
+// specific card.
+type Variant = 'brand' | 'audit' | 'learn' | 'compare' | 'press' | 'about' | 'project';
+
+const NAMED_VARIANTS = new Set(['home', 'brand', 'audit', 'learn', 'compare', 'press', 'about']);
 
 const variantFor = (id: string): Variant => {
 	if (id === 'home' || id === 'brand') return 'brand';
 	if (id === 'audit') return 'audit';
+	if (id === 'learn') return 'learn';
+	if (id === 'compare') return 'compare';
+	if (id === 'press') return 'press';
+	if (id === 'about') return 'about';
 	return 'project';
 };
 
@@ -48,7 +54,7 @@ const fetchProject = async (
 	id: string,
 	fetchFn: typeof fetch
 ): Promise<Project | null> => {
-	if (id === 'home' || id === 'brand' || id === 'audit') {
+	if (NAMED_VARIANTS.has(id)) {
 		// Variant cards — no project lookup. Returning null causes draw()
 		// to fall through to the variant-specific layout.
 		return null;
@@ -112,6 +118,26 @@ const draw = async (
 		headline = 'Teaches as you draw.';
 		metaLeftTop = '94 codes · 30 one-click fixes';
 		metaLeftBottom = 'OPEN SOURCE · MIT · TYPE DESIGN';
+	} else if (variant === 'learn') {
+		eyebrow = 'Learn · Patens';
+		headline = 'Type design tutorials.';
+		metaLeftTop = 'Seven tutorials · 94-code reference';
+		metaLeftBottom = 'BEGINNER TO SHIPPING · OPEN SOURCE';
+	} else if (variant === 'compare') {
+		eyebrow = 'Comparison · Patens';
+		headline = 'Patens vs the world.';
+		metaLeftTop = 'FontLab · Glyphs · Fontra · Glyphr · typlr';
+		metaLeftBottom = 'FREE · MIT · BROWSER-NATIVE';
+	} else if (variant === 'press') {
+		eyebrow = 'Press kit · Patens';
+		headline = 'Press kit.';
+		metaLeftTop = 'Factsheet · brand assets · contact';
+		metaLeftBottom = 'OPEN SOURCE · INDEPENDENT';
+	} else if (variant === 'about') {
+		eyebrow = 'About · Patens';
+		headline = 'About Patens.';
+		metaLeftTop = 'Browser-native · open source · MIT';
+		metaLeftBottom = 'BY ALEJANDRO VIZIO · 2026';
 	} else if (project) {
 		// Per-project specimen card (the default for /og/[uuid] paths).
 		const glyphCount = Object.values(project.glyphs).filter(
@@ -178,9 +204,14 @@ const draw = async (
 								type: 'div',
 								props: {
 									style: {
-										// Audit headline is wider (longer text); shrink font
-										// to fit comfortably without truncation.
-										fontSize: variant === 'audit' ? '104px' : '140px',
+										// Named-variant headlines vary in length; scale so
+										// each fits comfortably. brand + project get the
+										// max (140); marketing-page variants shrink to 104
+										// for longer multi-word headlines without truncation.
+										fontSize:
+											variant === 'brand' || variant === 'project'
+												? '140px'
+												: '104px',
 										lineHeight: '1.05',
 										letterSpacing: '-0.02em',
 										fontFamily: 'Serif',
@@ -247,7 +278,18 @@ const draw = async (
 										letterSpacing: '0.2em',
 										textTransform: 'uppercase'
 									},
-									children: variant === 'audit' ? 'patens.design/audit' : 'patens.design'
+									children:
+										variant === 'audit'
+											? 'patens.design/audit'
+											: variant === 'learn'
+												? 'patens.design/learn'
+												: variant === 'compare'
+													? 'patens.design/compare'
+													: variant === 'press'
+														? 'patens.design/press'
+														: variant === 'about'
+															? 'patens.design/about'
+															: 'patens.design'
 								}
 							}
 						]
