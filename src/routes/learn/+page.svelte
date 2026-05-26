@@ -353,6 +353,60 @@
 			</p>
 		</a>
 		<a
+			href="/learn/kerning"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Guide · 9 steps
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Kerning
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Sidebearings vs kerning, class-based kerning, family-wide
+				propagation, the audit codes that catch common mistakes.
+			</p>
+		</a>
+		<a
+			href="/learn/variable-fonts"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Guide · 9 steps
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Variable fonts
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Axes, masters, instances, the 2D variation explorer, exporting
+				a working .otf / .woff2.
+			</p>
+		</a>
+		<a
+			href="/learn/opentype-features"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Guide · 9 steps
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				OpenType features
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Auto-detection from glyph names, ligatures, small caps, stylistic
+				sets, figures, live HarfBuzz shaping preview.
+			</p>
+		</a>
+		<a
 			href="/learn/audit-codes"
 			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
 		>

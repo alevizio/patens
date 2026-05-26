@@ -130,6 +130,21 @@ test('/learn/audit-codes has no serious/critical a11y violations', async ({ page
 	await auditPage(page);
 });
 
+test('/learn/kerning has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/kerning');
+	await auditPage(page);
+});
+
+test('/learn/variable-fonts has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/variable-fonts');
+	await auditPage(page);
+});
+
+test('/learn/opentype-features has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/opentype-features');
+	await auditPage(page);
+});
+
 test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/share/demo');
 	await auditPage(page);
