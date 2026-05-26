@@ -96,7 +96,17 @@
 	<meta name="twitter:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
 </svelte:head>
 
-<div class="min-h-screen">
+<!-- Skip-to-content link — invisible until focused with the keyboard.
+     Lets users on screen readers / keyboard-only navigation jump
+     straight past the header into the page's main content without
+     re-tabbing through the nav on every route. -->
+<a
+	href="#main-content"
+	class="sr-only focus-visible:not-sr-only focus-visible:fixed focus-visible:left-4 focus-visible:top-4 focus-visible:z-50 focus-visible:rounded-md focus-visible:bg-fg focus-visible:px-3 focus-visible:py-2 focus-visible:text-[12px] focus-visible:font-medium focus-visible:text-canvas focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+>
+	Skip to content
+</a>
+<div id="main-content" class="min-h-screen">
 	{@render children()}
 </div>
 <ToastContainer />

@@ -41,9 +41,12 @@
 <header
 	class="sticky top-0 z-20 -mx-4 mb-12 flex items-center justify-between gap-4 border-b border-border/50 bg-canvas px-4 py-4 sm:-mx-6 sm:px-6"
 >
-	<a href="/" class="group inline-flex items-center gap-2.5">
+	<a
+		href="/"
+		class="group inline-flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+	>
 		<span
-			class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
+			class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform duration-150 ease-out group-hover:scale-105 group-active:scale-95"
 			aria-hidden="true"
 		>
 			<Type class="size-3.5" />
@@ -56,11 +59,14 @@
 		</span>
 	</a>
 
-	<nav aria-label="Primary" class="hidden flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px] sm:flex">
+	<nav
+		aria-label="Primary"
+		class="hidden flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px] sm:flex"
+	>
 		{#each nav as item (item.href)}
 			<a
 				href={item.href}
-				class="text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+				class="rounded-sm text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 				aria-current={isActive(item.href) ? 'page' : undefined}
 				class:text-fg={isActive(item.href)}
 				class:font-medium={isActive(item.href)}
@@ -70,7 +76,7 @@
 		{/each}
 		<a
 			href="https://github.com/alevizio/patens"
-			class="text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+			class="rounded-sm text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 			rel="noopener"
 		>
 			GitHub

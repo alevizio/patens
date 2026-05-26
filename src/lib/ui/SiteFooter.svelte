@@ -66,7 +66,7 @@
 						<li>
 							<a
 								href={link.href}
-								class="text-[13px] text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+								class="rounded-sm text-[13px] text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 								rel={link.external ? 'noopener' : undefined}
 							>
 								{link.label}
@@ -82,7 +82,7 @@
 	<div class="mt-12 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t border-border/40 pt-6">
 		<a
 			href="/"
-			class="group inline-flex items-baseline gap-2"
+			class="group inline-flex items-baseline gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<span
 				class="text-[20px] tracking-tight text-fg transition-colors group-hover:text-accent-strong"
@@ -100,21 +100,21 @@
 		>
 			<a
 				href="https://bsky.app/profile/patens.design"
-				class="text-fg-muted hover:text-fg"
+				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 				rel="noopener me"
 			>
 				@patens.design
 			</a>
 			<a
 				href="https://x.com/patenstype"
-				class="text-fg-muted hover:text-fg"
+				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 				rel="noopener me"
 			>
 				@patenstype
 			</a>
 			<a
 				href="https://github.com/alevizio/patens"
-				class="text-fg-muted hover:text-fg"
+				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 				rel="noopener me"
 			>
 				github.com/alevizio/patens
