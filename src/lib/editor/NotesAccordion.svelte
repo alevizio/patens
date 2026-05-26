@@ -39,6 +39,6 @@
 			}))}
 		placeholder="Design intent, todos, references…"
 		rows="3"
-		class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent focus:bg-surface"
+		class="block w-full resize-y rounded-md border border-border bg-surface-2/40 px-2 py-1.5 text-[12px] text-fg outline-none transition-colors focus:border-accent focus:bg-surface focus-visible:ring-2 focus-visible:ring-accent/40"
 	></textarea>
 </Accordion>

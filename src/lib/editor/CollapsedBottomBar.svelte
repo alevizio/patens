@@ -11,7 +11,7 @@
 <button
 	type="button"
 	onclick={onExpand}
-	class="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-1.5 text-[11px] text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
+	class="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-1.5 text-[11px] text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:bg-surface-2 focus-visible:text-fg"
 	title="Expand the live preview + action bar"
 >
 	<span class="inline-flex items-center gap-2">

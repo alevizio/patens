@@ -32,7 +32,7 @@
 			<button
 				type="button"
 				onclick={onClose}
-				class="text-[10px] text-fg-subtle hover:text-fg"
+				class="text-[10px] text-fg-subtle transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline"
 			>
 				Hide
 			</button>

@@ -33,7 +33,8 @@
 		<button
 			type="button"
 			onclick={() => projectStore.selectMaster(item.id)}
-			class="relative flex shrink-0 flex-col items-center gap-0.5 rounded border px-2 py-1 transition-colors {isActive
+			aria-pressed={isActive}
+			class="relative flex shrink-0 flex-col items-center gap-0.5 rounded border px-2 py-1 transition-all duration-100 ease-out active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {isActive
 				? 'border-accent bg-accent-soft'
 				: item.compatible
 					? 'border-border bg-surface hover:border-accent/50'

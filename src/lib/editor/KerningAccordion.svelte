@@ -43,7 +43,7 @@
 	</p>
 	<a
 		href={spacingHref}
-		class="mt-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+		class="mt-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 	>
 		Edit on Spacing page →
 	</a>

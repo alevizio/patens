@@ -33,7 +33,7 @@
 					<button
 						type="button"
 						onclick={() => projectStore.removeGlyphTag(glyph.codepoint, t)}
-						class="text-fg-subtle hover:text-danger-strong"
+						class="text-fg-subtle transition-colors hover:text-danger-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40 rounded"
 						aria-label="Remove tag {t}"
 						title="Remove tag"
 					>
@@ -56,7 +56,7 @@
 				}
 			}
 		}}
-		class="block w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none focus:border-accent"
+		class="block w-full rounded border border-border bg-surface px-2 py-1 text-[11px] outline-none transition-colors focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"
 	/>
 	<datalist id="glyph-tag-suggestions">
 		{#each existingTags as t (t)}

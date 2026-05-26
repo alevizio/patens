@@ -54,7 +54,7 @@
 								);
 								projectStore.addColorLayer(glyph.codepoint, newLayer);
 							}}
-							class="mb-2 w-full rounded-md border border-dashed border-border bg-surface-2/30 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+							class="mb-2 w-full rounded-md border border-dashed border-border bg-surface-2/30 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:bg-surface-2/60 hover:text-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 						>
 							+ Add layer from current contours
 						</button>

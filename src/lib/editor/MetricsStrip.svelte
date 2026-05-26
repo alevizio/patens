@@ -26,12 +26,12 @@
 			type="text"
 			bind:value={text}
 			placeholder="Type to preview…"
-			class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+			class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none transition-colors focus:border-accent focus:bg-surface focus-visible:ring-2 focus-visible:ring-accent/40"
 		/>
 		<button
 			type="button"
 			onclick={onSample}
-			class="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+			class="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:text-accent active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 			title="Fill with a word that exercises the current glyph (click again for another)"
 		>
 			<Wand class="size-3" />
@@ -53,7 +53,7 @@
 		<button
 			type="button"
 			onclick={onCollapse}
-			class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
+			class="inline-flex size-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 			title="Collapse the live preview + action bar"
 			aria-label="Collapse bottom bar"
 		>

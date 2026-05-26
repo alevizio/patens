@@ -28,7 +28,7 @@
 			<button
 				type="button"
 				onclick={() => projectStore.selectGlyph(g.codepoint)}
-				class="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+				class="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[12px] font-medium text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:text-accent active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 				title={g.name}
 			>
 				{g.codepoint > 0x20 && g.codepoint < 0x10000

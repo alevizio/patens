@@ -77,7 +77,7 @@
 					</span>
 					<a
 						href="/project/{projectId}/audit?code={encodeURIComponent(issue.code)}"
-						class="shrink-0 rounded border border-current/30 bg-canvas/50 px-1.5 py-0.5 text-[10px] font-medium hover:bg-canvas/80"
+						class="shrink-0 rounded border border-current/30 bg-canvas/50 px-1.5 py-0.5 text-[10px] font-medium transition-colors hover:bg-canvas/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-current/40"
 						title="See all glyphs with this audit code"
 					>
 						All
@@ -86,7 +86,7 @@
 						<button
 							type="button"
 							onclick={() => onfix(issue.code)}
-							class="inline-flex shrink-0 items-center gap-1 rounded border border-accent bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent/20"
+							class="inline-flex shrink-0 items-center gap-1 rounded border border-accent bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong transition-all duration-100 ease-out hover:bg-accent/20 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 							title="Apply automatic fix for this issue"
 						>
 							<Wand class="size-3" /> Fix

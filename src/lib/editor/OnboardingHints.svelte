@@ -64,7 +64,7 @@
 				<button
 					type="button"
 					onclick={() => projectStore.selectGlyph(cp)}
-					class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
+					class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium transition-all duration-100 ease-out hover:border-accent hover:bg-accent-soft active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 					title="Jump to {String.fromCodePoint(cp)}"
 				>
 					{String.fromCodePoint(cp)}
@@ -87,7 +87,7 @@
 				<button
 					type="button"
 					onclick={() => projectStore.selectGlyph(cp)}
-					class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
+					class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium transition-all duration-100 ease-out hover:border-accent hover:bg-accent-soft active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 					title="Jump to U+{cp.toString(16).toUpperCase().padStart(4, '0')}"
 				>
 					{ch}
