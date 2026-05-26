@@ -8,6 +8,7 @@
 	import { auditGlyph } from '$lib/font/audit';
 	import type { Glyph } from '$lib/font/types';
 	import GlyphTile from './GlyphTile.svelte';
+	import { parseSidebearingDelta } from './parse-sidebearing-delta';
 	import Input from '$lib/ui/Input.svelte';
 	import Search from '@lucide/svelte/icons/search';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -53,6 +54,11 @@
 
 	let bulkMode = $state(false);
 	let selectedCodepoints = $state<Set<number>>(new Set());
+	// Anchor for shift-click range selection — the last codepoint the user
+	// clicked. A range selects every codepoint between anchor + current in
+	// the order the visible-list array surfaces them (which respects the
+	// current sort + filter). Null = no anchor yet.
+	let rangeAnchor = $state<number | null>(null);
 
 	// Composable-glyph scan — runs against the current project state.
 	// Reactive: re-evaluates whenever glyphs change (e.g. user drew the
@@ -84,10 +90,41 @@
 		if (next.has(cp)) next.delete(cp);
 		else next.add(cp);
 		selectedCodepoints = next;
+		rangeAnchor = cp;
+	};
+
+	// Range-select: from rangeAnchor (or cp itself when no anchor) through
+	// cp, in the visible-list order. The visible list is the flat
+	// concatenation of every section's `list` array; we compute it lazily
+	// inside the handler since the data lives downstream.
+	const selectRange = (cp: number, getVisibleList: () => number[]) => {
+		const list = getVisibleList();
+		const anchor = rangeAnchor ?? cp;
+		const iAnchor = list.indexOf(anchor);
+		const iTarget = list.indexOf(cp);
+		if (iAnchor === -1 || iTarget === -1) {
+			// One end isn't in the visible filter — fall back to a plain toggle.
+			toggleSelect(cp);
+			return;
+		}
+		const [lo, hi] = iAnchor < iTarget ? [iAnchor, iTarget] : [iTarget, iAnchor];
+		const next = new Set(selectedCodepoints);
+		for (let i = lo; i <= hi; i++) next.add(list[i]);
+		selectedCodepoints = next;
+		// Anchor stays — successive shift-clicks extend from the same point.
 	};
 
 	const clearSelection = () => {
 		selectedCodepoints = new Set();
+		rangeAnchor = null;
+	};
+
+	// "Select all visible" — every codepoint in the currently-rendered
+	// browser. Useful after applying a status filter: "select every empty
+	// glyph and set them to sketch."
+	const selectAllVisible = (getVisibleList: () => number[]) => {
+		const list = getVisibleList();
+		selectedCodepoints = new Set(list);
 	};
 
 	const bulkSetStatus = (status: 'empty' | 'sketch' | 'draft' | 'final') => {
@@ -205,6 +242,76 @@
 			return;
 		}
 		toast.success(`Copied LSB ${lsb} / RSB ${rsb} to ${count} glyph${count === 1 ? '' : 's'}`);
+		clearSelection();
+	};
+
+	// Bulk sidebearing delta — bump every selected glyph's LSB and/or RSB
+	// by a signed N font units. Preserves bbox width: advance moves with
+	// the LSB so the drawn shape stays put. The dual-axis prompt accepts
+	// "10" (both sides +10), "10/-5" (LSB +10, RSB -5), or "-/5" (LSB
+	// unchanged, RSB +5).
+	const bulkSidebearingDelta = () => {
+		if (selectedCodepoints.size === 0) return;
+		const raw = prompt(
+			`Bump sidebearings on ${selectedCodepoints.size} glyph${selectedCodepoints.size === 1 ? '' : 's'} by N fu.\nFormats: "10" (both +10), "10/-5" (LSB +10, RSB -5), "-/5" (RSB only).`
+		);
+		if (!raw) return;
+		const parsed = parseSidebearingDelta(raw);
+		if (parsed === null) {
+			toast.error('Invalid format. Use "10" or "10/-5" or "-/5".');
+			return;
+		}
+		const { dLsb, dRsb } = parsed;
+		let count = 0;
+		for (const cp of selectedCodepoints) {
+			projectStore.updateGlyph(cp, (g) => {
+				const nextLsb = dLsb === null ? g.leftSidebearing : g.leftSidebearing + dLsb;
+				const nextRsb = dRsb === null ? g.rightSidebearing : g.rightSidebearing + dRsb;
+				const bboxW = Math.max(0, g.advanceWidth - g.leftSidebearing - g.rightSidebearing);
+				return {
+					...g,
+					leftSidebearing: nextLsb,
+					rightSidebearing: nextRsb,
+					advanceWidth: nextLsb + bboxW + nextRsb,
+					updatedAt: new Date().toISOString()
+				};
+			});
+			count++;
+		}
+		const lsbLabel = dLsb === null ? '·' : (dLsb >= 0 ? `+${dLsb}` : `${dLsb}`);
+		const rsbLabel = dRsb === null ? '·' : (dRsb >= 0 ? `+${dRsb}` : `${dRsb}`);
+		toast.success(`Δ LSB ${lsbLabel} / RSB ${rsbLabel} applied to ${count} glyph${count === 1 ? '' : 's'}`);
+		clearSelection();
+	};
+
+	// Bulk feature-suffix rename — append .smcp / .ss01 / .onum / .sups
+	// / .sinf to every selected glyph's name. Patens auto-detects OpenType
+	// features from these suffixes, so this is the canonical workflow for
+	// creating an alternate set after drawing it.
+	const bulkAddSuffix = () => {
+		if (selectedCodepoints.size === 0) return;
+		const suffix = prompt(
+			`Append a suffix to ${selectedCodepoints.size} glyph${selectedCodepoints.size === 1 ? '' : 's'}.\nCommon: .smcp .c2sc .ss01-ss20 .onum .lnum .tnum .sups .sinf .salt`
+		);
+		if (!suffix) return;
+		const cleaned = suffix.trim();
+		if (!cleaned.startsWith('.') || !/^\.[A-Za-z][A-Za-z0-9]{1,30}$/.test(cleaned)) {
+			toast.error('Suffix must start with "." and contain only letters / digits.');
+			return;
+		}
+		let renamed = 0;
+		for (const cp of selectedCodepoints) {
+			const g = projectStore.activeGlyphs[cp];
+			if (!g) continue;
+			if (g.name.endsWith(cleaned)) continue; // already has it
+			projectStore.renameGlyph(cp, `${g.name}${cleaned}`);
+			renamed++;
+		}
+		if (renamed === 0) {
+			toast.info('Selected glyphs already end with that suffix.');
+		} else {
+			toast.success(`Appended ${cleaned} to ${renamed} glyph name${renamed === 1 ? '' : 's'}.`);
+		}
 		clearSelection();
 	};
 
@@ -360,6 +467,19 @@
 		let n = 0;
 		for (const [, list] of grouped) n += list.length;
 		return n;
+	});
+
+	// Flat codepoint list in display order across every category, in the
+	// canonical CATEGORY_ORDER. Drives shift-range selection + the "Select
+	// all visible" bulk action. Excludes pinned + recently-edited sections
+	// (they sit outside the bulk-mode surface today).
+	const visibleCodepoints = $derived.by(() => {
+		const out: number[] = [];
+		for (const cat of CATEGORY_ORDER) {
+			const list = grouped.get(cat) ?? [];
+			for (const g of list) out.push(g.codepoint);
+		}
+		return out;
 	});
 
 	const recents = $derived.by(() => {
@@ -791,10 +911,17 @@
 								descender={projectStore.project?.metrics.descender ?? -200}
 								incompatible={incompatibleCodepoints.has(g.codepoint)}
 							colorPalette={browserPalette}
-								onclick={() =>
-									bulkMode
-										? toggleSelect(g.codepoint)
-										: projectStore.selectGlyph(g.codepoint)}
+								onclick={(ev: MouseEvent) => {
+									if (!bulkMode) {
+										projectStore.selectGlyph(g.codepoint);
+										return;
+									}
+									if (ev.shiftKey) {
+										selectRange(g.codepoint, () => visibleCodepoints);
+									} else {
+										toggleSelect(g.codepoint);
+									}
+								}}
 								oncontextmenu={(ev) => {
 									if (bulkMode) return;
 									ev.preventDefault();
@@ -810,19 +937,34 @@
 
 	{#if bulkMode}
 		<div class="border-t border-border bg-surface-2/50 px-2 py-2">
-			<div class="mb-1.5 flex items-center justify-between text-[11px]">
+			<div class="mb-1.5 flex items-center justify-between gap-2 text-[11px]">
 				<span class="font-medium text-fg-muted" data-numeric>
 					{selectedCodepoints.size} selected
+					<span class="ml-1 text-[10px] font-normal text-fg-subtle">of {visibleCodepoints.length}</span>
 				</span>
-				<button
-					type="button"
-					onclick={clearSelection}
-					disabled={selectedCodepoints.size === 0}
-					class="text-[10px] text-fg-subtle hover:text-fg disabled:opacity-40"
-				>
-					Clear
-				</button>
+				<div class="flex items-center gap-2 text-[10px]">
+					<button
+						type="button"
+						onclick={() => selectAllVisible(() => visibleCodepoints)}
+						class="text-fg-subtle hover:text-fg"
+						title="Select every glyph in the visible (filtered) list — useful after applying a status filter"
+					>
+						All visible
+					</button>
+					<span class="text-fg-subtle">·</span>
+					<button
+						type="button"
+						onclick={clearSelection}
+						disabled={selectedCodepoints.size === 0}
+						class="text-fg-subtle hover:text-fg disabled:opacity-40"
+					>
+						Clear
+					</button>
+				</div>
 			</div>
+			<p class="mb-2 text-[10px] leading-snug text-fg-subtle">
+				Click to toggle · Shift-click for a range
+			</p>
 			<div class="grid grid-cols-2 gap-1">
 				<button
 					type="button"
@@ -914,6 +1056,24 @@
 					title="Copy LSB and RSB from the focused glyph to every selected glyph (bbox width preserved)"
 				>
 					Copy SB
+				</button>
+				<button
+					type="button"
+					onclick={bulkSidebearingDelta}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+					title="Bump every selected glyph's LSB and/or RSB by N font units. Bbox width preserved."
+				>
+					± SB
+				</button>
+				<button
+					type="button"
+					onclick={bulkAddSuffix}
+					disabled={selectedCodepoints.size === 0}
+					class="rounded border border-border bg-surface px-1.5 py-1 text-[10px] font-medium hover:border-accent hover:text-accent disabled:opacity-40"
+					title="Append .smcp / .ss01 / .onum / etc. to every selected glyph name — auto-detects the OpenType feature"
+				>
+					+ Suffix
 				</button>
 				<button
 					type="button"

@@ -49,7 +49,12 @@
 		 * below the color overlay as a fallback / outline.
 		 */
 		colorPalette?: ColorPalette | null;
-		onclick?: () => void;
+		/**
+		 * Receives the MouseEvent so callers can detect Shift / Cmd / Alt
+		 * modifiers — needed for range-select in bulk mode. Callers that
+		 * don't care can ignore the event.
+		 */
+		onclick?: (ev: MouseEvent) => void;
 		oncontextmenu?: (ev: MouseEvent) => void;
 	};
 
