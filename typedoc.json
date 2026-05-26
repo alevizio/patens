@@ -1,0 +1,42 @@
+{
+	"$schema": "https://typedoc.org/schema.json",
+	"entryPoints": [
+		"src/lib/font/audit.ts",
+		"src/lib/font/types.ts",
+		"src/lib/font/export.ts",
+		"src/lib/font/family-kerning.ts",
+		"src/lib/font/kerning-classes.ts",
+		"src/lib/font/path.ts",
+		"src/lib/font/path-edit.ts",
+		"src/lib/font/feature-detect.ts",
+		"src/lib/font/family.ts",
+		"src/lib/font/project.ts",
+		"src/lib/font/glyph-set.ts",
+		"src/lib/font/subset.ts",
+		"src/lib/audit/audit-worker.ts",
+		"src/lib/sw/upgrade.ts"
+	],
+	"out": "docs/api",
+	"name": "Patens — internal API reference",
+	"includeVersion": true,
+	"readme": "none",
+	"excludePrivate": true,
+	"excludeProtected": false,
+	"excludeInternal": true,
+	"hideGenerator": false,
+	"navigationLinks": {
+		"Patens": "https://patens.design",
+		"GitHub": "https://github.com/alevizio/patens"
+	},
+	"sidebarLinks": {
+		"Architecture overview": "https://github.com/alevizio/patens/blob/main/ARCHITECTURE.md",
+		"94-code reference": "https://patens.design/learn/audit-codes"
+	},
+	"validation": {
+		"notExported": false,
+		"invalidLink": true,
+		"notDocumented": false
+	},
+	"treatWarningsAsErrors": false,
+	"plugin": []
+}

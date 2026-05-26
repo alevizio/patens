@@ -39,5 +39,9 @@ vite.config.ts.timestamp-*
 # rebuilt deterministically from source, so not committed)
 /cli/dist
 
+# TypeDoc API reference (generated on demand by `pnpm run docs:api`;
+# regenerable from JSDoc + types, so not committed)
+/docs/api
+
 # Claude Code runtime
 .claude/scheduled_tasks.lock
