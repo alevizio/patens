@@ -548,6 +548,21 @@
 <svelte:window onkeydown={handleGlobalKey} />
 
 <div class="flex h-screen flex-col">
+	<!--
+		Soft mobile-gate banner. Visible under 1024px viewport (where
+		the two-sidebar layout starts to fail). Tablets in landscape
+		(iPad ≈ 1180px) clear it and never see the banner. Not
+		dismissible by design — the warning is the point; visitors
+		who push through see the editor but at least know what they're
+		walking into.
+	-->
+	<div
+		class="border-b border-warn/30 bg-warn/10 px-4 py-2 text-center text-[12px] text-fg lg:hidden"
+		role="status"
+	>
+		Patens is built for 1024px+ screens. Some controls won't fit comfortably on this device.
+		<a href="/" class="underline hover:text-warn-strong">Return to projects ↩</a>
+	</div>
 	<!-- Two-row header, editorial chrome. Row 1 (~52px) carries identity +
 	     system actions; row 2 (~38px) carries the tab nav + edit actions.
 	     Both rows have been stripped of their cluster-box backgrounds and

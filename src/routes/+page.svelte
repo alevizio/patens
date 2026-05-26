@@ -1345,7 +1345,7 @@
 									onclick={() => handleTogglePin(p.id)}
 									class="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-surface-2 {p.pinned
 										? 'text-warn opacity-100'
-										: 'text-fg-subtle opacity-0 group-hover:opacity-100 hover:text-fg'}"
+										: 'text-fg-subtle opacity-60 sm:opacity-0 sm:group-hover:opacity-100 hover:text-fg'}"
 									aria-label={p.pinned ? 'Unpin from top' : 'Pin to top'}
 									title={p.pinned ? 'Unpin from top' : 'Pin to top'}
 								>
