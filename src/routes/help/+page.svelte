@@ -17,7 +17,7 @@
 				},
 				{
 					q: 'Does it work on iPad?',
-					a: 'Yes, with Apple Pencil. The sketch tool is pressure-sensitive. The editor uses a full-canvas layout that adapts to the smaller viewport.'
+					a: 'Yes — best in landscape (≈1180px viewport) where everything fits comfortably. In portrait or on phone-sized screens (<1024px) you\'ll see a non-dismissible banner noting that some controls won\'t fit; the editor still loads + most flows work, but the right-sidebar panels overlap the canvas at narrower widths. Apple Pencil is supported on the sketch tool — pressure-sensitive, traces to Bézier the same as mouse + tablet input.'
 				},
 				{
 					q: 'Where are my projects saved?',
@@ -34,7 +34,7 @@
 				},
 				{
 					q: 'Does a share link expire?',
-					a: 'No. The cloud-uploaded project lives until you wipe the Vercel Blob store. Future versions may add an explicit "delete share" API; for now the link works indefinitely.'
+					a: 'No — it lives until you delete it. The originator (the browser that uploaded the share) can revoke at any time via the "Unshare project" trash button in the editor header; that fires the DELETE API with a constant-time-compared delete token, and both the share and the token are removed from the cloud store. Recipients can still view the share until you revoke it; there\'s no built-in expiration.'
 				},
 				{
 					q: 'Can the recipient edit what I shared?',
@@ -64,7 +64,7 @@
 			items: [
 				{
 					q: 'What does the audit panel mean?',
-					a: 'A continuous integrity check across 93+ codes — contour shape, vertical metrics, OpenType invariants, brief completeness. Errors block release; warnings are advice. Many issues have a "Fix" button that applies the auto-fix in one click. Click "All" next to an issue to see every glyph with the same audit code.'
+					a: 'The audit module is the headline feature — a continuous integrity + teaching check across 94 codes spanning contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene, and anchor naming. Every code carries plain-English prose explaining what it means + why it matters, and around 30 codes have a one-click "Fix" button that applies the auto-fix. Errors block release; warnings are advice. Click "All" next to an issue to see every glyph with the same audit code. The same 94-code engine also runs from a terminal via `npx patens audit my.font.json` — drop it into your CI as a font-design lint step.'
 				},
 				{
 					q: 'Why does my export include glyphs I never drew?',
