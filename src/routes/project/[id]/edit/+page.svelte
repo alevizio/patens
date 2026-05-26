@@ -56,6 +56,7 @@
 	import StatusPanel from '$lib/editor/StatusPanel.svelte';
 	import AnchorsPanel from '$lib/editor/AnchorsPanel.svelte';
 	import GlyphPanel from '$lib/editor/GlyphPanel.svelte';
+	import ShortcutsPanel from '$lib/editor/ShortcutsPanel.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2534,24 +2535,7 @@
 
 			<ColorLayersPanel {glyph} />
 
-			<div class="mt-auto p-4 text-[11px] text-fg-subtle">
-				<p class="mb-1 font-medium">Shortcuts</p>
-				<ul class="grid gap-0.5" data-numeric>
-					<li>[ ]<span class="ml-2 text-fg-muted">prev/next glyph</span></li>
-					<li>P E A<span class="ml-2 text-fg-muted">pencil / eraser / edit points</span></li>
-					<li>S V G R O<span class="ml-2 text-fg-muted">sketch / vector / grid / ref / onion</span></li>
-					<li>T<span class="ml-2 text-fg-muted">trace to vector</span></li>
-					<li>Shift-click<span class="ml-2 text-fg-muted">add to selection</span></li>
-					<li>Drag empty<span class="ml-2 text-fg-muted">marquee select</span></li>
-					<li>Arrows<span class="ml-2 text-fg-muted">nudge selected (Shift = ×10)</span></li>
-					<li>Del<span class="ml-2 text-fg-muted">delete selected points</span></li>
-					<li>Space-drag<span class="ml-2 text-fg-muted">pan</span></li>
-					<li>Wheel<span class="ml-2 text-fg-muted">zoom</span></li>
-					<li>⌘0<span class="ml-2 text-fg-muted">fit to glyph</span></li>
-					<li>⌘Z / ⌘⇧Z<span class="ml-2 text-fg-muted">undo / redo</span></li>
-					<li>⌘⇧C / ⌘⇧V<span class="ml-2 text-fg-muted">copy / paste glyph</span></li>
-				</ul>
-			</div>
+			<ShortcutsPanel />
 		</aside>
 	</div>
 	{#if EditorTourLazy}
