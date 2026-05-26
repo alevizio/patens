@@ -53,6 +53,10 @@
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
 	import type EditorTourType from '$lib/ui/EditorTour.svelte';
+	// First decomposition target from the 4219-line editor +page.svelte —
+	// the toolbar's glyph-identity block (char preview + name + status +
+	// pin + flag toggles). Bounded, view-mostly, low-risk extraction.
+	import EditorGlyphHeader from '$lib/editor/EditorGlyphHeader.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1847,44 +1851,7 @@
 			<div
 				class="flex items-center gap-2 border-b border-border bg-surface px-4 py-2"
 			>
-				<div class="flex items-center gap-2 pr-3">
-					<span
-						class="flex h-9 min-w-9 items-center justify-center rounded-md bg-fg/5 px-2 text-xl font-medium text-fg"
-					>
-						{charLabel}
-					</span>
-					<div class="grid leading-tight">
-						<span class="text-sm font-medium text-fg">{glyph.name}</span>
-						<span class="text-[11px] text-fg-subtle" data-numeric>
-							U+{glyph.codepoint
-								.toString(16)
-								.toUpperCase()
-								.padStart(4, '0')} · {glyph.status}
-						</span>
-					</div>
-					<button
-						type="button"
-						onclick={() => projectStore.toggleGlyphPin(glyph.codepoint)}
-						class="ml-1 inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.pinned
-							? 'text-warn hover:text-warn'
-							: 'hover:text-fg'}"
-						aria-label={glyph.pinned ? 'Unpin glyph' : 'Pin glyph'}
-						title={glyph.pinned ? 'Unpin' : 'Pin for quick access'}
-					>
-						<Pin class="size-3.5 {glyph.pinned ? 'fill-current' : ''}" />
-					</button>
-					<button
-						type="button"
-						onclick={() => projectStore.toggleGlyphFlag(glyph.codepoint)}
-						class="inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.flagged
-							? 'text-warn hover:text-warn'
-							: 'hover:text-fg'}"
-						aria-label={glyph.flagged ? 'Unflag glyph' : 'Flag glyph for review'}
-						title={glyph.flagged ? 'Unflag' : 'Flag for review (⇧F)'}
-					>
-						<Flag class="size-3.5 {glyph.flagged ? 'fill-current' : ''}" />
-					</button>
-				</div>
+				<EditorGlyphHeader {glyph} />
 
 				<div class="h-6 w-px bg-border"></div>
 
