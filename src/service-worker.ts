@@ -24,11 +24,14 @@
  */
 
 import { build, files, version } from '$service-worker';
+import { cachesToEvict, routeFetch } from '$lib/sw/upgrade';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
-const CACHE_NAME = `font-studio-${version}`;
+const CACHE_PREFIX = 'font-studio-';
+const CACHE_NAME = `${CACHE_PREFIX}${version}`;
 const PRECACHE = [...build, ...files];
+const IMMUTABLE = new Set<string>(PRECACHE);
 
 sw.addEventListener('install', (event) => {
 	event.waitUntil(
@@ -44,9 +47,7 @@ sw.addEventListener('activate', (event) => {
 		caches
 			.keys()
 			.then((keys) =>
-				Promise.all(
-					keys.filter((k) => k !== CACHE_NAME && k.startsWith('font-studio-')).map((k) => caches.delete(k))
-				)
+				Promise.all(cachesToEvict(keys, CACHE_NAME, CACHE_PREFIX).map((k) => caches.delete(k)))
 			)
 			.then(() => sw.clients.claim())
 	);
@@ -54,28 +55,15 @@ sw.addEventListener('activate', (event) => {
 
 sw.addEventListener('fetch', (event) => {
 	const req = event.request;
-
-	// Don't cache non-GET (POST to /api/share, etc).
-	if (req.method !== 'GET') return;
-
 	const url = new URL(req.url);
-
-	// Never cache /api/ — IndexedDB / blob storage is the source of truth.
-	if (url.pathname.startsWith('/api/')) return;
-
-	// Different-origin requests (Vercel Blob downloads, Pyodide CDN, etc) —
-	// let the browser handle. We don't want to cache 50MB Pyodide locally
-	// unless explicitly designed to.
-	if (url.origin !== sw.location.origin) return;
-
-	// Cache-first for immutable hashed assets in /build/ or /files/
-	const isImmutable = build.includes(url.pathname) || files.includes(url.pathname);
+	const decision = routeFetch(req.method, url, sw.location.origin, IMMUTABLE);
+	if (decision === 'passthrough') return;
 
 	event.respondWith(
 		(async () => {
 			const cache = await caches.open(CACHE_NAME);
 
-			if (isImmutable) {
+			if (decision === 'cache-first') {
 				const hit = await cache.match(req);
 				if (hit) return hit;
 				const res = await fetch(req);
