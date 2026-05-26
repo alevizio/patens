@@ -89,18 +89,21 @@
 	</p>
 
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
-		<strong class="font-semibold text-fg">Patens is a browser-native,
-		open-source type design environment.</strong>
-		Draw glyphs with a pressure-sensitive pencil, trace strokes to cubic
-		Bézier contours, edit anchor-by-anchor, kern, audit, and ship a real
-		OpenType file — all in a tab, with nothing to install and no account
-		to create. Every project lives in your browser's IndexedDB; nothing
-		leaves your machine unless you choose to export a .font.json file
-		or upload to the optional cloud-share path. Patens is MIT-licensed,
-		works offline as a PWA, and is differentiated from FontLab, Glyphs,
-		and RoboFont by being the only type editor that doubles as a
-		teaching tool — a built-in 94-code audit module explains what's
-		wrong with a font and, for many issues, offers one-click fixes.
+		<strong class="font-semibold text-fg">Patens is a type design tool
+		that teaches as you draw.</strong>
+		The differentiator from FontLab, Glyphs, RoboFont, Fontra, and the
+		rest of the type-editor landscape is a built-in 94-code audit module
+		that runs continuously alongside the editor — every contour, every
+		metric, every kern pair gets checked against the rules type designers
+		internalize through years of mentorship, with plain-English teaching
+		prose and (for around 30 codes) a one-click fix. Built around that:
+		sketch glyphs with a pressure-sensitive pencil, trace strokes to
+		cubic Bézier contours, edit anchor-by-anchor, kern, ship a real
+		OpenType file — all in a browser tab, with nothing to install and
+		no account to create. Every project lives in your browser's
+		IndexedDB; nothing leaves your machine unless you choose to export
+		or upload to the optional cloud-share path. MIT-licensed, works
+		offline as a PWA.
 	</p>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">

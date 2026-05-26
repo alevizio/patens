@@ -911,8 +911,7 @@
 		</h1>
 
 		<p class="mt-8 max-w-xl text-[15px] leading-relaxed text-fg-muted">
-			Sketch, vectorize, space, kern, and export a real <span class="font-mono text-fg" data-numeric>.otf</span> — all in your
-			browser. Every project is saved locally.
+			Sketch, audit against 94 type-design rules with one-click fixes, and export a real <span class="font-mono text-fg" data-numeric>.otf</span> — all in your browser. Every project saved locally.
 		</p>
 
 		<div class="mt-10 flex flex-wrap items-baseline gap-x-6 gap-y-3">
