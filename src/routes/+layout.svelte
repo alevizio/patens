@@ -76,7 +76,7 @@
 		property="og:description"
 		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
-	<meta property="og:image" content="/og.png" />
+	<meta property="og:image" content="https://patens.design/og.png" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta property="og:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
@@ -87,7 +87,7 @@
 		name="twitter:description"
 		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
-	<meta name="twitter:image" content="/og.png" />
+	<meta name="twitter:image" content="https://patens.design/og.png" />
 </svelte:head>
 
 <div class="min-h-screen">

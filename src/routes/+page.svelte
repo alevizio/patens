@@ -639,7 +639,7 @@
 		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta property="og:site_name" content="Patens" />
-	<meta property="og:image" content="/og/home" />
+	<meta property="og:image" content="https://patens.design/og/home" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
@@ -648,7 +648,7 @@
 		name="twitter:description"
 		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
 	/>
-	<meta name="twitter:image" content="/og/home" />
+	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark
 	     rendered in StudioGeometric) paints as soon as HTML parsing is
 	     done — without this link the browser only discovers the font URL

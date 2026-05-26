@@ -76,10 +76,10 @@
 		property="og:description"
 		content="Everything you need to write about Patens — factsheet, descriptions, assets, contact."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Press kit · Patens" />
 	<meta name="twitter:description" content="Factsheet + descriptions + assets + contact." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

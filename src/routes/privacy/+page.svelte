@@ -36,10 +36,10 @@
 	<link rel="canonical" href="https://patens.design/privacy" />
 	<meta property="og:title" content="Privacy · Patens" />
 	<meta property="og:description" content="No data leaves your browser unless you explicitly send it." />
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Privacy · Patens" />
 	<meta name="twitter:description" content="No data leaves your browser unless you explicitly send it." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

@@ -96,10 +96,10 @@
 	<link rel="canonical" href="https://patens.design/changelog" />
 	<meta property="og:title" content="Changelog · Patens" />
 	<meta property="og:description" content="Patens release history — every version since v0.4." />
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Changelog · Patens" />
 	<meta name="twitter:description" content="Patens release history — every version since v0.4." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- RSS autodiscovery — feed readers (Feedly, NetNewsWire, etc.) probe
 	     the homepage for <link rel="alternate" type="application/rss+xml">
 	     and surface the feed in their subscribe UI. -->

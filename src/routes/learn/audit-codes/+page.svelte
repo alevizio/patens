@@ -235,10 +235,10 @@
 		property="og:description"
 		content="Every audit code Patens emits, grouped by family, with a plain-language explanation."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Patens audit codes — reference" />
 	<meta name="twitter:description" content="Every audit code with a plain-language explanation." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

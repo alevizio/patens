@@ -36,10 +36,10 @@
 	<link rel="canonical" href="https://patens.design/security" />
 	<meta property="og:title" content="Security · Patens" />
 	<meta property="og:description" content="Responsible disclosure: security@patens.design." />
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Security · Patens" />
 	<meta name="twitter:description" content="Responsible disclosure: security@patens.design." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

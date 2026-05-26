@@ -126,10 +126,10 @@
 	<link rel="canonical" href="https://patens.design/help" />
 	<meta property="og:title" content="Help · Patens" />
 	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance." />
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Help · Patens" />
 	<meta name="twitter:description" content="Common questions about Patens — sharing, export, the editor, performance." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- FAQPage + BreadcrumbList JSON-LD. FAQPage drives direct-answer
 	     extraction (Google deprecated rich snippets May 2026 but Claude
 	     / Perplexity / ChatGPT still parse it for answers). BreadcrumbList

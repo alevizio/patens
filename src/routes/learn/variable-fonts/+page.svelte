@@ -111,10 +111,10 @@
 		property="og:description"
 		content="9-step walkthrough — axes, masters, instances, the 2D explorer, export."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="How to design a variable font in the browser" />
 	<meta name="twitter:description" content="9-step Patens guide to variable fonts." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

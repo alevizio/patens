@@ -1293,13 +1293,13 @@ body {
 	<meta property="og:title" content={shareTitle} />
 	<meta property="og:description" content={shareDesc} />
 	<meta property="og:site_name" content="Patens" />
-	<meta property="og:image" content="/og/{project.id}" />
+	<meta property="og:image" content="https://patens.design/og/{project.id}" />
 	<meta property="og:image:width" content="1200" />
 	<meta property="og:image:height" content="630" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content={shareTitle} />
 	<meta name="twitter:description" content={shareDesc} />
-	<meta name="twitter:image" content="/og/{project.id}" />
+	<meta name="twitter:image" content="https://patens.design/og/{project.id}" />
 	<!-- JSON-LD structured data — tells search engines (and AI
 	     crawlers) that this is a font specimen page, what font is
 	     described, and who made it. Improves Google's understanding

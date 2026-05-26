@@ -421,10 +421,10 @@
 		property="og:description"
 		content="Browser-native, open-source type editor with a 94-code audit. Compare against FontLab, Glyphs, RoboFont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="Patens vs FontLab, Glyphs, Fontra" />
 	<meta name="twitter:description" content="Feature-by-feature comparison of the major type-design tools." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

@@ -111,10 +111,10 @@
 		property="og:description"
 		content="9-step walkthrough — features from glyph names, live HarfBuzz preview, export."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="How to add OpenType features to your font" />
 	<meta name="twitter:description" content="9-step Patens guide to OpenType features." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

@@ -111,10 +111,10 @@
 		property="og:description"
 		content="9-step walkthrough — Latin + Cyrillic + Greek shape reuse + bespoke shapes."
 	/>
-	<meta property="og:image" content="/og/brand" />
+	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:title" content="How to design a multi-script font" />
 	<meta name="twitter:description" content="9-step Patens guide to multi-script design." />
-	<meta name="twitter:image" content="/og/brand" />
+	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
