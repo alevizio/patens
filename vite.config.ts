@@ -39,5 +39,21 @@ export default defineConfig({
 	// natural path. (See https://vitejs.dev/config/dep-optimization-options)
 	optimizeDeps: {
 		exclude: ['harfbuzzjs']
+	},
+	// Dev-only: keep Vite's file-watcher off doc-tree churn. We update
+	// docs/launch/*, docs/architecture.md, README.md, etc. frequently
+	// during release prep — these have no module graph dependency on
+	// the app code, but Vite watching them triggers HMR cycles that can
+	// confuse the dep-cache after a large doc commit, producing the
+	// "Cannot read properties of undefined" + stale-chunk-fetch errors.
+	server: {
+		watch: {
+			ignored: [
+				'**/docs/**',
+				'**/.claude/**',
+				'**/memory/**',
+				'**/*.md'
+			]
+		}
 	}
 });
