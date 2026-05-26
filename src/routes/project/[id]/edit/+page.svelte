@@ -54,6 +54,7 @@
 	import EditorGlyphHeader from '$lib/editor/EditorGlyphHeader.svelte';
 	import EditorToolGroup from '$lib/editor/EditorToolGroup.svelte';
 	import BrushSizeSlider from '$lib/editor/BrushSizeSlider.svelte';
+	import TemplatesAccordion from '$lib/editor/TemplatesAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2775,41 +2776,7 @@
 			{/if}
 
 			{#if glyph.contours.length === 0}
-				<Accordion id="edit-templates" label="Templates" defaultOpen={false}>
-					<p class="mb-2 text-[11px] text-fg-subtle">
-						Start from a basic shape and refine in edit mode (A).
-					</p>
-					<div class="grid grid-cols-2 gap-1.5">
-						<button
-							type="button"
-							onclick={() => insertTemplate('rect')}
-							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
-						>
-							Rectangle
-						</button>
-						<button
-							type="button"
-							onclick={() => insertTemplate('circle')}
-							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
-						>
-							Circle
-						</button>
-						<button
-							type="button"
-							onclick={() => insertTemplate('stem')}
-							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
-						>
-							Vertical stem
-						</button>
-						<button
-							type="button"
-							onclick={() => insertTemplate('crossbar')}
-							class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft"
-						>
-							Horizontal bar
-						</button>
-					</div>
-				</Accordion>
+				<TemplatesAccordion oninsert={insertTemplate} />
 			{/if}
 
 			{#if glyph.contours.length === 0 && drawnSources.length > 0}
