@@ -56,6 +56,7 @@
 		downloadGlyphSvg,
 		glyphSvgPathString
 	} from '$lib/editor/glyph-export';
+	import { parseSvgPasteToGlyph } from '$lib/editor/glyph-paste';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1250,79 +1251,30 @@
 			);
 			return;
 		}
-		// Fallback: try to interpret the clipboard as SVG path data. Covers
-		// the common workflow of copying a shape from Figma / Illustrator
-		// / Inkscape as SVG and pasting straight onto a glyph slot.
 		try {
 			const text = await navigator.clipboard.readText();
-			const dStrings = extractSvgPathD(text);
-			if (dStrings.length === 0) {
+			const patch = await parseSvgPasteToGlyph(text, {
+				ascender: metrics.ascender,
+				descender: metrics.descender,
+				defaultSidebearing:
+					projectStore.project?.metrics.defaultSidebearing ?? 60
+			});
+			if (!patch) {
 				toast.warn('Clipboard does not contain a Patens glyph or SVG path.');
 				return;
 			}
-			const { parseSvgPath } = await import('$lib/font/svg-path');
-			const { contourBounds: cb } = await import('$lib/font/path');
-			// Parse first with identity transform to measure source bbox.
-			const raw: import('$lib/font/types').BezierContour[] = [];
-			for (const d of dStrings) raw.push(...parseSvgPath(d, { forceClose: true }));
-			if (raw.length === 0) {
-				toast.warn('Could not parse any contours from clipboard SVG.');
-				return;
-			}
-			const allCmds = raw.flatMap((c) => c.commands);
-			const bounds = cb(allCmds);
-			const srcW = Math.max(bounds.maxX - bounds.minX, 1);
-			const srcH = Math.max(bounds.maxY - bounds.minY, 1);
-			const fontH = metrics.ascender - metrics.descender;
-			// Scale to fill ~70% of the cap-height range so the pasted shape
-			// lands at a usable size without filling the entire glyph box.
-			const scale = (fontH * 0.7) / srcH;
-			const reparsed: import('$lib/font/types').BezierContour[] = [];
-			for (const d of dStrings) {
-				reparsed.push(
-					...parseSvgPath(d, {
-						forceClose: true,
-						transformPoint: (x, y) => {
-							// Flip y (SVG down → font up), center on bbox, scale,
-							// then anchor the baseline at y=0.
-							const cx = (bounds.minX + bounds.maxX) / 2;
-							const cy = (bounds.minY + bounds.maxY) / 2;
-							const fx = (x - cx) * scale + srcW * scale * 0.5;
-							const fy = (cy - y) * scale + fontH * 0.35;
-							return [Math.round(fx), Math.round(fy)];
-						}
-					})
-				);
-			}
-			const advance = Math.round(srcW * scale + 2 * (projectStore.project?.metrics.defaultSidebearing ?? 60));
 			projectStore.updateGlyph(glyph.codepoint, (g) => ({
 				...g,
-				contours: reparsed,
-				advanceWidth: advance,
-				status: reparsed.length > 0 ? 'draft' : g.status
+				contours: patch.contours,
+				advanceWidth: patch.advanceWidth,
+				status: patch.contours.length > 0 ? 'draft' : g.status
 			}));
 			toast.success(
-				`Imported ${reparsed.length} contour${reparsed.length === 1 ? '' : 's'} from SVG path`
+				`Imported ${patch.contours.length} contour${patch.contours.length === 1 ? '' : 's'} from SVG path`
 			);
 		} catch {
 			toast.warn('Clipboard does not contain a Patens glyph or SVG path.');
 		}
-	};
-
-	// Extracts SVG path `d` strings from arbitrary clipboard text — accepts
-	// bare path data ("M 0 0 L 100 100"), a single <path d="…"/> tag, or a
-	// full <svg> document with one or more <path> elements.
-	const extractSvgPathD = (text: string): string[] => {
-		const trimmed = text.trim();
-		if (!trimmed) return [];
-		// Bare path data — starts with a path command letter.
-		if (/^[MmLlHhVvCcSsQqTt]/.test(trimmed)) return [trimmed];
-		// Pull every d="..." attribute out of XML.
-		const out: string[] = [];
-		const re = /\sd\s*=\s*"([^"]+)"/g;
-		let m: RegExpExecArray | null;
-		while ((m = re.exec(text)) !== null) out.push(m[1]);
-		return out;
 	};
 
 	const applyPathOp = (op: PathOp) => {
