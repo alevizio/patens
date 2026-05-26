@@ -738,13 +738,12 @@
 
 <svelte:window onkeydown={handleGlobalKey} />
 
-<div
+<main
 	class="relative mx-auto max-w-6xl px-6 py-8 sm:py-10"
 	ondragenter={onDragEnter}
 	ondragleave={onDragLeave}
 	ondragover={onDragOver}
 	ondrop={onDrop}
-	role="application"
 >
 	<!-- Non-blocking welcome strip — first-visit orientation. Shows the
 	     actual product immediately; the strip is short + dismissible. -->
@@ -1746,4 +1745,4 @@
 			</button>
 		</div>
 	{/if}
-</div>
+</main>
