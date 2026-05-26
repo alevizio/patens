@@ -1,168 +1,224 @@
-# App improvements + nice-to-haves — Plan & day estimates
+# App improvements — what's shipped, what's left
 
-Companion to `docs/launch/typecon-plan.md`. This is the inward-facing roadmap:
-what's left to build, polish, or fix between now (2026-05-25) and TypeCon
-Portland (Aug 6–8).
+Living doc. Last refresh: 2026-05-25 after the big autonomous session.
+Target: TypeCon Portland Aug 6–8, 2026. ~10 weeks runway.
 
-**Unit**: 1 day = ~5 hours of focused solo-dev work. Estimates are honest but
-soft — first 50% takes the predicted time, the last 20% takes the same again.
-Treat as ranges, not contracts.
-
-**Runway**: 10 weeks to TypeCon = ~50 working days at 5/wk, or ~25 working days
-at the realistic 2.5/wk pace once you account for life. The plan below totals
-~42 days at full-throttle. Aim to ship P0 + P1, sprinkle P2, defer P3.
+**Unit**: 1 day = ~5h focused solo-dev. Estimates are honest but soft.
 
 ---
 
-## P0 — Block launch (must ship before Show HN)
+## ✅ Shipped this session (18 commits)
 
-These are the ones that affect the *trust* of the launch — a press kit,
-clean a11y, no flakey known-issues. Total: **~5 days.**
+Don't redo any of this:
 
-### a11y sweep (2.5d)
-- Add tests for `/compare`, `/learn/first-font`, `/learn/audit-codes` (0.5d — partially in flight, e2e/a11y.spec.ts edited)
-- Add tests for modals while OPEN: SettingsDialog, ShortcutsDialog, StorageDialog, CreateFontDialog, WelcomeDialog (1d)
-- Add `/family/[id]` to the suite (0.25d)
-- Fix whatever violations the above surface (0.75d budget — actual depends)
+### Foundation + SEO/AIO
+- SSR enabled at root (`ccd6741`) — JSON-LD now reaches crawlers
+- llms.txt + AI-crawler robots.txt allows (`08a7ec9`)
+- IndexNow set up + pinged Bing + Yandex
+- Sitemap covers every public route
+- `/compare` page vs FontLab / Glyphs / Fontra / Glyphr Studio / typlr.app / BirdFont / FontForge / RoboFont
+- 3 new long-form `/learn/*` posts: kerning, variable-fonts, opentype-features (`a98e912`)
+- `/learn/audit-codes` reference for all 94 codes
+- `/learn/first-font` 10-step HowTo
+- `/about` deepened lead + pronunciation guide
+- BreadcrumbList on every page, FAQPage on /help, HowTo on /learn tutorials
+
+### A11y
+- 31 routes / modals covered by axe (was 19)
+- 5 modals audited while open: Welcome, Settings, Shortcuts, Storage, CreateFont
+- `/family/[id]` covered (with IDB seeding helper)
+- 3 real WCAG violations closed: SettingsDialog 22×22 target, success-on-soft 3.35:1, success-on-white 3.55:1
+
+### Features
+- Global Cmd-K via shared CommandPalette (`65afca0`) — works from /, /learn, /about, every project route
+- Family-wide kerning wired into `buildFont` (`bd49e71`) — closes a real correctness gap
+- Audit "Fix" buttons polished + auto-fixable pill on group headings (`96f2661`)
+- Bulk select v2: shift-click range, select-all-visible, ±SB delta, +Suffix rename (`7e5f064`)
+
+### Performance
+- Hero LCP preload (`2761f3f`)
+- Lazy-load opentype.js on home (`ea979ee`) — ~240KB deferred to first import
+- Audit workerized (`71f1399`) — runs in a Web Worker, stale-response guard, sync fallback
+- IDB `getMany` batching across backup, restore, family delete, family bundle (`c42f9ba`)
+- Audit benchmark for regression guard (`23ddd00`) — 1ms at demo size, 2.6ms at 500 glyphs
+
+### Codebase health
+- Lint baseline ratchet 5 → 0 (`1fcfbe5`); CI gate at 0
+- Service-worker upgrade-path tested (`4a37115`) — 15 new unit tests
+- Tab-nav Designspace flake root-caused + closed (`e3b3db2`)
+- Welcome-strip SSR-pre-hydration race fixed (`6473204`)
+- 506 vitest + 59 playwright, all green
+
+---
+
+## P0 — Still launch-blocking (estimated 2.5d remaining)
 
 ### Launch artifacts (1d)
-- `/press` page with downloadable bundle (logos, screenshots, factsheet) — 0.5d
-- `/llms-full.txt` — concatenate `/learn/*` + `/compare` + `/help` + `/about` — 0.25d
-- `/privacy` + `/security` pages (1 page each, plain English) — 0.25d
-- Year-in-title pass on landing routes — 0.25d
+- [ ] `/press` page — logos, screenshots, factsheet, founder photo, MIT badge.
+      Press editors will not write about Patens without this.
+- [ ] `/llms-full.txt` — concat of `/learn/*` + `/compare` + `/help` + `/about`.
+      Per Otterly / getmint.ai sources, Cursor + Claude Desktop crawl this
+      more than `llms.txt` itself in 2026.
+- [ ] `/privacy` + `/security` pages — 1 page each. Plain English:
+      "No data leaves your browser. No analytics SDK. No cookies."
+      GDPR coverage even though we have zero PII to leak.
+- [ ] Year-in-title pass — "2026" in `<title>` + `<h1>` across landing routes.
+      Leapd GEO study: +30% citation rate from visible year.
 
-### Bug fixes + known-issue closure (1d)
-- Root-cause `tab-nav.spec.ts` Designspace flake (currently patched with `networkidle` wait) — 0.5d
-- Bundle review via `pnpm analyze`, identify anything new/large — 0.5d
-
-### Final pre-launch QA (0.5d)
-- Lighthouse audit on production, capture before/after
-- Cold-load profile on the three primary routes (home, share/demo, edit)
-- Spot-check on a real iPhone + iPad (you'll need physical devices)
-
----
-
-## P1 — Strongly improves launch (do if there's time)
-
-These would land the launch with more substance — additional `/learn/*`
-content, deeper polish on the audit module surfaces, manual a11y beyond
-axe. Total: **~6 days.**
-
-### Content (1.5d)
-- `/learn/kerning` — the philosophy + the editor's class system. ~0.5d
-- `/learn/variable-fonts` — masters, axes, instances, the 2D explorer. ~0.5d
-- `/learn/opentype-features` — `.ss01`, `.smcp`, `f_i`, the auto-detect rules. ~0.5d
-
-### Editor polish (2d)
-- Family-wide kerning propagation — sibling overrides over parent table. ~1d
-- Audit "Fix" action discoverability — make the inline fix buttons more obvious without making them louder. ~0.5d
-- Welcome dialog rework — first-time experience is currently a non-blocking strip; consider whether the lead message is actually what someone needs in their first 10s. ~0.5d
-
-### Manual a11y (2d)
-- Keyboard-only nav walkthrough — open editor, tab through every interactive control, fix focus traps + tab-order issues. ~1d
-- VoiceOver pass on home + editor + audit page — fix ARIA gaps axe missed. ~1d
-
-### Demo capture (0.5d)
-- Storyboard the 30-second demo GIF — what to show, in what order. Then you record. (My prep, your shoot.)
+### Final pre-launch QA (1.5d)
+- [ ] Lighthouse run against production — capture before/after numbers,
+      log any regression > 5 points.
+- [ ] Cold-load profile via `scripts/profile-cold-load.mjs` on home,
+      `/share/demo`, `/project/demo/edit`. Compare against the ROADMAP
+      v1.4.0 numbers.
+- [ ] Real-iPhone + real-iPad spot-check (you'll need physical devices).
+      Tap targets, scroll, the share menu, the editor's pencil + trace
+      flow. Document anything ugly.
+- [ ] Manual keyboard-only navigation walkthrough — tab through every
+      interactive control on home, editor, audit, share. Fix focus traps
+      + tab-order issues axe couldn't see.
+- [ ] VoiceOver pass on home + editor + audit page — fix ARIA gaps.
 
 ---
 
-## P2 — Post-launch nice-to-haves (start if P0+P1 ship early)
+## P1 — Strongly improves launch (estimated 3.5d remaining)
 
-Real product depth. Each is its own self-contained ship-or-don't decision.
-Total: **~10 days.**
+These would land the launch with more substance but aren't blocking.
 
-### Editor depth (5d)
-- Multi-master variation explorer drag UI — the "drag through design space" surface noted as deferred. ~2d
-- Re-share versioning (per-share upload history + deep-link to a specific version). ~1.5d
-- Self-service delete API for shares (key signed by the originator's IndexedDB project record). ~0.5d
-- Bespoke Cyrillic shapes (Я Ж Ф). ~0.5d
-- Real curve-fitting pass over the demo's geometric glyphs (replace polygon primitives with hand-tuned Béziers — visible quality lift across the demo). ~1.5d
+### Demo + outreach prep (1d)
+- [ ] 30-second demo GIF / video for the hero — your hand, screen-record.
+      Best subject: audit module catching 3 issues + one-click fixing them
+      (the differentiator). Storyboard if you want me to write one.
+- [ ] Welcome dialog rework — taste-driven copy + structure. The current
+      strip is non-blocking and works; opportunity is to tighten what the
+      first-time visitor sees in their first 10 seconds.
 
-### Polish + workflow (3d)
-- Global glyph search (Cmd-K with character/name/U+ codepoint matching, already partially there in CommandPalette.svelte). ~1d
-- Bulk select + bulk edit in glyph browser (mass-sidebearing, mass-rename, mass-delete). ~1d
-- Drag-to-reorder glyphs in custom sets. ~0.5d
-- Per-device responsive sweep (real iPhone/iPad audit, fixes). ~0.5d
+### Editor polish (1.5d)
+- [ ] Inherited-pair badges in `/project/[id]/spacing` — show family-wide
+      pairs alongside project pairs (today the user has to switch to
+      `/family/[id]` to see them). Closes the second half of family-wide
+      kerning.
+- [ ] Audit "Apply Fix to all in this group" — when an entire code group
+      is auto-fixable (the new pill flagged this), surface a bulk-fix
+      button. Already half-implemented via `fixAllVisible`; tightening UX.
 
-### Codebase health (2d)
-- Lint baseline ratchet 5 → 0. ~0.5d
-- TypeScript strict-mode tightening (remove remaining `any` patterns if any). ~0.5d
-- Service worker upgrade-path test — simulate "user on v1.4.0 visits v1.5.x" cache transition. ~1d
-
----
-
-## P3 — Bigger bets, post-launch / v2
-
-Each of these is a 3+ day commitment. None are launch-blocking; some are
-v1.6.x→v2.x candidates. Total: **~21 days.**
-
-### Account system (5d)
-- OAuth (GitHub, Google) — no email/password. ~1.5d
-- Per-account project list page (separate from IndexedDB-backed home). ~1d
-- Visibility controls (private / unlisted / public). ~1.5d
-- Quotas + delete flow. ~1d
-
-### Drawn type expansion (7d)
-- Drawn Italic master — real italic redraws a, e, g, etc., not a slant axis. ~5d
-- Full Greek lowercase set (14+ glyphs). ~2d
-
-### AI features (4.5d)
-- "Explain this audit code" via LLM — Claude API integration + cost guard + UX. ~1.5d
-- Kerning-suggest via learned model — either Anthropic API or a local distilled model. ~3d
-  - Conflicts with "never lead with AI features" positioning — keep these *opt-in inside the editor*, never in marketing.
-
-### i18n (5d)
-- Currently English-only. Setting up message extraction + Svelte i18n + translation pipeline. Probably defer to v2.0.
+### Content gaps (1d)
+- [ ] `/learn/multi-script` — Latin → Cyrillic look-alike reuse pattern;
+      what shapes are bespoke (`Я Ж Ф`); Greek lowercase status.
+- [ ] `/learn/export-formats` — OTF vs WOFF2 vs TTF vs UFO vs .font.json;
+      which format for which audience. Closes the deferred /learn slot.
 
 ---
 
-## Things deliberately NOT planned
+## P2 — Post-launch / nice-to-haves (estimated 10d)
 
-- **Mobile editor** — Patens is desktop-first by design. A touch-first editor is its own product.
-- **Real-time collaboration** — single-designer-single-machine is the positioning.
-- **Server-side font hosting** — fonts you draw are yours; no Patens-hosted serving tier.
+Each is its own self-contained ship-or-don't decision.
+
+### Editor depth (~5d)
+- [ ] Multi-master variation explorer drag UI (~2d) — "drag through
+      design space" surface. Currently the page lists axes + masters
+      but lacks the live interpolation drag.
+- [ ] Re-share versioning (~1.5d) — per-share upload history under
+      `shares/{id}/v{n}.json`. GET defaults to latest, `?v=N` for
+      specific. Closes the last open ROADMAP item under M3.
+- [ ] Bespoke Cyrillic shapes Я Ж Ф (~0.5d) — needs your hand on the
+      glyph design, not autonomous-safe.
+- [ ] Curve-fit pass on demo geometric glyphs (~1.5d) — visible visual
+      quality lift across the demo. Polygon primitives → hand-tuned
+      Béziers. Careful manual work; touches the first thing visitors see.
+
+### Polish + workflow (~3d)
+- [ ] Virtualize GlyphBrowser tile grid (~1d) — closes the 35ms cold-mount
+      layout that's the one editor-route smell in `profile-cold-load.mjs`.
+      Wait until launch is past — would conflict with shift-click range
+      select if not designed carefully.
+- [ ] Per-device responsive sweep (~1d) — real iPhone/iPad audit, fix
+      what looks wrong at real screen sizes.
+- [ ] Subset OG fonts (Inter 325KB → ~20KB, Lora 132KB → ~10KB) — needs
+      adding `subset-font` or `pyftsubset` to dev deps. Skipped this
+      session to avoid the dependency commit.
+
+### Codebase health (~2d)
+- [ ] Streaming SSR on the editor shell (~1d) — load IDB project payload
+      as a streamed promise; render chrome immediately. Smaller win on
+      client-bottlenecked apps (per perf research) but real for first
+      project-open after cold load.
+- [ ] Re-share versioning UI on `/share/[id]` (~0.5d) — version dropdown
+      + "view as of v3" deep-link. Pairs with the server-side P2 above.
+- [ ] Add Playwright trace upload to CI on failure (~0.5d) — debugging
+      e2e flakes was hand-running tests this session; CI traces would
+      have made the welcome-strip + worker-clone races faster to root.
+
+---
+
+## P3 — Bigger bets, post-launch or v2 (estimated 21d)
+
+Each 3+ days. Not launch-blocking; v1.6+ candidates.
+
+- **Account system** (5d) — OAuth (GitHub, Google), per-account project
+  list, visibility controls (private / unlisted / public), quotas.
+- **Drawn Italic master** (5d) — real italic redraws a/e/g/etc., not a
+  slant axis. Marked as deferred in the demo's decision log.
+- **Full Greek lowercase set** (2d) — 14+ glyphs to draw + audit.
+- **AI explain-audit-code** (1.5d) — Claude API + cost guard + UX.
+- **AI kerning-suggest** (3d) — model + API or local distilled model.
+- **i18n** (5d) — defer to v2.0.
+
+---
+
+## Anti-goals (saying *no* saves more time than estimating well)
+
+- **Mobile editor** — desktop-first by design.
+- **Real-time collaboration** — single-designer-single-machine positioning.
+- **Server-side font hosting** — fonts you draw are yours; no Patens-hosted serving.
 - **PWA push notifications** — no notification story makes sense for a creative tool.
+- **Product Hunt as primary launch moment** — saturated in 2026 (per launch research).
+- **Catching up to Figma's WASM-renderer arc** — different shape product.
+- **Lighthouse-score chasing on the editor route** — won't get enough
+  field traffic to move CrUX. Optimise for real-user-felt INP instead.
+- **Direct Emscripten ttfautohint replacement** — multi-day C build
+  chain for a 7MB save that 95% of users never hit. Gate Pyodide behind
+  an explicit "Auto-hint (advanced)" opt-in instead if the size bothers.
 
 ---
 
-## Suggested 10-week sequencing
+## Recommended 10-week sequencing → TypeCon
 
-Aim for one ship-able commit most days. The cadence is the signal.
+**Weeks 1–2 (now → June 8):** P0 launch artifacts. Press kit makes
+Phase 2 outreach concrete; year-in-title is a 30-min win.
 
-### Weeks 1–2 (now → June 8) — P0 a11y + launch artifacts
-Foundation that everything else lands on. Press kit makes Phase 2 outreach
-have something to point at.
+**Week 3 (June 8 → June 15):** P0 final QA — Lighthouse, real-device,
+keyboard nav, VoiceOver. Capture before/after numbers for the launch
+post's "by-the-numbers" sidebar.
 
-### Weeks 3–4 (June 8 → June 22) — P0 finish + P1 content
-Land the bug fixes + bundle review. Start the three `/learn/*` posts; they
-give Tier 2 outreach something to link to.
+**Weeks 4–5 (June 15 → June 29):** P1 picks. Demo video first (you).
+Inherited-pair badges + /learn/multi-script can fall into a long week.
 
-### Weeks 5–6 (June 22 → July 6) — P1 polish + manual a11y
-Editor polish + family-wide kerning. Manual keyboard + VoiceOver passes.
+**Weeks 6–7 (June 29 → July 13):** P1 finish + reputation. Pitch
+Typographica + Alphabettes. dev.to long-form. TypeDrawers thread.
+Buttondown newsletter set up.
 
-### Week 7 (July 6 → July 13) — P1 finish + reputation
-Pitch Typographica + Alphabettes. dev.to long-form. TypeDrawers thread.
-Newsletter set up.
+**Weeks 8–9 (July 13 → July 27):** Stretch + buffer. P2 picks if
+ahead. Launches go off the rails when there's no slack — keep this
+deliberately under-loaded.
 
-### Weeks 8–9 (July 13 → July 27) — Stretch / buffer
-P2 picks if you're ahead. Or use as cushion — launches go off the rails
-when there's no slack.
-
-### Week 10 (July 27 → Aug 8) — Launch
-Show HN early in week. TypeCon Portland Aug 6–8.
+**Week 10 (July 27 → Aug 8):** Launch.
+- Tue Aug 4 or Wed Aug 5, 8:30 AM ET — Show HN.
+- Within 4 hours: Bluesky + X + Reddit r/typography.
+- Within 24 hours: dev.to long-form goes live.
+- Aug 6–8 — TypeCon Portland in person. Lightning talk on-site.
 
 ---
 
 ## How to use this doc
 
-- The **estimates are rangey**. Treat the day numbers as a *first sketch* —
-  pad them mentally by 30% for unknown unknowns.
-- The **categorization (P0/P1/P2/P3) is what matters**. If a P2 item starts
-  blocking sleep, promote it. If a P0 item turns out to be a half-day fix,
-  the rest of the day is yours.
-- The **anti-goals at the bottom save more time than estimating well.**
-  Saying *no* to mobile-editor and real-time-collab is the highest-leverage
-  decision in this plan.
+- The categorisation (P0/P1/P2/P3) is what matters. If a P2 item starts
+  blocking sleep, promote it. If a P0 item turns out to be a half-day
+  fix, the rest of the day is yours.
+- Estimates are rangey — pad mentally by 30% for unknowns.
+- Anti-goals save more time than estimating well.
 
-Last updated: 2026-05-25. Revise after each phase ends.
+Total remaining: **~37d** if you did everything, with **~6d** of P0+P1
+that's actually launch-shaped + **~27d** of post-launch and bigger
+bets. Plenty of slack against a 10-week window if you stay focused on
+P0+P1.
