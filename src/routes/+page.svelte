@@ -1062,14 +1062,14 @@
 
 		<p class="mt-8 text-[13px] text-fg-muted">
 			<a
-				href="/learn/audit-codes"
+				href="/audit"
 				class="group inline-flex items-baseline gap-1.5 font-medium text-accent-strong hover:underline"
 			>
-				See all 94 audit codes
+				Why audit-as-teaching
 				<span class="transition-transform group-hover:translate-x-0.5">→</span>
 			</a>
 			<span class="ml-3 text-fg-subtle">
-				· Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
+				· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (94 codes)</a> · Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
 			</span>
 		</p>
 	</section>
