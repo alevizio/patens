@@ -4,6 +4,13 @@
 
 [**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
 
+[![CI](https://github.com/alevizio/patens/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/patens/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Version](https://img.shields.io/github/package-json/v/alevizio/patens?label=version)](./package.json)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)](./package.json)
+[![Bluesky](https://img.shields.io/badge/Bluesky-%40patens.design-0085ff.svg)](https://bsky.app/profile/patens.design)
+[![Sponsor](https://img.shields.io/github/sponsors/alevizio?label=Sponsor)](https://github.com/sponsors/alevizio)
+
 <!--
   Hero screenshot — replace this comment block with an actual image
   when you have one. Recommended: 1920×960 PNG/WebP showing the

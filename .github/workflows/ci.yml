@@ -98,3 +98,31 @@ jobs:
             playwright-report
             test-results
           retention-days: 7
+
+      - name: Generate SBOM (CycloneDX)
+        # Software Bill of Materials for downstream auditability +
+        # regulatory future-proofing. EU CRA mandates SBOMs for
+        # commercial products from December 2027, with vulnerability
+        # reporting from September 2026; non-commercial OSS is exempt
+        # today but generating one in CI is ~10 seconds of work and
+        # the artifact is useful for self-hosters evaluating supply-
+        # chain risk + Sponsors / enterprise users.
+        #
+        # cdxgen produces CycloneDX 1.5 JSON, the OWASP-led spec that's
+        # now the cross-tooling default (read by Dependency-Track,
+        # Snyk, Sonatype, GitHub's own dependency graph).
+        #
+        # `--include-formulation` records the build environment + Node
+        # version so a future reader can reproduce. The file is
+        # deterministic per lockfile so it'll appear in CI artifacts
+        # without bloating commits.
+        if: always()
+        run: pnpm dlx @cyclonedx/cdxgen -t pnpm -o sbom.cdx.json --include-formulation
+
+      - name: Upload SBOM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-cyclonedx-${{ github.run_id }}
+          path: sbom.cdx.json
+          retention-days: 90

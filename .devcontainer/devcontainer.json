@@ -1,0 +1,45 @@
+{
+	"$schema": "https://raw.githubusercontent.com/devcontainers/spec/main/schemas/devContainer.schema.json",
+	"name": "Patens dev container",
+
+	// Node 22 + pnpm match the CI matrix in .github/workflows/ci.yml.
+	// Bumping Node here means bumping it in CI too; keep them in sync.
+	"image": "mcr.microsoft.com/devcontainers/typescript-node:22",
+
+	"features": {
+		"ghcr.io/devcontainers-contrib/features/pnpm:2": { "version": "10" }
+	},
+
+	"forwardPorts": [5173],
+	"portsAttributes": {
+		"5173": {
+			"label": "Vite dev server",
+			"onAutoForward": "openBrowser"
+		}
+	},
+
+	"postCreateCommand": "pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium",
+	"postAttachCommand": "pnpm dev",
+
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"svelte.svelte-vscode",
+				"bradlc.vscode-tailwindcss",
+				"dbaeumer.vscode-eslint",
+				"esbenp.prettier-vscode",
+				"vitest.explorer",
+				"ms-playwright.playwright"
+			],
+			"settings": {
+				"editor.formatOnSave": true,
+				"editor.defaultFormatter": "esbenp.prettier-vscode",
+				"[svelte]": { "editor.defaultFormatter": "svelte.svelte-vscode" },
+				"eslint.validate": ["javascript", "typescript", "svelte"],
+				"typescript.tsdk": "node_modules/typescript/lib"
+			}
+		}
+	},
+
+	"remoteUser": "node"
+}
