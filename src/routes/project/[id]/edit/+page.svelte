@@ -18,7 +18,6 @@
 	import { auditGlyph, auditCompatibility, sortBySeverity } from '$lib/font/audit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
-	import Wand from '@lucide/svelte/icons/wand-sparkles';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
 	import type EditorTourType from '$lib/ui/EditorTour.svelte';
 	// First decomposition target from the 4219-line editor +page.svelte —
@@ -48,6 +47,7 @@
 	import EditorActionBar from '$lib/editor/EditorActionBar.svelte';
 	import VfLivePreviewStrip from '$lib/editor/VfLivePreviewStrip.svelte';
 	import MastersStrip from '$lib/editor/MastersStrip.svelte';
+	import MetricsStrip from '$lib/editor/MetricsStrip.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -59,7 +59,6 @@
 	import type StemsPanelType from '$lib/glyph/StemsPanel.svelte';
 	import type MetricsInspectorType from '$lib/glyph/MetricsInspector.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
-	import ChevronDown from '@lucide/svelte/icons/chevron-down';
 	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
@@ -2046,54 +2045,12 @@
 					</span>
 				</button>
 			{:else}
-				<!-- Live text strip (FontLab-style metrics window) -->
-				<div class="flex flex-col gap-1.5 border-t border-border bg-surface px-4 py-2.5">
-					<div class="flex items-center gap-3">
-						<input
-							type="text"
-							bind:value={metricsText}
-							placeholder="Type to preview…"
-							class="h-7 flex-1 rounded-md border border-border bg-surface-2 px-2 text-[12px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
-						/>
-						<button
-							type="button"
-							onclick={smartSample}
-							class="inline-flex h-7 items-center gap-1 rounded-md border border-border bg-surface px-2 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
-							title="Fill with a word that exercises the current glyph (click again for another)"
-						>
-							<Wand class="size-3" />
-							Sample
-						</button>
-						<label class="flex items-center gap-1.5">
-							<span class="text-[11px] text-fg-muted">Size</span>
-							<input
-								type="range"
-								min={24}
-								max={200}
-								step={4}
-								bind:value={metricsSize}
-								class="h-1 w-24 accent-fg"
-								aria-label="Metrics preview size"
-							/>
-							<span class="w-8 text-[11px] text-fg-subtle" data-numeric>{metricsSize}</span>
-						</label>
-						<button
-							type="button"
-							onclick={toggleBottomBar}
-							class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-surface-2 hover:text-fg"
-							title="Collapse the live preview + action bar"
-							aria-label="Collapse bottom bar"
-						>
-							<ChevronDown class="size-3.5" />
-						</button>
-					</div>
-				<div
-					class="preview-font max-h-[120px] overflow-x-auto overflow-y-hidden whitespace-nowrap leading-[1]"
-					style="font-size: {metricsSize}px;"
-				>
-					{metricsText || ' '}
-				</div>
-			</div>
+				<MetricsStrip
+					bind:text={metricsText}
+					bind:size={metricsSize}
+					onSample={smartSample}
+					onCollapse={toggleBottomBar}
+				/>
 
 			<EditorActionBar
 				{glyph}
