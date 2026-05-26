@@ -53,11 +53,16 @@
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
 	import type EditorTourType from '$lib/ui/EditorTour.svelte';
-	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
-	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
-	import RevisionsPanel from '$lib/glyph/RevisionsPanel.svelte';
-	import StemsPanel from '$lib/glyph/StemsPanel.svelte';
-	import MetricsInspector from '$lib/glyph/MetricsInspector.svelte';
+	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
+	// KB bundled. None of them are needed for first paint of the canvas;
+	// they hydrate on idle ~200ms after the editor is interactive. The
+	// short pop-in is invisible at editor-load speeds and well worth
+	// shrinking the cold-load critical path.
+	import type CompositeEditorType from '$lib/glyph/CompositeEditor.svelte';
+	import type ReferenceImagePanelType from '$lib/glyph/ReferenceImagePanel.svelte';
+	import type RevisionsPanelType from '$lib/glyph/RevisionsPanel.svelte';
+	import type StemsPanelType from '$lib/glyph/StemsPanel.svelte';
+	import type MetricsInspectorType from '$lib/glyph/MetricsInspector.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
 	import Lightbulb from '@lucide/svelte/icons/lightbulb';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
@@ -81,6 +86,38 @@
 			});
 		}
 	});
+
+	// Hydrate the 5 right-sidebar panels on idle. Batched into one
+	// Promise.all so all 5 chunks fetch in parallel ~200ms after the
+	// canvas renders, then mount together via reactive state updates.
+	let CompositeEditorLazy = $state<typeof CompositeEditorType | null>(null);
+	let ReferenceImagePanelLazy = $state<typeof ReferenceImagePanelType | null>(null);
+	let RevisionsPanelLazy = $state<typeof RevisionsPanelType | null>(null);
+	let StemsPanelLazy = $state<typeof StemsPanelType | null>(null);
+	let MetricsInspectorLazy = $state<typeof MetricsInspectorType | null>(null);
+	$effect(() => {
+		if (CompositeEditorLazy) return;
+		const load = async () => {
+			const [composite, ref, rev, stems, metrics] = await Promise.all([
+				import('$lib/glyph/CompositeEditor.svelte'),
+				import('$lib/glyph/ReferenceImagePanel.svelte'),
+				import('$lib/glyph/RevisionsPanel.svelte'),
+				import('$lib/glyph/StemsPanel.svelte'),
+				import('$lib/glyph/MetricsInspector.svelte')
+			]);
+			CompositeEditorLazy = composite.default;
+			ReferenceImagePanelLazy = ref.default;
+			RevisionsPanelLazy = rev.default;
+			StemsPanelLazy = stems.default;
+			MetricsInspectorLazy = metrics.default;
+		};
+		if (typeof requestIdleCallback !== 'undefined') {
+			requestIdleCallback(load, { timeout: 1500 });
+		} else {
+			setTimeout(load, 250);
+		}
+	});
+
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
 
@@ -2820,7 +2857,9 @@
 				</div>
 			</div>
 
-			<ReferenceImagePanel />
+			{#if ReferenceImagePanelLazy}
+				<ReferenceImagePanelLazy />
+			{/if}
 
 			{#if glyph.contours.length === 0}
 				<Accordion id="edit-templates" label="Templates" defaultOpen={false}>
@@ -2928,13 +2967,21 @@
 				</Accordion>
 			{/if}
 
-			<CompositeEditor />
+			{#if CompositeEditorLazy}
+				<CompositeEditorLazy />
+			{/if}
 
-			<MetricsInspector />
+			{#if MetricsInspectorLazy}
+				<MetricsInspectorLazy />
+			{/if}
 
-			<RevisionsPanel />
+			{#if RevisionsPanelLazy}
+				<RevisionsPanelLazy />
+			{/if}
 
-			<StemsPanel />
+			{#if StemsPanelLazy}
+				<StemsPanelLazy />
+			{/if}
 
 			{#if usedByGlyphs.length > 0}
 				<Accordion id="edit-usedby" label="Used by" defaultOpen={true}>
