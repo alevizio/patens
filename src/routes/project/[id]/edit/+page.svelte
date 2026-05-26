@@ -15,7 +15,6 @@
 		type AffineMatrix,
 		type PathOp
 	} from '$lib/font/path-edit';
-	import { auditGlyph, sortBySeverity } from '$lib/font/audit';
 	import { aglfnName } from '$lib/font/aglfn';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
@@ -78,6 +77,7 @@
 		computeCopyableMetricSources
 	} from '$lib/editor/glyph-deriveds';
 	import { fixAuditIssue } from '$lib/editor/fix-issue';
+	import { createEditorKeyHandler } from '$lib/editor/keybindings';
 	import {
 		snapPointsToGrid,
 		flipContours,
@@ -1021,143 +1021,22 @@
 		}));
 	};
 
-	const jumpAttention = (
-		direction: 'next' | 'prev',
-		codepoints: number[],
-		allGlyphs: Record<number, Glyph>,
-		project: NonNullable<typeof projectStore.project>
-	) => {
-		const attention: Array<{ cp: number; firstMessage: string }> = [];
-		for (const cp of codepoints) {
-			const g = allGlyphs[cp];
-			if (!g) continue;
-			const issues = sortBySeverity(auditGlyph(g, project)).filter(
-				(i) => i.severity === 'warn' || i.severity === 'error'
-			);
-			if (issues.length > 0) attention.push({ cp, firstMessage: issues[0].message });
-		}
-		if (attention.length === 0) {
-			toast.info('No glyphs need attention', 1500);
-			return;
-		}
-		const aIdx = attention.findIndex((a) => a.cp === projectStore.selectedCodepoint);
-		const targetIdx =
-			direction === 'next'
-				? aIdx >= 0
-					? (aIdx + 1) % attention.length
-					: 0
-				: aIdx >= 0
-					? (aIdx - 1 + attention.length) % attention.length
-					: attention.length - 1;
-		const target = attention[targetIdx];
-		projectStore.selectGlyph(target.cp);
-		const name = allGlyphs[target.cp]?.name ?? 'glyph';
-		toast.info(`${name} — ${target.firstMessage}`, 2200);
-	};
-
-	const handleKeyDown = (ev: KeyboardEvent) => {
-		if (ev.target instanceof HTMLInputElement) return;
-		if (ev.target instanceof HTMLTextAreaElement) return;
-		const project = projectStore.project;
-		const allGlyphs = project?.glyphs ?? {};
-		const allCodepoints = Object.keys(allGlyphs)
-			.map(Number)
-			.sort((a, b) => a - b);
-		const codepoints = skipEmptyNav
-			? allCodepoints.filter(
-					(cp) =>
-						allGlyphs[cp]?.contours.length > 0 ||
-						(allGlyphs[cp]?.components?.length ?? 0) > 0
-				)
-			: allCodepoints;
-		const idx = codepoints.indexOf(projectStore.selectedCodepoint);
-		// Shift+]/Shift+[ — jump to next/prev glyph that the audit module flags
-		// with warn or error. Lets a designer step through the punch list
-		// without leaving the editor. Computed on-demand so we only pay the
-		// audit cost when the user actually presses the shortcut.
-		if ((ev.key === '}' || (ev.key === ']' && ev.shiftKey)) && project) {
-			ev.preventDefault();
-			jumpAttention('next', codepoints, allGlyphs, project);
-			return;
-		}
-		if ((ev.key === '{' || (ev.key === '[' && ev.shiftKey)) && project) {
-			ev.preventDefault();
-			jumpAttention('prev', codepoints, allGlyphs, project);
-			return;
-		}
-		if (ev.key === ']') {
-			ev.preventDefault();
-			const next = codepoints[Math.min(idx + 1, codepoints.length - 1)];
-			projectStore.selectGlyph(next);
-		} else if (ev.key === '[') {
-			ev.preventDefault();
-			projectStore.selectGlyph(codepoints[Math.max(idx - 1, 0)]);
-		} else if (ev.key === 'p' || ev.key === 'P') {
-			tool = 'pencil';
-		} else if (ev.key === 'e' || ev.key === 'E') {
-			tool = 'eraser';
-		} else if (ev.key === 'a' || ev.key === 'A') {
-			if (glyph && glyph.contours.length > 0) tool = 'edit';
-		} else if (ev.key === 't' || ev.key === 'T') {
-			trace();
-		} else if (ev.key === 's' || ev.key === 'S') {
-			showSketch = !showSketch;
-		} else if ((ev.key === 'v' || ev.key === 'V') && !ev.metaKey && !ev.ctrlKey) {
-			// Bare V/Shift+V toggles vector layer. Cmd+Shift+V (paste glyph)
-			// is intentionally NOT this branch — it falls through to the
-			// modifier-aware handler below. Without the !meta/!ctrl guard
-			// this branch swallowed Cmd+Shift+V and paste was unreachable.
-			showVector = !showVector;
-		} else if (ev.key === 'g' || ev.key === 'G') {
-			showGrid = !showGrid;
-		} else if (ev.key === 'R' && ev.shiftKey && familyRegularProject) {
-			// Shift+R toggles the family-Regular ghost overlay (only when this is a
-			// sibling — Regular project itself doesn't have anything to compare to).
-			showFamilyRegular = !showFamilyRegular;
-		} else if (ev.key === 'r' || ev.key === 'R') {
-			showReference = !showReference;
-		} else if (ev.key === 'o' || ev.key === 'O') {
-			showOnion = !showOnion;
-		} else if (ev.key === 'x' || ev.key === 'X') {
-			showAnchors = !showAnchors;
-		} else if (ev.key >= '1' && ev.key <= '4' && glyph && !ev.metaKey && !ev.ctrlKey) {
-			const map: Record<string, 'empty' | 'sketch' | 'draft' | 'final'> = {
-				'1': 'empty',
-				'2': 'sketch',
-				'3': 'draft',
-				'4': 'final'
-			};
-			projectStore.setGlyphStatus(glyph.codepoint, map[ev.key]);
-			toast.info(`Status: ${map[ev.key]}`, 1500);
-		} else if (ev.key === '`' && glyph) {
-			const willPin = !glyph.pinned;
-			projectStore.toggleGlyphPin(glyph.codepoint);
-			toast.info(willPin ? `Pinned ${glyph.name}` : `Unpinned ${glyph.name}`, 1500);
-		} else if ((ev.key === 'F' || ev.key === 'f') && ev.shiftKey && glyph) {
-			const willFlag = !glyph.flagged;
-			projectStore.toggleGlyphFlag(glyph.codepoint);
-			toast.info(
-				willFlag ? `Flagged ${glyph.name} for review` : `Unflagged ${glyph.name}`,
-				1500
-			);
-		} else if ((ev.key === 'z' || ev.key === 'Z') && (ev.metaKey || ev.ctrlKey)) {
-			ev.preventDefault();
-			if (ev.shiftKey) {
-				projectStore.redo();
-			} else {
-				projectStore.undo();
-			}
-		} else if ((ev.key === 'y' || ev.key === 'Y') && (ev.metaKey || ev.ctrlKey)) {
-			ev.preventDefault();
-			projectStore.redo();
-		} else if ((ev.key === 'c' || ev.key === 'C') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
-			ev.preventDefault();
-			copyGlyph();
-		} else if ((ev.key === 'v' || ev.key === 'V') && ev.shiftKey && (ev.metaKey || ev.ctrlKey)) {
-			ev.preventDefault();
-			pasteGlyph();
-		}
-	};
+	const handleKeyDown = createEditorKeyHandler({
+		getGlyph: () => glyph ?? null,
+		getSkipEmptyNav: () => skipEmptyNav,
+		getFamilyRegular: () => familyRegularProject,
+		setTool: (t) => (tool = t),
+		toggleSketch: () => (showSketch = !showSketch),
+		toggleVector: () => (showVector = !showVector),
+		toggleGrid: () => (showGrid = !showGrid),
+		toggleReference: () => (showReference = !showReference),
+		toggleFamilyRegular: () => (showFamilyRegular = !showFamilyRegular),
+		toggleOnion: () => (showOnion = !showOnion),
+		toggleAnchors: () => (showAnchors = !showAnchors),
+		trace,
+		copyGlyph,
+		pasteGlyph
+	});
 </script>
 
 <svelte:window onkeydown={handleKeyDown} />
