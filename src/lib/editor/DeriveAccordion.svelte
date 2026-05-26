@@ -3,6 +3,7 @@
 	// copying / flipping / rotating a sibling. Useful for b/d, p/q, n/u
 	// pairs. Parent gates {#if contours.length === 0 && sources.length > 0}.
 	import Accordion from '$lib/ui/Accordion.svelte';
+	import SidebarButton from '$lib/editor/SidebarButton.svelte';
 	import type { Glyph } from '$lib/font/types';
 
 	export type DeriveTransform = 'copy' | 'flipH' | 'flipV' | 'rotate180';
@@ -30,7 +31,7 @@
 	<div class="grid grid-cols-2 gap-1.5">
 		<select
 			bind:value={sourceCp}
-			class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+			class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"
 		>
 			<option value={null} disabled>Source glyph</option>
 			{#each sources as g (g.codepoint)}
@@ -39,7 +40,7 @@
 		</select>
 		<select
 			bind:value={transform}
-			class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
+			class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40"
 		>
 			<option value="copy">Copy as-is</option>
 			<option value="flipH">Flip horizontal</option>
@@ -47,12 +48,9 @@
 			<option value="rotate180">Rotate 180°</option>
 		</select>
 	</div>
-	<button
-		type="button"
-		onclick={onapply}
-		disabled={sourceCp == null}
-		class="mt-2 w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-	>
-		Generate
-	</button>
+	<div class="mt-2">
+		<SidebarButton fullWidth disabled={sourceCp == null} onclick={onapply}>
+			Generate
+		</SidebarButton>
+	</div>
 </Accordion>

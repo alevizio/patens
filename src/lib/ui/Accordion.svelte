@@ -9,7 +9,6 @@
 	 */
 	import type { Snippet } from 'svelte';
 	import ChevronDown from '@lucide/svelte/icons/chevron-down';
-	import ChevronRight from '@lucide/svelte/icons/chevron-right';
 
 	type Props = {
 		/** Stable identifier — used as the localStorage key suffix. */
@@ -43,8 +42,6 @@
 	// semantics here.
 	// svelte-ignore state_referenced_locally
 	const STORAGE_KEY = `font-studio:accordion:${id}`;
-	// Stable element ids for the WAI-ARIA disclosure pattern: the button
-	// controls a labeled region, the region is labelled by the button.
 	// svelte-ignore state_referenced_locally
 	const headerId = `acc-h-${id}`;
 	// svelte-ignore state_referenced_locally
@@ -78,16 +75,17 @@
 		type="button"
 		id={headerId}
 		onclick={toggle}
-		class="flex w-full items-center gap-2 px-4 py-2.5 text-left text-[10px] font-semibold tracking-wider text-fg-subtle uppercase transition-colors hover:bg-surface-2/40 hover:text-fg"
+		class="group flex w-full items-center gap-2 px-4 py-2.5 text-left text-[10px] font-semibold tracking-wider text-fg-subtle uppercase transition-colors hover:bg-surface-2/40 hover:text-fg focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:text-fg"
 		aria-expanded={open}
 		aria-controls={panelId}
 		title={open ? `Collapse ${label}` : `Expand ${label}`}
 	>
-		{#if open}
-			<ChevronDown class="size-3 shrink-0 text-fg-subtle" aria-hidden="true" />
-		{:else}
-			<ChevronRight class="size-3 shrink-0 text-fg-subtle" aria-hidden="true" />
-		{/if}
+		<ChevronDown
+			class="size-3 shrink-0 text-fg-subtle transition-transform duration-150 ease-out group-hover:text-fg {open
+				? ''
+				: '-rotate-90'}"
+			aria-hidden="true"
+		/>
 		{#if icon}
 			{@render icon()}
 		{/if}

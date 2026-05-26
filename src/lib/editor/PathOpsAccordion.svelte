@@ -5,6 +5,7 @@
 	// purely the button grid — the parent passes glyph (read-only) so
 	// each button can derive its own disabled state.
 	import Accordion from '$lib/ui/Accordion.svelte';
+	import SidebarButton from '$lib/editor/SidebarButton.svelte';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
 	import type { Glyph } from '$lib/font/types';
 	import type { PathOp } from '$lib/font/path-edit';
@@ -42,86 +43,77 @@
 
 	const isEmpty = $derived(glyph.contours.length === 0);
 	const isSingleContour = $derived(glyph.contours.length < 2);
-	const sidebearingsBalanced = $derived(glyph.leftSidebearing === glyph.rightSidebearing);
+	const sidebearingsBalanced = $derived(
+		glyph.leftSidebearing === glyph.rightSidebearing
+	);
 </script>
 
 <Accordion id="edit-pathops" label="Path operations" defaultOpen={false}>
-	<button
-		type="button"
-		onclick={onAutoClean}
-		disabled={isEmpty || autoCleaning}
-		class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent bg-accent text-accent-fg px-2 py-1.5 text-[11px] font-medium hover:bg-accent/90 disabled:opacity-40"
-		title="Simplify + snap to 10u grid in one step"
-	>
-		<Wand class="size-3" />
-		{autoCleaning ? 'Cleaning…' : 'Auto-clean glyph'}
-	</button>
+	<div class="mb-2">
+		<SidebarButton
+			variant="primary"
+			fullWidth
+			disabled={isEmpty || autoCleaning}
+			onclick={onAutoClean}
+			title="Simplify + snap to 10u grid in one step"
+		>
+			<Wand class="size-3" />
+			{autoCleaning ? 'Cleaning…' : 'Auto-clean glyph'}
+		</SidebarButton>
+	</div>
 	<div class="mb-2 grid grid-cols-2 gap-1.5">
-		<button
-			type="button"
-			onclick={() => onPathOp('union')}
+		<SidebarButton
 			disabled={isSingleContour}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onPathOp('union')}
 			title="Merge all contours into a single silhouette"
 		>
 			Union
-		</button>
-		<button
-			type="button"
-			onclick={() => onPathOp('intersection')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isSingleContour}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onPathOp('intersection')}
 			title="Keep only the area common to all contours"
 		>
 			Intersect
-		</button>
-		<button
-			type="button"
-			onclick={() => onPathOp('difference')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isSingleContour}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onPathOp('difference')}
 			title="Subtract every contour after the first from the first"
 		>
 			Subtract
-		</button>
-		<button
-			type="button"
-			onclick={() => onPathOp('xor')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isSingleContour}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onPathOp('xor')}
 			title="Keep regions that belong to an odd number of contours"
 		>
 			Xor
-		</button>
+		</SidebarButton>
 	</div>
-	<button
-		type="button"
-		onclick={onSimplify}
+	<SidebarButton
+		fullWidth
 		disabled={isEmpty || simplifying}
-		class="w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+		onclick={onSimplify}
 		title="Reduce noise: re-sample, Douglas-Peucker, then refit bezier curves"
 	>
 		{simplifying ? 'Simplifying…' : 'Simplify outline'}
-	</button>
+	</SidebarButton>
 	<div class="mt-1.5 grid grid-cols-2 gap-1.5">
-		<button
-			type="button"
-			onclick={() => onSnapGrid(10)}
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onSnapGrid(10)}
 			title="Round every point to the nearest 10 font units (cleanup)"
 		>
 			Snap 10u
-		</button>
-		<button
-			type="button"
-			onclick={onReverseWinding}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={onReverseWinding}
 			title="Flip every contour's winding direction"
 		>
 			Reverse winding
-		</button>
+		</SidebarButton>
 	</div>
 	<h3
 		class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase"
@@ -129,82 +121,52 @@
 		Transform
 	</h3>
 	<div class="grid grid-cols-2 gap-1.5">
-		<button
-			type="button"
-			onclick={() => onFlip('horizontal')}
-			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-		>
+		<SidebarButton disabled={isEmpty} onclick={() => onFlip('horizontal')}>
 			Flip H
-		</button>
-		<button
-			type="button"
-			onclick={() => onFlip('vertical')}
-			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-		>
+		</SidebarButton>
+		<SidebarButton disabled={isEmpty} onclick={() => onFlip('vertical')}>
 			Flip V
-		</button>
-		<button
-			type="button"
-			onclick={() => onScale(1.05)}
-			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-		>
+		</SidebarButton>
+		<SidebarButton disabled={isEmpty} onclick={() => onScale(1.05)}>
 			Scale +5%
-		</button>
-		<button
-			type="button"
-			onclick={() => onScale(1 / 1.05)}
-			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-		>
+		</SidebarButton>
+		<SidebarButton disabled={isEmpty} onclick={() => onScale(1 / 1.05)}>
 			Scale −5%
-		</button>
-		<button
-			type="button"
-			onclick={onMakeSymmetric}
+		</SidebarButton>
+		<SidebarButton
 			disabled={sidebearingsBalanced}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={onMakeSymmetric}
 			title="Set LSB = RSB = average — useful for symmetric round glyphs (o, O, e)"
 		>
 			Symmetric LSB/RSB
-		</button>
-		<button
-			type="button"
-			onclick={onCenterHorizontally}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={onCenterHorizontally}
 			title="Shift contours so the bbox centre matches advance/2"
 		>
 			Center in advance
-		</button>
-		<button
-			type="button"
-			onclick={() => onAlignVertically('baseline')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onAlignVertically('baseline')}
 			title="Shift contours so the bbox bottom sits on baseline"
 		>
 			Sit on baseline
-		</button>
-		<button
-			type="button"
-			onclick={() => onAlignVertically('capHeight')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onAlignVertically('capHeight')}
 			title="Shift contours so the bbox top hits cap-height"
 		>
 			Top to cap
-		</button>
-		<button
-			type="button"
-			onclick={() => onAlignVertically('xHeight')}
+		</SidebarButton>
+		<SidebarButton
 			disabled={isEmpty}
-			class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
+			onclick={() => onAlignVertically('xHeight')}
 			title="Shift contours so the bbox top hits x-height"
 		>
 			Top to x-height
-		</button>
+		</SidebarButton>
 	</div>
 </Accordion>
