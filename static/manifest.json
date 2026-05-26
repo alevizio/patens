@@ -1,7 +1,7 @@
 {
 	"name": "Patens",
 	"short_name": "Patens",
-	"description": "Browser-native type design. Draw glyphs, kern them, ship OpenType fonts — open source, no installs, no sign-ups.",
+	"description": "A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 94-code audit module that explains every finding. Open source, browser-native.",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",

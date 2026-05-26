@@ -62,7 +62,7 @@
 	<title>Patens</title>
 	<meta
 		name="description"
-		content="Sketch-first personal type design tool. Draw, vectorize, space, kern, and export OTF in the browser."
+		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 94-code audit module that explains every finding. Open source, browser-native."
 	/>
 
 	<!-- Open Graph + Twitter Card. Per-route +page.svelte can override title /
@@ -74,7 +74,7 @@
 	<meta property="og:title" content="Patens" />
 	<meta
 		property="og:description"
-		content="Sketch-first browser type editor — variable fonts, AI completion, OTF export."
+		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta property="og:image" content="/og.png" />
 	<meta property="og:image:width" content="1200" />
@@ -85,7 +85,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="Sketch-first browser type editor — variable fonts, AI completion, OTF export."
+		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta name="twitter:image" content="/og.png" />
 </svelte:head>
