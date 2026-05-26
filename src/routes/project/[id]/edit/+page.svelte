@@ -57,6 +57,7 @@
 		glyphSvgPathString
 	} from '$lib/editor/glyph-export';
 	import { parseSvgPasteToGlyph } from '$lib/editor/glyph-paste';
+	import { SAMPLE_WORDS } from '$lib/editor/sample-words';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -362,89 +363,6 @@
 	// click "Sample" to fill with a word that exercises the current glyph
 	// in real context — kerning pairs, joins, ascender/descender behaviour.
 	// Multiple samples per glyph so repeat clicks cycle through variety.
-	const SAMPLE_WORDS: Record<string, string[]> = {
-		A: ['HAMBURGEVONS', 'Avocado', 'AVALANCHE', 'Allegro'],
-		a: ['Hamburgevons', 'avocado', 'apricot', 'arrival'],
-		B: ['Bouquet', 'Bilbao', 'BRAVADO'],
-		b: ['rabbit', 'habit', 'bobbing'],
-		C: ['Concentric', 'Calcium', 'CASCADE'],
-		c: ['echelon', 'crescent', 'cycle'],
-		D: ['DODGE', 'Diamond', 'Dragonfly'],
-		d: ['standard', 'doodle', 'paddle'],
-		E: ['Epsilon', 'EVEREST', 'Echo'],
-		e: ['element', 'reverence', 'esteem'],
-		F: ['Fjord', 'Effort', 'FORTUNE'],
-		f: ['effort', 'fluffy', 'official'],
-		G: ['Glacier', 'GIGABYTE', 'Genuine'],
-		g: ['rugged', 'glowing', 'engaging'],
-		H: ['Hamburgevons', 'HORIZON', 'Helium'],
-		h: ['highlight', 'hashish', 'thatch'],
-		I: ['Iris', 'Italic', 'INCISIVE'],
-		i: ['incidence', 'minimum', 'finishing'],
-		J: ['Jovial', 'JACKDAW', 'Jasmine'],
-		j: ['banjo', 'jovial', 'enjoy'],
-		K: ['Kayak', 'KILOWATT', 'Kingdom'],
-		k: ['skipping', 'knocked', 'token'],
-		L: ['Lullaby', 'LATITUDE', 'Lantern'],
-		l: ['lulling', 'willow', 'distill'],
-		M: ['Mammoth', 'MOSAIC', 'Meridian'],
-		m: ['mammal', 'common', 'simmer'],
-		N: ['Nominal', 'NOCTURNE', 'Nebula'],
-		n: ['minimum', 'inning', 'cannon'],
-		O: ['Orbit', 'OCTAVE', 'Oolong'],
-		o: ['cocoon', 'moon', 'cooperation'],
-		P: ['Plateau', 'PYRAMID', 'Phantom'],
-		p: ['apple', 'puppy', 'pepper'],
-		Q: ['Quartz', 'QUEUE', 'Quiver'],
-		q: ['quick', 'queue', 'quaint'],
-		R: ['Rhythm', 'REVERIE', 'Radius'],
-		r: ['murmur', 'mirror', 'narrator'],
-		S: ['Sussex', 'SUSPENSE', 'Sirius'],
-		s: ['essence', 'sussex', 'glass'],
-		T: ['Trinity', 'TANGENT', 'Tabular'],
-		t: ['tattoo', 'titanic', 'attempt'],
-		U: ['Uplift', 'UMBRELLA', 'Unique'],
-		u: ['unusual', 'museum', 'curfew'],
-		V: ['Velvet', 'VIVID', 'Vacuum'],
-		v: ['velvet', 'survey', 'civilian'],
-		W: ['Willow', 'WORKFLOW', 'Whirlwind'],
-		w: ['willow', 'window', 'wallow'],
-		X: ['Xenon', 'EXAMPLE', 'Xylophone'],
-		x: ['oxide', 'exotic', 'maximum'],
-		Y: ['Yacht', 'YESTERDAY', 'Yearly'],
-		y: ['yearly', 'symphony', 'beyond'],
-		Z: ['Zigzag', 'ZENITH', 'Zephyr'],
-		z: ['zigzag', 'pizza', 'puzzle'],
-		// Digits — show in column + mixed context. Tabular vs proportional
-		// figure decisions are most visible here.
-		'0': ['1029384756', 'Year 2026', 'Code 007'],
-		'1': ['11/11 11:11', '1024 KB', 'One in 100'],
-		'2': ['22 February 2022', '1024 × 768', 'Two for 22'],
-		'3': ['33⅓ rpm', '3.14159', 'Three minus 3'],
-		'4': ['Front-end 4.0', '4444 forty-four', 'For 4-year-olds'],
-		'5': ['$55.55', '5/5 stars', 'Top 5 of 555'],
-		'6': ['6.6.66 number', '60 fps', 'Six 6s in 6666'],
-		'7': ['Mach 7.7', '777 jet', 'Seven of 77'],
-		'8': ['8 of 88 days', '88.8°', '8/8 done'],
-		'9': ['9 lives, 99 cats', '999 ohms', 'Nine of 99'],
-		// Punctuation — show in real sentence context so kerning + spacing
-		// problems are visible.
-		'.': ['e.g. or i.e. Dr. Jr.', 'A.M. or P.M.', 'Sentence. Another.'],
-		',': ['1,234,567 commas', 'apples, oranges, pears', 'However, despite that,'],
-		';': ['list; another; final', 'so; therefore', 'one; two; three'],
-		':': ['12:34 PM', 'Note: read this', 'time: 6:30'],
-		'!': ['Hello! Surprise!', 'Watch out!', 'Wow!! Really??!'],
-		'?': ['Why? When? How?', 'Hello? Anyone?', 'Sure? Really??'],
-		"'": ["it's, don't, can't", "'80s, '90s", "the dog's bone"],
-		'"': ['"hello," she said', '"quoted text"', 'the "best" answer'],
-		'(': ['(parenthetical)', '(see note)', '(a + b)'],
-		')': ['ok (yes)', '(done)', '(2 + 3) × 4'],
-		'-': ['well-known dash', 'thirty-three', 'state-of-the-art'],
-		'/': ['1/2 + 3/4', 'and/or both', 'true/false'],
-		'@': ['name@host.com', '@user mention', 'reply@here'],
-		'#': ['#hashtag rules', '#1 ranked', '#000 in CSS'],
-		'&': ['Tom & Jerry', 'AT&T Inc.', 'rock & roll']
-	};
 	let sampleIndex = $state(0);
 	// Build a sample string from the current glyph's actual kerning pairs.
 	// Returns null when no pairs involve this glyph as a codepoint pair —
