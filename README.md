@@ -1,6 +1,6 @@
 # Patens
 
-> Browser-native, open-source type design. Draw glyphs, kern them, ship OpenType — no installs, no sign-ups.
+> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 94-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
 
 [**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
 
@@ -11,17 +11,14 @@
 [![Bluesky](https://img.shields.io/badge/Bluesky-%40patens.design-0085ff.svg)](https://bsky.app/profile/patens.design)
 [![Sponsor](https://img.shields.io/github/sponsors/alevizio?label=Sponsor)](https://github.com/sponsors/alevizio)
 
-<!--
-  Hero screenshot — replace this comment block with an actual image
-  when you have one. Recommended: 1920×960 PNG/WebP showing the
-  editor mid-trace with a glyph in progress + the right sidebar
-  audit panel visible. Stored under static/hero.png.
+<!-- Hero demo GIF goes here — see docs/launch/demo-gif-storyboard.md
+     for the 30-second pre-record blueprint. Once recorded, drop it
+     at static/demo/patens-30s.mp4 and replace this with:
+     ![Patens — draw, trace, audit, fix, kern, export in 30s](./static/demo/patens-30s.mp4) -->
 
-  Example markup once the file is in place:
-  ![Patens editor — mid-trace on a lowercase g with the audit panel open](./static/hero.png)
--->
+Patens is a browser-native, open-source SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The differentiator isn't *that* it's browser-native — it's that the **audit module is a citizen of the editor**, not an afterthought. Every glyph, every metric, every kern pair has a teaching surface: "your sidebearings drift across the stem class" or "this contour winds the wrong way for OpenType" — with the rule, the why, and a one-click fix where one exists.
 
-Patens is a self-contained SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, numerals, punctuation, currency, math, brackets, composite ligatures), a partial Cyrillic set (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and a partial Greek set (14 uppercase look-alikes) — enough to set a UI, a price table, or a Bulgarian legal footer without falling back to system fonts.
+The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, numerals, punctuation, currency, math, brackets, composite ligatures), a partial Cyrillic set (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and a partial Greek set (14 uppercase look-alikes) — enough to set a UI, a price table, or a Bulgarian legal footer without falling back to system fonts.
 
 ## Try it
 
@@ -34,6 +31,7 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 | Capability | Notes |
 |---|---|
+| **Audit** | 94 codes covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage; teaching prose on every code + one-click fixes for the fixable ones. The headline feature — runs continuously alongside the editor, not as a separate lint step. |
 | Pressure-sensitive sketch | Drawn input with stroke weight + pressure; trace to cubic-Bézier contours via boolean union + Schneider curve fitting |
 | Direct contour editing | Smooth ↔ corner points, nudge, multi-select, transform |
 | Variable fonts | Multiple masters at distinct axis locations + named instances + a 2D variation explorer for ≥2-axis projects |
@@ -41,11 +39,10 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 | Kerning + classes | Pair editor, class system, silhouette-distance auto-kern, family-wide kerning resolution |
 | Color fonts | COLR v0/v1 + CPAL palettes; live color-plan rendering |
 | Anchors + composites | Mark-positioning rig (`top` / `_top` anchor convention) + component composites with offset resolution |
-| Audit | 94 codes covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage; one-click fixes for the fixable ones |
 | Export | OTF + WOFF2 (in-browser), TTF (Pyodide + ttfautohint), UFO, designer-bundled `.zip`, portable `.font.json` |
 | Specimen | Print stylesheet that strips chrome and emits a PDF-ready specimen sheet |
 | PWA | Service worker for real offline; manifest + 192/512 icons for install |
-| Accessibility | WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 19 routes |
+| Accessibility | WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 31 routes |
 
 ## Project status
 
@@ -65,8 +62,8 @@ For what's deferred: [`ROADMAP.md`](./ROADMAP.md). For release history: [`CHANGE
 pnpm install
 pnpm dev          # http://localhost:5173
 
-pnpm test         # vitest (489 unit tests)
-pnpm test:e2e     # Playwright + axe-core a11y (42 e2e tests)
+pnpm test         # vitest (528 unit tests + 6 perf benches)
+pnpm test:e2e     # Playwright + axe-core a11y (66 e2e tests across 7 files)
 pnpm check        # svelte-check / TypeScript strict
 pnpm build        # production build
 pnpm profile      # cold-load CDP trace (any URL)

@@ -2,6 +2,52 @@
 
 All notable changes to Patens. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/patens).
 
+## [Unreleased]
+
+The OSS-readiness arc + TypeCon Portland launch prep. Accumulates since v1.5.2; will tag as v1.6.0 once the demo GIF lands + real-device responsive sweep is complete.
+
+### Added
+- **CLI: `npx patens audit`** — the 94-code audit module + preflight + compatibility checks shipped as a Node CLI. Single bundled ESM via esbuild, 3 output formats (`text` / `json` / `github` for PR annotations), exit code 2 on errors. Drop-in CI step; closes the "audit is locked inside the editor" critique. 13 unit tests cover the formatters.
+- **10 Architecture Decision Records** under `docs/decisions/` (Michael Nygard format). Documents the load-bearing choices: browser-native, MIT-forever, SSR-at-root, audit worker, share-as-capability, storage namespace stays `font-studio-*`, BYOK AI, strict quality gates, demo open-by-default.
+- **TypeDoc API reference** — `pnpm run docs:api` builds HTML docs under `docs/api/` for the audit + export + family-kerning + kerning-classes + path + font-machinery modules. Output gitignored, regenerable from source.
+- **2 new perf benchmarks** — `buildFont` (50/162/500-glyph projects: 2.4ms / 19ms / 126ms per call) + `expandKerningClasses` (small/medium/large with up to 360k expanded pairs in 19ms). Mirror the existing `audit.bench` pattern.
+- **30-second demo GIF storyboard** at `docs/launch/demo-gif-storyboard.md` — frame-by-frame pre-record blueprint: setup checklist, ffmpeg compression commands, per-surface delivery table.
+- **Responsive audit + sign-off checklist** at `docs/launch/responsive-audit.md` — code-level findings plus the iPhone + iPad device-test list that requires real hardware.
+- **AGENTS.md** — Linux Foundation cross-tool AI-assistant onboarding standard.
+- **ARCHITECTURE.md** — six-layer map + the core flows (cold-load, audit, share-write, export) + the SSR posture rationale.
+- **DESIGN_PHILOSOPHY.md** — the *why* behind Patens (teaching-first, audit-as-citizen, no AI-led marketing, never paywall the editor). Referenced from PR template.
+- **MAINTAINERS.md** — solo-maintainer response SLA, triage cadence, scope vs. out-of-scope.
+- **`docs/release-process.md`** — solo-maintainer release playbook: cadence, semver rules (audit-code IDs stable forever), pre-release checklist, tagging, post-release verification, hotfix flow, rollback via Vercel promote.
+- **CodeQL SAST + OpenSSF Scorecard + Dependency-review + Release-drafter** GitHub Actions workflows.
+- **CycloneDX SBOM via cdxgen** in CI — EU CRA future-proofing.
+- **Devcontainer config** for Codespaces + VS Code dev-container.
+- **OSS-readiness signal artifacts**: `FUNDING.yml`, RFC 9116 `security.txt`, `humans.txt`, `CONTRIBUTORS.md`. Plus 6 paste-ready prep docs under `docs/launch/` — NLnet NGI Zero Commons, OpenSSF Best Practices, USPTO trademark walkthrough, GitHub Sponsors, Polar, 3 awesome-list PRs.
+- **`/privacy` + `/security` pages** — plain-English, GDPR-shaped data inventory + responsible-disclosure flow. Both prerendered with full JSON-LD.
+- **`/press` kit** — factsheet (structured-data canonical), three-length descriptions, brand assets + screenshots placeholder, milestones.
+- **Re-share version picker UI** on `/share/[id]` + multi-master axis-pair picker on `/designspace`. Closes the two "server-ready, UI pending" items from the v1.5 backlog.
+
+### Changed
+- **Audit-led home welcome strip copy.** The first-visit non-blocking strip now leads with the audit module as the differentiator: "A type design tool that teaches as you draw." Compresses cleanly to a tweet or a Show HN headline.
+- **Swiss-influenced heading scale-up across 8 marketing pages.** Hero `sm:64` → `sm:80`, h1 `36` → `48`, h2 canonical `20` → `28` (incl. `/changelog` `24` → `28`, `/learn` `22/40` → `28/48`). h2 vertical rhythm `mt-12 mb-3` → `mt-16 mb-4`. Body sizes unchanged — Patens's density (14-15) is deliberate.
+- **Section rules on document-flow pages** (`/about`, `/privacy`, `/security`) — `border-t border-border/30 pt-12` above each h2 for structural skeleton.
+- **CONTRIBUTING + MAINTAINERS cross-links** to ADRs, DESIGN_PHILOSOPHY, AGENTS, release-process. Lint-gate exception rationale points at ADR-009.
+- **README opening blurb** reworked to lead with audit-as-teaching positioning, not feature-list. Capability table reorders Audit to the top as the headline row.
+
+### Fixed
+- **Home page Lighthouse A11y 98 → 100.** axe-core flagged `landmark-one-main`: the home page lacked a `<main>` landmark. The outer drag-drop surface (`<div role="application">`) became `<main>`; drag-drop event handlers unchanged.
+- **Editor mobile-gate.** A phone hitting `/project/[id]/edit` used to get the desktop editor crammed into a 375px viewport with no warning. Non-dismissible `<1024px` banner inside the project layout now names the constraint. iPad in landscape (≈1180px) clears it.
+- **Pin button on home cards** was invisible on touch devices (`opacity-0 group-hover:`). Now `opacity-60` on mobile, hover-revealed on `sm:+`.
+- **Stale `security.txt`** pointed at `font-studio.vercel.app`; updated to canonical `patens.design` URLs.
+
+### Performance
+- **Editor cold-load: 593 KB → 486 KB (−106 KB / −17.9%).** Four-stage defer pass:
+  - Audit module dynamically imported on `requestIdleCallback`; the 94-check × every-glyph badge computation no longer blocks first paint.
+  - SettingsDialog (5KB) + ShortcutsDialog (5KB) + StatsPopover (19KB) lazy-mount on first open.
+  - CommandPalette (15KB) lazy-mounted in the root layout — saves 15 KB on every cold load across every route, marketing pages included.
+  - EditorTour (7KB) lazy on tour activation.
+  - 5 right-sidebar panels (CompositeEditor 15KB + ReferenceImagePanel 11KB + RevisionsPanel 8KB + MetricsInspector 5KB + StemsPanel 3KB) batched into a single `Promise.all` import on `requestIdleCallback` ~200ms after canvas mount.
+- **Pyodide lazy-loaded off the home-page eager chain.** UFO import now dynamic-imports `$lib/font/python` on first use; first-visit home no longer ships the Python runtime in the preload graph.
+
 ## [1.5.2] — 2026-05-25
 
 ### Security
