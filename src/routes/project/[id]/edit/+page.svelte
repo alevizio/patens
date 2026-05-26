@@ -61,6 +61,7 @@
 	import KerningAccordion from '$lib/editor/KerningAccordion.svelte';
 	import DeriveAccordion from '$lib/editor/DeriveAccordion.svelte';
 	import MakeAlternateAccordion from '$lib/editor/MakeAlternateAccordion.svelte';
+	import LivePreviewAccordion from '$lib/editor/LivePreviewAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2993,36 +2994,7 @@
 				</div>
 			</Accordion>
 
-			<Accordion id="edit-live-preview" label="Live preview" defaultOpen={true}>
-				{#if glyph.contours.length > 0}
-					<div
-						class="rounded-md border border-border bg-canvas p-4 text-center text-6xl preview-font leading-none"
-					>
-						{charLabel === 'space' ? '·' : charLabel}
-					</div>
-				{:else}
-					<!-- No contours yet — the project font would paint blank.
-					     Render the codepoint in the system stack at low opacity
-					     so the panel still tells you which letter you're on. -->
-					<div
-						class="rounded-md border border-dashed border-border bg-canvas p-4 text-center text-6xl leading-none text-fg-subtle"
-						style="font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;"
-						title="Draw contours to see the live preview"
-					>
-						{charLabel === 'space' ? '·' : charLabel}
-					</div>
-				{/if}
-				<div class="mt-2 text-[11px] text-fg-subtle" data-numeric>
-					{previewStore.glyphCount} glyphs · {previewStore.sizeKb.toFixed(1)} KB · {previewStore.lastBuildMs.toFixed(
-						0
-					)} ms
-				</div>
-				{#if previewStore.error}
-					<div class="mt-2 rounded bg-danger/10 p-2 text-[11px] text-danger-strong">
-						{previewStore.error}
-					</div>
-				{/if}
-			</Accordion>
+			<LivePreviewAccordion {glyph} {charLabel} />
 
 			{#if projectStore.project}
 				{@const issues = currentGlyphIssues}
