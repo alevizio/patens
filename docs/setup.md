@@ -115,9 +115,9 @@ The key stays in `localStorage` keyed by origin. It's sent to `/api/ai/messages`
 
 ### Cost expectations
 
-Typical preset run is one `messages` call to `claude-sonnet-4` with ≤2k input + ≤1.5k output tokens. At Claude 4 Sonnet rates that's ~$0.01–0.03 per run. Heavy users running every preset on every project hit $1–3/month; light users stay under $0.50.
+Typical preset run is one `messages` call to `claude-sonnet-4-6` (the default; user-configurable in Settings → Preferred model) with ≤2k input + ≤1.5k output tokens. At Claude 4.6 Sonnet rates that's ~$0.01–0.03 per run. Heavy users running every preset on every project hit $1–3/month; light users stay under $0.50.
 
-The "Consistency audit (visual)" preset is most expensive because it sends a rendered PNG of up to 20 glyphs as the input.
+The "Consistency audit (visual)" preset is most expensive because it sends a rendered PNG of up to 20 glyphs as the input. Users on tighter budgets can switch to Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) for ~5× lower cost at moderately reduced quality on the audit-explanation copy.
 
 ### Switching providers
 
