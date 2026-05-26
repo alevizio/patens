@@ -1,5 +1,10 @@
-Contact: https://github.com/alevizio/font-studio/security/advisories/new
-Policy: https://github.com/alevizio/font-studio/blob/main/SECURITY.md
+# Security disclosure for Patens.
+# RFC 9116 — https://www.rfc-editor.org/rfc/rfc9116
+#
+# Researchers: see /security on the website for full policy + scope.
+
+Contact: mailto:security@patens.design
+Expires: 2027-05-26T00:00:00.000Z
 Preferred-Languages: en
-Canonical: https://font-studio.vercel.app/.well-known/security.txt
-Expires: 2027-05-23T00:00:00.000Z
+Canonical: https://patens.design/.well-known/security.txt
+Policy: https://patens.design/security

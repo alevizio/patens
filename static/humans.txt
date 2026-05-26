@@ -1,0 +1,53 @@
+# humanstxt.org — the humans-behind-the-website file.
+# https://humanstxt.org/Standard.html
+
+/* TEAM */
+Founder + maintainer: Alejandro Vizio
+  Site: https://github.com/alevizio
+  X:    @patenstype
+  Bsky: @patens.design
+  From: ✋ hi@patens.design
+
+/* THANKS */
+The open-source projects Patens stands on. The code wouldn't ship
+without them. (Full list in package.json + /about; this is just
+the foundational stack.)
+
+  - SvelteKit team — kit.svelte.dev
+  - Svelte team — svelte.dev
+  - Tailwind Labs — tailwindcss.com
+  - opentype.js (Frederik De Bleser) — opentype.js.org
+  - HarfBuzz.js (Behdad Esfahbod et al.) — harfbuzz.github.io
+  - fontTools (Just van Rossum, Cosimo Lupo et al.) — fonttools.readthedocs.io
+  - Pyodide team — pyodide.org
+  - polygon-clipping (Mike Fogel) — github.com/mfogel/polygon-clipping
+  - perfect-freehand (Steve Ruiz) — github.com/steveruizok/perfect-freehand
+  - idb-keyval (Jake Archibald) — github.com/jakearchibald/idb-keyval
+  - fit-curve (Stanislaw Adaszewski et al.) — github.com/soswow/fit-curve
+  - axe-core (Deque Systems) — github.com/dequelabs/axe-core
+  - satori + resvg-js (Vercel) — github.com/vercel/satori
+  - Lucide icons — lucide.dev
+  - Vercel — vercel.com
+  - The type-design teachers whose whiteboard sketches encoded into
+    the 94-code audit module.
+
+/* SITE */
+Last update: 2026-05-25
+Standards: HTML5, CSS3, ECMAScript 2024, WCAG 2.0+2.1+2.2 A/AA
+Components: SvelteKit 2, Svelte 5 runes, Tailwind CSS v4
+Software: VS Code, Cursor, Claude Code, vim
+License: MIT — github.com/alevizio/patens/blob/main/LICENSE
+
+                    ___           ___
+                   /\\__\\         /\\__\\
+                  /:/  /        /::|  |
+                 /:/__/        /:|:|  |
+                /::\\  \\ ___   /:/|:|__|__
+                /:/\\:\\  /\\__\\ /:/ |::::\\__\\
+                \\/__\\:\\/:/  / \\/__/~~/:/  /
+                     \\::/  /        /:/  /
+                     /:/  /        /:/  /
+                    /:/  /        /:/  /
+                    \\/__/         \\/__/
+
+                     Patens — type, openly.

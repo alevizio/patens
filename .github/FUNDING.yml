@@ -1,0 +1,18 @@
+# Sponsor button at the top of the repo + above every PR / issue.
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+#
+# The Sponsors profile itself needs approval (1–2wk after applying
+# at https://github.com/sponsors/dashboard). Once approved, the button
+# below renders as "Sponsor"; before approval, GitHub silently hides
+# it. Either way, committing this file now means no follow-up commit
+# is needed when approval lands.
+#
+# Polar is wired separately once that account is live —
+# see docs/launch/polar-setup.md.
+
+github: alevizio
+
+# polar: alevizio              # uncomment once polar.sh account is live
+# ko_fi: alevizio              # only if added later
+# buy_me_a_coffee: alevizio    # only if added later
+# custom: ['https://patens.design/sponsor']  # only if a custom page is added
