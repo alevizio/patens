@@ -4,8 +4,47 @@
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
+	import { parseReleases } from './rss.xml/parse';
+
 	let { data } = $props();
 	const source = $derived(data.source);
+
+	// Reuse the parser that drives /changelog/rss.xml so the structured-
+	// data Article entries are guaranteed-consistent with the RSS feed.
+	const releases = $derived(parseReleases(source));
+
+	// Build one Article entry per release for AI-engine citation. Each
+	// release becomes a discrete entity that can be cited when asked
+	// "what changed in Patens v1.5.2?" or "when did Patens add the CLI?"
+	const releaseArticles = $derived(
+		releases.slice(0, 10).map((r) => ({
+			'@type': 'Article',
+			'@id': `https://patens.design/changelog#${r.anchor}`,
+			headline: `Patens v${r.version}`,
+			datePublished: r.date,
+			dateModified: r.date,
+			author: {
+				'@type': 'Person',
+				name: 'Alejandro Vizio',
+				url: 'https://github.com/alevizio'
+			},
+			publisher: {
+				'@type': 'Organization',
+				name: 'Patens',
+				url: 'https://patens.design'
+			},
+			mainEntityOfPage: `https://patens.design/changelog#${r.anchor}`,
+			// First ~200 chars of the release body strips markdown markers for
+			// a clean description. Doesn't try to be perfect; just provides
+			// a citation-friendly summary.
+			description: r.body
+				.replace(/^###?\s+\S+\s*\n/, '')
+				.replace(/[#*`\[\]()]/g, '')
+				.replace(/\s+/g, ' ')
+				.trim()
+				.slice(0, 200)
+		}))
+	);
 
 	/**
 	 * Tiny markdown renderer — covers the subset CHANGELOG.md actually
@@ -113,14 +152,23 @@
 		title="Patens · Changelog"
 		href="/changelog/rss.xml"
 	/>
-	<!-- BreadcrumbList for AI-engine hierarchy understanding. -->
+	<!-- BreadcrumbList for AI-engine hierarchy + one Article entry per
+	     release (limited to the 10 most recent so the SSR payload doesn't
+	     bloat). AI engines (ChatGPT, Claude, Perplexity, Gemini) can cite
+	     individual releases as discrete entities when asked "what changed
+	     in Patens vX.Y.Z" / "when did Patens ship the CLI" / etc. -->
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
-		'@type': 'BreadcrumbList',
-		itemListElement: [
-			{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
-			{ '@type': 'ListItem', position: 2, name: 'Changelog', item: 'https://patens.design/changelog' }
+		'@graph': [
+			{
+				'@type': 'BreadcrumbList',
+				itemListElement: [
+					{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design' },
+					{ '@type': 'ListItem', position: 2, name: 'Changelog', item: 'https://patens.design/changelog' }
+				]
+			},
+			...releaseArticles
 		]
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
