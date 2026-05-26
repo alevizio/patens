@@ -123,6 +123,7 @@
 	<!-- Per-page OG overrides — same pattern as /share. The global layout
 	     sets generic "Patens" defaults; these override for /help so
 	     a shared link unfurls with the page-specific title and description. -->
+	<link rel="canonical" href="https://patens.design/help" />
 	<meta property="og:title" content="Help · Patens" />
 	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta property="og:image" content="/og/brand" />

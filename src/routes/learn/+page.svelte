@@ -255,8 +255,58 @@
 </script>
 
 <svelte:head>
-	<title>Learn — Patens</title>
-	<meta name="description" content="A 8–12 week beginner path for type design — research, control set, vectorizing, spacing, hinting, and shipping your first font." />
+	<title>Learn type design — Patens (2026)</title>
+	<meta name="description" content="A beginner-to-shipping path for type design with Patens. Seven tutorials covering your first font, kerning, OpenType features, variable fonts, multi-script (Latin · Cyrillic · Greek), export formats, and the 94-code audit module." />
+	<link rel="canonical" href="https://patens.design/learn" />
+	<meta property="og:title" content="Learn type design · Patens" />
+	<meta property="og:description" content="Seven tutorials from first font to shipping. Plus the 94-code audit reference." />
+	<meta property="og:image" content="/og/brand" />
+	<meta name="twitter:title" content="Learn type design · Patens" />
+	<meta name="twitter:description" content="Seven tutorials from first font to shipping. Plus the 94-code audit reference." />
+	<meta name="twitter:image" content="/og/brand" />
+	<!-- CollectionPage + BreadcrumbList + ItemList JSON-LD. CollectionPage
+	     tells crawlers this is an index page. ItemList enumerates the 7
+	     tutorials with descriptions so AI engines can extract + cite them
+	     individually when asked "patens kerning tutorial" / "how to design
+	     a variable font" / etc. -->
+	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
+	{@html `<script type="application/ld+json">${JSON.stringify({
+		'@context': 'https://schema.org',
+		'@graph': [
+			{
+				'@type': 'CollectionPage',
+				name: 'Learn type design — Patens',
+				description:
+					'Seven tutorials covering the beginner-to-shipping path for type design with Patens, plus the 94-code audit reference.',
+				url: 'https://patens.design/learn',
+				inLanguage: 'en',
+				isPartOf: { '@type': 'WebSite', name: 'Patens', url: 'https://patens.design/' }
+			},
+			{
+				'@type': 'BreadcrumbList',
+				itemListElement: [
+					{ '@type': 'ListItem', position: 1, name: 'Patens', item: 'https://patens.design/' },
+					{ '@type': 'ListItem', position: 2, name: 'Learn', item: 'https://patens.design/learn' }
+				]
+			},
+			{
+				'@type': 'ItemList',
+				name: 'Patens tutorials',
+				itemListOrder: 'https://schema.org/ItemListOrderAscending',
+				numberOfItems: 7,
+				itemListElement: [
+					{ '@type': 'ListItem', position: 1, name: 'Your first font, sketch to OTF', url: 'https://patens.design/learn/first-font', description: '10-step path from blank canvas to a downloadable OpenType file.' },
+					{ '@type': 'ListItem', position: 2, name: 'Kerning fundamentals', url: 'https://patens.design/learn/kerning', description: '9-step guide to class-based kerning + the spacing tab.' },
+					{ '@type': 'ListItem', position: 3, name: 'OpenType features', url: 'https://patens.design/learn/opentype-features', description: '9-step guide to ligatures, stylistic sets, and feature wiring.' },
+					{ '@type': 'ListItem', position: 4, name: 'Variable fonts', url: 'https://patens.design/learn/variable-fonts', description: '9-step guide to masters, axes, instances, and the 2D variation explorer.' },
+					{ '@type': 'ListItem', position: 5, name: 'Multi-script: Latin · Cyrillic · Greek', url: 'https://patens.design/learn/multi-script', description: 'How Patens handles three scripts in one font with shape-sharing.' },
+					{ '@type': 'ListItem', position: 6, name: 'Export formats', url: 'https://patens.design/learn/export-formats', description: 'OTF, WOFF2, TTF, UFO, .font.json — which format for which audience.' },
+					{ '@type': 'ListItem', position: 7, name: 'Audit codes reference', url: 'https://patens.design/learn/audit-codes', description: 'All 94 audit codes grouped by family with what they mean and how to fix.' }
+				]
+			}
+		]
+	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
+	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
 <div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">

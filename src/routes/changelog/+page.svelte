@@ -93,6 +93,7 @@
 <svelte:head>
 	<title>Changelog · Patens</title>
 	<meta name="description" content="Patens release history — every version since v0.4." />
+	<link rel="canonical" href="https://patens.design/changelog" />
 	<meta property="og:title" content="Changelog · Patens" />
 	<meta property="og:description" content="Patens release history — every version since v0.4." />
 	<meta property="og:image" content="/og/brand" />

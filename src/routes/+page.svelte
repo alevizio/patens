@@ -677,60 +677,101 @@
 			font-display: swap;
 		}
 	</style>
-	<!-- WebApplication schema (subtype of SoftwareApplication for browser-based
-	     apps). Helps Google emit rich-result snippets + gives LLM crawlers
-	     extractable structured facts. Same </script> escape pattern as the
-	     share page's Product JSON-LD to dodge tokenization breakage. -->
+	<link rel="canonical" href="https://patens.design/" />
+
+	<!-- JSON-LD @graph — multi-entity structured data covering the WebSite,
+	     the Organization, the maintainer Person, and the WebApplication
+	     (the product itself). Helps Google emit rich-result snippets and
+	     — more importantly for 2026 — gives LLM crawlers (ChatGPT, Claude,
+	     Perplexity, Gemini) clean extractable facts when asked "what is
+	     Patens" / "who made Patens" / "is Patens free."
+	     Same </script> escape pattern as the share page's Product JSON-LD
+	     to dodge tokenization breakage. -->
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html `<script type="application/ld+json">${JSON.stringify({
 		'@context': 'https://schema.org',
-		'@type': 'WebApplication',
-		name: 'Patens',
-		alternateName: 'Patens — browser-native type design',
-		description:
-			'Browser-native, open-source type design environment. Draw glyphs with a pencil, trace strokes to Bézier contours, kern them, ship OpenType fonts. No installs, no sign-ups. Latin for "lying open" — root of patent.',
-		applicationCategory: 'DesignApplication',
-		applicationSubCategory: 'Font Editor',
-		operatingSystem: 'Any (browser-based)',
-		browserRequirements: 'Requires JavaScript. Recommended: a modern Chromium-based browser, Firefox, or Safari 16+',
-		url: 'https://patens.design',
-		image: 'https://patens.design/og/brand',
-		offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-		license: 'https://opensource.org/licenses/MIT',
-		isAccessibleForFree: true,
-		softwareVersion: '1.5.2',
-		releaseNotes: 'https://patens.design/changelog',
-		featureList: [
-			'Pressure-sensitive sketch tool with trace-to-Bézier',
-			'Direct contour editing with smooth and corner points',
-			'Variable fonts with multiple masters and 2D variation explorer',
-			'OpenType features with live HarfBuzz shaping preview',
-			'Kerning pair editor and class system',
-			'Family-wide kerning resolution',
-			'Color fonts via COLR v0/v1 + CPAL palettes',
-			'GPOS anchor positioning and component composites',
-			'94-code audit with one-click fixes',
-			'OTF + WOFF2 + TTF + UFO export',
-			'Designer-grade printable specimen',
-			'Service worker for offline support',
-			'WCAG 2.0/2.1/2.2 A/AA accessibility'
-		],
-		author: {
-			'@type': 'Person',
-			name: 'Alejandro Vizio',
-			url: 'https://github.com/alevizio'
-		},
-		creator: {
-			'@type': 'Person',
-			name: 'Alejandro Vizio',
-			url: 'https://github.com/alevizio'
-		},
-		codeRepository: 'https://github.com/alevizio/patens',
-		programmingLanguage: ['TypeScript', 'Svelte'],
-		sameAs: [
-			'https://github.com/alevizio/patens',
-			'https://x.com/patenstype',
-			'https://bsky.app/profile/patens.design'
+		'@graph': [
+			{
+				'@type': 'WebSite',
+				'@id': 'https://patens.design/#website',
+				url: 'https://patens.design/',
+				name: 'Patens',
+				description:
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
+				inLanguage: 'en',
+				publisher: { '@id': 'https://patens.design/#organization' }
+			},
+			{
+				'@type': 'Organization',
+				'@id': 'https://patens.design/#organization',
+				name: 'Patens',
+				url: 'https://patens.design/',
+				logo: 'https://patens.design/og/brand',
+				description:
+					'Open-source browser-native type design tool with a 94-code teaching audit module.',
+				founder: { '@id': 'https://patens.design/#maintainer' },
+				sameAs: [
+					'https://github.com/alevizio/patens',
+					'https://x.com/patenstype',
+					'https://bsky.app/profile/patens.design'
+				]
+			},
+			{
+				'@type': 'Person',
+				'@id': 'https://patens.design/#maintainer',
+				name: 'Alejandro Vizio',
+				url: 'https://github.com/alevizio',
+				jobTitle: 'Designer + maintainer',
+				sameAs: [
+					'https://github.com/alevizio',
+					'https://x.com/patenstype',
+					'https://bsky.app/profile/patens.design'
+				],
+				worksFor: { '@id': 'https://patens.design/#organization' }
+			},
+			{
+				'@type': 'WebApplication',
+				'@id': 'https://patens.design/#webapp',
+				name: 'Patens',
+				alternateName: 'Patens — type design that teaches as you draw',
+				description:
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. The audit module is the spine of the editor — every contour, metric, and kern pair gets checked against rules type designers internalize through years of mentorship, with around 30 codes offering a one-click fix. Open source MIT, browser-native, no installs.',
+				applicationCategory: 'DesignApplication',
+				applicationSubCategory: 'Font Editor',
+				operatingSystem: 'Any (browser-based)',
+				browserRequirements:
+					'Requires JavaScript. Recommended: a modern Chromium-based browser, Firefox, or Safari 16+. Best on screens 1024px+ wide.',
+				url: 'https://patens.design/',
+				image: 'https://patens.design/og/brand',
+				offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+				license: 'https://opensource.org/licenses/MIT',
+				isAccessibleForFree: true,
+				softwareVersion: '1.5.2',
+				releaseNotes: 'https://patens.design/changelog',
+				downloadUrl: 'https://github.com/alevizio/patens',
+				featureList: [
+					'94-code audit module with plain-English teaching prose on every code, one-click fixes on around 30 codes',
+					'CLI distribution: `npx patens audit` runs the same engine from the terminal for CI integration',
+					'Pressure-sensitive sketch tool with trace-to-cubic-Bézier (boolean union + Schneider curve fitting)',
+					'Direct contour editing with smooth and corner points, multi-select, affine transforms',
+					'Variable fonts: multiple masters, named instances, 2D variation explorer for ≥2-axis projects',
+					'OpenType features with live HarfBuzz shaping preview',
+					'Kerning pair editor + class system + family-wide kerning resolution at export',
+					'Color fonts via COLR v0/v1 + CPAL palettes; live color-plan rendering',
+					'GPOS anchor positioning + component composites',
+					'Export: OTF + WOFF2 (in-browser), TTF (Pyodide + ttfautohint), UFO, designer-bundled .zip, portable .font.json',
+					'Designer-grade printable specimen with Cmd+P → PDF',
+					'Service worker for real offline support',
+					'WCAG 2.0/2.1/2.2 A/AA accessibility across 31 routes'
+				],
+				author: { '@id': 'https://patens.design/#maintainer' },
+				creator: { '@id': 'https://patens.design/#maintainer' },
+				publisher: { '@id': 'https://patens.design/#organization' },
+				codeRepository: 'https://github.com/alevizio/patens',
+				programmingLanguage: ['TypeScript', 'Svelte'],
+				keywords:
+					'type design, font editor, browser-based, open source, OpenType, audit, teaching, variable fonts, multi-script, MIT'
+			}
 		]
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
