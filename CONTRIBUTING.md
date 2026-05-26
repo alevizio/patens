@@ -1,6 +1,13 @@
 # Contributing to Patens
 
-Thanks for your interest. Patens is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics; for "what does this code do," see [`docs/architecture.md`](./docs/architecture.md).
+Thanks for your interest. Patens is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics. The other docs you'll want to know about:
+
+- [`docs/architecture.md`](./docs/architecture.md) — what each module does and how the editor flow holds together.
+- [`DESIGN_PHILOSOPHY.md`](./DESIGN_PHILOSOPHY.md) — *why* Patens looks and behaves the way it does. Read this before proposing UX changes.
+- [`docs/decisions/`](./docs/decisions/) — ADRs (Architecture Decision Records) explaining the load-bearing technical choices: SSR-at-root, browser-native, MIT-forever, capability-token sharing, storage namespace, audit worker, BYOK AI, strict quality gates.
+- [`MAINTAINERS.md`](./MAINTAINERS.md) — current maintainer, response SLA, what's in scope vs. out.
+- [`AGENTS.md`](./AGENTS.md) — conventions if you're contributing with AI-coding-tool assistance (this is fully supported and encouraged; `Co-Authored-By:` trailers are preserved).
+- [`docs/release-process.md`](./docs/release-process.md) — how releases are cut. Mostly for maintainers, but useful context for "when will this PR ship."
 
 ## Getting set up
 
@@ -22,7 +29,7 @@ pnpm test              # Vitest unit tests (~450 tests)
 pnpm test:e2e          # Playwright + axe-core a11y
 ```
 
-CI runs all four on every PR. The lint baseline has 47 known warnings (ratcheted from 52 in v1.2.x); new code should add zero. CI also enforces a 5120 KB client-bundle budget — inspect locally via `pnpm run analyze`.
+CI runs all four on every PR. The lint baseline has 47 known warnings (ratcheted from 52 in v1.2.x); new code should add zero. CI also enforces a 5120 KB client-bundle budget — inspect locally via `pnpm run analyze`. The "why no exceptions" rationale lives in [ADR-009](./docs/decisions/009-strict-quality-gates.md).
 
 ## Branch model
 

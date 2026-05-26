@@ -124,7 +124,10 @@ the recourse is fork — that's MIT working as intended.
 
 ## Releases
 
-Tagged releases at least monthly during active development. Release
+Tagged releases at least monthly during active development. The
+full step-by-step playbook (pre-release checklist, tagging,
+post-release verification, hotfix flow, rollback) is documented
+in [`docs/release-process.md`](./docs/release-process.md). Release
 notes go in GitHub Releases + mirrored to `CHANGELOG.md`. Format:
 
 ```
