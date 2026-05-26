@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { page } from '$app/state';
 	import ArrowRight from '@lucide/svelte/icons/arrow-right';
+	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 
 	const status = $derived(page.status);
 	const isNotFound = $derived(status === 404);
@@ -18,7 +19,12 @@
 	<title>{status} · Patens</title>
 </svelte:head>
 
-<div class="grid min-h-screen place-items-center bg-canvas px-6">
+<!-- Centered tofu-box hero — intentional focus. SiteFooter sits below
+     the fold so visitors who scroll get the full sitemap to recover
+     from. Header omitted (the U+0XXX codepoint badge IS the
+     orientation cue here). -->
+<div class="flex min-h-screen flex-col bg-canvas">
+<div class="grid flex-1 place-items-center px-6">
 	<div class="text-center">
 		{#if isShareLink}
 			<!-- Share-link 404: the project lives in the originator's
@@ -156,4 +162,8 @@
 			</a>
 		{/if}
 	</div>
+</div>
+<div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+	<SiteFooter />
+</div>
 </div>

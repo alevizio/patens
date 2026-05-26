@@ -24,10 +24,22 @@
 		{ label: 'Compare', href: '/compare' },
 		{ label: 'Help', href: '/help' }
 	];
+
+	// Path-prefix match — /learn/first-font should highlight "Learn"
+	// alongside /learn itself. Exact "/" wouldn't match every page, so
+	// only the prefix check matters here.
+	const isActive = (href: string): boolean =>
+		href === current || (href !== '/' && current.startsWith(href + '/')) || href === current;
 </script>
 
+<!-- Sticky on scroll for long-form pages (/audit, /privacy, /security,
+     /learn/*, /changelog). Solid bg-canvas (no glassmorphism — Swiss
+     aesthetic forbids the blur shortcut); the bottom border keeps the
+     editorial-rule weight. The negative top margin on the parent
+     wrapper would normally bleed content through, but pages set their
+     own `py-8` / `pt-8` which absorbs the sticky-overlap correctly. -->
 <header
-	class="mb-12 flex items-center justify-between gap-4 border-b border-border/50 pb-4"
+	class="sticky top-0 z-20 -mx-4 mb-12 flex items-center justify-between gap-4 border-b border-border/50 bg-canvas px-4 py-4 sm:-mx-6 sm:px-6"
 >
 	<a href="/" class="group inline-flex items-center gap-2.5">
 		<span
@@ -49,9 +61,9 @@
 			<a
 				href={item.href}
 				class="text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
-				aria-current={current === item.href ? 'page' : undefined}
-				class:text-fg={current === item.href}
-				class:font-medium={current === item.href}
+				aria-current={isActive(item.href) ? 'page' : undefined}
+				class:text-fg={isActive(item.href)}
+				class:font-medium={isActive(item.href)}
 			>
 				{item.label}
 			</a>
