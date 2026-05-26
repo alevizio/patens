@@ -14,6 +14,7 @@ const BASE = 'https://patens.design';
 
 const ROUTES: Array<{ path: string; changefreq: string; priority: number }> = [
 	{ path: '/', changefreq: 'weekly', priority: 1.0 },
+	{ path: '/audit', changefreq: 'monthly', priority: 0.9 },
 	{ path: '/learn', changefreq: 'monthly', priority: 0.8 },
 	{ path: '/learn/first-font', changefreq: 'monthly', priority: 0.8 },
 	{ path: '/learn/kerning', changefreq: 'monthly', priority: 0.8 },
