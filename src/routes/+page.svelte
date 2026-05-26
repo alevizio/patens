@@ -84,13 +84,9 @@
 
 	let shortcutsOpen = $state(false);
 	const handleGlobalKey = (e: KeyboardEvent) => {
-		// ⌘K always focuses the project search, even from inside an input
-		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-			e.preventDefault();
-			searchEl?.focus();
-			searchEl?.select();
-			return;
-		}
+		// Cmd-K is now handled in the root layout (opens the global
+		// command palette). The home page keeps `/` as a quick way to
+		// focus its in-place project search, and `?` for shortcuts.
 		if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
 			return;
 		if (e.key === '?' && !e.metaKey && !e.ctrlKey && !e.altKey) {

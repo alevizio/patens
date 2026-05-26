@@ -32,7 +32,7 @@
 	import SettingsDialog from '$lib/ui/SettingsDialog.svelte';
 	import ShortcutsDialog from '$lib/ui/ShortcutsDialog.svelte';
 	import StatsPopover from '$lib/ui/StatsPopover.svelte';
-	import CommandPalette from '$lib/ui/CommandPalette.svelte';
+	import { palette } from '$lib/stores/palette.svelte';
 	import GlyphTile from '$lib/glyph/GlyphTile.svelte';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import BarChart3 from '@lucide/svelte/icons/bar-chart-3';
@@ -133,7 +133,6 @@
 	let settingsOpen = $state(false);
 	let statsOpen = $state(false);
 	let shortcutsOpen = $state(false);
-	let paletteOpen = $state(false);
 	let projectSwitcherOpen = $state(false);
 	let projectSwitcherEl = $state<HTMLDivElement | null>(null);
 
@@ -449,17 +448,17 @@
 			shortcutsOpen = !shortcutsOpen;
 			return;
 		}
-		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
-			e.preventDefault();
-			paletteOpen = !paletteOpen;
-			return;
-		}
+		// Cmd-K is now wired globally in the root +layout.svelte so the
+		// palette opens from every route, not just inside a project. The
+		// `/` shortcut stays here because it's a project-specific "jump
+		// to glyph" affordance (the global palette already shows a hint
+		// in its footer for the canonical command).
 		if (e.key === '/' && !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
 			// When not focused in an input/textarea, `/` opens the glyph palette anywhere in the project.
 			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
 				return;
 			e.preventDefault();
-			paletteOpen = true;
+			palette.show();
 			return;
 		}
 		if ((e.metaKey || e.ctrlKey) && (e.key === 's' || e.key === 'S')) {
@@ -1038,7 +1037,9 @@
 
 	<SettingsDialog open={settingsOpen} onclose={() => (settingsOpen = false)} />
 	<ShortcutsDialog open={shortcutsOpen} onclose={() => (shortcutsOpen = false)} />
-	<CommandPalette open={paletteOpen} onclose={() => (paletteOpen = false)} />
+	<!-- CommandPalette is mounted globally in src/routes/+layout.svelte
+	     so Cmd-K and the `/` shortcut share one instance, not two. -->
+
 
 	{#if projectStore.project?.locked}
 		<div

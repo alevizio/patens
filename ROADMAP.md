@@ -13,7 +13,7 @@ The share-link recipient story is no longer browser-local. Tier 2 shipped:
 
 What's still deferred:
 - **Re-share versioning.** Re-uploads currently overwrite. A version history (with deep-link to a specific version) is future work.
-- **Delete API.** Today a share lives until the Vercel Blob store is wiped. A self-service delete by the originator (key signed by their IndexedDB project record) is future work.
+- ~~**Delete API.**~~ ✅ Shipped (was already in `src/routes/api/share/[id]/+server.ts:73` — `DELETE` accepts an `X-Share-Token` header, constant-time-compares against the originator's token blob, and `del()`s both the share + token blobs idempotently. Wired into the project layout's "Unshare project" Trash button — visible only when `hasShareToken` is true, with a confirm dialog. The ROADMAP entry was just stale.)
 - **Per-project OG image.** Now achievable with cloud — server-render a preview at request time using the uploaded project. ~1 day on top of the cloud arc.
 
 ## Per-project OG image ✅ SHIPPED in v1.1.0

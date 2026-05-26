@@ -2,11 +2,26 @@
 	import '../app.css';
 	import ToastContainer from '$lib/ui/ToastContainer.svelte';
 	import OfflineIndicator from '$lib/ui/OfflineIndicator.svelte';
+	import CommandPalette from '$lib/ui/CommandPalette.svelte';
+	import { palette } from '$lib/stores/palette.svelte';
 	import { consoleHello, installKonamiListener, celebrate } from '$lib/delight';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { onMount, onDestroy } from 'svelte';
 
 	let { children } = $props();
+
+	// Global Cmd-K / Ctrl-K — opens the command palette from any route.
+	// CommandPalette is project-aware (searches glyphs in a project,
+	// searches projects + families otherwise).
+	const handleGlobalKey = (e: KeyboardEvent) => {
+		if ((e.metaKey || e.ctrlKey) && (e.key === 'k' || e.key === 'K')) {
+			// Inputs/textareas keep their browser Cmd-K behavior intact.
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)
+				return;
+			e.preventDefault();
+			palette.toggle();
+		}
+	};
 
 	let cleanupKonami: (() => void) | null = null;
 	onMount(() => {
@@ -26,6 +41,8 @@
 		cleanupKonami?.();
 	});
 </script>
+
+<svelte:window onkeydown={handleGlobalKey} />
 
 <svelte:head>
 	<title>Patens</title>
@@ -64,3 +81,4 @@
 </div>
 <ToastContainer />
 <OfflineIndicator />
+<CommandPalette open={palette.open} onclose={() => palette.hide()} />
