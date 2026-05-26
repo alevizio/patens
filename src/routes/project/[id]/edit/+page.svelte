@@ -19,17 +19,11 @@
 	import { aglfnName } from '$lib/font/aglfn';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
-	import Eye from '@lucide/svelte/icons/eye';
-	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
-	import Grid3x3 from '@lucide/svelte/icons/grid-3x3';
 	import Trash2 from '@lucide/svelte/icons/trash-2';
 	import RotateCcw from '@lucide/svelte/icons/rotate-ccw';
-	import Maximize from '@lucide/svelte/icons/maximize';
 	import AlignHorizontalSpaceAround from '@lucide/svelte/icons/align-horizontal-space-around';
-	import HelpCircle from '@lucide/svelte/icons/help-circle';
 	import FileText from '@lucide/svelte/icons/file-text';
-	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
 	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
@@ -57,6 +51,7 @@
 	import AnchorsPanel from '$lib/editor/AnchorsPanel.svelte';
 	import GlyphPanel from '$lib/editor/GlyphPanel.svelte';
 	import ShortcutsPanel from '$lib/editor/ShortcutsPanel.svelte';
+	import EditorViewToggles from '$lib/editor/EditorViewToggles.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1858,149 +1853,24 @@
 
 				<BrushSizeSlider bind:size={strokeSize} />
 
-				<div class="ml-auto flex items-center gap-1">
-					<button
-						type="button"
-						onclick={() => (skipEmptyNav = !skipEmptyNav)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[11px] font-medium transition-colors {skipEmptyNav
-							? 'bg-accent-soft text-accent-strong'
-							: 'text-fg-muted hover:bg-surface-2 hover:text-fg'}"
-						title="When on, the [ and ] keys skip empty glyphs as you navigate."
-					>
-						Skip empty
-					</button>
-					<button
-						type="button"
-						onclick={() => (tourOpen = true)}
-						class="inline-flex h-7 w-7 items-center justify-center rounded-md text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-						title="Show editor tour"
-						aria-label="Show editor tour"
-					>
-						<HelpCircle class="size-3.5" />
-					</button>
-					<button
-						type="button"
-						onclick={() => (resetSignal++)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-						title="Fit to glyph (⌘0)"
-					>
-						<Maximize class="size-3.5" />
-						<span data-numeric>{zoomPercent}%</span>
-					</button>
-					<button
-						type="button"
-						onclick={() => (showReference = !showReference)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showReference
-							? 'bg-fg/10 text-fg'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Toggle reference glyph (R)"
-					>
-						{#if showReference}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-						Ref
-					</button>
-					{#if familyRegularProject}
-						<button
-							type="button"
-							onclick={() => (showFamilyRegular = !showFamilyRegular)}
-							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showFamilyRegular
-								? 'bg-accent-soft text-accent-strong'
-								: 'text-fg-subtle hover:bg-surface-2'}"
-							title="Overlay the family Regular's same-glyph contour as a ghost (⇧R)"
-						>
-							{#if showFamilyRegular}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-							Regular
-						</button>
-					{/if}
-					<button
-						type="button"
-						onclick={() => (showAnchors = !showAnchors)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnchors
-							? 'bg-warn/10 text-warn-strong'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Toggle anchors (X)"
-					>
-						{#if showAnchors}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-						Anchors
-					</button>
-					<button
-						type="button"
-						onclick={() => (showOnion = !showOnion)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showOnion
-							? 'bg-fg/10 text-fg'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Onion-skin previous/next glyph (O)"
-					>
-						{#if showOnion}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-						Onion
-					</button>
-					<button
-						type="button"
-						onclick={() => (snapToMetrics = !snapToMetrics)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {snapToMetrics
-							? 'bg-fg/10 text-fg'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Snap to metrics while editing points"
-					>
-						Snap
-					</button>
-					<button
-						type="button"
-						onclick={() => (showSketch = !showSketch)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showSketch
-							? 'bg-warn/10 text-warn-strong'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Toggle sketch layer (S)"
-					>
-						{#if showSketch}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-						Sketch
-					</button>
-					<button
-						type="button"
-						onclick={() => (showVector = !showVector)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showVector
-							? 'bg-accent/10 text-accent-strong'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Toggle vector layer (V)"
-					>
-						{#if showVector}<Eye class="size-3.5" />{:else}<EyeOff class="size-3.5" />{/if}
-						Vector
-					</button>
-					<button
-						type="button"
-						onclick={() => (showGrid = !showGrid)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showGrid
-							? 'bg-fg/10 text-fg'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Toggle grid (G)"
-					>
-						<Grid3x3 class="size-3.5" />
-						Grid
-					</button>
-					<button
-						type="button"
-						onclick={() => (showAnatomy = !showAnatomy)}
-						class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {showAnatomy
-							? 'bg-fg/10 text-fg'
-							: 'text-fg-subtle hover:bg-surface-2'}"
-						title="Show overshoot zones for round glyphs"
-					>
-						<Eye class="size-3.5" />
-						Overshoot
-					</button>
-					{#if hasMastersForGlyph}
-						<button
-							type="button"
-							onclick={() => (vfPreviewOpen = !vfPreviewOpen)}
-							class="inline-flex h-7 items-center gap-1.5 rounded-md px-2 text-[12px] font-medium transition-colors {vfPreviewOpen
-								? 'bg-fg/10 text-fg'
-								: 'text-fg-subtle hover:bg-surface-2'}"
-							title="Live interpolation preview"
-						>
-							<Sliders class="size-3.5" />
-							VF
-						</button>
-					{/if}
-				</div>
+				<EditorViewToggles
+					bind:skipEmptyNav
+					bind:showReference
+					bind:showFamilyRegular
+					bind:showAnchors
+					bind:showOnion
+					bind:snapToMetrics
+					bind:showSketch
+					bind:showVector
+					bind:showGrid
+					bind:showAnatomy
+					bind:vfPreviewOpen
+					hasFamilyRegular={!!familyRegularProject}
+					hasMasters={hasMastersForGlyph}
+					{zoomPercent}
+					onOpenTour={() => (tourOpen = true)}
+					onFit={() => resetSignal++}
+				/>
 			</div>
 
 			{#if showBriefFirstHint && projectStore.project}
