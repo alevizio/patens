@@ -23,7 +23,7 @@
  * Run: node scripts/subset-og-fonts.mjs
  */
 
-import { readFile, writeFile, stat } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import subset from 'subset-font';
 

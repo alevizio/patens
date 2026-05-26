@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 		throw error(404, 'Cloud share not configured');
 	}
 
-	let versions: Array<{ v: number; uploadedAt: string; sizeBytes: number; url: string }> = [];
+	const versions: Array<{ v: number; uploadedAt: string; sizeBytes: number; url: string }> = [];
 	try {
 		const listed = await list({ prefix: historyPrefix(id), limit: 1000 });
 		for (const b of listed.blobs) {

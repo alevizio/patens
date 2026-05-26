@@ -29,11 +29,9 @@
 	const pinnedVersion = $derived(data.version);
 	type ShareVersion = { v: number; uploadedAt: string; sizeBytes: number; url: string };
 	let availableVersions = $state<ShareVersion[]>([]);
-	let loadingVersions = $state(false);
 	onMount(async () => {
 		// Demo project doesn't have a server-side history; skip the fetch.
 		if (data.project.id === 'demo') return;
-		loadingVersions = true;
 		try {
 			const res = await fetch(`/api/share/${data.project.id}/versions`);
 			if (res.ok) {
@@ -42,8 +40,6 @@
 			}
 		} catch {
 			/* network error → silently leave the dropdown empty */
-		} finally {
-			loadingVersions = false;
 		}
 	});
 	// Selected palette index for color layers. When the project has

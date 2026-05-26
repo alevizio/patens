@@ -51,6 +51,55 @@ Don't redo any of this:
 
 ---
 
+## Update 3 — eight-piece launch-prep sweep
+
+Picked up the "what's left for ME" list + did all 8 autonomous picks
+in order. Commits this arc:
+
+- `ba5c449` /llms-full.txt — 18KB long-form companion to /llms.txt
+  (about + positioning + capabilities + tech stack + all 5 /learn/*
+  tutorials + export-formats + audit-codes). Per getmint.ai 2026
+  adoption analysis, Cursor + Claude Desktop + ChatGPT crawl this
+  more than llms.txt itself.
+- `cedc212` Year-in-title pass — "2026" suffix on titles across /,
+  /about, /compare, /learn/*. +30% citation rate per Leapd GEO study.
+- `3eef1bb` /privacy + /security pages — plain-English, GDPR-shaped,
+  responsible-disclosure flow. Both prerendered with full JSON-LD.
+- `f150000` /press page — factsheet + three-length descriptions
+  (one-liner / elevator / technical) + brand assets + screenshots
+  placeholder + milestones + further reading.
+- `607aa25` Re-share version-picker UI on /share + multi-master
+  axis-pair picker on /designspace. Closes the two "server-ready,
+  UI pending" items from the previous arc.
+- (this commit) Lighthouse baseline doc + awesome-list PR drafts +
+  plan refresh.
+
+Lighthouse baseline captured at /docs/launch/lighthouse-baseline.md:
+- Home (SSR): Perf 91, A11y 98, BP 100, SEO 100. LCP 2.6s, CLS 0, TBT 0.
+- About (prerendered): Perf 97, A11y 98, BP 100, SEO 100.
+- Compare (prerendered): Perf 97, A11y 98, BP 100, SEO 100.
+- Editor: Perf 77, A11y 93, BP 100, SEO 100. LCP 2.8s, TBT 490ms.
+
+Awesome-list PR drafts at /docs/launch/awesome-prs.md — three PRs
+ready to submit (awesome-svelte, awesome-sveltekit, Awesome-Design-
+Tools) with title, body, alphabetical insertion, submission order +
+strategy.
+
+Footer now links: Help · Compare · Changelog · About · Press ·
+Privacy · Security · GitHub · @patenstype. Sitemap covers every
+public route at appropriate priority.
+
+Remaining items that genuinely require your hand:
+- 30s demo GIF — screen-record the audit-fix flow
+- Welcome dialog rework — taste call on first-visit copy
+- Real-device responsive (iPhone + iPad)
+- Bespoke Cyrillic Я Ж Ф, Drawn Italic master, Greek lowercase,
+  curve-fit demo glyphs — all type design work
+- Account system — v1.6 deferral, 5-day architectural decision
+- i18n — v2 candidate, multi-day rabbit hole
+
+---
+
 ## Update 2 — second autonomous arc (P1 + P2 + most of P3)
 
 Picked up the plan and worked top-down through every autonomous-safe
