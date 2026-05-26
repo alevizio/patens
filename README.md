@@ -5,6 +5,7 @@
 [**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
 
 [![CI](https://github.com/alevizio/patens/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/patens/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/alevizio/patens/badge)](https://scorecard.dev/viewer/?uri=github.com/alevizio/patens)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Version](https://img.shields.io/github/package-json/v/alevizio/patens?label=version)](./package.json)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)](./package.json)
