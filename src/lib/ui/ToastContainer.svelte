@@ -5,6 +5,8 @@
 	import AlertTriangle from '@lucide/svelte/icons/alert-triangle';
 	import Info from '@lucide/svelte/icons/info';
 	import X from '@lucide/svelte/icons/x';
+	import { fly, fade } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	const iconFor = (kind: 'info' | 'success' | 'warn' | 'error') =>
 		kind === 'success'
@@ -23,22 +25,39 @@
 				: kind === 'warn'
 					? 'border-warn/40 bg-warn/10 text-warn-strong'
 					: 'border-accent/40 bg-accent/10 text-accent-strong';
+
+	const ringFor = (kind: 'info' | 'success' | 'warn' | 'error') =>
+		kind === 'success'
+			? 'focus-visible:ring-success/40'
+			: kind === 'error'
+				? 'focus-visible:ring-danger/40'
+				: kind === 'warn'
+					? 'focus-visible:ring-warn/40'
+					: 'focus-visible:ring-accent/40';
 </script>
 
-<div class="pointer-events-none fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2">
+<div
+	class="pointer-events-none fixed bottom-4 right-4 z-[100] flex max-w-sm flex-col gap-2"
+>
 	{#each toast.items as t (t.id)}
 		{@const Icon = iconFor(t.kind)}
 		<div
 			role="status"
 			aria-live="polite"
-			class="pointer-events-auto flex items-start gap-2 rounded-lg border px-3 py-2 text-[12px] font-medium shadow-lg backdrop-blur-sm {colorFor(t.kind)}"
+			class="pointer-events-auto flex items-start gap-2 rounded-lg border px-3 py-2 text-[12px] font-medium shadow-lg backdrop-blur-sm {colorFor(
+				t.kind
+			)}"
+			in:fly={{ y: 16, duration: 200, easing: quintOut }}
+			out:fade={{ duration: 150 }}
 		>
-			<Icon class="mt-0.5 size-3.5 shrink-0" />
+			<Icon class="mt-0.5 size-3.5 shrink-0" aria-hidden="true" />
 			<span class="flex-1">{t.message}</span>
 			<button
 				type="button"
 				onclick={() => toast.dismiss(t.id)}
-				class="ml-1 rounded p-0.5 opacity-60 hover:opacity-100"
+				class="ml-1 rounded p-0.5 opacity-60 transition-opacity hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-canvas {ringFor(
+					t.kind
+				)}"
 				aria-label="Dismiss notification"
 				title="Dismiss"
 			>

@@ -12,6 +12,8 @@
 	 */
 	import { onMount } from 'svelte';
 	import WifiOff from '@lucide/svelte/icons/wifi-off';
+	import { fly } from 'svelte/transition';
+	import { quintOut } from 'svelte/easing';
 
 	let online = $state(true);
 
@@ -33,11 +35,13 @@
 		class="fixed bottom-4 left-1/2 z-50 -translate-x-1/2 transform"
 		role="status"
 		aria-live="polite"
+		in:fly={{ y: 24, duration: 200, easing: quintOut }}
+		out:fly={{ y: 24, duration: 150 }}
 	>
 		<div
-			class="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-[12px] text-fg-muted shadow-sm"
+			class="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-[12px] text-fg-muted shadow-sm backdrop-blur-sm"
 		>
-			<WifiOff class="size-3.5 text-warn" />
+			<WifiOff class="size-3.5 text-warn" aria-hidden="true" />
 			<span>Offline — local edits still save; share + cloud sync paused.</span>
 		</div>
 	</div>
