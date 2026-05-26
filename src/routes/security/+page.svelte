@@ -70,7 +70,7 @@
 	</p>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		How to report
@@ -87,7 +87,7 @@
 	</ul>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What I commit to
@@ -118,7 +118,7 @@
 	</ul>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		In scope
@@ -133,7 +133,7 @@
 	</ul>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Out of scope
@@ -146,7 +146,7 @@
 	</ul>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What Patens does to keep your data safe

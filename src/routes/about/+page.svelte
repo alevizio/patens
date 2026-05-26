@@ -124,7 +124,7 @@
 	     plate). -->
 	<h2
 		id="pronunciation"
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		How to say it
@@ -146,7 +146,7 @@
 	</p>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Maintainer
@@ -195,7 +195,7 @@
 	</p>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Standing on
@@ -226,7 +226,7 @@
 	</ul>
 
 	<h2
-		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
+		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Status
