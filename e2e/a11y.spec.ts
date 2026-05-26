@@ -145,6 +145,16 @@ test('/learn/opentype-features has no serious/critical a11y violations', async (
 	await auditPage(page);
 });
 
+test('/learn/multi-script has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/multi-script');
+	await auditPage(page);
+});
+
+test('/learn/export-formats has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/learn/export-formats');
+	await auditPage(page);
+});
+
 test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/share/demo');
 	await auditPage(page);

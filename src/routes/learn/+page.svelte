@@ -407,6 +407,42 @@
 			</p>
 		</a>
 		<a
+			href="/learn/multi-script"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Guide · 9 steps
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Multi-script fonts
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Latin + Cyrillic + Greek look-alike reuse, bespoke shapes (Я Ж Ф),
+				OS/2 ulUnicodeRange, coverage audits.
+			</p>
+		</a>
+		<a
+			href="/learn/export-formats"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+		>
+			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				Reference
+			</div>
+			<div
+				class="mb-2 text-[18px] leading-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				Export formats
+			</div>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				OTF, WOFF2, TTF, UFO, .font.json, designer bundle — which to
+				pick for which audience.
+			</p>
+		</a>
+		<a
 			href="/learn/audit-codes"
 			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
 		>

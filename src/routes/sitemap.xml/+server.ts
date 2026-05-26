@@ -19,6 +19,8 @@ const ROUTES: Array<{ path: string; changefreq: string; priority: number }> = [
 	{ path: '/learn/kerning', changefreq: 'monthly', priority: 0.8 },
 	{ path: '/learn/variable-fonts', changefreq: 'monthly', priority: 0.8 },
 	{ path: '/learn/opentype-features', changefreq: 'monthly', priority: 0.8 },
+	{ path: '/learn/multi-script', changefreq: 'monthly', priority: 0.7 },
+	{ path: '/learn/export-formats', changefreq: 'monthly', priority: 0.7 },
 	{ path: '/learn/audit-codes', changefreq: 'monthly', priority: 0.7 },
 	{ path: '/families', changefreq: 'monthly', priority: 0.5 },
 	{ path: '/help', changefreq: 'monthly', priority: 0.7 },

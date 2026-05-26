@@ -206,6 +206,15 @@
 		toast.success(`Applied ${fixableInList.length} fixes (${summary})`);
 	};
 
+	// Apply the auto-fix to every issue in a single code group. Surfaced
+	// as a per-group button alongside the "auto-fixable" pill when every
+	// occurrence has a Fix action. One click clears a whole group.
+	const fixCodeGroup = (code: string, issues: AuditIssue[]) => {
+		if (!FIXABLE_CODES.has(code) || issues.length === 0) return;
+		for (const i of issues) fixIssue(i);
+		toast.success(`Applied ${issues.length}× ${code}.`);
+	};
+
 	// Mirrors the editor's auto-snapshot-before-fix: contour-mutating fixes
 	// save a labelled snapshot first when the most-recent snapshot for that
 	// glyph is older than 30 seconds. Same insurance the editor's per-glyph
@@ -574,17 +583,25 @@
 							<div>
 								<div class="mb-1.5 flex items-baseline justify-between gap-2">
 									<h3
-										class="font-mono text-[11px] font-semibold text-fg"
+										class="flex items-baseline gap-2 font-mono text-[11px] font-semibold text-fg"
 										title={desc}
 									>
-										{code}
+										<span>{code}</span>
 										{#if codeFixable}
 											<span
-												class="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent-strong"
+												class="rounded bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent-strong"
 												title="All {issues.length} can be fixed automatically"
 											>
 												auto-fixable
 											</span>
+											<button
+												type="button"
+												onclick={() => fixCodeGroup(code, issues)}
+												class="inline-flex items-center gap-1 rounded border border-accent bg-accent-soft px-2 py-0.5 text-[10px] font-medium text-accent-strong normal-case tracking-normal hover:bg-accent/20"
+												title="Apply automatic fix to every {issues.length} occurrence{issues.length === 1 ? '' : 's'} in this group"
+											>
+												<Wand class="size-2.5" /> Fix all {issues.length}
+											</button>
 										{/if}
 									</h3>
 									<span class="text-[10px] font-mono text-fg-subtle" data-numeric>

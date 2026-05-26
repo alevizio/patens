@@ -3,7 +3,9 @@
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
 	import { SCRIPT_PACKS } from '$lib/font/charsets';
-	import { isClassRef, type KerningSide } from '$lib/font/types';
+	import { isClassRef, type KerningSide, type Family, type KerningPair } from '$lib/font/types';
+	import { loadFamily } from '$lib/font/family';
+	import { resolveKerning, pairOrigin } from '$lib/font/family-kerning';
 	import { contoursToSvgPath, glyphBounds } from '$lib/font/path';
 	import { detectStemWidths } from '$lib/font/stem-detect';
 	import { measureSpacing, suggestSpacingFromReference } from '$lib/font/spacing';
@@ -43,6 +45,40 @@
 	// failed → /spacing route would not finish mounting, so tab clicks landing
 	// there appeared to "do nothing".
 	const project = $derived(projectStore.project);
+
+	// Family context — loaded async when this project belongs to a family.
+	// Drives the inherited-pair badges in the kerning list below: pairs
+	// the user can see here that aren't actually stored on the project
+	// itself (they live on the Family record and merge in at export).
+	let family = $state<Family | null>(null);
+	$effect(() => {
+		const fid = project?.familyId;
+		if (!fid) {
+			family = null;
+			return;
+		}
+		loadFamily(fid).then((f) => {
+			family = f;
+		});
+	});
+
+	// Merged pair list — project + family, with origin tagged so the UI
+	// can show an "inherited" badge on family-only pairs.
+	type TaggedPair = { pair: KerningPair; origin: 'project' | 'family' };
+	const mergedPairs = $derived.by<TaggedPair[]>(() => {
+		if (!project) return [];
+		const resolved = resolveKerning(project, family);
+		return resolved.map((pair) => ({
+			pair,
+			// pairOrigin returns 'project' | 'family' | null. resolved
+			// only contains pairs that exist on one side or the other,
+			// so the null case is unreachable; coerce to 'project' as a
+			// defensive fallback.
+			origin: (pairOrigin(pair.left, pair.right, project, family) ?? 'project') as
+				| 'project'
+				| 'family'
+		}));
+	});
 
 	const COMMON_PAIRS: [string, string][] = [
 		['A', 'V'], ['A', 'T'], ['A', 'W'], ['A', 'Y'],
@@ -2441,14 +2477,21 @@
 	</Panel>
 
 	<Panel>
-		<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-			Pairs in this font ({project?.kerning.length ?? 0})
+		{@const projectPairCount = mergedPairs.filter((p) => p.origin === 'project').length}
+		{@const familyPairCount = mergedPairs.filter((p) => p.origin === 'family').length}
+		<h2 class="mb-3 flex items-baseline gap-2 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+			<span>Pairs in this font ({projectPairCount})</span>
+			{#if family && familyPairCount > 0}
+				<span class="rounded bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent-strong normal-case tracking-normal">
+					+{familyPairCount} inherited from family
+				</span>
+			{/if}
 		</h2>
-		{#if !project?.kerning || project.kerning.length === 0}
+		{#if mergedPairs.length === 0}
 			<p class="text-sm text-fg-muted">No kerning yet. Add a pair above.</p>
 		{:else}
 			<ul class="grid gap-1">
-				{#each project.kerning as pair (`${pair.left}-${pair.right}`)}
+				{#each mergedPairs as { pair, origin } (`${origin}:${pair.left}-${pair.right}`)}
 					<li
 						class="flex items-center gap-3 rounded-md border border-border bg-surface-2/40 px-3 py-2"
 					>
@@ -2467,18 +2510,35 @@
 								{sideLabel(pair.right)}
 							</span>
 						</button>
+						{#if origin === 'family'}
+							<span
+								class="rounded bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent-strong uppercase tracking-wide"
+								title="Inherited from the family record. Edit the family at /family/[id] or override on this project by setting the same pair manually."
+							>
+								inherited
+							</span>
+						{/if}
 						<span class="ml-auto font-mono text-sm text-fg-muted" data-numeric>
 							{pair.value > 0 ? '+' : ''}{pair.value}
 						</span>
-						<button
-							type="button"
-							onclick={() => removeKerning(pair.left, pair.right)}
-							class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
-							aria-label="Remove pair"
-							title="Remove kerning pair"
-						>
-							<Trash2 class="size-3.5" />
-						</button>
+						{#if origin === 'project'}
+							<button
+								type="button"
+								onclick={() => removeKerning(pair.left, pair.right)}
+								class="rounded p-1 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
+								aria-label="Remove pair"
+								title="Remove kerning pair"
+							>
+								<Trash2 class="size-3.5" />
+							</button>
+						{:else}
+							<!-- Family-inherited pairs aren't deletable from here —
+							     the user would edit the family record at
+							     /family/[id], or override by setting the same
+							     pair manually on this project. A non-button spacer
+							     keeps the row alignment consistent. -->
+							<span class="w-[26px]" aria-hidden="true"></span>
+						{/if}
 					</li>
 				{/each}
 			</ul>
