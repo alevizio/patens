@@ -112,7 +112,7 @@
 							<button
 								type="button"
 								onclick={() => (showKey = !showKey)}
-								class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-fg-subtle hover:text-fg"
+								class="absolute right-1 top-1/2 inline-flex size-6 -translate-y-1/2 items-center justify-center rounded text-fg-subtle hover:text-fg"
 								aria-label="Toggle visibility"
 								title={showKey ? 'Hide API key' : 'Show API key'}
 							>

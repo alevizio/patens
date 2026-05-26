@@ -185,3 +185,91 @@ for (const tab of PROJECT_TABS) {
 		await auditPage(page);
 	});
 }
+
+// Modal a11y. axe scans the open dialog DOM — catches missing focus-trap
+// anchors, button-name issues, ARIA invalidity that only manifests while the
+// modal is in the tree. Each test opens the modal, waits for its dialog/region
+// to be visible, then runs auditPage.
+
+test('Shortcuts dialog (open) has no serious/critical a11y violations', async ({
+	page
+}) => {
+	await page.goto('/');
+	await dismissWelcomeIfPresent(page);
+	await page.keyboard.press('?');
+	await page.getByRole('dialog', { name: /Keyboard shortcuts/i }).waitFor({
+		state: 'visible'
+	});
+	await auditPage(page);
+});
+
+test('Create-font dialog (open) has no serious/critical a11y violations', async ({
+	page
+}) => {
+	await page.goto('/');
+	await dismissWelcomeIfPresent(page);
+	await page.getByRole('button', { name: /Start a new font/i }).first().click();
+	await page.getByRole('dialog').first().waitFor({ state: 'visible' });
+	await auditPage(page);
+});
+
+test('Storage dialog (open) has no serious/critical a11y violations', async ({
+	page
+}) => {
+	await page.goto('/');
+	await dismissWelcomeIfPresent(page);
+	const trigger = page.getByRole('button', { name: 'Browser storage' });
+	// The storage button is conditional on navigator.storage.estimate() —
+	// in headless Chromium this is generally available, but if it isn't the
+	// test is meaningless rather than failing.
+	const visible = await trigger
+		.waitFor({ state: 'visible', timeout: 3000 })
+		.then(() => true)
+		.catch(() => false);
+	test.skip(!visible, 'navigator.storage.estimate unavailable in this env');
+	await trigger.click();
+	await page.getByRole('dialog').first().waitFor({ state: 'visible' });
+	await auditPage(page);
+});
+
+test('Settings dialog (open, in editor) has no serious/critical a11y violations', async ({
+	page
+}) => {
+	await page.goto('/');
+	await dismissWelcomeIfPresent(page);
+	await page.getByRole('button', { name: /Open the example project/i }).first().click();
+	await page.waitForURL(/\/project\/[^/]+\/edit$/);
+	await page.getByRole('button', { name: 'Settings' }).click();
+	await page.getByRole('dialog').first().waitFor({ state: 'visible' });
+	await auditPage(page);
+});
+
+// Welcome strip while VISIBLE — opt out of the file-level beforeEach so the
+// SettingsStore renders the strip and axe scans it. Catches a11y regressions
+// in first-visit copy + dismiss button + the open links.
+test.describe('Welcome strip while visible', () => {
+	test.use({
+		// Clear the storage state for this describe block so the init script
+		// doesn't dismiss the strip.
+		storageState: { cookies: [], origins: [] }
+	});
+	// Override the file-level beforeEach with one that does NOT set the
+	// dismissed flag. (Playwright applies all beforeEach hooks in scope; the
+	// inner one runs after the outer, but storageState above prevents the
+	// outer's localStorage write from persisting between tests.)
+	test.beforeEach(async ({ context }) => {
+		await context.addInitScript(() => {
+			localStorage.removeItem('font-studio:settings:v1');
+		});
+	});
+
+	test('Welcome strip (open) has no serious/critical a11y violations', async ({
+		page
+	}) => {
+		await page.goto('/');
+		await page
+			.getByRole('region', { name: /Welcome to Patens/i })
+			.waitFor({ state: 'visible' });
+		await auditPage(page);
+	});
+});
