@@ -1631,11 +1631,12 @@
 				See it in action.
 			</h2>
 			<p class="mt-4 text-[14px] leading-relaxed text-fg-muted">
-				Open the example project to explore a font mid-design — eighty-eight
-				drawn glyphs across uppercase, lowercase, digits, punctuation, math
-				operators, and Extended Latin (ß, æ, œ, fi, fl); the Brief filled
-				in, metrics set, kerning tuned. Edit a point, run a boolean op,
-				flip the master, ship the OTF.
+				Open the example project to explore a font mid-design — 162 drawn
+				glyphs across Latin (uppercase, lowercase, digits, punctuation,
+				currency, math, brackets, composite ligatures), 17 Cyrillic
+				look-alikes plus bespoke Я Ж Ф, and 14 Greek uppercase. The Brief
+				filled in, metrics set, kerning tuned. Edit a point, run a
+				boolean op, flip the master, ship the OTF.
 			</p>
 			<p class="mt-5 font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
 				Example project &nbsp;·&nbsp; 162 glyphs (Latin + Cyrillic + Greek) &nbsp;·&nbsp; 2 masters &nbsp;·&nbsp; ligatures + COLR
@@ -1667,7 +1668,7 @@
 							class="mt-1 font-mono text-[11px] tracking-wide text-fg-subtle"
 							data-numeric
 						>
-							8 glyphs drawn · Brief filled · v0.1.0-demo
+							162 glyphs drawn · Brief filled · 3 scripts
 						</div>
 					</div>
 					<span

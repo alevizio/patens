@@ -89,7 +89,10 @@ test('/manifest.json has the correct PWA shape', async ({ request }) => {
 		display: string;
 		icons: Array<{ src: string; sizes: string }>;
 	};
-	expect(manifest.name).toBe('Patens');
+	// `name` ships the long-form for richer install-prompt context;
+	// `short_name` stays compact for icon-grid contexts.
+	expect(manifest.name).toMatch(/^Patens/);
+	expect(manifest.name).toContain('teaches as you draw');
 	expect(manifest.short_name).toBe('Patens');
 	expect(manifest.start_url).toBe('/');
 	expect(manifest.display).toBe('standalone');

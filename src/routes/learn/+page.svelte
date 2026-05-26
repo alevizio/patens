@@ -1,10 +1,8 @@
 <script lang="ts">
-	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import BookOpen from '@lucide/svelte/icons/book-open';
 	import Compass from '@lucide/svelte/icons/compass';
 	import Pencil from '@lucide/svelte/icons/pen-tool';
 	import Wrench from '@lucide/svelte/icons/wrench';
-	import Type from '@lucide/svelte/icons/type';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
