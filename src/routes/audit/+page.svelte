@@ -97,12 +97,14 @@
 		content="94 codes that teach as you draw. Every code carries plain-English prose, around 30 have one-click fixes. Also runs from the terminal."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<meta name="twitter:title" content="The audit module · Patens" />
 	<meta
 		name="twitter:description"
 		content="94 codes that teach as you draw. Plain-English prose, ~30 one-click fixes, CLI integration."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

@@ -261,9 +261,11 @@
 	<meta property="og:title" content="Learn type design · Patens" />
 	<meta property="og:description" content="Seven tutorials from first font to shipping. Plus the 94-code audit reference." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<meta name="twitter:title" content="Learn type design · Patens" />
 	<meta name="twitter:description" content="Seven tutorials from first font to shipping. Plus the 94-code audit reference." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<!-- CollectionPage + BreadcrumbList + ItemList JSON-LD. CollectionPage
 	     tells crawlers this is an index page. ItemList enumerates the 7
 	     tutorials with descriptions so AI engines can extract + cite them

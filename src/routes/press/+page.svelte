@@ -77,9 +77,11 @@
 		content="Everything you need to write about Patens — factsheet, descriptions, assets, contact."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<meta name="twitter:title" content="Press kit · Patens" />
 	<meta name="twitter:description" content="Factsheet + descriptions + assets + contact." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
