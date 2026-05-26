@@ -24,7 +24,10 @@
 	// importFromOtf pulls in opentype.js (~240KB) — lazy-load it on first
 	// use so the home page initial payload stays small. The user only pays
 	// the cost when they actually drop/select an OTF to import.
-	import { ensurePython, ufoZipToProject } from '$lib/font/python';
+	// ensurePython + ufoZipToProject pull in the Pyodide module
+	// (~7MB of WASM + Python). Only hit when the user drops a .ufo
+	// .zip on the home page. Lazy-loaded at the call site so the
+	// home-page initial parse doesn't carry it.
 	// importFromUrl transitively pulls in opentype.js via $lib/font/import —
 	// lazy-load here for the same reason as importFromOtf above.
 	import { settings } from '$lib/stores/settings.svelte';
@@ -563,6 +566,7 @@
 				await goto(`/project/${project.id}/edit`);
 			} else if (name.endsWith('.zip') || name.endsWith('.ufo.zip')) {
 				ufoImporting = true;
+				const { ensurePython, ufoZipToProject } = await import('$lib/font/python');
 				await ensurePython();
 				const buffer = await file.arrayBuffer();
 				const projectJson = await ufoZipToProject(buffer);
