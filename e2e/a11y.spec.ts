@@ -155,6 +155,16 @@ test('/learn/export-formats has no serious/critical a11y violations', async ({ p
 	await auditPage(page);
 });
 
+test('/privacy has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/privacy');
+	await auditPage(page);
+});
+
+test('/security has no serious/critical a11y violations', async ({ page }) => {
+	await page.goto('/security');
+	await auditPage(page);
+});
+
 test('/share/demo has no serious/critical a11y violations', async ({ page }) => {
 	await page.goto('/share/demo');
 	await auditPage(page);

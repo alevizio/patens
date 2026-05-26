@@ -30,6 +30,8 @@ const ROUTES: Array<{ path: string; changefreq: string; priority: number }> = [
 	{ path: '/llms.txt', changefreq: 'monthly', priority: 0.3 },
 	{ path: '/llms-full.txt', changefreq: 'monthly', priority: 0.3 },
 	{ path: '/about', changefreq: 'yearly', priority: 0.4 },
+	{ path: '/privacy', changefreq: 'yearly', priority: 0.3 },
+	{ path: '/security', changefreq: 'yearly', priority: 0.3 },
 	{ path: '/project/demo/edit', changefreq: 'monthly', priority: 0.9 },
 	{ path: '/share/demo', changefreq: 'monthly', priority: 0.9 }
 ];
