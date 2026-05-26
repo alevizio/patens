@@ -996,6 +996,84 @@
 		</div>
 	</section>
 
+	<!-- How the audit teaches — 3-card sample showing actual audit-code
+	     teaching prose in situ. Demonstrates the differentiator before the
+	     visitor commits to clicking into the editor. The 1-fixable + 2-
+	     designer-judgment split matches the real 30/94 proportion of
+	     fixable-vs-teaching codes; honest framing > marketing-clean. -->
+	<section
+		aria-label="How the audit teaches"
+		class="mb-20"
+	>
+		<div class="mb-8 flex items-baseline justify-between gap-3">
+			<h2
+				class="text-[28px] tracking-tight text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			>
+				How the audit teaches.
+			</h2>
+			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
+				Live from <code class="text-fg">describeAuditCode()</code>
+			</span>
+		</div>
+
+		<div class="grid gap-6 sm:grid-cols-3">
+			<article class="flex flex-col gap-3 border-t border-border/40 pt-5">
+				<h3 class="font-mono text-[12px] text-accent-strong">self-intersecting</h3>
+				<p class="text-[14px] leading-relaxed text-fg-muted">
+					A contour crosses itself. Rasterisers fill the overlap unpredictably
+					depending on fill-rule (even-odd vs non-zero).
+				</p>
+				<div class="mt-auto">
+					<span class="inline-flex items-baseline gap-1.5 rounded bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong">
+						<span aria-hidden="true">✓</span>
+						One-click Fix
+					</span>
+				</div>
+			</article>
+
+			<article class="flex flex-col gap-3 border-t border-border/40 pt-5">
+				<h3 class="font-mono text-[12px] text-accent-strong">xheight-misaligned</h3>
+				<p class="text-[14px] leading-relaxed text-fg-muted">
+					A lowercase letter that should reach x-height is sitting noticeably
+					below it. Uneven tops across letters give text a wobbly rhythm;
+					consistent x-height alignment is what makes type read smoothly.
+				</p>
+				<div class="mt-auto">
+					<span class="inline-flex items-baseline gap-1.5 text-[11px] font-medium text-fg-muted">
+						Designer judgment
+					</span>
+				</div>
+			</article>
+
+			<article class="flex flex-col gap-3 border-t border-border/40 pt-5">
+				<h3 class="font-mono text-[12px] text-accent-strong">sidebearing-class-drift-lsb</h3>
+				<p class="text-[14px] leading-relaxed text-fg-muted">
+					This glyph's LSB has drifted from the median of its sidebearing-class
+					peers. Either re-apply the class or remove this glyph from it.
+				</p>
+				<div class="mt-auto">
+					<span class="inline-flex items-baseline gap-1.5 text-[11px] font-medium text-fg-muted">
+						Designer judgment
+					</span>
+				</div>
+			</article>
+		</div>
+
+		<p class="mt-8 text-[13px] text-fg-muted">
+			<a
+				href="/learn/audit-codes"
+				class="group inline-flex items-baseline gap-1.5 font-medium text-accent-strong hover:underline"
+			>
+				See all 94 audit codes
+				<span class="transition-transform group-hover:translate-x-0.5">→</span>
+			</a>
+			<span class="ml-3 text-fg-subtle">
+				· Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
+			</span>
+		</p>
+	</section>
+
 	{#if projects.length > 0 || !loading}
 		<!-- Quick Start as a foundry index: no card chrome, no background.
 		     Each tile is a typographic sample of its kind — the "Aa" itself
