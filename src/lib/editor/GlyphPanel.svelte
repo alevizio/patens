@@ -65,7 +65,7 @@
 						toast.success('Synced from default master');
 					}
 				}}
-				class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+				class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:text-accent active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 				title="Copy contours/metrics from the default master into this master"
 			>
 				Sync from Default
@@ -83,7 +83,7 @@
 			<button
 				type="button"
 				onclick={() => projectStore.renameGlyph(glyph.codepoint, aglfnSuggestion)}
-				class="mt-1 inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft/40 px-1.5 py-0.5 text-[10px] font-mono text-accent-strong hover:bg-accent-soft"
+				class="mt-1 inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft/40 px-1.5 py-0.5 text-[10px] font-mono text-accent-strong transition-all duration-100 ease-out hover:bg-accent-soft active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 				title="Rename to the AGLFN canonical name for U+{glyph.codepoint
 					.toString(16)
 					.toUpperCase()

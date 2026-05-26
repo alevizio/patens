@@ -51,7 +51,7 @@
 	{...rest}
 	disabled={disabled || loading}
 	aria-busy={loading || undefined}
-	class="inline-flex items-center justify-center font-medium transition-[background-color,color,border-color,opacity] disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {variantClass[
+	class="inline-flex items-center justify-center font-medium transition-[background-color,color,border-color,opacity,transform] duration-100 ease-out active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent {variantClass[
 		variant
 	]} {densityClass[density]} {fullWidth ? 'w-full' : ''} {extraClass}"
 >

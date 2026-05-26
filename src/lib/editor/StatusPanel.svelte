@@ -33,7 +33,7 @@
 						toast.warn(`Reset "${name}" — ⌘Z to undo`, 4000);
 					}
 				}}
-				class="rounded p-0.5 text-fg-subtle hover:bg-warn/10 hover:text-warn-strong"
+				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warn/40"
 				aria-label="Reset glyph to empty"
 				title="Reset glyph (keep its slot but wipe data)"
 			>
@@ -52,7 +52,7 @@
 						toast.warn(`Removed "${name}" — ⌘Z to undo`, 4000);
 					}
 				}}
-				class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
+				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
 				aria-label="Delete glyph"
 				title="Remove this glyph from the font"
 			>
@@ -64,10 +64,11 @@
 		{#each STATUSES as status (status)}
 			<button
 				type="button"
-				class="rounded-md border px-2 py-1.5 text-[12px] font-medium capitalize transition-colors {glyph.status ===
+				class="rounded-md border px-2 py-1.5 text-[12px] font-medium capitalize transition-all duration-100 ease-out active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.status ===
 				status
 					? 'border-accent bg-accent-soft text-accent-strong'
-					: 'border-border bg-transparent text-fg-muted hover:bg-surface-2'}"
+					: 'border-border bg-transparent text-fg-muted hover:border-accent/40 hover:bg-surface-2 hover:text-fg'}"
+				aria-pressed={glyph.status === status}
 				onclick={() =>
 					projectStore.updateGlyph(glyph.codepoint, (g) => ({ ...g, status }))}
 			>

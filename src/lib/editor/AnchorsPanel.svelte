@@ -41,7 +41,7 @@
 							glyph.codepoint,
 							suggestions.map((s) => ({ name: s.name, x: s.x, y: s.y }))
 						)}
-					class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft/60 px-2 py-1.5 text-[11px] font-medium text-accent-strong hover:bg-accent-soft"
+					class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent/40 bg-accent-soft/60 px-2 py-1.5 text-[11px] font-medium text-accent-strong transition-all duration-100 ease-out hover:bg-accent-soft active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 					title="Centre anchors on the glyph's actual bbox at cap/x-height. Existing custom-named anchors are preserved."
 				>
 					<svg
@@ -50,6 +50,7 @@
 						stroke="currentColor"
 						stroke-width="2"
 						class="size-3"
+						aria-hidden="true"
 					>
 						<path d="M5 12h14M12 5v14M9 9l3-3 3 3M9 15l3 3 3-3" />
 					</svg>
@@ -72,7 +73,7 @@
 						`Applied bbox anchors to ${projectDrift.length} glyph${projectDrift.length === 1 ? '' : 's'}.`
 					);
 				}}
-				class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+				class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:text-accent active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 				title="Re-centre anchors on bbox for every glyph in the project that's drifted"
 			>
 				Apply to {projectDrift.length} drifted glyph{projectDrift.length === 1
@@ -92,7 +93,7 @@
 					<button
 						type="button"
 						onclick={() => onRemoveAnchor(a.name)}
-						class="rounded p-0.5 text-fg-subtle hover:bg-danger/10 hover:text-danger-strong"
+						class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
 						aria-label="Remove anchor {a.name}"
 						title="Remove anchor {a.name}"
 					>
@@ -108,7 +109,7 @@
 				<button
 					type="button"
 					onclick={() => onAddAnchor(suggested)}
-					class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 font-mono text-[11px] text-fg-muted hover:border-warn hover:bg-warn/10 hover:text-warn-strong"
+					class="rounded-md border border-dashed border-border-strong/50 bg-transparent px-2 py-1 font-mono text-[11px] text-fg-muted transition-all duration-100 ease-out hover:border-warn hover:bg-warn/10 hover:text-warn-strong active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warn/40"
 				>
 					+ {suggested}
 				</button>

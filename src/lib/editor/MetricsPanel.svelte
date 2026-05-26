@@ -45,10 +45,11 @@
 						...g,
 						metricsLocked: !g.metricsLocked
 					}))}
-				class="rounded p-0.5 text-fg-subtle hover:bg-surface-2 {glyph.metricsLocked
+				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.metricsLocked
 					? 'text-warn'
 					: 'hover:text-fg'}"
 				aria-label={glyph.metricsLocked ? 'Unlock metrics' : 'Lock metrics'}
+				aria-pressed={glyph.metricsLocked}
 				title={glyph.metricsLocked
 					? 'Unlock — allow LSB/RSB/Adv edits'
 					: 'Lock — prevent accidental LSB/RSB/Adv edits'}
@@ -64,7 +65,7 @@
 			value=""
 			disabled={glyph.metricsLocked}
 			onchange={(e) => onCopyMetricsFrom(Number(e.currentTarget.value))}
-			class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent focus:outline-none focus:ring-1 focus:ring-accent disabled:opacity-40"
+			class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 disabled:cursor-not-allowed disabled:opacity-40"
 			title="Copy LSB / RSB / advance from another glyph"
 		>
 			<option value="" disabled selected>Copy from…</option>
@@ -120,7 +121,7 @@
 		<button
 			type="button"
 			onclick={onApplySpacingSuggestion}
-			class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-accent/40 bg-accent-soft/30 px-2 py-1.5 text-left text-[11px] text-fg-muted hover:border-accent hover:bg-accent-soft"
+			class="mt-2 flex w-full items-center gap-1.5 rounded border border-dashed border-accent/40 bg-accent-soft/30 px-2 py-1.5 text-left text-[11px] text-fg-muted transition-all duration-100 ease-out hover:border-accent hover:bg-accent-soft active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
 			title="Apply suggested LSB/RSB from a similar-width peer"
 		>
 			<span>Match peer</span>
