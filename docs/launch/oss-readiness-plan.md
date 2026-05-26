@@ -50,11 +50,12 @@ No way around these. Listed so the picture's complete.
 | 15 | Open GitHub Sponsors profile (apply, get approved, paste copy) | Pre-launch | 30m + 1–2wk wait |
 | 16 | Open Polar creator account, configure payouts | Pre-launch | 1h |
 | 17 | Submit NLnet application (next deadline rolling, every 2 months) | Q3 2026 | 30m + waiting period |
-| 18 | Show HN — Tue/Wed Aug 5–6, 8:30 AM ET | Launch week | Half a day to reply |
-| 19 | Cross-post: Bluesky thread → Mastodon → dev.to → r/sveltejs (organic only) | Launch day | 2h authored, all day on replies |
-| 20 | TypeCon Portland Aug 6–8 — physically be there | Launch week | The trip |
-| 21 | Awesome-list PRs (drafts at `docs/launch/awesome-prs.md`) | Launch day | 30m of clicking |
-| 22 | First-week issue triage + PR review | Launch week | 8–12h |
+| 18 | **Flip the GitHub repo from private → public** + enable Code Scanning at github.com/alevizio/patens/settings/security_analysis. Unblocks codeql + scorecard + dependency-review (currently bridged with `continue-on-error: true`). Once flipped, remove the bridge lines from the three workflow files in a single follow-up commit. | T-7 days before launch (announce-ready, no longer in-progress) | 5 minutes |
+| 19 | Show HN — Tue/Wed Aug 5–6, 8:30 AM ET | Launch week | Half a day to reply |
+| 20 | Cross-post: Bluesky thread → Mastodon → dev.to → r/sveltejs (organic only) | Launch day | 2h authored, all day on replies |
+| 21 | TypeCon Portland Aug 6–8 — physically be there | Launch week | The trip |
+| 22 | Awesome-list PRs (drafts at `docs/launch/awesome-prs.md`) | Launch day | 30m of clicking |
+| 23 | First-week issue triage + PR review | Launch week | 8–12h |
 
 ---
 
