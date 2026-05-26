@@ -1,10 +1,12 @@
 {
-	"name": "Patens",
+	"id": "https://patens.design/",
+	"name": "Patens — type design that teaches as you draw",
 	"short_name": "Patens",
 	"description": "A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 94-code audit module that explains every finding. Open source, browser-native.",
 	"start_url": "/",
 	"scope": "/",
 	"display": "standalone",
+	"display_override": ["window-controls-overlay", "standalone", "browser"],
 	"orientation": "any",
 	"background_color": "#fafaf9",
 	"theme_color": "#111111",
@@ -26,6 +28,31 @@
 			"sizes": "512x512",
 			"type": "image/png",
 			"purpose": "any maskable"
+		}
+	],
+	"screenshots": [
+		{
+			"src": "/og.png",
+			"sizes": "1200x630",
+			"type": "image/png",
+			"form_factor": "wide",
+			"label": "Patens brand card with the Hn wordmark + HONE/TONE samples in the demo typeface"
+		}
+	],
+	"shortcuts": [
+		{
+			"name": "Open the demo project",
+			"short_name": "Demo",
+			"description": "Jump straight into the editor with the 162-glyph example project",
+			"url": "/project/demo/edit",
+			"icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+		},
+		{
+			"name": "The audit module",
+			"short_name": "Audit",
+			"description": "Read why Patens has a teaching audit module",
+			"url": "/audit",
+			"icons": [{ "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" }]
 		}
 	],
 	"categories": ["design", "graphics", "productivity"],
