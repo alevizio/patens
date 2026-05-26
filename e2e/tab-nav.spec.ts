@@ -25,20 +25,24 @@ const TABS: Tab[] = [
 	{ label: 'Release', path: '/release', mode: 'h1', heading: 'Release readiness' }
 ];
 
+// Pre-dismiss the welcome strip via localStorage init script — see the
+// matching comment in e2e/a11y.spec.ts. Avoids the SSR-pre-hydration
+// click race.
+test.beforeEach(async ({ context }) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'font-studio:settings:v1',
+			JSON.stringify({ welcomeDismissed: true })
+		);
+	});
+});
+
 const openDemoProject = async (page: Page): Promise<string> => {
 	await page.goto('/');
-	// Welcome is a non-blocking region in v1.0.0-beta. Dismiss it if present
-	// so the strip isn't visible during the rest of the test.
 	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
-	if (
-		await strip
-			.waitFor({ state: 'visible', timeout: 2000 })
-			.then(() => true)
-			.catch(() => false)
-	) {
-		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
-		await strip.waitFor({ state: 'hidden' });
-	}
+	await strip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+		/* strip never appeared — init script worked */
+	});
 	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	return new URL(page.url()).pathname.split('/')[2];

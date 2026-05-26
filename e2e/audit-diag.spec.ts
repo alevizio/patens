@@ -1,17 +1,25 @@
 import { test, expect, type Page } from '@playwright/test';
 
+// Pre-dismiss the welcome strip via localStorage. With SSR on, the strip
+// is in the HTML before hydration attaches its click handler — clicking it
+// pre-hydration is a no-op and races the test. Setting the dismissed flag
+// at init means the SettingsStore reads it on construct and the strip
+// never renders.
+test.beforeEach(async ({ context }) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'font-studio:settings:v1',
+			JSON.stringify({ welcomeDismissed: true })
+		);
+	});
+});
+
 const seed = async (page: Page) => {
 	await page.goto('/');
 	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
-	if (
-		await strip
-			.waitFor({ state: 'visible', timeout: 2000 })
-			.then(() => true)
-			.catch(() => false)
-	) {
-		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
-		await strip.waitFor({ state: 'hidden' });
-	}
+	await strip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+		/* strip never appeared (init script worked) — fine */
+	});
 	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
 	return new URL(page.url()).pathname.split('/')[2];

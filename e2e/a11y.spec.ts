@@ -16,20 +16,29 @@ import AxeBuilder from '@axe-core/playwright';
 // tinted bgs) has cleared the previous serious backlog; the bar is now
 // "any serious violation introduced is a regression that blocks CI."
 
+// SSR now pre-renders the welcome strip into the HTML before hydration
+// attaches its onclick handler — clicking the dismiss button pre-hydration
+// is a no-op. Setting the localStorage flag before any navigation makes the
+// strip never appear in the first place (SettingsStore reads it on init),
+// which keeps every a11y test deterministic and stops axe from scanning the
+// strip's own DOM.
+test.beforeEach(async ({ context }) => {
+	await context.addInitScript(() => {
+		localStorage.setItem(
+			'font-studio:settings:v1',
+			JSON.stringify({ welcomeDismissed: true })
+		);
+	});
+});
+
 const dismissWelcomeIfPresent = async (page: Page) => {
-	// Welcome is a non-blocking region in v1.0.0-beta (was a modal pre-Day 11).
-	// Strip exposes a "Dismiss welcome" aria-label; if present, click to remove
-	// it before scanning the page so axe doesn't see the strip's own DOM.
+	// The init script in beforeEach already sets welcomeDismissed=true, but
+	// the SSR'd HTML renders the strip *before* hydration reads localStorage.
+	// We just wait for hydration to remove the strip — no click needed.
 	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
-	if (
-		await strip
-			.waitFor({ state: 'visible', timeout: 1500 })
-			.then(() => true)
-			.catch(() => false)
-	) {
-		await page.getByRole('button', { name: 'Dismiss welcome' }).click();
-		await strip.waitFor({ state: 'hidden' });
-	}
+	await strip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+		/* strip was never there (route doesn't show it) — fine */
+	});
 };
 
 const auditPage = async (page: Page) => {
