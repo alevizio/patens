@@ -49,6 +49,7 @@
 	import MastersStrip from '$lib/editor/MastersStrip.svelte';
 	import MetricsStrip from '$lib/editor/MetricsStrip.svelte';
 	import OnboardingHints from '$lib/editor/OnboardingHints.svelte';
+	import CollapsedBottomBar from '$lib/editor/CollapsedBottomBar.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -60,7 +61,6 @@
 	import type StemsPanelType from '$lib/glyph/StemsPanel.svelte';
 	import type MetricsInspectorType from '$lib/glyph/MetricsInspector.svelte';
 	import { tipFor } from '$lib/font/anatomy-tips';
-	import ChevronUp from '@lucide/svelte/icons/chevron-up';
 	import { settings } from '$lib/stores/settings.svelte';
 	import { copyGlyphToClipboard, readGlyphFromClipboard } from '$lib/stores/clipboard.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -1165,6 +1165,46 @@
 		deriveSourceCp = null;
 	};
 
+	// On-canvas drag of a gradient handle. Linear: move start/end.
+	// Radial: start handle moves the centre, end handle changes the
+	// radius. Sweep: start moves centre, end rotates the whole arc
+	// while preserving the angular span. Inlined from the canvas
+	// markup so the JSX-equivalent stays scannable.
+	const onGradientEndpointDrag = (
+		layerId: string,
+		endpoint: 'start' | 'end',
+		coord: { x: number; y: number }
+	) => {
+		if (!glyph) return;
+		projectStore.updateColorLayer(glyph.codepoint, layerId, (layer: ColorLayer) => {
+			const g = layer.gradient;
+			if (!g) return layer;
+			if (g.type === 'linear') {
+				return { ...layer, gradient: { ...g, [endpoint]: coord } };
+			}
+			if (g.type === 'radial') {
+				if (endpoint === 'start') {
+					return { ...layer, gradient: { ...g, center: coord } };
+				}
+				const dx = coord.x - g.center.x;
+				const dy = coord.y - g.center.y;
+				const radius = Math.max(1, Math.round(Math.hypot(dx, dy)));
+				return { ...layer, gradient: { ...g, radius } };
+			}
+			if (endpoint === 'start') {
+				return { ...layer, gradient: { ...g, center: coord } };
+			}
+			const dx = coord.x - g.center.x;
+			const dy = coord.y - g.center.y;
+			const span = g.endAngle - g.startAngle;
+			const newStart = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
+			return {
+				...layer,
+				gradient: { ...g, startAngle: newStart, endAngle: newStart + span }
+			};
+		});
+	};
+
 	// Make alternate — duplicates the current glyph to a new PUA codepoint
 	// with a `.ss01` / `.smcp` / `.salt` name suffix. The naming convention
 	// auto-detects as the corresponding OpenType feature at export.
@@ -1922,41 +1962,7 @@
 						onAnchorsChange={handleAnchorsChange}
 						onZoomChange={(p) => (zoomPercent = p)}
 						colorPalette={defaultPalette(projectStore.project?.palettes)}
-						onGradientEndpointChange={(layerId, endpoint, coord) =>
-							projectStore.updateColorLayer(
-								glyph.codepoint,
-								layerId,
-								(layer: ColorLayer) => {
-									const g = layer.gradient;
-									if (!g) return layer;
-									if (g.type === 'linear') {
-										return { ...layer, gradient: { ...g, [endpoint]: coord } };
-									}
-									if (g.type === 'radial') {
-										if (endpoint === 'start') {
-											return { ...layer, gradient: { ...g, center: coord } };
-										}
-										const dx = coord.x - g.center.x;
-										const dy = coord.y - g.center.y;
-										const radius = Math.max(1, Math.round(Math.hypot(dx, dy)));
-										return { ...layer, gradient: { ...g, radius } };
-									}
-									// Sweep: start handle moves the centre. End handle
-									// is on the start-angle ray — dragging it rotates
-									// the whole sweep (preserves the angular span).
-									if (endpoint === 'start') {
-										return { ...layer, gradient: { ...g, center: coord } };
-									}
-									const dx = coord.x - g.center.x;
-									const dy = coord.y - g.center.y;
-									const span = g.endAngle - g.startAngle;
-									const newStart = Math.round((Math.atan2(dy, dx) * 180) / Math.PI);
-									return {
-										...layer,
-										gradient: { ...g, startAngle: newStart, endAngle: newStart + span }
-									};
-								}
-							)}
+						onGradientEndpointChange={onGradientEndpointDrag}
 					/>
 				</div>
 			</div>
@@ -1979,20 +1985,7 @@
 			     chevron to claw back ~170px of canvas height when zoomed in.
 			     State persists in localStorage. -->
 			{#if bottomBarCollapsed}
-				<button
-					type="button"
-					onclick={toggleBottomBar}
-					class="flex items-center justify-between gap-2 border-t border-border bg-surface px-4 py-1.5 text-[11px] text-fg-subtle transition-colors hover:bg-surface-2 hover:text-fg"
-					title="Expand the live preview + action bar"
-				>
-					<span class="inline-flex items-center gap-2">
-						<ChevronUp class="size-3.5" />
-						<span>Live preview · actions</span>
-					</span>
-					<span class="font-mono text-[10px] text-fg-subtle" data-numeric>
-						Show ↑
-					</span>
-				</button>
+				<CollapsedBottomBar onExpand={toggleBottomBar} />
 			{:else}
 				<MetricsStrip
 					bind:text={metricsText}
