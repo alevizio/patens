@@ -72,9 +72,34 @@ pnpm build        # production build
 pnpm profile      # cold-load CDP trace (any URL)
 ```
 
+## CLI — `patens audit` from the terminal
+
+Audit a `.font.json` project without opening the editor — useful for
+CI, foundries lint-checking client deliverables, or scripted batch
+work. The CLI is a thin shell around the same 94-code audit module
+the editor uses, packaged for Node 22+.
+
+```sh
+pnpm run cli:build           # bundles cli/dist/index.mjs (one-time)
+pnpm patens audit my.font.json
+pnpm patens audit my.font.json --severity=error  # CI-friendly
+pnpm patens audit my.font.json --json | jq '.'   # machine output
+pnpm patens audit my.font.json --github          # PR annotations
+pnpm patens describe self-intersecting           # explain a code
+pnpm patens help
+```
+
+Exit code is `0` when no error-severity issues, `1` when there are,
+`2` on usage / parse failure. Drop-in CI:
+
+```yaml
+- run: pnpm run cli:build
+- run: pnpm patens audit fonts/*.font.json --github --severity=warn
+```
+
 ## Architecture (one paragraph)
 
-Every project is a single JSON blob (typed as `Project` in `src/lib/font/types.ts`) stored under a UUID key in IndexedDB via `idb-keyval`. The editor reads through a `projectStore` reactive store; mutations re-emit + auto-save. The share page is `ssr=false` and loads from the local IndexedDB — its only network dependency is the static SvelteKit build itself. Export is dual-path: OTF/WOFF2 via `opentype.js` in the browser, TTF + ttfautohint via Pyodide running as WASM. The audit module is the spine: **94 codes** feeding five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary. Cloud share uses Vercel Blob with token-based auth (`constantTimeEqual` for token comparison); sign-in uses HMAC-signed session cookies (`safeReturnTo` against open-redirect). Full setup details in [`docs/architecture.md`](./docs/architecture.md).
+Every project is a single JSON blob (typed as `Project` in `src/lib/font/types.ts`) stored under a UUID key in IndexedDB via `idb-keyval`. The editor reads through a `projectStore` reactive store; mutations re-emit + auto-save. The share page is `ssr=false` and loads from the local IndexedDB — its only network dependency is the static SvelteKit build itself. Export is dual-path: OTF/WOFF2 via `opentype.js` in the browser, TTF + ttfautohint via Pyodide running as WASM. The audit module is the spine: **94 codes** feeding five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary. Cloud share uses Vercel Blob with token-based auth (`constantTimeEqual` for token comparison); sign-in uses HMAC-signed session cookies (`safeReturnTo` against open-redirect). Full setup details in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Contributing
 

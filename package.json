@@ -26,6 +26,9 @@
 	],
 	"private": true,
 	"type": "module",
+	"bin": {
+		"patens": "./cli/dist/index.mjs"
+	},
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build",
@@ -34,6 +37,7 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"build:demo-fonts": "node scripts/build-demo-fonts.mjs",
+		"cli:build": "node cli/build.mjs",
 		"test": "vitest run",
 		"test:watch": "vitest",
 		"test:coverage": "vitest run --coverage",
@@ -57,6 +61,7 @@
 		"@types/canvas-confetti": "^1.9.0",
 		"@types/node": "^25.8.0",
 		"@vitest/coverage-v8": "^4.1.7",
+		"esbuild": "^0.28.0",
 		"eslint": "^10.4.0",
 		"eslint-plugin-svelte": "^3.17.1",
 		"globals": "^17.6.0",

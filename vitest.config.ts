@@ -9,8 +9,9 @@ export default defineConfig({
 		}
 	},
 	test: {
-		// Playwright owns e2e/**; Vitest owns *.test.ts colocated with source.
-		include: ['src/**/*.{test,spec}.{js,ts}'],
-		exclude: ['node_modules', 'e2e', '.svelte-kit', 'build']
+		// Playwright owns e2e/**; Vitest owns *.test.ts colocated with source +
+		// the CLI's own format/parser tests.
+		include: ['src/**/*.{test,spec}.{js,ts}', 'cli/**/*.{test,spec}.{js,ts}'],
+		exclude: ['node_modules', 'e2e', '.svelte-kit', 'build', 'cli/dist']
 	}
 });
