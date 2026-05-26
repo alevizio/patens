@@ -29,7 +29,19 @@
 					OpenType font when you're ready.
 				</span>
 			</div>
-			<div class="mt-2 flex flex-wrap items-center gap-3 text-[12px]">
+			<!-- Mono-uppercase metadata strip — reinforces the audit-led
+			     positioning at a glance + matches the trust-band rhythm
+			     further down the page. -->
+			<div class="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
+				<span>94 audit codes</span>
+				<span aria-hidden="true">·</span>
+				<span>30 one-click fixes</span>
+				<span aria-hidden="true">·</span>
+				<span>MIT open source</span>
+				<span aria-hidden="true">·</span>
+				<span>no installs</span>
+			</div>
+			<div class="mt-3 flex flex-wrap items-center gap-3 text-[12px]">
 				<a
 					href="/project/demo/edit"
 					onclick={onclose}
@@ -37,6 +49,13 @@
 				>
 					Open the example project
 					<ArrowRight class="size-3 transition-transform group-hover:translate-x-0.5" />
+				</a>
+				<a
+					href="/audit"
+					onclick={onclose}
+					class="text-fg-muted hover:text-fg-strong"
+				>
+					Why audit-as-teaching →
 				</a>
 				<a
 					href="/learn"
