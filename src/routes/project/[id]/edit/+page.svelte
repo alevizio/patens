@@ -59,6 +59,8 @@
 	import TagsAccordion from '$lib/editor/TagsAccordion.svelte';
 	import UsedByAccordion from '$lib/editor/UsedByAccordion.svelte';
 	import KerningAccordion from '$lib/editor/KerningAccordion.svelte';
+	import DeriveAccordion from '$lib/editor/DeriveAccordion.svelte';
+	import MakeAlternateAccordion from '$lib/editor/MakeAlternateAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2784,71 +2786,17 @@
 			{/if}
 
 			{#if glyph.contours.length === 0 && drawnSources.length > 0}
-				<Accordion id="edit-derive" label="Derive from another glyph" defaultOpen={false}>
-					<p class="mb-2 text-[11px] text-fg-subtle">
-						One-shot generate this glyph from one you've already drawn. Good for
-						<code class="font-mono">b/d</code>, <code class="font-mono">p/q</code>,
-						<code class="font-mono">n/u</code>.
-					</p>
-					<div class="grid grid-cols-2 gap-1.5">
-						<select
-							bind:value={deriveSourceCp}
-							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
-						>
-							<option value={null} disabled>Source glyph</option>
-							{#each drawnSources as g (g.codepoint)}
-								<option value={g.codepoint}>{g.name}</option>
-							{/each}
-						</select>
-						<select
-							bind:value={deriveTransform}
-							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
-						>
-							<option value="copy">Copy as-is</option>
-							<option value="flipH">Flip horizontal</option>
-							<option value="flipV">Flip vertical</option>
-							<option value="rotate180">Rotate 180°</option>
-						</select>
-					</div>
-					<button
-						type="button"
-						onclick={applyDerive}
-						disabled={deriveSourceCp == null}
-						class="mt-2 w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					>
-						Generate
-					</button>
-				</Accordion>
-
-				<!-- Make alternate — duplicate the current glyph to a new PUA
-				     codepoint with an OpenType-feature naming suffix. The export
-				     pipeline's feature-detect picks the suffix up automatically. -->
-				<Accordion id="edit-make-alternate" label="Make alternate" defaultOpen={false}>
-					<p class="mb-2 text-[11px] text-fg-subtle">
-						Duplicate this glyph to a new alternate (PUA codepoint) with a
-						feature-detected name suffix. Rendered via
-						<code class="font-mono">font-feature-settings</code> at the chosen tag.
-					</p>
-					<div class="grid grid-cols-[1fr_auto] gap-1.5">
-						<select
-							bind:value={alternateSuffix}
-							class="rounded border border-border bg-surface px-1.5 py-1 text-[11px] outline-none focus:border-accent"
-						>
-							<option value="ss01">.ss01 — Stylistic set 01</option>
-							<option value="smcp">.smcp — Small cap</option>
-							<option value="salt">.salt — Stylistic alternate</option>
-							<option value="alt">.alt — Generic alternate</option>
-						</select>
-						<button
-							type="button"
-							onclick={makeAlternate}
-							disabled={glyph.contours.length === 0 && (glyph.components?.length ?? 0) === 0}
-							class="rounded-md border border-accent/40 bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent disabled:opacity-40"
-						>
-							Make
-						</button>
-					</div>
-				</Accordion>
+				<DeriveAccordion
+					sources={drawnSources}
+					bind:sourceCp={deriveSourceCp}
+					bind:transform={deriveTransform}
+					onapply={applyDerive}
+				/>
+				<MakeAlternateAccordion
+					bind:suffix={alternateSuffix}
+					hasContent={(glyph.components?.length ?? 0) > 0}
+					onmake={makeAlternate}
+				/>
 			{/if}
 
 			{#if CompositeEditorLazy}
