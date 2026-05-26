@@ -22,7 +22,6 @@
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
-	import Accordion from '$lib/ui/Accordion.svelte';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
@@ -56,6 +55,7 @@
 	import LivePreviewAccordion from '$lib/editor/LivePreviewAccordion.svelte';
 	import AuditAccordion from '$lib/editor/AuditAccordion.svelte';
 	import BrushAccordion from '$lib/editor/BrushAccordion.svelte';
+	import PathOpsAccordion from '$lib/editor/PathOpsAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2826,167 +2826,21 @@
 
 			<TagsAccordion {glyph} existingTags={existingProjectTags} />
 
-			<Accordion id="edit-pathops" label="Path operations" defaultOpen={false}>
-				<button
-					type="button"
-					onclick={autoCleanGlyph}
-					disabled={glyph.contours.length === 0 || autoCleaning}
-					class="mb-2 inline-flex w-full items-center justify-center gap-1.5 rounded-md border border-accent bg-accent text-accent-fg px-2 py-1.5 text-[11px] font-medium hover:bg-accent/90 disabled:opacity-40"
-					title="Simplify + snap to 10u grid in one step"
-				>
-					<Wand class="size-3" />
-					{autoCleaning ? 'Cleaning…' : 'Auto-clean glyph'}
-				</button>
-				<div class="mb-2 grid grid-cols-2 gap-1.5">
-					<button
-						type="button"
-						onclick={() => applyPathOp('union')}
-						disabled={glyph.contours.length < 2}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Merge all contours into a single silhouette"
-					>
-						Union
-					</button>
-					<button
-						type="button"
-						onclick={() => applyPathOp('intersection')}
-						disabled={glyph.contours.length < 2}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Keep only the area common to all contours"
-					>
-						Intersect
-					</button>
-					<button
-						type="button"
-						onclick={() => applyPathOp('difference')}
-						disabled={glyph.contours.length < 2}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Subtract every contour after the first from the first"
-					>
-						Subtract
-					</button>
-					<button
-						type="button"
-						onclick={() => applyPathOp('xor')}
-						disabled={glyph.contours.length < 2}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Keep regions that belong to an odd number of contours"
-					>
-						Xor
-					</button>
-				</div>
-				<button
-					type="button"
-					onclick={applySimplify}
-					disabled={glyph.contours.length === 0 || simplifying}
-					class="w-full rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					title="Reduce noise: re-sample, Douglas-Peucker, then refit bezier curves"
-				>
-					{simplifying ? 'Simplifying…' : 'Simplify outline'}
-				</button>
-				<div class="mt-1.5 grid grid-cols-2 gap-1.5">
-					<button
-						type="button"
-						onclick={() => snapAllPointsToGrid(10)}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Round every point to the nearest 10 font units (cleanup)"
-					>
-						Snap 10u
-					</button>
-					<button
-						type="button"
-						onclick={reverseAllContours}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Flip every contour's winding direction"
-					>
-						Reverse winding
-					</button>
-				</div>
-				<h3 class="mb-2 mt-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
-					Transform
-				</h3>
-				<div class="grid grid-cols-2 gap-1.5">
-					<button
-						type="button"
-						onclick={() => flipSelection('horizontal')}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					>
-						Flip H
-					</button>
-					<button
-						type="button"
-						onclick={() => flipSelection('vertical')}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					>
-						Flip V
-					</button>
-					<button
-						type="button"
-						onclick={() => scaleGlyph(1.05)}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					>
-						Scale +5%
-					</button>
-					<button
-						type="button"
-						onclick={() => scaleGlyph(1 / 1.05)}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-					>
-						Scale −5%
-					</button>
-					<button
-						type="button"
-						onclick={makeSymmetric}
-						disabled={glyph.leftSidebearing === glyph.rightSidebearing}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Set LSB = RSB = average — useful for symmetric round glyphs (o, O, e)"
-					>
-						Symmetric LSB/RSB
-					</button>
-					<button
-						type="button"
-						onclick={centerHorizontally}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Shift contours so the bbox centre matches advance/2"
-					>
-						Center in advance
-					</button>
-					<button
-						type="button"
-						onclick={() => alignVertically('baseline')}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Shift contours so the bbox bottom sits on baseline"
-					>
-						Sit on baseline
-					</button>
-					<button
-						type="button"
-						onclick={() => alignVertically('capHeight')}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Shift contours so the bbox top hits cap-height"
-					>
-						Top to cap
-					</button>
-					<button
-						type="button"
-						onclick={() => alignVertically('xHeight')}
-						disabled={glyph.contours.length === 0}
-						class="rounded-md border border-border bg-surface-2 px-2 py-1.5 text-[11px] font-medium hover:border-accent hover:bg-accent-soft disabled:opacity-40"
-						title="Shift contours so the bbox top hits x-height"
-					>
-						Top to x-height
-					</button>
-				</div>
-			</Accordion>
+			<PathOpsAccordion
+				{glyph}
+				{autoCleaning}
+				{simplifying}
+				onAutoClean={autoCleanGlyph}
+				onPathOp={applyPathOp}
+				onSimplify={applySimplify}
+				onSnapGrid={snapAllPointsToGrid}
+				onReverseWinding={reverseAllContours}
+				onFlip={flipSelection}
+				onScale={scaleGlyph}
+				onMakeSymmetric={makeSymmetric}
+				onCenterHorizontally={centerHorizontally}
+				onAlignVertically={alignVertically}
+			/>
 
 			<LivePreviewAccordion {glyph} {charLabel} />
 
