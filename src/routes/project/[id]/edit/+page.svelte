@@ -29,9 +29,6 @@
 	import Input from '$lib/ui/Input.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
 	import Accordion from '$lib/ui/Accordion.svelte';
-	import Pencil from '@lucide/svelte/icons/pencil';
-	import Eraser from '@lucide/svelte/icons/eraser';
-	import MousePointer from '@lucide/svelte/icons/mouse-pointer-2';
 	import Eye from '@lucide/svelte/icons/eye';
 	import EyeOff from '@lucide/svelte/icons/eye-off';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
@@ -43,8 +40,6 @@
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 	import HelpCircle from '@lucide/svelte/icons/help-circle';
-	import Pin from '@lucide/svelte/icons/pin';
-	import Flag from '@lucide/svelte/icons/flag';
 	import FileText from '@lucide/svelte/icons/file-text';
 	import Lock from '@lucide/svelte/icons/lock';
 	import Unlock from '@lucide/svelte/icons/unlock';
@@ -57,6 +52,7 @@
 	// the toolbar's glyph-identity block (char preview + name + status +
 	// pin + flag toggles). Bounded, view-mostly, low-risk extraction.
 	import EditorGlyphHeader from '$lib/editor/EditorGlyphHeader.svelte';
+	import EditorToolGroup from '$lib/editor/EditorToolGroup.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1855,46 +1851,7 @@
 
 				<div class="h-6 w-px bg-border"></div>
 
-				<!-- Tool group -->
-				<div class="flex items-center gap-0.5 rounded-md bg-surface-2 p-0.5">
-					<button
-						type="button"
-						onclick={() => (tool = 'pencil')}
-						class="inline-flex h-7 w-7 items-center justify-center rounded transition-colors {tool ===
-						'pencil'
-							? 'bg-surface text-fg shadow-sm'
-							: 'text-fg-muted hover:text-fg'}"
-						title="Pencil (P)"
-						aria-label="Pencil"
-					>
-						<Pencil class="size-3.5" />
-					</button>
-					<button
-						type="button"
-						onclick={() => (tool = 'eraser')}
-						class="inline-flex h-7 w-7 items-center justify-center rounded transition-colors {tool ===
-						'eraser'
-							? 'bg-surface text-fg shadow-sm'
-							: 'text-fg-muted hover:text-fg'}"
-						title="Eraser (E)"
-						aria-label="Eraser"
-					>
-						<Eraser class="size-3.5" />
-					</button>
-					<button
-						type="button"
-						onclick={() => (tool = 'edit')}
-						class="inline-flex h-7 w-7 items-center justify-center rounded transition-colors {tool ===
-						'edit'
-							? 'bg-surface text-fg shadow-sm'
-							: 'text-fg-muted hover:text-fg'}"
-						title="Edit points (A)"
-						aria-label="Edit points"
-						disabled={glyph.contours.length === 0}
-					>
-						<MousePointer class="size-3.5" />
-					</button>
-				</div>
+				<EditorToolGroup bind:tool hasContours={glyph.contours.length > 0} />
 
 				<label class="flex items-center gap-2 pl-2">
 					<span class="text-[11px] font-medium text-fg-muted">Brush</span>
