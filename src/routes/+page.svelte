@@ -936,6 +936,66 @@
 		</div>
 	</section>
 
+	<!-- Trust band — Swiss-disciplined "by the numbers" row, sits between
+	     the hero and the dashboard. Gives first-time visitors a credentials-
+	     at-a-glance moment without scrolling far. The 4 stats are chosen to
+	     reinforce the four pillars of the audit-led positioning: the audit
+	     module (94 codes), the demo's scope (162 glyphs / 3 scripts),
+	     engineering integrity (528 tests passing), and the open-source
+	     commitment (MIT). Mono-uppercase labels + Hoefler-serif numerals
+	     match the rest of the home's typography. -->
+	<section
+		aria-label="Patens by the numbers"
+		class="mt-20 mb-20 border-y border-border/40 py-10 md:py-12"
+	>
+		<div class="grid grid-cols-2 gap-y-8 md:grid-cols-4 md:gap-y-0 md:gap-x-8">
+			<div class="flex flex-col gap-1">
+				<span
+					class="text-[36px] leading-none tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					94
+				</span>
+				<span class="text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
+					Audit codes · plain-English fixes
+				</span>
+			</div>
+			<div class="flex flex-col gap-1">
+				<span
+					class="text-[36px] leading-none tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					162
+				</span>
+				<span class="text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
+					Demo glyphs · Latin · Cyrillic · Greek
+				</span>
+			</div>
+			<div class="flex flex-col gap-1">
+				<span
+					class="text-[36px] leading-none tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					528
+				</span>
+				<span class="text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
+					Tests passing · 31 a11y routes
+				</span>
+			</div>
+			<div class="flex flex-col gap-1">
+				<span
+					class="text-[36px] leading-none tracking-tight text-fg"
+					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				>
+					MIT
+				</span>
+				<span class="text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
+					Open source · no paywall · ever
+				</span>
+			</div>
+		</div>
+	</section>
+
 	{#if projects.length > 0 || !loading}
 		<!-- Quick Start as a foundry index: no card chrome, no background.
 		     Each tile is a typographic sample of its kind — the "Aa" itself
