@@ -33,7 +33,7 @@ Every glyph has `contours: BezierContour[]` (and optionally `components: GlyphRe
 
 `idb-keyval`. One key per project, value is the JSON blob. There's also an INDEX_KEY that stores a `ProjectIndexEntry[]` so the home page can list projects without loading their full payloads.
 
-There's no server. No accounts. No sync. The share URL `/share/{id}` works only in the originator's browser — see the share-link 404 page for the recovery flow.
+There's no server (in the traditional CRUD sense). No accounts. No sync. **Cloud share is the one cross-browser path**: when `BLOB_READ_WRITE_TOKEN` is set, the editor can upload a project to Vercel Blob via `POST /api/share/{id}`, and any recipient hitting `/share/{id}` gets the project from the cloud blob. Auth is link-as-capability for reads (anyone with the UUID can view); the originator gets a delete-token sidechannel for `DELETE /api/share/{id}` (constant-time compared in `src/lib/share-blob.ts`). When Vercel Blob isn't configured, share gracefully degrades to local-only and the 404 page surfaces the recovery flow (open the demo, or ask the originator for a `.font.json`).
 
 The portable interchange format is `.font.json` — `JSON.stringify(project, null, 2)` with `id` stripped. Drop one on the home page to import.
 
@@ -49,16 +49,22 @@ Other stores in `src/lib/stores/`:
 
 ## The audit module — the spine
 
-`src/lib/font/audit.ts` is the most-load-bearing module. 88+ codes covering:
+`src/lib/font/audit.ts` is the most-load-bearing module. **94 codes** covering:
 
-- Contour shape (`self-intersecting`, `duplicate-points`, `near-collinear`, `tiny-contour`, `contour-winding-collision`, `off-grid-points`, ...)
-- Vertical metrics (`metrics-asc-mismatch`, `metrics-use-typo-off`, `metrics-win-clip-top`, ...)
-- Vertical-metric topology (`cap-above-ascender`, `x-above-cap`, `descender-nonnegative`, `zero-height`)
-- Naming (`naming-family`, `naming-style`, `naming-family-chars`, `glyph-name-not-canonical`, `duplicate-glyph-name`)
-- OpenType invariants (`palette-length-mismatch`, `pair-orphan-class`, `kerning-class-singleton`, `axis-range-invalid`)
-- Brief completeness (`brief-no-intent`, `brief-no-audience`, ...)
+- Contour shape (`self-intersecting`, `duplicate-points`, `near-collinear-points`, `tiny-contour`, `contour-winding-collision`, `off-grid-points`, `sharp-kink`, `open-contour`, `empty`)
+- Vertical metrics + topology (`metrics-asc-mismatch`, `metrics-use-typo-off`, `metrics-win-clip-top`, `metrics-cap-above-ascender`, `metrics-x-above-cap`, `metrics-descender-nonnegative`, `metrics-zero-height`)
+- Spacing + sidebearings (`zero-advance`, `overflows-advance`, `sidebearing-deeply-negative-lsb/rsb`, `sidebearing-class-drift-lsb/rsb`, `sidebearings-no-classes`)
+- OpenType invariants (`palette-length-mismatch`, `pair-orphan-class`, `kerning-class-singleton`, `axis-range-invalid`, `master-out-of-range`, `feature-kern-disabled-with-pairs`, `duplicate-glyph-name`)
+- Naming + metadata (`naming-family`, `naming-style`, `naming-family-chars`, `glyph-name-not-canonical`, `glyph-name-empty/invalid/too-long`, `meta-no-copyright/designer/license/vendor-id`, `meta-vendor-id-invalid`)
+- Brief completeness (`brief-no-intent`, `brief-no-design-notes`)
+- Coverage (`coverage-typo-essentials`, `coverage-latin-1-supp`, `coverage-currency`, `coverage-math`, `glyph-count-low`, `control-glyphs-missing`, `figures-non-tabular`)
+- Anchors (`anchor-naming-mark-no-prefix`, `anchor-naming-base-with-prefix`, `anchor-without-partner`, `anchors-missing`)
+- Variable-font compatibility (`master-contour-count`, `master-point-count`, `master-axis-unknown/out-of-range/missing`, `master-empty`, `master-orphan-axis`, `instance-orphan-axis`, `no-instances`)
+- Kerning classes (`class-empty`, `class-missing-member`, `class-name-format`, `pair-missing-glyph`, `kerning-no-classes`, `kerning-extreme`, `kerning-pair-self`)
+- Color fonts (`color-layer-no-palette`, `color-layer-out-of-range`)
+- Notes / flags (`notes-todo`, `flagged-for-review`)
 
-Every code has a `message` (the short flag), and most have a `describeAuditCode(code)` entry (the longer "what does this mean and how do I fix it" copy). Codes whose `message` is self-sufficient don't get a `describe` entry — that's intentional.
+Every code has a `message` (the short flag) and a `describeAuditCode(code)` entry (the longer "what does this mean and how do I fix it" copy) — 94/94 coverage as of v1.5.0, the missing-description gap was closed in that release. The same 94-code engine ships as a CLI (`npx patens audit`) for CI pipelines.
 
 The audit is consumed on **five teaching surfaces**:
 
