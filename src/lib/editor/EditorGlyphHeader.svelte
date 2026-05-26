@@ -22,6 +22,10 @@
 				? 'space'
 				: `U+${glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')}`
 	);
+
+	const codepointHex = $derived(
+		glyph.codepoint.toString(16).toUpperCase().padStart(4, '0')
+	);
 </script>
 
 <div class="flex items-center gap-2 pr-3">
@@ -33,19 +37,17 @@
 	<div class="grid leading-tight">
 		<span class="text-sm font-medium text-fg">{glyph.name}</span>
 		<span class="text-[11px] text-fg-subtle" data-numeric>
-			U+{glyph.codepoint
-				.toString(16)
-				.toUpperCase()
-				.padStart(4, '0')} · {glyph.status}
+			U+{codepointHex} · {glyph.status}
 		</span>
 	</div>
 	<button
 		type="button"
 		onclick={() => projectStore.toggleGlyphPin(glyph.codepoint)}
-		class="ml-1 inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.pinned
+		class="ml-1 inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.pinned
 			? 'text-warn hover:text-warn'
 			: 'hover:text-fg'}"
 		aria-label={glyph.pinned ? 'Unpin glyph' : 'Pin glyph'}
+		aria-pressed={glyph.pinned}
 		title={glyph.pinned ? 'Unpin' : 'Pin for quick access'}
 	>
 		<Pin class="size-3.5 {glyph.pinned ? 'fill-current' : ''}" />
@@ -53,10 +55,11 @@
 	<button
 		type="button"
 		onclick={() => projectStore.toggleGlyphFlag(glyph.codepoint)}
-		class="inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 {glyph.flagged
+		class="inline-flex h-6 w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.flagged
 			? 'text-warn hover:text-warn'
 			: 'hover:text-fg'}"
 		aria-label={glyph.flagged ? 'Unflag glyph' : 'Flag glyph for review'}
+		aria-pressed={glyph.flagged}
 		title={glyph.flagged ? 'Unflag' : 'Flag for review (⇧F)'}
 	>
 		<Flag class="size-3.5 {glyph.flagged ? 'fill-current' : ''}" />

@@ -1103,9 +1103,20 @@
 			>
 				{#if canvasDrop.active}
 					<div
-						class="pointer-events-none absolute inset-6 z-10 flex items-center justify-center rounded-lg bg-accent/10 text-[14px] font-medium text-accent-strong"
+						class="pointer-events-none absolute inset-6 z-10 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-accent bg-accent/10 backdrop-blur-[2px] text-[14px] font-medium text-accent-strong"
 					>
-						Drop image to use as tracing reference
+						<svg
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.5"
+							class="size-8 animate-pulse"
+							aria-hidden="true"
+						>
+							<path d="M12 16V4M12 4l-4 4M12 4l4 4" stroke-linecap="round" />
+							<path d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" stroke-linecap="round" />
+						</svg>
+						<span>Drop image to use as tracing reference</span>
 					</div>
 				{/if}
 				<div class="absolute inset-6 grid place-items-stretch">
