@@ -58,6 +58,7 @@
 	import NotesAccordion from '$lib/editor/NotesAccordion.svelte';
 	import TagsAccordion from '$lib/editor/TagsAccordion.svelte';
 	import UsedByAccordion from '$lib/editor/UsedByAccordion.svelte';
+	import KerningAccordion from '$lib/editor/KerningAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2871,42 +2872,11 @@
 			{/if}
 
 			{#if involvedKerning.asLeft + involvedKerning.asRight > 0}
-				<!-- Kerning pair count panel — surfaced inline so spacing edits
-				     in the editor make clear how many pairs are affected. Click
-				     anywhere on the panel body to jump to the spacing page
-				     filtered by this glyph. -->
-				<Accordion id="edit-kerning" label="Kerning" defaultOpen={false}>
-					{#snippet badge()}
-						<span
-							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent-strong"
-							data-numeric
-							title="{involvedKerning.asLeft} as left side · {involvedKerning.asRight} as right side"
-						>
-							{involvedKerning.asLeft + involvedKerning.asRight}
-						</span>
-					{/snippet}
-					<p class="text-[11px] text-fg-muted">
-						<span data-numeric>{involvedKerning.asLeft}</span> pair{involvedKerning.asLeft ===
-						1
-							? ''
-							: 's'} with this glyph on the
-						<span class="text-fg">left</span>,
-						<span data-numeric>{involvedKerning.asRight}</span> on the
-						<span class="text-fg">right</span>. Counts include class-based pairs.
-					</p>
-					<a
-						href={projectStore.project
-							? `/project/${projectStore.project.id}/spacing${
-									glyph.codepoint > 0x20 && glyph.codepoint < 0x10000
-										? `?left=${encodeURIComponent(String.fromCodePoint(glyph.codepoint))}`
-										: ''
-								}`
-							: '#'}
-						class="mt-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] font-medium text-fg-muted hover:border-accent hover:text-accent"
-					>
-						Edit on Spacing page →
-					</a>
-				</Accordion>
+				<KerningAccordion
+					{glyph}
+					asLeft={involvedKerning.asLeft}
+					asRight={involvedKerning.asRight}
+				/>
 			{/if}
 
 			<NotesAccordion {glyph} />
