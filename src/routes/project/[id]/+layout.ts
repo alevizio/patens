@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
 import { loadProject, saveProject } from '$lib/font/project';
-import { createDemoProject } from '$lib/font/demo-project';
 
 // SSR off: project data lives in client-only IndexedDB. Running this
 // load server-side throws because `indexedDB` is undefined in Node,
@@ -23,6 +22,12 @@ export const load: LayoutLoad = async ({ params, url }) => {
 		const wantsFresh = url.searchParams.get('fresh') === '1';
 		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
 		if (existing) return { project: existing };
+		// createDemoProject() lazy-imported only on the demo path. The
+		// demo-project module is 3665 lines (~113KB) of glyph data — for
+		// user-created projects (UUID ids) this load function never
+		// touches it, so the static import would just bloat the editor's
+		// cold-load chunk for nothing.
+		const { createDemoProject } = await import('$lib/font/demo-project');
 		const demo = { ...createDemoProject(), id: 'demo' };
 		await saveProject(demo).catch(() => {
 			/* IDB may be unavailable (private mode, quota, etc) —

@@ -1,7 +1,6 @@
 import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 import { loadProject, saveProject } from '$lib/font/project';
-import { createDemoProject } from '$lib/font/demo-project';
 import type { Project } from '$lib/font/types';
 
 /**
@@ -28,6 +27,10 @@ export const load: PageLoad = async ({ params, fetch, url }) => {
 		const wantsFresh = url.searchParams.get('fresh') === '1';
 		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
 		if (existing) return { project: existing, version: null };
+		// Lazy-load demo-project (3665 lines, ~113KB) only on the demo
+		// path. User-shared projects (UUIDs) never touch it; the static
+		// import would just bloat the share-page cold-load for nothing.
+		const { createDemoProject } = await import('$lib/font/demo-project');
 		const demo = { ...createDemoProject(), id: 'demo' };
 		await saveProject(demo).catch(() => {
 			/* IndexedDB unavailable (private mode, quota errors, etc.) —
