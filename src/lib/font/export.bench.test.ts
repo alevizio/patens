@@ -111,10 +111,15 @@ describe('buildFont — per-call cost', () => {
 			const project = synthProject(n);
 			console.log(`\n[${n} glyphs]`);
 			const cost = measure('buildFont', () => buildFont(project), iter);
-			// Sanity bound — 500-glyph project on CI hardware should
-			// never exceed 2 seconds. If it does, something is O(n²)
-			// where it should be O(n) or the opentype.js path is hot.
-			expect(cost, `${n} glyphs catastrophically slow`).toBeLessThan(2000);
+			// Sanity bound — catastrophic-regression guard, not a perf budget.
+			// Local dev hardware: 50/162/500 glyphs cost roughly 2/19/126ms.
+			// CI ubuntu-latest baseline (cold runner, no isolation): roughly
+			// 290/1260/2520ms — about 15–20× slower. We want this bound
+			// loose enough to absorb CI variance + warm-up noise, tight
+			// enough to catch a truly O(n²) regression or an opentype.js
+			// hot-loop introduction. 8s for 500 glyphs ≈ 3× the current CI
+			// baseline; a real regression will overshoot massively.
+			expect(cost, `${n} glyphs catastrophically slow`).toBeLessThan(8000);
 		});
 	}
 });
