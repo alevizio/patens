@@ -27,28 +27,42 @@ export const load: PageLoad = async ({ params, fetch, url }) => {
 		// IndexedDB copy. Same convention as /project/demo/edit?fresh=1.
 		const wantsFresh = url.searchParams.get('fresh') === '1';
 		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
-		if (existing) return { project: existing };
+		if (existing) return { project: existing, version: null };
 		const demo = { ...createDemoProject(), id: 'demo' };
 		await saveProject(demo).catch(() => {
 			/* IndexedDB unavailable (private mode, quota errors, etc.) —
 			   render the demo anyway from the in-memory build. */
 		});
-		return { project: demo };
+		return { project: demo, version: null };
 	}
-	// 1. Local IndexedDB
-	const local = await loadProject(params.id);
-	if (local) return { project: local };
+	// ?v=N selects an immutable version snapshot. Absent = latest.
+	// Local IDB always holds the latest, so a version-pinned link must
+	// skip the local cache and go directly to the cloud (which has the
+	// versioned blob). Without this we'd silently return the latest
+	// when the user asked for a specific older version.
+	const versionParam = url.searchParams.get('v');
+	const hasVersion = versionParam !== null && versionParam !== 'latest';
 
-	// 2. Cloud — Vercel Blob via /api/share/{id}
+	// 1. Local IndexedDB (only for the latest case)
+	if (!hasVersion) {
+		const local = await loadProject(params.id);
+		if (local) return { project: local, version: null };
+	}
+
+	// 2. Cloud — Vercel Blob via /api/share/{id}[?v=N]
+	const cloudUrl = hasVersion
+		? `/api/share/${params.id}?v=${encodeURIComponent(versionParam)}`
+		: `/api/share/${params.id}`;
 	try {
-		const res = await fetch(`/api/share/${params.id}`);
+		const res = await fetch(cloudUrl);
 		if (res.ok) {
 			const project = (await res.json()) as Project;
-			// Save locally so repeat views (and the editor, if the recipient
-			// opens it) don't re-fetch from cloud. Failure to save is
-			// non-fatal (private-mode quota, etc.) — we still render.
-			await saveProject(project).catch(() => {});
-			return { project };
+			// Save locally only when fetching the latest; an old version
+			// shouldn't clobber the latest in IDB.
+			if (!hasVersion) {
+				await saveProject(project).catch(() => {});
+			}
+			return { project, version: hasVersion ? Number(versionParam) : null };
 		}
 		// 404 / 503 from /api/share — fall through to the local 404
 		// recovery page with its own copy.

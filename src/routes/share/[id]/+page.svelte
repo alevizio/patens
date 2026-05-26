@@ -23,6 +23,29 @@
 
 	let { data } = $props();
 	const project = $derived(data.project);
+	// Re-share version state. data.version is non-null when the URL has
+	// ?v=N — we're showing an immutable historical snapshot. data.version
+	// === null means we're showing the canonical (latest) blob.
+	const pinnedVersion = $derived(data.version);
+	type ShareVersion = { v: number; uploadedAt: string; sizeBytes: number; url: string };
+	let availableVersions = $state<ShareVersion[]>([]);
+	let loadingVersions = $state(false);
+	onMount(async () => {
+		// Demo project doesn't have a server-side history; skip the fetch.
+		if (data.project.id === 'demo') return;
+		loadingVersions = true;
+		try {
+			const res = await fetch(`/api/share/${data.project.id}/versions`);
+			if (res.ok) {
+				const body = (await res.json()) as { versions: ShareVersion[] };
+				availableVersions = body.versions ?? [];
+			}
+		} catch {
+			/* network error → silently leave the dropdown empty */
+		} finally {
+			loadingVersions = false;
+		}
+	});
 	// Selected palette index for color layers. When the project has
 	// multiple palettes (warm / cool / mono / material), visitors can
 	// flip through them in the tester and watch every COLR-layered glyph
@@ -1398,6 +1421,47 @@ body {
 				<p class="mt-3 max-w-prose text-[14px] leading-relaxed text-fg">
 					{project.description}
 				</p>
+			{/if}
+			{#if availableVersions.length > 1}
+				<!-- Version selector — only renders when the share has 2+
+				     versions on file. The dropdown navigates to ?v=N which
+				     re-runs +page.ts's load() and fetches the immutable
+				     snapshot from /api/share/[id]?v=N. "Latest" is the
+				     null-version load path that's the recipient's default. -->
+				<div class="mt-3 flex flex-wrap items-baseline gap-2 text-[12px]">
+					<label for="version-select" class="text-fg-subtle">
+						Version:
+					</label>
+					<select
+						id="version-select"
+						class="rounded border border-border bg-surface px-2 py-0.5 text-[12px] text-fg outline-none focus:border-accent"
+						value={pinnedVersion === null ? 'latest' : String(pinnedVersion)}
+						onchange={(ev) => {
+							const v = (ev.target as HTMLSelectElement).value;
+							const url = new URL(window.location.href);
+							if (v === 'latest') url.searchParams.delete('v');
+							else url.searchParams.set('v', v);
+							window.location.href = url.toString();
+						}}
+					>
+						<option value="latest">
+							Latest (v{availableVersions[0].v})
+						</option>
+						{#each availableVersions as v (v.v)}
+							<option value={v.v}>
+								v{v.v} · {new Date(v.uploadedAt).toLocaleDateString()}
+							</option>
+						{/each}
+					</select>
+					{#if pinnedVersion !== null}
+						<span
+							class="rounded bg-warn/15 px-1.5 py-0.5 text-[10px] font-medium text-warn-strong"
+							title="You're viewing a historical version. The latest may differ."
+						>
+							pinned
+						</span>
+					{/if}
+				</div>
 			{/if}
 		</div>
 		<!-- Download — two formats: OTF for install, WOFF2 for web.

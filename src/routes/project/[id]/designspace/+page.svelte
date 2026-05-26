@@ -28,6 +28,13 @@
 	// the variable-font export pipeline so the preview is exact, not
 	// an approximation.
 	let previewLocation = $state<Record<string, number>>({});
+
+	// 2D explorer axis-pair selection. Default = first two axes; the
+	// picker only renders when the project has 3+ axes (more than the
+	// trivially-pickable pair). Persists for the session via $state;
+	// resets to defaults on project switch via the $effect below.
+	let explorerXTag = $state<string | null>(null);
+	let explorerYTag = $state<string | null>(null);
 	$effect(() => {
 		// Initialise / reset the preview location whenever axes change.
 		// Track the axes array (reactive dep); read+write previewLocation
@@ -44,6 +51,36 @@
 			}
 			previewLocation = next;
 		});
+		// Reset the explorer axis-pair selection when the axis set changes
+		// (project switch, axis added/removed). Null sentinels make the
+		// derivations below fall back to axes[0] and axes[1].
+		untrack(() => {
+			const tags = new Set(axes.map((a) => a.tag));
+			if (explorerXTag && !tags.has(explorerXTag)) explorerXTag = null;
+			if (explorerYTag && !tags.has(explorerYTag)) explorerYTag = null;
+		});
+	});
+	// Resolve the explorer axes — picker-overrides win, else the first
+	// two axes. Also handle the "X = Y" degenerate (force Y to a
+	// different axis if the picker selection collided).
+	const explorerX = $derived.by(() => {
+		const axes = project?.axes ?? [];
+		if (axes.length < 2) return null;
+		if (explorerXTag) {
+			const found = axes.find((a) => a.tag === explorerXTag);
+			if (found) return found;
+		}
+		return axes[0];
+	});
+	const explorerY = $derived.by(() => {
+		const axes = project?.axes ?? [];
+		if (axes.length < 2) return null;
+		const xTag = explorerX?.tag;
+		if (explorerYTag && explorerYTag !== xTag) {
+			const found = axes.find((a) => a.tag === explorerYTag);
+			if (found) return found;
+		}
+		return axes.find((a) => a.tag !== xTag) ?? axes[1];
 	});
 	const previewWeights = $derived.by(() => {
 		if (!project || (project.axes?.length ?? 0) === 0) return [];
@@ -379,15 +416,17 @@
 									</div>
 								</div>
 							{/each}
-							{#if (project.axes ?? []).length >= 2}
-								<!-- 2D variation explorer — visualizes the first two axes as a
-								     square, plots every master as a dot, lets the designer drag
-								     a crosshair through the space to set previewLocation. Snaps
-								     visually but the underlying numeric state is continuous.
-								     Beyond 2 axes, this still shows axes[0]×axes[1]; a future
-								     iteration adds axis-pair picker dropdowns. -->
-								{@const ax0 = (project.axes ?? [])[0]}
-								{@const ax1 = (project.axes ?? [])[1]}
+							{#if (project.axes ?? []).length >= 2 && explorerX && explorerY}
+								<!-- 2D variation explorer — visualises two axes as a square,
+								     plots every master as a dot, lets the designer drag a
+								     crosshair through the space to set previewLocation. Two
+								     axes: those are the X / Y. Three or more axes: the picker
+								     dropdowns let the designer choose which pair to render.
+								     The TS narrowing here propagates `non-null` to the @const
+								     bindings below — without the `&& explorerX && explorerY`
+								     guard, every `ax0.tag` access would compile-error. -->
+								{@const ax0 = explorerX}
+								{@const ax1 = explorerY}
 								{@const xVal = previewLocation[ax0.tag] ?? ax0.default}
 								{@const yVal = previewLocation[ax1.tag] ?? ax1.default}
 								{@const toPx = (v: number, min: number, max: number) =>
@@ -401,6 +440,39 @@
 											drag through designspace
 										</span>
 									</div>
+									{#if (project.axes?.length ?? 0) > 2 && ax0 && ax1}
+										<!-- Axis-pair picker — only renders for 3+ axis fonts.
+										     The 2 / 2 case is the unambiguous default; rendering
+										     the picker there would be UX noise. -->
+										<div class="mb-2 grid grid-cols-2 gap-2 text-[11px]">
+											<label class="flex items-baseline gap-1.5">
+												<span class="text-fg-subtle">X</span>
+												<select
+													class="flex-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[11px] text-fg outline-none focus:border-accent"
+													bind:value={explorerXTag}
+													aria-label="2D explorer — X axis"
+												>
+													{#each project.axes ?? [] as a (a.tag)}
+														<option value={a.tag}>{a.name || a.tag}</option>
+													{/each}
+												</select>
+											</label>
+											<label class="flex items-baseline gap-1.5">
+												<span class="text-fg-subtle">Y</span>
+												<select
+													class="flex-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[11px] text-fg outline-none focus:border-accent"
+													bind:value={explorerYTag}
+													aria-label="2D explorer — Y axis"
+												>
+													{#each project.axes ?? [] as a (a.tag)}
+														<option value={a.tag} disabled={a.tag === ax0.tag}>
+															{a.name || a.tag}
+														</option>
+													{/each}
+												</select>
+											</label>
+										</div>
+									{/if}
 									<svg
 										viewBox="0 0 200 200"
 										class="aspect-square w-full max-w-[260px] cursor-crosshair touch-none rounded border border-border bg-surface-2/30"
