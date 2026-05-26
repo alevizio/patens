@@ -57,6 +57,7 @@
 	import TemplatesAccordion from '$lib/editor/TemplatesAccordion.svelte';
 	import NotesAccordion from '$lib/editor/NotesAccordion.svelte';
 	import TagsAccordion from '$lib/editor/TagsAccordion.svelte';
+	import UsedByAccordion from '$lib/editor/UsedByAccordion.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -2866,33 +2867,7 @@
 			{/if}
 
 			{#if usedByGlyphs.length > 0}
-				<Accordion id="edit-usedby" label="Used by" defaultOpen={true}>
-					{#snippet badge()}
-						<span
-							class="rounded bg-accent-soft px-1.5 py-0.5 font-mono text-[10px] text-accent-strong"
-							data-numeric
-						>
-							{usedByGlyphs.length}
-						</span>
-					{/snippet}
-					<p class="mb-2 text-[11px] text-fg-subtle">
-						These composite glyphs reference this glyph. Edits here propagate.
-					</p>
-					<div class="flex flex-wrap gap-1">
-						{#each usedByGlyphs as g (g.codepoint)}
-							<button
-								type="button"
-								onclick={() => projectStore.selectGlyph(g.codepoint)}
-								class="rounded border border-border bg-surface-2 px-1.5 py-0.5 text-[12px] font-medium text-fg-muted hover:border-accent hover:text-accent"
-								title={g.name}
-							>
-								{g.codepoint > 0x20 && g.codepoint < 0x10000
-									? String.fromCodePoint(g.codepoint)
-									: g.name}
-							</button>
-						{/each}
-					</div>
-				</Accordion>
+				<UsedByAccordion usedBy={usedByGlyphs} />
 			{/if}
 
 			{#if involvedKerning.asLeft + involvedKerning.asRight > 0}
