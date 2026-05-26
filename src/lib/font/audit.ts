@@ -1399,7 +1399,7 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'sidebearing-deeply-negative-lsb':
 			'Left sidebearing is more negative than -100fu — usually a bug from a mass-spacing pass. Modest negatives (e.g. -20) are normal for italic letters that lean.',
 		'sidebearing-deeply-negative-rsb':
-			'Right sidebearing is more negative than -100fu — usually a bug from a mass-spacing pass.',
+			'Right sidebearing is more negative than -100fu — usually a bug from a mass-spacing pass. Modest negatives (e.g. -20) are normal for italic letters that lean or for tightly-tucked terminal shapes (T, Y, V at the end of a word).',
 		// Spacing & metrics
 		'zero-advance':
 			'The glyph\'s advance width is 0. Text containing this glyph will have all following glyphs stacked at the same position.',
@@ -1412,7 +1412,7 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'sidebearing-class-drift-lsb':
 			'This glyph\'s left sidebearing has drifted from the median of its sidebearing-class peers. Either re-apply the class or remove this glyph from it.',
 		'sidebearing-class-drift-rsb':
-			'This glyph\'s right sidebearing has drifted from the median of its sidebearing-class peers.',
+			'This glyph\'s right sidebearing has drifted from the median of its sidebearing-class peers. Either re-apply the class or remove this glyph from it — the drift means one of those two is your intent, and leaving the class in place propagates the staleness on the next class edit.',
 		// Composites & references
 		'composite-missing-base':
 			'A composite reference points at a glyph with no outlines. The reference will render as nothing.',
@@ -1440,13 +1440,13 @@ export const describeAuditCode = (code: string): string | undefined => {
 		'notes-todo':
 			'The glyph\'s notes field contains TODO or FIXME — an unresolved work item the designer left for future iteration.',
 		'flagged-for-review':
-			'A designer hit Shift+F on this glyph to mark it for follow-up review.',
+			'A designer hit Shift+F on this glyph to mark it for follow-up review — a designer-set reminder, not a rule violation. The flag clears with another Shift+F. Useful for batch-marking glyphs that need refinement on a second pass without losing track (e.g. the bespoke Cyrillic shapes Я Ж Ф that ship as sketches in the demo project).',
 		'glyph-name-empty':
 			'Glyph name field is empty. PostScript glyph names are required for OpenType feature substitutions.',
 		'glyph-name-invalid':
 			'Glyph name contains characters outside the allowed set (A-Za-z0-9._-) or starts with a digit. The PostScript spec forbids it.',
 		'glyph-name-too-long':
-			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps it there.',
+			'Glyph name exceeds 63 characters. The OpenType post-table v2 spec caps individual names at 63 bytes; longer names get silently truncated on export, which can then collide with whatever existing glyph already shares the prefix. Use the AGLFN suggestion chip in the glyph browser to get a canonical short name.',
 		'glyph-name-not-canonical':
 			'The glyph name differs from the canonical Adobe Glyph List for New Fonts name for this codepoint. Renaming keeps downstream tooling (feature substitutions, color emoji lookups, PostScript naming) consistent.',
 		// Vertical-metric sanity
