@@ -51,7 +51,8 @@
 	import Sliders from '@lucide/svelte/icons/sliders-horizontal';
 	import Copy from '@lucide/svelte/icons/copy';
 	import ClipboardPaste from '@lucide/svelte/icons/clipboard-paste';
-	import EditorTour from '$lib/ui/EditorTour.svelte';
+	// EditorTour is tour-trigger-only (first-visit + help button). Lazy.
+	import type EditorTourType from '$lib/ui/EditorTour.svelte';
 	import CompositeEditor from '$lib/glyph/CompositeEditor.svelte';
 	import ReferenceImagePanel from '$lib/glyph/ReferenceImagePanel.svelte';
 	import RevisionsPanel from '$lib/glyph/RevisionsPanel.svelte';
@@ -72,6 +73,14 @@
 	let cubicTrace = $state(DEFAULT_TRACE.cubic);
 	let cubicMaxError = $state(DEFAULT_TRACE.cubicMaxError);
 	let tourOpen = $state(false);
+	let EditorTourLazy = $state<typeof EditorTourType | null>(null);
+	$effect(() => {
+		if (tourOpen && !EditorTourLazy) {
+			import('$lib/ui/EditorTour.svelte').then((m) => {
+				EditorTourLazy = m.default;
+			});
+		}
+	});
 	let skipEmptyNav = $state(settings.editor.skipEmptyNav);
 	let showAnatomy = $state(settings.editor.showAnatomy);
 
@@ -4156,6 +4165,8 @@
 			</div>
 		</aside>
 	</div>
-	<EditorTour open={tourOpen} onclose={() => (tourOpen = false)} />
+	{#if EditorTourLazy}
+		<EditorTourLazy open={tourOpen} onclose={() => (tourOpen = false)} />
+	{/if}
 
 {/if}

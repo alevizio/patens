@@ -2,7 +2,10 @@
 	import '../app.css';
 	import ToastContainer from '$lib/ui/ToastContainer.svelte';
 	import OfflineIndicator from '$lib/ui/OfflineIndicator.svelte';
-	import CommandPalette from '$lib/ui/CommandPalette.svelte';
+	// CommandPalette is Cmd-K-triggered — defer the 15 KB module until
+	// first activation. Saves the cost on every cold load across every
+	// route, since this layout wraps the entire app.
+	import type CommandPaletteType from '$lib/ui/CommandPalette.svelte';
 	import { palette } from '$lib/stores/palette.svelte';
 	import { consoleHello, installKonamiListener, celebrate } from '$lib/delight';
 	import { toast } from '$lib/stores/toast.svelte';
@@ -22,6 +25,17 @@
 			palette.toggle();
 		}
 	};
+
+	// Lazy-load CommandPalette only when palette.open flips true (first
+	// Cmd-K press). 15 KB saved on every cold load.
+	let CommandPaletteLazy = $state<typeof CommandPaletteType | null>(null);
+	$effect(() => {
+		if (palette.open && !CommandPaletteLazy) {
+			import('$lib/ui/CommandPalette.svelte').then((m) => {
+				CommandPaletteLazy = m.default;
+			});
+		}
+	});
 
 	let cleanupKonami: (() => void) | null = null;
 	onMount(() => {
@@ -81,4 +95,6 @@
 </div>
 <ToastContainer />
 <OfflineIndicator />
-<CommandPalette open={palette.open} onclose={() => palette.hide()} />
+{#if CommandPaletteLazy}
+	<CommandPaletteLazy open={palette.open} onclose={() => palette.hide()} />
+{/if}
