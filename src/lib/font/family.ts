@@ -11,7 +11,7 @@
 
 import { get, set, del, createStore } from 'idb-keyval';
 import type { Family, Project } from './types';
-import { listProjects, loadProject, saveProject } from './project';
+import { listProjects, loadProject, loadProjectsMany, saveProject } from './project';
 
 // Use a *separate* IndexedDB database for families. The existing
 // `font-studio` DB was created in v1 with only the `projects` store, and
@@ -87,8 +87,11 @@ export const deleteFamily = async (id: string): Promise<void> => {
 	// project record without the family fields rather than spreading + destructure,
 	// to guarantee no `familyId: undefined` survives the IndexedDB round-trip.
 	const siblings = await listSiblings(id);
-	for (const s of siblings) {
-		const p = await loadProject(s.id);
+	// Batched read so deleting a family with N siblings doesn't take N IDB
+	// round-trips. Writes still go through saveProject one-by-one (each
+	// write also updates the projects index, so batching is non-trivial).
+	const projects = await loadProjectsMany(siblings.map((s) => s.id));
+	for (const p of projects) {
 		if (!p) continue;
 		const cleaned: Project = { ...p };
 		delete cleaned.familyId;

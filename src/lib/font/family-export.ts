@@ -12,7 +12,7 @@
 import { zipSync, strToU8 } from 'fflate';
 import { buildFont } from './export';
 import { generateDesignMd } from './design-md';
-import { loadProject } from './project';
+import { loadProject, loadProjectsMany } from './project';
 import { loadFamily, listSiblings } from './family';
 import type { FamilyAxes } from './types';
 
@@ -96,8 +96,12 @@ export const buildFamilyBundle = async (familyId: string): Promise<FamilyBundle 
 	const familySafe = safe(family.name);
 	const flattenedVfSiblings: string[] = [];
 	const failedSiblings: string[] = [];
-	for (const entry of siblings) {
-		const project = await loadProject(entry.id);
+	// Batched: one readonly transaction over every sibling's blob instead
+	// of N serialised `await loadProject(id)`. Large families with 6+
+	// siblings see a meaningful cold-path improvement here.
+	const siblingProjects = await loadProjectsMany(siblings.map((e) => e.id));
+	for (let i = 0; i < siblings.length; i++) {
+		const project = siblingProjects[i];
 		if (!project) continue;
 		const styleName = project.metadata.styleName || 'Regular';
 		try {
