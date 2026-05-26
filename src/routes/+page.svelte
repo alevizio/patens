@@ -629,14 +629,14 @@
 	<title>Patens (2026) — open-source type design in the browser</title>
 	<meta
 		name="description"
-		content="Sketch-first browser type editor. Variable fonts, color (COLR), kerning, mark positioning, OpenType features, audit + auto-fix across every workflow surface."
+		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native."
 	/>
 	<!-- OpenGraph / Twitter card meta for link unfurls. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens" />
 	<meta
 		property="og:description"
-		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
+		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="/og/home" />
@@ -646,7 +646,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="Sketch-first browser type editor. Variable fonts, color, OpenType features, audit + auto-fix."
+		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta name="twitter:image" content="/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark
