@@ -48,6 +48,7 @@
 	import VfLivePreviewStrip from '$lib/editor/VfLivePreviewStrip.svelte';
 	import MastersStrip from '$lib/editor/MastersStrip.svelte';
 	import MetricsStrip from '$lib/editor/MetricsStrip.svelte';
+	import OnboardingHints from '$lib/editor/OnboardingHints.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1868,68 +1869,16 @@
 				/>
 			</div>
 
-			{#if showBriefFirstHint && projectStore.project}
-				<div
-					class="flex items-center gap-3 border-b border-border bg-warn-soft/30 bg-warn/5 px-4 py-2 text-[12px] text-fg-muted"
-				>
-					<span class="font-medium text-warn">Before you draw →</span>
-					<span>
-						Type design is system design. Write a one-line intent and pick a use case
-						or two — it'll guide every decision below.
-					</span>
-					<a
-						href="/project/{projectStore.project.id}/brief"
-						class="ml-auto rounded border border-warn/40 bg-warn/10 px-2 py-0.5 text-[11px] font-medium text-warn-strong hover:bg-warn/15"
-					>
-						Open Brief →
-					</a>
-				</div>
-			{/if}
-
-			<!-- Onboarding control-glyph hint -->
-			{#if showControlHint}
-				<div
-					class="flex items-center gap-3 border-b border-border bg-accent-soft/30 px-4 py-2 text-[12px] text-fg-muted"
-				>
-					<span class="font-medium text-accent">Start here →</span>
-					<span>Draw these {controlMissing.length} first; they set proportion + texture for everything else.</span>
-					<div class="ml-auto flex flex-wrap items-center gap-1">
-						{#each controlMissing as cp (cp)}
-							<button
-								type="button"
-								onclick={() => projectStore.selectGlyph(cp)}
-								class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
-								title="Jump to {String.fromCodePoint(cp)}"
-							>
-								{String.fromCodePoint(cp)}
-							</button>
-						{/each}
-					</div>
-				</div>
-			{:else if showSuggestedNext}
-				<div
-					class="flex items-center gap-3 border-b border-border bg-accent-soft/20 px-4 py-2 text-[12px] text-fg-muted"
-				>
-					<span class="font-medium text-accent">Suggested next →</span>
-					<span>
-						Priority picks based on your Brief use cases ({(projectStore.project?.brief
-							?.useCases ?? []).join(', ') || 'defaults'}).
-					</span>
-					<div class="ml-auto flex flex-wrap items-center gap-1">
-						{#each suggestedNext as cp (cp)}
-							{@const ch =
-								cp > 0x20 && cp < 0x10000 ? String.fromCodePoint(cp) : '?'}
-							<button
-								type="button"
-								onclick={() => projectStore.selectGlyph(cp)}
-								class="flex h-6 min-w-6 items-center justify-center rounded border border-border bg-surface px-1 text-[13px] font-medium hover:border-accent hover:bg-accent-soft"
-								title="Jump to U+{cp.toString(16).toUpperCase().padStart(4, '0')}"
-							>
-								{ch}
-							</button>
-						{/each}
-					</div>
-				</div>
+			{#if projectStore.project}
+				<OnboardingHints
+					projectId={projectStore.project.id}
+					briefUseCases={projectStore.project.brief?.useCases ?? []}
+					showBriefHint={showBriefFirstHint}
+					{showControlHint}
+					{showSuggestedNext}
+					{controlMissing}
+					{suggestedNext}
+				/>
 			{/if}
 
 			<!-- Canvas area -->
