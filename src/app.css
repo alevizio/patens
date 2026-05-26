@@ -158,3 +158,26 @@
 		}
 	}
 }
+
+/* Respect user motion preferences across the whole app.
+ *
+ * The editor uses dozens of micro-transitions (active:scale, focus
+ * rings, hover colour shifts, accordion chevron rotations, button
+ * presses). Each one is a tiny delight — but for users on
+ * prefers-reduced-motion (vestibular sensitivity, attention
+ * disorders), the cumulative motion budget becomes hostile.
+ *
+ * This rule kills all animations + transitions at the source.
+ * Functional state changes (focus state, hover colours) still apply
+ * — they just snap instantly. Accordion content still shows + hides;
+ * it just doesn't slide. No feature is removed; only the motion is. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
