@@ -141,14 +141,30 @@ signals.
 
 ---
 
-## What I'll do if you say "ship Tier 1 + Tier 2"
+## ✅ Update — Tier 1 + Tier 2 shipped (2026-05-25)
 
-In one autonomous arc, ~5 hours of my time but ~zero of yours:
+All 13 picks landed. Commits this arc:
 
-1. Write all 8 Tier-1 files; commit each piece individually
-2. Verify svelte-check, lint, vitest, playwright all stay green
-3. Push each commit
-4. Write all 5 Tier-2 drafts to `docs/launch/*.md`; commit + push
-5. Refresh `docs/launch/app-improvements-plan.md` with the OSS arc closing
-6. Hand back with a TL;DR + the specific actions you'll need to do
-   yourself (with the prep docs ready to paste).
+**Tier 1 — 8 repo additions:**
+
+- `5bf5375` docs: AGENTS.md — Linux Foundation cross-tool standard
+- `9b7105c` docs: MAINTAINERS.md — solo-maintainer SLA + burnout firebreak
+- `92ed0b7` docs: DESIGN_PHILOSOPHY.md — referenced from PR template
+- `107a9b9` chore(oss): devcontainer + PR/feature templates + SBOM CI + README badges
+- `d244341` docs: ARCHITECTURE.md — six-layer map, core flows, SSR posture
+- (templates updated in `107a9b9`; SBOM via cdxgen step added; 6 badges live)
+
+**Tier 2 — 5 paste-ready prep docs (this commit):**
+
+- `docs/launch/nlnet-application.md` — NLnet NGI Zero Commons (~€20k, rolling deadline)
+- `docs/launch/openssf-best-practices.md` — Passing-tier self-cert question-by-question
+- `docs/launch/trademark.md` — USPTO class 9 self-file walkthrough (~$250)
+- `docs/launch/sponsors-profile.md` — GitHub Sponsors bio + 3-tier structure + FUNDING.yml
+- `docs/launch/polar-setup.md` — Polar account, 5 products, issue-funding wiring
+
+**Verification**: svelte-check 0 errors, eslint 0 warnings (gate at 0), vitest 506 tests passing, playwright 66 e2e passing.
+
+The remaining items in the plan above are all Tier 3 (you-only): file
+the USPTO trademark, set up Sponsors + Polar accounts, submit NLnet,
+run the Show HN launch, attend TypeCon Portland. Each is documented
+to paste-ready depth in the corresponding `docs/launch/*.md` file.
