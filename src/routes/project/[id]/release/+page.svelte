@@ -1,12 +1,8 @@
 <script lang="ts">
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
-	import {
-		preflightProject,
-		auditCompatibility,
-		auditProject,
-		describeAuditCode
-	} from '$lib/font/audit';
+	import { describeAuditCode } from '$lib/font/audit';
+	import { auditStore } from '$lib/stores/audit.svelte';
 	import Panel from '$lib/ui/Panel.svelte';
 	import Button from '$lib/ui/Button.svelte';
 	import LoadingPanel from '$lib/ui/LoadingPanel.svelte';
@@ -25,9 +21,18 @@
 	const project = $derived(projectStore.project);
 	const checks = $derived(project?.releaseChecks ?? {});
 
-	const preflight = $derived(project ? preflightProject(project) : []);
-	const compatibility = $derived(project ? auditCompatibility(project) : []);
-	const perGlyph = $derived(project ? auditProject(project) : []);
+	// Audit runs in a worker; this page reads the cached results out of
+	// auditStore + requests a fresh run on mount and on project mutation.
+	$effect(() => {
+		if (project) auditStore.runNow(project);
+	});
+	$effect(() => {
+		const p = projectStore.project;
+		if (p) auditStore.request(p);
+	});
+	const preflight = $derived(auditStore.preflight);
+	const compatibility = $derived(auditStore.compatibility);
+	const perGlyph = $derived(auditStore.perGlyph);
 
 	const errors = $derived(
 		[...preflight, ...compatibility, ...perGlyph].filter((i) => i.severity === 'error').length
@@ -309,7 +314,7 @@
 						<div class="mt-1 flex items-baseline gap-2">
 							{#if autoPasses}
 								<CheckCircle2 class="size-5 text-success" />
-								<span class="text-[14px] font-medium text-success">Passing</span>
+								<span class="text-[14px] font-medium text-success-strong">Passing</span>
 							{:else if errors > 0}
 								<AlertCircle class="size-5 text-danger" />
 								<span class="text-[14px] font-medium text-danger-strong">{errors} errors</span>
@@ -366,7 +371,7 @@
 						<div class="mt-1 flex items-baseline gap-2">
 							{#if readyToShip}
 								<CheckCircle2 class="size-5 text-success" />
-								<span class="text-[14px] font-medium text-success">Ship it</span>
+								<span class="text-[14px] font-medium text-success-strong">Ship it</span>
 							{:else}
 								<Info class="size-5 text-fg-subtle" />
 								<span class="text-[14px] font-medium text-fg-muted">Not yet</span>

@@ -3,10 +3,8 @@
 	import { page } from '$app/state';
 	import { projectStore } from '$lib/stores/project.svelte';
 	import { toast } from '$lib/stores/toast.svelte';
+	import { auditStore } from '$lib/stores/audit.svelte';
 	import {
-		auditProject,
-		preflightProject,
-		auditCompatibility,
 		describeAuditCode,
 		sortBySeverity,
 		type AuditIssue,
@@ -27,12 +25,31 @@
 
 	const project = $derived(projectStore.project);
 
+	// Audit runs in a worker (see src/lib/audit/audit-worker.ts). We
+	// schedule a fresh audit whenever the project changes; the store
+	// holds the most recent results as $state so this $derived just
+	// re-renders when they land. The route renders fast immediately on
+	// open with empty issues — the worker fills them in a microtask
+	// later. Subsequent edits debounce 80ms via auditStore.request().
+	$effect(() => {
+		if (project) auditStore.runNow(project);
+		else auditStore.clear();
+	});
+	$effect(() => {
+		// Re-schedule on project mutation. The dependency is read here
+		// (projectStore.project's content), so any nested mutation
+		// retriggers via Svelte's proxy tracking.
+		const p = projectStore.project;
+		if (!p) return;
+		auditStore.request(p);
+	});
+
 	const allIssues = $derived.by(() => {
-		if (!project) return [] as AuditIssue[];
-		const out: AuditIssue[] = [];
-		out.push(...auditProject(project));
-		out.push(...auditCompatibility(project));
-		out.push(...preflightProject(project));
+		const out: AuditIssue[] = [
+			...auditStore.perGlyph,
+			...auditStore.compatibility,
+			...auditStore.preflight
+		];
 		// Dedup by codepoint+code+message
 		const seen = new Set<string>();
 		const dedup: AuditIssue[] = [];
@@ -539,9 +556,9 @@
 
 				{#if filtered.length === 0}
 					<div class="rounded-lg border border-dashed border-success/40 bg-success/5 p-10 text-center">
-						<CheckCircle2 class="mx-auto mb-2 size-6 text-success" />
+						<CheckCircle2 class="mx-auto mb-2 size-6 text-success-strong" />
 						{#if counts.all === 0}
-							<div class="text-[13px] font-medium text-success">All checks pass</div>
+							<div class="text-[13px] font-medium text-success-strong">All checks pass</div>
 							<div class="mt-1 text-[12px] text-fg-muted">
 								No errors, warnings, or hints reported on the current state.
 							</div>
