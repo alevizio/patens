@@ -58,7 +58,16 @@
 	} from '$lib/editor/glyph-export';
 	import { parseSvgPasteToGlyph } from '$lib/editor/glyph-paste';
 	import { SAMPLE_WORDS } from '$lib/editor/sample-words';
-	import { CONTROL_GLYPHS, useCaseTargets } from '$lib/editor/onboarding-targets';
+	import {
+		computePeerComparison,
+		computeSpacingSuggestion,
+		countDrawnGlyphs,
+		findMissingControlGlyphs,
+		computeSuggestedNext,
+		isBriefEmpty,
+		pickReferenceGlyph,
+		pickOnionNeighbours
+	} from '$lib/editor/glyph-deriveds';
 	import { fixAuditIssue } from '$lib/editor/fix-issue';
 	import {
 		snapPointsToGrid,
@@ -494,47 +503,11 @@
 		return { asLeft, asRight };
 	});
 
-	const spacingSuggestion = $derived.by(() => {
-		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
-		// Pick a peer in the same category (upper/lower/figure) with the
-		// closest bbox width — its sidebearings are a sensible starting point.
-		const cp = glyph.codepoint;
-		const sameCategory = (other: number): boolean => {
-			if (cp >= 0x0041 && cp <= 0x005a) return other >= 0x0041 && other <= 0x005a;
-			if (cp >= 0x0061 && cp <= 0x007a) return other >= 0x0061 && other <= 0x007a;
-			if (cp >= 0x0030 && cp <= 0x0039) return other >= 0x0030 && other <= 0x0039;
-			return false;
-		};
-		const myBounds = glyphBounds(glyph.contours);
-		const myWidth = myBounds.maxX - myBounds.minX;
-		if (myWidth <= 0) return null;
-		const peers = Object.values(projectStore.project.glyphs).filter(
-			(g) =>
-				g.codepoint !== cp &&
-				g.contours.length > 0 &&
-				sameCategory(g.codepoint)
-		);
-		if (peers.length === 0) return null;
-		const scored = peers
-			.map((g) => {
-				const b = glyphBounds(g.contours);
-				const w = b.maxX - b.minX;
-				return { glyph: g, diff: Math.abs(w - myWidth) };
-			})
-			.sort((a, b) => a.diff - b.diff);
-		const closest = scored[0];
-		if (
-			closest.glyph.leftSidebearing === glyph.leftSidebearing &&
-			closest.glyph.rightSidebearing === glyph.rightSidebearing
-		)
-			return null;
-		return {
-			peerName: closest.glyph.name,
-			peerChar: String.fromCodePoint(closest.glyph.codepoint),
-			lsb: closest.glyph.leftSidebearing,
-			rsb: closest.glyph.rightSidebearing
-		};
-	});
+	const spacingSuggestion = $derived(
+		glyph && projectStore.project
+			? computeSpacingSuggestion(glyph, projectStore.project)
+			: null
+	);
 
 	const applySpacingSuggestion = () => {
 		if (!glyph || !spacingSuggestion) return;
@@ -584,109 +557,36 @@
 
 	const anatomyTip = $derived(glyph ? tipFor(glyph.codepoint) : null);
 
-	const peerComparison = $derived.by(() => {
-		if (!projectStore.project || !glyph || glyph.contours.length === 0) return null;
-		const cp = glyph.codepoint;
-		const sameCat = (other: number): boolean => {
-			if (cp >= 0x0041 && cp <= 0x005a) return other >= 0x0041 && other <= 0x005a;
-			if (cp >= 0x0061 && cp <= 0x007a) return other >= 0x0061 && other <= 0x007a;
-			if (cp >= 0x0030 && cp <= 0x0039) return other >= 0x0030 && other <= 0x0039;
-			return false;
-		};
-		const peers = Object.values(projectStore.project.glyphs).filter(
-			(g) => g.codepoint !== cp && sameCat(g.codepoint) && g.contours.length > 0
-		);
-		if (peers.length < 2) return null;
-		const adv = peers.map((g) => g.advanceWidth).sort((a, b) => a - b);
-		const medianAdv = adv[Math.floor(adv.length / 2)];
-		const diff = glyph.advanceWidth - medianAdv;
-		const pct = Math.round((Math.abs(diff) / medianAdv) * 100);
-		return { medianAdv, diff, pct, peerCount: peers.length };
-	});
-
-	const totalDrawn = $derived(
-		projectStore.project
-			? Object.values(projectStore.project.glyphs).filter((g) => g.contours.length > 0).length
-			: 0
+	const peerComparison = $derived(
+		glyph && projectStore.project
+			? computePeerComparison(glyph, projectStore.project)
+			: null
 	);
+
+	const totalDrawn = $derived(countDrawnGlyphs(projectStore.project ?? null));
 	const controlMissing = $derived(
-		projectStore.project
-			? CONTROL_GLYPHS.filter((cp) => (projectStore.project!.glyphs[cp]?.contours.length ?? 0) === 0)
-			: []
+		findMissingControlGlyphs(projectStore.project ?? null)
 	);
 	const showControlHint = $derived(totalDrawn < 13 && controlMissing.length > 0);
 
-	const suggestedNext = $derived.by(() => {
-		if (!projectStore.project) return [] as number[];
-		const useCases = projectStore.project.brief?.useCases ?? [];
-		const priority: number[] = [];
-		// Start with control glyphs not yet drawn
-		for (const cp of CONTROL_GLYPHS) {
-			if ((projectStore.project.glyphs[cp]?.contours.length ?? 0) === 0) priority.push(cp);
-		}
-		// Then use-case targets
-		for (const uc of useCases) {
-			for (const cp of useCaseTargets(uc)) {
-				if (priority.includes(cp)) continue;
-				if ((projectStore.project.glyphs[cp]?.contours.length ?? 0) === 0) priority.push(cp);
-			}
-		}
-		return priority.slice(0, 10);
-	});
-
+	const suggestedNext = $derived(computeSuggestedNext(projectStore.project ?? null));
 	const showSuggestedNext = $derived(
 		totalDrawn >= 1 && suggestedNext.length > 0 && totalDrawn < 50
 	);
-
-	const briefIsEmpty = $derived.by(() => {
-		const b = projectStore.project?.brief;
-		if (!b) return true;
-		return !(
-			b.intent?.trim() ||
-			b.audience?.trim() ||
-			(b.useCases?.length ?? 0) > 0 ||
-			b.differentiation?.trim() ||
-			(b.references?.length ?? 0) > 0
-		);
-	});
-
+	const briefIsEmpty = $derived(isBriefEmpty(projectStore.project ?? null));
 	const showBriefFirstHint = $derived(totalDrawn === 0 && briefIsEmpty);
 
-	const referenceGlyph = $derived.by(() => {
-		if (!showReference || !glyph || !projectStore.project) return null;
-		const cp = glyph.codepoint;
-		const candidates: number[] = [];
-		if (cp >= 0x0041 && cp <= 0x005a) candidates.push(0x0048, 0x004f, 0x004e);
-		else if (cp >= 0x0061 && cp <= 0x007a) candidates.push(0x006e, 0x006f);
-		else if (cp >= 0x0030 && cp <= 0x0039) candidates.push(0x0030, 0x0031);
-		else if (cp === 0x0020 || cp === 0x002e) return null;
-		else candidates.push(0x0048, 0x006e, 0x006f);
-		for (const c of candidates) {
-			if (c === cp) continue;
-			const g = projectStore.project.glyphs[c];
-			if (g && g.contours.length > 0) return g;
-		}
-		return null;
-	});
+	const referenceGlyph = $derived(
+		showReference && glyph && projectStore.project
+			? pickReferenceGlyph(glyph, projectStore.project)
+			: null
+	);
 
-	const onionGlyphs = $derived.by(() => {
-		if (!showOnion || !glyph || !projectStore.project) return { prev: null, next: null };
-		const codepoints = Object.keys(projectStore.project.glyphs)
-			.map(Number)
-			.sort((a, b) => a - b);
-		const idx = codepoints.indexOf(glyph.codepoint);
-		if (idx === -1) return { prev: null, next: null };
-		const findDrawn = (start: number, step: number) => {
-			let i = start;
-			while (i >= 0 && i < codepoints.length) {
-				const g = projectStore.project!.glyphs[codepoints[i]];
-				if (g && g.contours.length > 0) return g;
-				i += step;
-			}
-			return null;
-		};
-		return { prev: findDrawn(idx - 1, -1), next: findDrawn(idx + 1, 1) };
-	});
+	const onionGlyphs = $derived(
+		showOnion && glyph && projectStore.project
+			? pickOnionNeighbours(glyph, projectStore.project)
+			: { prev: null, next: null }
+	);
 
 	const charLabel = $derived(
 		glyph
