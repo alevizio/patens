@@ -25,18 +25,25 @@ const BASE = 'https://patens.design';
 // Section: about. Hand-curated because the SSR /about page has UI chrome.
 const ABOUT = `# About Patens
 
-Patens is a browser-native, open-source type design environment. Draw
-glyphs with a pressure-sensitive pencil, trace strokes to cubic Bézier
-contours, edit anchor-by-anchor, kern, audit, and ship a real OpenType
-file — all in a tab, with nothing to install and no account to create.
-Every project lives in your browser's IndexedDB; nothing leaves your
-machine unless you choose to export a .font.json file or upload to the
-optional cloud-share path.
+Patens is a type design tool that teaches as you draw. The
+differentiator from FontLab, Glyphs, RoboFont, Fontra, Glyphr Studio,
+and the rest of the type-editor landscape is a built-in 94-code audit
+module that runs continuously alongside the editor — every contour,
+every metric, every kern pair gets checked against the rules type
+designers internalize through years of mentorship. Every code includes
+plain-English teaching prose plus (for ~30 codes) a one-click fix.
+The same audit ships as a CLI (\`npx patens audit\`) for foundry CI
+workflows + pre-commit lint.
 
-Patens is MIT-licensed, works offline as a PWA, and is differentiated
-from FontLab, Glyphs, and RoboFont by being the only type editor that
-doubles as a teaching tool — a built-in 94-code audit module explains
-what's wrong with a font and, for many issues, offers one-click fixes.
+Built around that audit: sketch glyphs with a pressure-sensitive
+pencil, trace strokes to cubic Bézier contours, edit anchor-by-anchor,
+kern, ship a real OpenType file — all in a browser tab, with nothing
+to install and no account to create. Every project lives in your
+browser's IndexedDB; nothing leaves your machine unless you choose to
+export a .font.json file or upload to the optional cloud-share path.
+
+Patens is MIT-licensed, works offline as a PWA, and is the only
+browser-native type editor designed primarily as a teaching tool.
 
 The name is the Latin word for *open* — root of *patent*, the legal
 instrument for owning ideas. Patens is the same word, before lawyers
