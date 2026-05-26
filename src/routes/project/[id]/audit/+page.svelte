@@ -22,6 +22,9 @@
 	import Search from '@lucide/svelte/icons/search';
 	import ListChecks from '@lucide/svelte/icons/list-checks';
 	import Wand from '@lucide/svelte/icons/wand-sparkles';
+	import Sparkles from '@lucide/svelte/icons/sparkles';
+	import { settings } from '$lib/stores/settings.svelte';
+	import { explainAuditCode } from '$lib/ai/explain-audit-code';
 
 	const project = $derived(projectStore.project);
 
@@ -213,6 +216,34 @@
 		if (!FIXABLE_CODES.has(code) || issues.length === 0) return;
 		for (const i of issues) fixIssue(i);
 		toast.success(`Applied ${issues.length}× ${code}.`);
+	};
+
+	// AI: per-code-group "Explain in plain language" affordance. Opt-in
+	// (the button only renders when settings.hasKey is true), per-group
+	// cached so repeat clicks don't re-charge the API. State key = code.
+	const aiExplanations = $state<Record<string, string>>({});
+	const aiBusy = $state<Record<string, boolean>>({});
+	const explainGroup = async (code: string, sample: AuditIssue) => {
+		if (!settings.hasKey) {
+			toast.warn('Add an Anthropic API key in Settings to use AI explanations.');
+			return;
+		}
+		if (aiBusy[code]) return;
+		aiBusy[code] = true;
+		try {
+			const glyph = sample.codepoint > 0 ? project?.glyphs[sample.codepoint] : null;
+			const text = await explainAuditCode(code, {
+				sampleMessage: sample.message,
+				glyphName: glyph?.name
+			});
+			aiExplanations[code] = text;
+		} catch (e) {
+			toast.error(
+				`AI explain failed: ${e instanceof Error ? e.message : String(e)}`
+			);
+		} finally {
+			aiBusy[code] = false;
+		}
 	};
 
 	// Mirrors the editor's auto-snapshot-before-fix: contour-mutating fixes
@@ -583,7 +614,7 @@
 							<div>
 								<div class="mb-1.5 flex items-baseline justify-between gap-2">
 									<h3
-										class="flex items-baseline gap-2 font-mono text-[11px] font-semibold text-fg"
+										class="flex flex-wrap items-baseline gap-2 font-mono text-[11px] font-semibold text-fg"
 										title={desc}
 									>
 										<span>{code}</span>
@@ -603,11 +634,43 @@
 												<Wand class="size-2.5" /> Fix all {issues.length}
 											</button>
 										{/if}
+										{#if settings.hasKey}
+											<button
+												type="button"
+												onclick={() => explainGroup(code, issues[0])}
+												disabled={aiBusy[code]}
+												class="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-0.5 text-[10px] font-medium text-fg-muted normal-case tracking-normal hover:border-accent hover:text-fg disabled:opacity-50"
+												title="Ask Claude to explain this audit code in plain English"
+											>
+												<Sparkles class="size-2.5" />
+												{aiBusy[code] ? 'Thinking…' : 'Explain (AI)'}
+											</button>
+										{/if}
 									</h3>
 									<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 										{issues.length} occurrence{issues.length === 1 ? '' : 's'}
 									</span>
 								</div>
+								{#if aiExplanations[code]}
+									<div
+										class="mb-2 rounded-md border border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px] leading-relaxed text-fg-muted"
+									>
+										<div class="mb-1 flex items-baseline justify-between gap-2 text-[10px] uppercase tracking-wide text-accent-strong">
+											<span class="inline-flex items-baseline gap-1">
+												<Sparkles class="size-2.5 translate-y-0.5" />
+												AI explanation
+											</span>
+											<button
+												type="button"
+												onclick={() => (aiExplanations[code] = '')}
+												class="text-fg-subtle hover:text-fg"
+											>
+												dismiss
+											</button>
+										</div>
+										<p class="whitespace-pre-line">{aiExplanations[code]}</p>
+									</div>
+								{/if}
 								{#if desc}
 									<!-- Inline help under each code heading. Designers learning
 									     the craft don't need to leave the page to look up what

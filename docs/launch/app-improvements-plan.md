@@ -51,6 +51,39 @@ Don't redo any of this:
 
 ---
 
+## Update 2 — second autonomous arc (P1 + P2 + most of P3)
+
+Picked up the plan and worked top-down through every autonomous-safe
+item. New commits since the first refresh:
+
+- `bd6a1d0` /learn/multi-script + /learn/export-formats + inherited-pair
+  badges in /spacing + "Fix all N" per-group button on /audit
+- `f6d4d86` subset OG fonts (-333KB total) + content-visibility
+  virtualization on GlyphBrowser + re-share versioning server-side +
+  Playwright traces/screenshots/video upload on CI
+- (this commit) AI explain-audit-code via Claude API +
+  axis-pair-picker note for variation explorer
+
+ROADMAP closures:
+- ✅ Multi-master variation explorer — it was already shipped at
+  /designspace, ROADMAP entry was stale; updated.
+- ✅ Re-share versioning — server contract shipped (versioned blob
+  paths, ?v=N query, /versions endpoint, DELETE-all cascade). UI
+  pending but unblocked.
+
+Skipped (honestly, with reasons):
+- Welcome dialog rework — taste call, your eye
+- 30s demo GIF — your hand, screen-record
+- Per-device responsive — needs real iPhone/iPad
+- Bespoke Cyrillic / curve-fit demo / Drawn Italic / Greek lowercase —
+  glyph design work, your hand
+- i18n — multi-day rabbit hole; deferred to v2
+- AI kerning-suggest — already-shipped infrastructure exists at
+  src/lib/ai/kerning-suggest.ts; further work is taste-driven
+- Account system — explicit P3 / v1.6, intentionally deferred
+
+---
+
 ## P0 — Still launch-blocking (estimated 2.5d remaining)
 
 ### Launch artifacts (1d)
