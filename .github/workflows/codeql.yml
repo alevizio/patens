@@ -2,6 +2,20 @@
 # Security → Code scanning alerts tab and (after OpenSSF Scorecard's
 # next run) contributes to the Best Practices badge.
 #
+# ┌─ ONE-TIME SETUP REQUIRED ────────────────────────────────────────┐
+# │ This workflow needs Code Scanning enabled in repo settings:      │
+# │   github.com/alevizio/patens/settings/security_analysis          │
+# │   → Code scanning → Set up → Advanced (keeps this workflow).     │
+# │                                                                  │
+# │ Until enabled, the analyze step's SARIF upload fails with        │
+# │ "Code scanning is not enabled for this repository." We mark the  │
+# │ analyze step `continue-on-error: true` so CI doesn't go red on   │
+# │ every push — the scan still runs end-to-end + logs any findings  │
+# │ in the run output, the upload just no-ops gracefully. Remove     │
+# │ `continue-on-error` once Code Scanning is enabled and the upload │
+# │ succeeds (so future regressions visibly fail the workflow).      │
+# └──────────────────────────────────────────────────────────────────┘
+#
 # Schedule: weekly + on every push to main + every PR touching the
 # main branch. The Monday 06:00 UTC slot is the GitHub-recommended
 # off-peak time for action runners.
@@ -49,6 +63,10 @@ jobs:
         uses: github/codeql-action/autobuild@v3
 
       - name: Perform CodeQL analysis
+        # Bridge until Code Scanning is enabled in repo settings — see
+        # the block comment at the top of this file. Remove this line
+        # once enabled so future SARIF upload failures fail the build.
+        continue-on-error: true
         uses: github/codeql-action/analyze@v3
         with:
           category: '/language:${{ matrix.language }}'
