@@ -7,7 +7,7 @@
  */
 
 import { Font, Glyph as OTGlyphClass, Path } from 'opentype.js';
-import type { BezierContour, Glyph as ProjectGlyph, Project, PathCommand } from './types';
+import type { BezierContour, Family, Glyph as ProjectGlyph, Project, PathCommand } from './types';
 import { resolveVerticalMetrics } from './types';
 import { buildNotdefContours, NOTDEF_ADVANCE_WIDTH } from './notdef';
 import { glyphBounds, roundToFontUnits } from './path';
@@ -15,6 +15,7 @@ import { applyDetectedFeatures, detectFeatures } from './feature-detect';
 import { buildColorFontPlan, resolveColorFontPlan, resolveV1ColorFontPlan } from './color-build';
 import { buildAutoKern } from './kerning-auto';
 import { expandKerningClasses } from './kerning-classes';
+import { resolveClasses, resolveKerning } from './family-kerning';
 import { expandSubset, filterKerningToSubset } from './subset';
 
 type OTPath = InstanceType<typeof Path>;
@@ -198,10 +199,30 @@ export type BuildOptions = {
 	 * the full glyph set is exported.
 	 */
 	subset?: ReadonlySet<number>;
+	/**
+	 * Optional family record. When provided, family-wide kerning pairs
+	 * and classes merge with the project's own via resolveKerning /
+	 * resolveClasses — the project wins on collision. When null/omitted,
+	 * the project's kerning is used directly (back-compat for single-
+	 * project workflows).
+	 */
+	family?: Family | null;
 };
 
 export const buildFont = (project: Project, opts: BuildOptions = {}): BuildResult => {
 	const { metrics, metadata } = project;
+	// Merge family-wide kerning + classes onto the project. When opts.family
+	// is null/undefined this is a no-op — the original project is returned
+	// unchanged. With a family present, family-level pairs and classes that
+	// the project doesn't override appear in the export.
+	const family = opts.family ?? null;
+	if (family) {
+		project = {
+			...project,
+			kerning: resolveKerning(project, family),
+			classes: resolveClasses(project, family)
+		};
+	}
 	// Resolve which glyph set to use
 	let activeGlyphs = project.glyphs;
 	let styleName = metadata.styleName || 'Regular';

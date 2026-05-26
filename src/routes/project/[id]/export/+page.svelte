@@ -39,26 +39,48 @@
 	import { expandKerningClasses } from '$lib/font/kerning-classes';
 	import { buildAutoKern } from '$lib/font/kerning-auto';
 	import { SUBSET_PRESETS } from '$lib/font/subset';
+	import { loadFamily } from '$lib/font/family';
+	import { resolveKerning } from '$lib/font/family-kerning';
+	import type { Family } from '$lib/font/types';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
 	const project = $derived(projectStore.project);
 	const preflightIssues = $derived(project ? preflightProject(project) : []);
 
+	// Load the family record (if this project is part of one) so the
+	// export call sites can merge family-wide kerning + classes into the
+	// shipped font. Without this load, family-level pairs sit in the family
+	// hub but never reach the exported file.
+	let family = $state<Family | null>(null);
+	$effect(() => {
+		const fid = project?.familyId;
+		if (!fid) {
+			family = null;
+			return;
+		}
+		loadFamily(fid).then((f) => {
+			family = f;
+		});
+	});
+
 	// Kerning preview — show what'll actually ship in the font's kern
 	// table after manual pairs + class expansion + auto-kern. Surfaces
 	// the algorithmic work that's silent at export time.
 	const kerningPreview = $derived.by(() => {
 		if (!project) return { manual: 0, expanded: 0, auto: 0, autoReference: null as null | string };
-		const manualNumeric = project.kerning.filter(
+		// Use the merged (project + family) view so the preview reflects
+		// what'll actually ship in the kern table after family inheritance.
+		const effectiveKerning = resolveKerning(project, family);
+		const manualNumeric = effectiveKerning.filter(
 			(k) => typeof k.left === 'number' && typeof k.right === 'number'
 		).length;
-		const expanded = expandKerningClasses(project.kerning, project.classes ?? []).length;
+		const expanded = expandKerningClasses(effectiveKerning, project.classes ?? []).length;
 		const autoKernEnabled = project.features.autoKern !== false;
-		if (!autoKernEnabled || project.kerning.length === 0) {
+		if (!autoKernEnabled || effectiveKerning.length === 0) {
 			return { manual: manualNumeric, expanded, auto: 0, autoReference: null };
 		}
-		const auto = buildAutoKern(project);
+		const auto = buildAutoKern({ ...project, kerning: effectiveKerning });
 		const refLabel = auto.referenceUsed
 			? `${String.fromCodePoint(auto.referenceUsed.left)}${String.fromCodePoint(auto.referenceUsed.right)}`
 			: null;
@@ -212,6 +234,7 @@ body {
 		const { font, indexByCodepoint, colorBaseGlyphs, colorV1BaseGlyphs } = buildFont(project, {
 			autoFeatures,
 			disableAutoFeatures,
+			family,
 			subset: subsetEnabled && subsetCodepoints.size > 0 ? subsetCodepoints : undefined
 		});
 		let buffer = font.toArrayBuffer();
@@ -363,7 +386,7 @@ body {
 					familyName: `${project.metadata.familyName} Trial`
 				}
 			};
-			const { font } = buildFont(trialProject);
+			const { font } = buildFont(trialProject, { family });
 			const buffer = font.toArrayBuffer();
 			downloadBlob(
 				new Blob([buffer], { type: 'font/otf' }),
@@ -406,7 +429,7 @@ body {
 					familyName: `${project.metadata.familyName} Trial`
 				}
 			};
-			const { font } = buildFont(trialProject);
+			const { font } = buildFont(trialProject, { family });
 			const otf = font.toArrayBuffer();
 			const woff2 = await otfToWoff2(otf);
 			downloadBlob(
@@ -492,14 +515,14 @@ body {
 			// Default master at axis defaults
 			const defaultLocation: Record<string, number> = {};
 			for (const a of project.axes ?? []) defaultLocation[a.tag] = a.default;
-			const defaultBuild = buildFont(project);
+			const defaultBuild = buildFont(project, { family });
 			allMasters.push({
 				name: 'Default',
 				buffer: defaultBuild.font.toArrayBuffer(),
 				location: defaultLocation
 			});
 			for (const m of project.masters ?? []) {
-				const b = buildFont(project, { masterId: m.id });
+				const b = buildFont(project, { masterId: m.id, family });
 				allMasters.push({
 					name: m.name,
 					buffer: b.font.toArrayBuffer(),
@@ -555,12 +578,12 @@ body {
 			const allMasters = [
 				{
 					name: 'Default',
-					buffer: buildFont(project).font.toArrayBuffer(),
+					buffer: buildFont(project, { family }).font.toArrayBuffer(),
 					location: defaultLocation
 				},
 				...(project.masters ?? []).map((m) => ({
 					name: m.name,
-					buffer: buildFont(project, { masterId: m.id }).font.toArrayBuffer(),
+					buffer: buildFont(project, { masterId: m.id, family }).font.toArrayBuffer(),
 					location: m.location
 				}))
 			];

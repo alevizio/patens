@@ -43,7 +43,7 @@ Bullets, not estimates — each is its own discovery + design + build cycle:
 
 ## Editor — features we've made progress on but haven't shipped
 
-- **Family-wide kerning propagation.** Today each sibling kerns independently. A family-level kerning store with per-sibling overrides would match how foundries actually work.
+- ~~**Family-wide kerning propagation.**~~ ✅ Core path shipped. `family-kerning.ts` (`resolveKerning` + `resolveClasses`) was always in place; the missing piece was the export pipeline calling it. `buildFont(project, { family })` now merges family-level pairs + classes onto the project before generating the kern feature — project pairs win on (left, right) collision, family-only pairs are inherited. Wired into `/project/[id]/export` so the family kerning a user edited at `/family/[id]` actually reaches the exported file. Still deferred: inherited-pair badges in the per-project spacing UI (today the user has to switch to /family/[id] to see family pairs).
 - **Multi-master variation explorer.** Designspace page lists axes + masters; doesn't yet have a "drag through the design space" surface.
 
 ## Polish we deliberately deferred

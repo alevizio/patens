@@ -10,6 +10,12 @@
 
 	let cleanupKonami: (() => void) | null = null;
 	onMount(() => {
+		// Hydration sentinel. With SSR on, the layout's HTML lands before
+		// hydration attaches event listeners, so playwright clicks can race
+		// the hydration boundary. Setting this attribute *after* onMount
+		// gives tests a clean signal that "Svelte has mounted and listeners
+		// are live." Negligible runtime cost; no visual effect.
+		document.documentElement.dataset.hydrated = 'true';
 		consoleHello();
 		cleanupKonami = installKonamiListener(() => {
 			toast.success('★ Foundry mode unlocked.');

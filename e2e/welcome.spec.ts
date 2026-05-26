@@ -27,6 +27,12 @@ const setUnseen = async (page: Page) => {
 		}
 	});
 	await page.reload();
+	// With SSR on, the strip's HTML lands before hydration attaches its
+	// onclick handler. Wait for the layout's onMount to flip the sentinel
+	// so the subsequent .click() reaches a live listener, not raw DOM.
+	await page.waitForFunction(() => document.documentElement.dataset.hydrated === 'true', undefined, {
+		timeout: 5000
+	});
 };
 
 test('Welcome strip appears on a fresh visit', async ({ page }) => {
