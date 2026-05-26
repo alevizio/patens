@@ -5,7 +5,7 @@
 	import { DEFAULT_STROKE, DEFAULT_TRACE, sketchToContours } from '$lib/font/sketch-to-bezier';
 	import type { Anchor, BezierContour, ColorLayer, Glyph, SketchStroke } from '$lib/font/types';
 	import { defaultPalette } from '$lib/font/color';
-	import { glyphBounds, roundToFontUnits } from '$lib/font/path';
+	import { glyphBounds } from '$lib/font/path';
 	import { interpolateGlyph, computeMasterWeights } from '$lib/font/interpolate';
 	import {
 		chaikinSmooth,
@@ -59,6 +59,7 @@
 	import { parseSvgPasteToGlyph } from '$lib/editor/glyph-paste';
 	import { SAMPLE_WORDS } from '$lib/editor/sample-words';
 	import { CONTROL_GLYPHS, useCaseTargets } from '$lib/editor/onboarding-targets';
+	import { fixAuditIssue } from '$lib/editor/fix-issue';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -742,153 +743,7 @@
 	 */
 	const fixIssue = (code: string) => {
 		if (!glyph) return;
-		const cp = glyph.codepoint;
-		// Auto-snapshot before any contour-mutating fix when the most
-		// recent snapshot is older than 30s or the list is empty.
-		// Cheap insurance — ⌘Z still works, but a labelled snapshot
-		// also stays in the panel so the designer can compare or
-		// restore later. The 30s window prevents spam if the user
-		// runs multiple fixes back-to-back.
-		const contourFix =
-			code === 'self-intersecting' ||
-			code === 'contour-winding-collision' ||
-			code === 'duplicate-points' ||
-			code === 'near-collinear-points' ||
-			code === 'off-grid-points' ||
-			code === 'tiny-contour';
-		if (contourFix && glyph.contours.length > 0) {
-			const latest = glyph.revisions?.[glyph.revisions.length - 1];
-			const recent = latest ? Date.now() - new Date(latest.takenAt).getTime() < 30_000 : false;
-			if (!recent) {
-				projectStore.saveRevision(cp, `pre-fix: ${code}`);
-			}
-		}
-		if (code === 'off-grid-points') {
-			const cleaned = glyph.contours.map((c) => ({
-				...c,
-				commands: roundToFontUnits(c.commands)
-			}));
-			handleContoursChange(cleaned);
-			toast.success('Snapped all points to integer font units.');
-			return;
-		}
-		if (code === 'self-intersecting' || code === 'contour-winding-collision') {
-			const cleaned = booleanContours(glyph.contours, 'union');
-			handleContoursChange(cleaned);
-			toast.success(
-				code === 'self-intersecting'
-					? 'Cleaned self-intersections via boolean union.'
-					: 'Re-oriented nested contours via boolean union.'
-			);
-			return;
-		}
-		if (code === 'duplicate-points') {
-			const cleaned = glyph.contours.map((c) => {
-				const out: typeof c.commands = [];
-				let prevX: number | null = null;
-				let prevY: number | null = null;
-				for (const cmd of c.commands) {
-					if (cmd.type === 'Z') {
-						out.push(cmd);
-						prevX = null;
-						prevY = null;
-						continue;
-					}
-					if (
-						prevX !== null &&
-						prevY !== null &&
-						cmd.type !== 'M' &&
-						Math.abs(cmd.x - prevX) < 0.5 &&
-						Math.abs(cmd.y - prevY) < 0.5
-					) {
-						// Drop this command — it's a duplicate of the previous point.
-						continue;
-					}
-					out.push(cmd);
-					prevX = cmd.x;
-					prevY = cmd.y;
-				}
-				return { ...c, commands: out };
-			});
-			handleContoursChange(cleaned);
-			toast.success('Removed duplicate points.');
-			return;
-		}
-		if (code === 'near-collinear-points') {
-			const cleaned = glyph.contours.map((c) => {
-				// Build the index of L/M points only (curves break the
-				// L-sequence and aren't considered for collinearity).
-				const cmds = [...c.commands];
-				const drop = new Set<number>();
-				for (let i = 1; i < cmds.length - 1; i++) {
-					const a = cmds[i - 1];
-					const b = cmds[i];
-					const d = cmds[i + 1];
-					if (
-						a.type !== 'M' && a.type !== 'L'
-						|| b.type !== 'L'
-						|| d.type !== 'L'
-					)
-						continue;
-					const num = Math.abs(
-						(d.y - a.y) * b.x - (d.x - a.x) * b.y + d.x * a.y - d.y * a.x
-					);
-					const den = Math.hypot(d.x - a.x, d.y - a.y);
-					if (den < 0.001) continue;
-					if (num / den < 1) drop.add(i);
-				}
-				if (drop.size === 0) return c;
-				return { ...c, commands: cmds.filter((_, i) => !drop.has(i)) };
-			});
-			handleContoursChange(cleaned);
-			toast.success('Removed near-collinear points.');
-			return;
-		}
-		// Non-contour fixes that nonetheless make sense per-glyph in the editor.
-		if (code === 'open-contour') {
-			const cleaned = glyph.contours.map((c) => (c.closed ? c : { ...c, closed: true }));
-			handleContoursChange(cleaned);
-			toast.success('Closed open contours.');
-			return;
-		}
-		if (code === 'zero-advance' || code === 'overflows-advance') {
-			if (glyph.contours.length === 0 || !projectStore.project) return;
-			const b = glyphBounds(glyph.contours);
-			const sb = projectStore.project.metrics.defaultSidebearing;
-			const target = Math.max(1, Math.round(b.maxX) + sb);
-			projectStore.updateGlyph(cp, (g) => ({ ...g, advanceWidth: target }));
-			toast.success(`Set advance to ${target}.`);
-			return;
-		}
-		if (code === 'anchor-naming-mark-no-prefix' || code === 'anchor-naming-base-with-prefix') {
-			if (!glyph.anchors) return;
-			const isMark = cp >= 0x0300 && cp <= 0x036f;
-			const cleaned = glyph.anchors.map((a) => {
-				if (isMark && !a.name.startsWith('_')) return { ...a, name: `_${a.name}` };
-				if (!isMark && a.name.startsWith('_')) return { ...a, name: a.name.slice(1) };
-				return a;
-			});
-			projectStore.updateGlyph(cp, (g) => ({ ...g, anchors: cleaned }));
-			toast.success('Renamed anchors to match convention.');
-			return;
-		}
-		if (code === 'tiny-contour') {
-			// Drop any closed contour smaller than 8×8 font units in bbox —
-			// the same threshold the audit uses. Auto-snapshot upstream
-			// gives the designer a path back if any of them weren't actual
-			// artefacts.
-			const before = glyph.contours.length;
-			const cleaned = glyph.contours.filter((c) => {
-				if (!c.closed) return true;
-				const b = glyphBounds([c]);
-				return b.maxX - b.minX >= 8 || b.maxY - b.minY >= 8;
-			});
-			const dropped = before - cleaned.length;
-			if (dropped === 0) return;
-			handleContoursChange(cleaned);
-			toast.success(`Removed ${dropped} tiny contour${dropped === 1 ? '' : 's'}.`);
-			return;
-		}
+		fixAuditIssue(glyph, code, handleContoursChange);
 	};
 
 	type DeriveTransform = 'copy' | 'flipH' | 'flipV' | 'rotate180';
