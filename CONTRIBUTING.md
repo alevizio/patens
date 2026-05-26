@@ -25,7 +25,7 @@ The dev server runs at `http://localhost:5173`. Open `/project/demo/edit` to lan
 ```sh
 pnpm lint              # ESLint — must add no new errors
 pnpm check             # svelte-check / TypeScript strict — must pass
-pnpm test              # Vitest unit tests (~450 tests)
+pnpm test              # Vitest unit tests + perf benches (~528 + 6)
 pnpm test:e2e          # Playwright + axe-core a11y
 ```
 
