@@ -51,7 +51,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
@@ -61,7 +61,7 @@ jobs:
         # repo is public so future Scorecard regressions surface
         # visibly in CI.
         continue-on-error: true
-        uses: ossf/scorecard-action@v2.4.0
+        uses: ossf/scorecard-action@v2.4.3
         with:
           results_file: results.sarif
           results_format: sarif
@@ -78,7 +78,7 @@ jobs:
 
       - name: Upload SARIF artifact for offline review
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: scorecard-results
           path: results.sarif

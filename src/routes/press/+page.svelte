@@ -23,7 +23,7 @@
 	};
 
 	const oneLiner =
-		'Patens is a browser-native, open-source type design environment that doubles as a teaching tool — a 94-code audit module explains what\'s wrong with a font and, for many issues, offers one-click fixes. Draw with a pressure-sensitive pencil, trace to Bézier, kern, audit, ship OpenType. No installs, no account.';
+		'Patens is a type design tool that teaches as you draw. A built-in 94-code audit module runs continuously alongside the editor — every contour, metric, and kern pair gets checked against the rules type designers internalize through years of mentorship, with plain-English fixes for around 30 of the codes. Sketch with a pressure-sensitive pencil, trace to Bézier, kern, ship OpenType. Browser-native, open-source MIT, no installs, no account.';
 
 	const elevatorPitch =
 		'There are five reasonable type editors on the web in 2026 — Glyphr Studio, Fontra, typlr.app, FontStruct, and now Patens. FontLab and Glyphs cover the high end (±$300–500, desktop-only, professional). The browser tier was hobbyist-focused until Fontra brought variable-font seriousness and Patens brought audit-first teaching. The differentiator: Patens is the only one where the audit module is a first-class teaching surface — every warning explains what it means, why it matters, and (for ~30 of the 94 codes) offers a one-click fix. Designed for the in-between: the logo-to-font moment, the learning curve, the share-without-installing handoff.';
