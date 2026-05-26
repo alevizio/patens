@@ -289,7 +289,7 @@
 	<!-- Hero -->
 	<section class="mb-16 max-w-3xl">
 		<h1
-			class="text-[40px] leading-[1.05] tracking-tight text-fg"
+			class="text-[48px] leading-[1.05] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
 		>
 			Learn type design
@@ -526,7 +526,7 @@
 		<div class="mb-5 flex items-baseline gap-3">
 			<Pencil class="size-4 self-center text-accent" />
 			<h2
-				class="text-[22px] leading-none tracking-tight text-fg"
+				class="text-[28px] leading-none tracking-tight text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				Exercises that teach you to see
@@ -554,7 +554,7 @@
 			<div class="flex items-baseline gap-3">
 				<Wrench class="size-4 self-center text-accent" />
 				<h2
-					class="text-[22px] leading-tight tracking-tight text-fg"
+					class="text-[28px] leading-tight tracking-tight text-fg"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Tools the practice runs on
@@ -627,7 +627,7 @@
 			<div class="flex items-baseline gap-3">
 				<BookOpen class="size-4 self-center text-accent" />
 				<h2
-					class="text-[22px] leading-tight tracking-tight text-fg"
+					class="text-[28px] leading-tight tracking-tight text-fg"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Reading
@@ -645,7 +645,7 @@
 		<div class="mb-5 flex items-baseline gap-3">
 			<Compass class="size-4 self-center text-accent" />
 			<h2
-				class="text-[22px] leading-none tracking-tight text-fg"
+				class="text-[28px] leading-none tracking-tight text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				Foundries worth studying
@@ -735,7 +735,7 @@
 		<div class="flex flex-col items-start gap-6 md:flex-row md:items-center md:gap-8">
 			<div class="flex-1">
 				<div
-					class="text-[24px] leading-tight text-fg"
+					class="text-[28px] leading-tight text-fg"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Ready to start?

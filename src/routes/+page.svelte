@@ -897,7 +897,7 @@
 		{/if}
 
 		<h1
-			class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[64px]"
+			class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]"
 		>
 			<span
 				class="block text-fg"

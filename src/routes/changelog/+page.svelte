@@ -144,7 +144,7 @@
 		{#each blocks as block, i (i)}
 			{#if block.type === 'h1'}
 				<h1
-					class="mb-6 text-[36px] leading-tight tracking-tight"
+					class="mb-6 text-[48px] leading-tight tracking-tight"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					{block.text}
@@ -152,7 +152,7 @@
 			{:else if block.type === 'h2'}
 				<h2
 					id={slugify(block.text)}
-					class="group mt-10 mb-3 scroll-mt-8 text-[24px] tracking-tight"
+					class="group mt-12 mb-4 scroll-mt-8 text-[28px] tracking-tight"
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					<a

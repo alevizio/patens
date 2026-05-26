@@ -55,7 +55,7 @@
 	</a>
 
 	<h1
-		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
+		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Security.
@@ -70,7 +70,7 @@
 	</p>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		How to report
@@ -87,7 +87,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What I commit to
@@ -118,7 +118,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		In scope
@@ -133,7 +133,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Out of scope
@@ -146,7 +146,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What Patens does to keep your data safe

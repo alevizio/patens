@@ -99,7 +99,7 @@
 	</p>
 
 	<h1
-		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
+		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Patens — press kit.
@@ -114,7 +114,7 @@
 	<!-- FACTSHEET — copy/pasteable table, the structured-data canonical -->
 	<section class="mb-16">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Factsheet
@@ -172,7 +172,7 @@
 	<!-- DESCRIPTIONS — short, long, technical -->
 	<section class="mb-16">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Descriptions
@@ -203,7 +203,7 @@
 	<!-- LOGOS + BRAND ASSETS -->
 	<section class="mb-16">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Logos + brand assets
@@ -262,7 +262,7 @@
 	<!-- SCREENSHOTS — placeholder cards until founder ships real assets -->
 	<section class="mb-16">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Screenshots
@@ -300,7 +300,7 @@
 	<!-- MILESTONES -->
 	<section class="mb-16">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Milestones
@@ -320,7 +320,7 @@
 	<!-- LINKS for further coverage -->
 	<section class="mb-12">
 		<h2
-			class="mb-4 text-[20px] tracking-tight text-fg"
+			class="mb-4 text-[28px] tracking-tight text-fg"
 			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 		>
 			Further reading

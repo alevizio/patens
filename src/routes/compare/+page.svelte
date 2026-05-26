@@ -440,7 +440,7 @@
 	</a>
 
 	<h1
-		class="mb-6 max-w-3xl text-[36px] leading-tight tracking-tight text-fg"
+		class="mb-6 max-w-3xl text-[48px] leading-tight tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Patens vs the world.
@@ -559,7 +559,7 @@
 				class:border-border={!c.highlight}
 			>
 				<h2
-					class="mb-3 text-[20px] tracking-tight"
+					class="mb-3 text-[28px] tracking-tight"
 					class:text-accent-strong={c.highlight}
 					class:text-fg={!c.highlight}
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
@@ -597,7 +597,7 @@
 	</div>
 
 	<h2
-		class="mt-16 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		When Patens is the right answer
@@ -626,7 +626,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-12 mb-3 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		When it isn't
@@ -648,7 +648,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-12 mb-3 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Try it

@@ -55,7 +55,7 @@
 	</a>
 
 	<h1
-		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
+		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Privacy.
@@ -71,7 +71,7 @@
 	</p>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What stays on your machine
@@ -101,7 +101,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		What leaves your machine — only when you choose
@@ -139,7 +139,7 @@
 	</ul>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Server logs
@@ -152,7 +152,7 @@
 	</p>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		GDPR + CCPA
@@ -167,7 +167,7 @@
 	</p>
 
 	<h2
-		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
+		class="mt-16 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
 		Self-hosters
