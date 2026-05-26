@@ -469,6 +469,8 @@
 				class="block w-full border-0 bg-transparent p-0 text-2xl font-semibold tracking-tight text-fg outline-none focus:ring-1 focus:ring-accent"
 				bind:value={family.name}
 				onblur={saveFamilyEdits}
+				aria-label="Family name"
+				title="Family name — edits propagate to every sibling project"
 			/>
 			<p class="mt-1 text-sm text-fg-muted">
 				{siblings.length} style{siblings.length === 1 ? '' : 's'} in this family. Family-level

@@ -150,6 +150,60 @@ test('/share/demo has no serious/critical a11y violations', async ({ page }) => 
 	await auditPage(page);
 });
 
+test('/family/[id] has no serious/critical a11y violations', async ({ page }) => {
+	// /family/[id] reads from IndexedDB (font-studio-families DB, families
+	// store). addInitScript would race with the page's load() function
+	// (async IDB open vs sync load call), so seed via page.evaluate after
+	// loading a neutral route, then navigate to the family hub.
+	await page.goto('/');
+	await page.evaluate(async () => {
+		const FAMILY_ID = 'a11y-test-family';
+		const family = {
+			id: FAMILY_ID,
+			name: 'Test family',
+			designer: 'A11y harness',
+			copyright: '© 2026',
+			license: 'MIT',
+			createdAt: '2026-01-01T00:00:00.000Z',
+			updatedAt: '2026-01-01T00:00:00.000Z',
+			kerning: [],
+			classes: []
+		};
+		const indexEntry = {
+			id: FAMILY_ID,
+			name: family.name,
+			updatedAt: family.updatedAt,
+			siblingCount: 0
+		};
+		// Mirrors idb-keyval's createStore('font-studio-families', 'families').
+		await new Promise<void>((resolve, reject) => {
+			const open = indexedDB.open('font-studio-families', 1);
+			open.onupgradeneeded = () => {
+				open.result.createObjectStore('families');
+			};
+			open.onerror = () => reject(open.error);
+			open.onsuccess = () => {
+				const db = open.result;
+				const tx = db.transaction('families', 'readwrite');
+				const store = tx.objectStore('families');
+				store.put(family, FAMILY_ID);
+				store.put([indexEntry], '__family_index__');
+				tx.oncomplete = () => {
+					db.close();
+					resolve();
+				};
+				tx.onerror = () => reject(tx.error);
+			};
+		});
+	});
+	await page.goto('/family/a11y-test-family');
+	// Family name is an editable <input> (not a heading) — wait for value.
+	await expect(page.locator('input').filter({ hasNot: page.locator('[type="checkbox"]') }).first()).toHaveValue(/Test family/i, {
+		timeout: 5000
+	});
+	await auditPage(page);
+});
+
 test('/edit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {
