@@ -22,10 +22,11 @@
 		<Sparkles class="mt-0.5 size-4 shrink-0 text-accent-strong" aria-hidden="true" />
 		<div class="min-w-0 flex-1">
 			<div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-				<span class="font-medium text-fg">Welcome to Patens.</span>
+				<span class="font-medium text-fg">Welcome to Patens — a type design tool that teaches as you draw.</span>
 				<span class="text-fg-muted">
-					Draw type with a pencil, trace it to vectors, ship OpenType. Every project
-					lives in this browser — nothing leaves your machine unless you export it.
+					Sketch glyphs with a pencil. Patens traces them to vectors, audits your work
+					against 94 type-design rules with plain-English fixes, and ships a real
+					OpenType font when you're ready.
 				</span>
 			</div>
 			<div class="mt-2 flex flex-wrap items-center gap-3 text-[12px]">
@@ -42,7 +43,7 @@
 					onclick={onclose}
 					class="text-fg-muted hover:text-fg-strong"
 				>
-					New to type design? Read the beginner path →
+					New to type design? Start here →
 				</a>
 			</div>
 		</div>
