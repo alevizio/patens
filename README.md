@@ -16,7 +16,7 @@
      at static/demo/patens-30s.mp4 and replace this with:
      ![Patens — draw, trace, audit, fix, kern, export in 30s](./static/demo/patens-30s.mp4) -->
 
-Patens is a browser-native, open-source SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The differentiator isn't *that* it's browser-native — it's that the **audit module is a citizen of the editor**, not an afterthought. Every glyph, every metric, every kern pair has a teaching surface: "your sidebearings drift across the stem class" or "this contour winds the wrong way for OpenType" — with the rule, the why, and a one-click fix where one exists.
+Patens is a browser-native, open-source SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The differentiator isn't *that* it's browser-native — it's that the **audit module is a citizen of the editor**, not an afterthought. Every glyph, every metric, every kern pair has a teaching surface: "your sidebearings drift across the stem class" or "this contour winds the wrong way for OpenType" — with the rule, the why, and a one-click fix where one exists. ([Why audit-as-teaching →](https://patens.design/audit))
 
 The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, numerals, punctuation, currency, math, brackets, composite ligatures), a partial Cyrillic set (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and a partial Greek set (14 uppercase look-alikes) — enough to set a UI, a price table, or a Bulgarian legal footer without falling back to system fonts.
 

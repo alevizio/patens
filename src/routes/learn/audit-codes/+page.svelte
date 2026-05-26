@@ -273,10 +273,17 @@
 		what every code means.
 	</p>
 
-	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
+	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
 		Codes are grouped by family. Each code in the editor links here, and
 		many issues have a one-click <em class="not-italic text-fg">Fix</em>
 		action available inline.
+	</p>
+
+	<p class="mb-12 text-[13px] text-fg-muted">
+		For the marketing-level explanation of <em class="not-italic text-fg">why</em> Patens has a teaching audit module — philosophy, comparison vs. other browser-based editors, CLI integration — see <a
+			href="/audit"
+			class="font-medium text-accent-strong underline underline-offset-2 hover:text-accent"
+		>/audit</a>.
 	</p>
 
 	<!-- TOC -->
