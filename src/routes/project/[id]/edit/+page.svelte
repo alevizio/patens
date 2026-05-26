@@ -53,6 +53,7 @@
 	// pin + flag toggles). Bounded, view-mostly, low-risk extraction.
 	import EditorGlyphHeader from '$lib/editor/EditorGlyphHeader.svelte';
 	import EditorToolGroup from '$lib/editor/EditorToolGroup.svelte';
+	import BrushSizeSlider from '$lib/editor/BrushSizeSlider.svelte';
 	// 5 right-sidebar panels — together ~42 KB of source, expanded ~50-60
 	// KB bundled. None of them are needed for first paint of the canvas;
 	// they hydrate on idle ~200ms after the editor is interactive. The
@@ -1853,19 +1854,7 @@
 
 				<EditorToolGroup bind:tool hasContours={glyph.contours.length > 0} />
 
-				<label class="flex items-center gap-2 pl-2">
-					<span class="text-[11px] font-medium text-fg-muted">Brush</span>
-					<input
-						type="range"
-						min={10}
-						max={120}
-						step={2}
-						bind:value={strokeSize}
-						class="h-1 w-24 accent-fg"
-						aria-label="Brush size"
-					/>
-					<span class="w-8 text-[11px] text-fg-subtle" data-numeric>{strokeSize}</span>
-				</label>
+				<BrushSizeSlider bind:size={strokeSize} />
 
 				<div class="ml-auto flex items-center gap-1">
 					<button
