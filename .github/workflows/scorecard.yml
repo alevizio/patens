@@ -1,24 +1,10 @@
 # OpenSSF Scorecard — automated supply-chain security analysis.
 # Runs the same checks the OpenSSF Best Practices badge measures,
-# but as a CI workflow that publishes results to the repo's Security
-# tab + (optionally) the OpenSSF Scorecard dashboard.
+# publishes results to the repo's Security tab + (optionally) the
+# OpenSSF Scorecard dashboard.
 #
 # Output: a SARIF file uploaded to GitHub Code Scanning, plus a
 # scorecard.yaml artifact for offline review.
-#
-# ┌─ PRECONDITIONS ──────────────────────────────────────────────────┐
-# │ This workflow requires the repo to be:                           │
-# │   1. PUBLIC (Scorecard is designed for OSS; githubv4.Query       │
-# │      against a private repo fails with "Resource not accessible  │
-# │      by integration").                                           │
-# │   2. Code Scanning enabled in repo settings (same as codeql.yml; │
-# │      the SARIF upload step depends on it).                       │
-# │                                                                  │
-# │ Until both are true, the analyze step is marked                  │
-# │ `continue-on-error: true` so the workflow doesn't go red on      │
-# │ every push. Remove the bridge once the repo is public + Code     │
-# │ Scanning is enabled (planned for around launch time).            │
-# └──────────────────────────────────────────────────────────────────┘
 #
 # Public scoring: if the repo has Branch-Protected and is published
 # to securityscorecards.dev, scores feed into the OpenSSF Best
@@ -56,28 +42,20 @@ jobs:
           persist-credentials: false
 
       - name: Run OpenSSF Scorecard analysis
-        # Bridge until the repo is flipped public — see the block
-        # comment at the top of this file. Remove this line once the
-        # repo is public so future Scorecard regressions surface
-        # visibly in CI.
-        continue-on-error: true
         uses: ossf/scorecard-action@v2.4.3
         with:
           results_file: results.sarif
           results_format: sarif
-          # Public-scoring requires the workflow to publish results
-          # to the dashboard. Set to false until you're ready to
-          # appear on https://securityscorecards.dev/viewer/.
+          # Public-scoring publishes to https://securityscorecards.dev/viewer/
+          # — feeds the Best Practices badge automatically.
           publish_results: true
 
       - name: Upload SARIF results to Code Scanning
-        continue-on-error: true
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
 
       - name: Upload SARIF artifact for offline review
-        continue-on-error: true
         uses: actions/upload-artifact@v7
         with:
           name: scorecard-results
