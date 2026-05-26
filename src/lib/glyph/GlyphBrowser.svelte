@@ -440,7 +440,7 @@
 				const notes = (g.notes ?? '').toLowerCase();
 				// Tag-prefix search: "#wip" matches glyphs tagged "wip" exactly.
 				// Bare strings still match name/char/hex/notes/tags as before.
-				let matches = false;
+				let matches: boolean;
 				if (lowerQuery.startsWith('#')) {
 					const tagQuery = lowerQuery.slice(1);
 					matches = (g.tags ?? []).some((t) =>

@@ -43,6 +43,10 @@
 				worksFor: { '@type': 'Organization', name: 'Patens' }
 			}
 		]
+		// The trailing `<\/script>` escape keeps Svelte's parser from
+		// misreading the source as the end of this <script> block —
+		// JS-semantically a no-op, structurally required.
+		// eslint-disable-next-line no-useless-escape
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`;
 </script>
 

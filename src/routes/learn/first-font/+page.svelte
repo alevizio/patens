@@ -97,6 +97,9 @@
 				]
 			}
 		]
+		// Trailing `<\/script>` escape keeps Svelte's parser from misreading
+		// the source as the end of this <script> block.
+		// eslint-disable-next-line no-useless-escape
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`;
 </script>
 

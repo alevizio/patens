@@ -127,6 +127,11 @@
 			return left?.contours.length && right?.contours.length;
 		});
 	});
+	// The slider reflects the kerning for the focused pair by default but is
+	// also writable (live drag updates the projectStore before commit). A
+	// writable $derived would express this more cleanly once we move to
+	// Svelte 5.25+; for now we stick with $state + $effect.
+	// eslint-disable-next-line svelte/prefer-writable-derived
 	let pendingValue = $state(0);
 	let newClassName = $state('@A_left');
 	let newClassMembers = $state('A Á Â Ä À Å Ã');
