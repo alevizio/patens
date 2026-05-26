@@ -59,7 +59,7 @@
 							Open the public demo specimen
 						</span>
 						<span class="block text-[12px] text-fg-muted">
-							88 glyphs, ligatures, two masters — the example project the foundry ships
+							162 glyphs across Latin + Cyrillic + Greek, two masters, ligatures — the example project the foundry ships
 						</span>
 					</span>
 					<ArrowRight class="size-4 shrink-0 text-fg-subtle group-hover:text-accent-strong" />

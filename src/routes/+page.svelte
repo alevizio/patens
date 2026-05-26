@@ -1459,7 +1459,7 @@
 				flip the master, ship the OTF.
 			</p>
 			<p class="mt-5 font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-				Example project &nbsp;·&nbsp; 88 glyphs &nbsp;·&nbsp; 2 masters &nbsp;·&nbsp; ligatures + COLR
+				Example project &nbsp;·&nbsp; 162 glyphs (Latin + Cyrillic + Greek) &nbsp;·&nbsp; 2 masters &nbsp;·&nbsp; ligatures + COLR
 			</p>
 		</div>
 		<div>
