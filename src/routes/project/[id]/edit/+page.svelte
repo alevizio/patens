@@ -3360,10 +3360,10 @@
 										<button
 											type="button"
 											onclick={() => fixIssue(issue.code)}
-											class="shrink-0 rounded border border-current/30 bg-canvas/50 px-1.5 py-0.5 text-[10px] font-medium hover:bg-canvas/80"
+											class="inline-flex shrink-0 items-center gap-1 rounded border border-accent bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent/20"
 											title="Apply automatic fix for this issue"
 										>
-											Fix
+											<Wand class="size-3" /> Fix
 										</button>
 									{/if}
 								</li>

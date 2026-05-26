@@ -454,10 +454,10 @@
 									<button
 										type="button"
 										onclick={() => fixIssue(i)}
-										class="inline-flex items-center gap-1 rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
+										class="inline-flex shrink-0 items-center gap-1 rounded border border-accent bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong hover:bg-accent/20"
 										title="Apply automatic fix"
 									>
-										<Wand class="size-2.5" /> Fix
+										<Wand class="size-3" /> Fix
 									</button>
 								{/if}
 								{#if i.codepoint > 0 && project.glyphs[i.codepoint]}
@@ -553,6 +553,7 @@
 					<div class="grid gap-4">
 						{#each grouped as [code, issues] (code)}
 							{@const desc = describeAuditCode(code)}
+							{@const codeFixable = FIXABLE_CODES.has(code)}
 							<div>
 								<div class="mb-1.5 flex items-baseline justify-between gap-2">
 									<h3
@@ -560,6 +561,14 @@
 										title={desc}
 									>
 										{code}
+										{#if codeFixable}
+											<span
+												class="ml-1.5 rounded bg-accent-soft px-1.5 py-0.5 text-[9px] font-medium text-accent-strong"
+												title="All {issues.length} can be fixed automatically"
+											>
+												auto-fixable
+											</span>
+										{/if}
 									</h3>
 									<span class="text-[10px] font-mono text-fg-subtle" data-numeric>
 										{issues.length} occurrence{issues.length === 1 ? '' : 's'}
