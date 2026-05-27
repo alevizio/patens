@@ -92,7 +92,12 @@
 	</h1>
 
 	<p class="mb-2 text-[13px] uppercase tracking-[0.18em] text-fg-subtle">
-		Pa·tens · Latin: lying open, wide open, accessible
+		Pa·tens · Latin: lying open, wide open, accessible · <a
+			href="/pronunciation"
+			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+		>
+			pronunciation
+		</a>
 	</p>
 
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">

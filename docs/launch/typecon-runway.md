@@ -9,6 +9,14 @@ checklists in `docs/launch/app-improvements-plan.md`. Those docs stay as
 the deeper background (positioning, SEO research, etc.) — this is the
 "what's actually left + who does it + when" view.
 
+**Open decisions surfaced by `docs/launch/research-notes.md` (2026-05-27):**
+1. Move Show HN from 9:30 AM PT to ~6:00 AM PT — 9:30 is now the saturation peak
+2. Flip post order — Show HN FIRST, then T+24 cross-post to TypeDrawers + r/typography (was: TD/Reddit pre-warm). Pre-warm triggers HN's voting-ring detection.
+3. `/compare` page needs Fontra + Glyphr Studio updates + two new entrants section (Lipi.ai Font Studio, Fontish).
+
+Calendar below still reflects the pre-research plan; do NOT execute the
+calendar literally until those three decisions are made.
+
 ---
 
 ## The plan in 60 seconds

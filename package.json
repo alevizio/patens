@@ -38,6 +38,7 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"build:demo-fonts": "node scripts/build-demo-fonts.mjs",
 		"build:github-social": "node scripts/build-github-social.mjs",
+		"validate:json-ld": "node scripts/validate-json-ld.mjs",
 		"cli:build": "node cli/build.mjs",
 		"docs:api": "typedoc",
 		"test": "vitest run",

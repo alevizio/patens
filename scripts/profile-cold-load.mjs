@@ -127,6 +127,24 @@ const main = async () => {
 		if (longTasks.length > 10) console.log(`  ... and ${longTasks.length - 10} more`);
 	}
 
+	// Total Blocking Time — synthetic proxy for INP (real Interaction-to-
+	// Next-Paint needs actual user input). TBT = Σ max(0, taskDur - 50ms)
+	// across all main-thread tasks between FCP and TTI. Lighthouse green
+	// budget: <200ms. Red: >600ms.
+	const fcpTs = markers.find((m) => m.name === 'firstContentfulPaint')?.ts ?? earliest;
+	const tbt = events
+		.filter(
+			(e) =>
+				e.name === 'RunTask' &&
+				e.dur != null &&
+				e.dur / 1000 > 50 &&
+				e.cat?.includes('devtools.timeline') &&
+				(fcpTs == null || e.ts / 1000 >= fcpTs)
+		)
+		.reduce((sum, e) => sum + Math.max(0, e.dur / 1000 - 50), 0);
+	console.log(`\nTotal Blocking Time (synthetic INP proxy): ${fmt(tbt)}`);
+	console.log(`  Lighthouse budget: <200ms green, <600ms orange, >600ms red.`);
+
 	console.log(`\nLayout events (≥4ms) — these drive forced-reflow-insight:`);
 	if (layouts.length === 0) {
 		console.log('  (none — good!)');
