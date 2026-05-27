@@ -47,10 +47,43 @@ export const addLocalePrefix = (pathname: string): string => {
 	return `/es${pathname}`;
 };
 
+/**
+ * Paths that have a 1:1 Spanish translation at /es/<same path>.
+ *
+ * The /es/* tree only covers the marketing surface — see
+ * docs/launch/positioning-rework.md. The editor + 94 audit-code
+ * descriptions + /learn tutorial bodies + /changelog + audit-rule
+ * deep-links stay English for v1.6 (translation roadmap v1.7+).
+ *
+ * `switchLocalePath` reads from this list so the EN→ES switcher
+ * lands on the Spanish home (/es) instead of a 404 when the visitor
+ * is on a page without a Spanish counterpart. The build was failing
+ * because SvelteKit's prerender follows the switcher link and
+ * couldn't reach /es/changelog.
+ */
+const ES_TRANSLATED_PATHS: ReadonlySet<string> = new Set([
+	'/',
+	'/about',
+	'/help',
+	'/press',
+	'/privacy',
+	'/security',
+	'/pronunciation',
+	'/compare',
+	'/audit',
+	'/learn'
+]);
+
 /** Build the path to the OTHER locale's version of the current page. */
 export const switchLocalePath = (currentPath: string, targetLocale: Locale): string => {
 	const canonical = stripLocalePrefix(currentPath);
-	return targetLocale === 'es' ? addLocalePrefix(canonical) : canonical;
+	if (targetLocale === 'es') {
+		// Only translated routes flip to their /es counterpart; everything
+		// else falls back to /es home so the user lands somewhere coherent
+		// instead of getting a 404.
+		return ES_TRANSLATED_PATHS.has(canonical) ? addLocalePrefix(canonical) : '/es';
+	}
+	return canonical;
 };
 
 /**

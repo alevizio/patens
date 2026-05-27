@@ -910,6 +910,20 @@
 					<path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
 				</svg>
 			</a>
+			<!-- Language switcher — the home page doesn't use SiteHeader
+			     (custom hero), so it needs its own way to surface the
+			     Spanish marketing surface at /es. Mirrors the SiteHeader
+			     pattern: hreflang attr on the link so search engines pick
+			     it up, label "ES" because the visitor is currently on EN. -->
+			<a
+				href="/es"
+				hreflang="es"
+				class="inline-flex h-7 items-center justify-center rounded px-1.5 text-[11px] font-medium tracking-wide text-fg-muted transition-colors hover:text-fg"
+				aria-label="Leer en español"
+				title="Leer en español"
+			>
+				ES
+			</a>
 			<button
 				type="button"
 				onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}

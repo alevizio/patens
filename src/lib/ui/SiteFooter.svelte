@@ -32,7 +32,11 @@
 			items: [
 				{ label: t.product.items.auditModule, href: localize('/audit') },
 				{ label: t.product.items.compare, href: localize('/compare') },
-				{ label: t.product.items.changelog, href: localize('/changelog') }
+				// /changelog stays English (versioned content, lower SEO value).
+				// Footer link from /es/* points at the English /changelog so
+				// the prerender doesn't follow a phantom /es/changelog link
+				// and 404 the build.
+				{ label: t.product.items.changelog, href: '/changelog' }
 			]
 		},
 		{
