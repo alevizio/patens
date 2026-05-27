@@ -19,6 +19,23 @@ const config = {
 		// audit.
 		output: {
 			preloadStrategy: 'preload-mjs'
+		},
+		// Routes the build crawler can't auto-discover because nothing
+		// links to them in the prerendered HTML graph: the AI-corpus
+		// endpoints (LLM crawlers hit these directly via robots.txt /
+		// llms.txt convention), the sitemap, and the RSS feed. Each is
+		// marked `prerender = true` in its own +server.ts but needs to
+		// appear here too so the build doesn't error with
+		// `routes were marked as prerenderable but were not prerendered`.
+		prerender: {
+			entries: [
+				'*', // crawl-reachable routes
+				'/llms.txt',
+				'/llms-full.txt',
+				'/sitemap.xml',
+				'/changelog/rss.xml',
+				'/robots.txt'
+			]
 		}
 	}
 };
