@@ -40,38 +40,52 @@ const MUTED = '#6B6258';
 const SUBTLE = '#8C8378';
 const ACCENT = '#7C5C2A';
 
+// Safe path-data converter — opentype.js's built-in toPathData() has a
+// decimal-rounding cache bug that emits "NaN" for values like
+// 336.00000000000006 (floating-point noise from font scaling). Round
+// manually instead.
+const r = (v) => Math.round(v * 100) / 100;
 const textToPath = (text, x, y, fontSize) =>
-	font.getPath(text, x, y, fontSize).toPathData(2);
+	font
+		.getPath(text, x, y, fontSize)
+		.commands.map((c) => {
+			if (c.type === 'M') return `M${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'L') return `L${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'C')
+				return `C${r(c.x1)} ${r(c.y1)} ${r(c.x2)} ${r(c.y2)} ${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'Q') return `Q${r(c.x1)} ${r(c.y1)} ${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'Z') return 'Z';
+			return '';
+		})
+		.join(' ');
 
-// Big "Hn" wordmark on the left, demo type samples on the right,
-// audit-module differentiator strap-line at the bottom. The whole layout
-// uses the demo OTF for everything in-font (no system-font for the
-// wordmark) so the unfurl is literally the product's output.
-const hnPath = textToPath('Hn', 96, 460, 380);
-const honePath = textToPath('HONE', 620, 270, 92);
-const tonePath = textToPath('TONE', 620, 380, 92);
+// PATENS wordmark on the left, demo type samples on the right, audit-
+// module differentiator strap-line at the bottom. The whole layout uses
+// the demo OTF for everything in-font (no system-font for the wordmark)
+// so the unfurl is literally the product's output. 26 glyphs available
+// — full uppercase for "PATENS" + "STUDIO GEOMETRIC" specimen.
+const wordmarkPath = textToPath('PATENS', 96, 360, 240);
+const specimenPath = textToPath('STUDIO GEOMETRIC', 96, 460, 64);
+const tonePath = textToPath('HONE THE TONE.', 96, 540, 64);
 
 const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 	<rect width="${W}" height="${H}" fill="${BG}" />
 
 	<!-- top-left eyebrow -->
-	<text x="96" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${SUBTLE}">PATENS · TYPE DESIGN</text>
+	<text x="96" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${SUBTLE}">BROWSER-NATIVE TYPE DESIGN · 26-GLYPH DEMO TYPEFACE</text>
 
-	<!-- wordmark (the demo font's own H + lowercase n) -->
-	<path d="${hnPath}" fill="${FG}" />
+	<!-- wordmark — PATENS in the demo font -->
+	<path d="${wordmarkPath}" fill="${FG}" />
 
-	<!-- type sample column on the right -->
-	<path d="${honePath}" fill="${FG}" />
+	<!-- specimen lines below the wordmark -->
+	<path d="${specimenPath}" fill="${FG}" />
 	<path d="${tonePath}" fill="${FG}" />
 
-	<!-- right-side label above the samples -->
-	<text x="620" y="180" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="15" letter-spacing="3" fill="${SUBTLE}">STUDIO GEOMETRIC · DEMO TYPEFACE</text>
-
 	<!-- bottom strap-line — the audit-module differentiator -->
-	<text x="96" y="570" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">Browser-native type design tool · 94-rule audit module · open source MIT</text>
+	<text x="96" y="600" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">SvelteKit · 94-rule audit module · variable fonts · open source MIT</text>
 
 	<!-- accent rule -->
-	<rect x="96" y="592" width="120" height="2" fill="${ACCENT}" />
+	<rect x="96" y="615" width="120" height="2" fill="${ACCENT}" />
 </svg>`;
 
 const resvg = new Resvg(svg, {

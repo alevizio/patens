@@ -349,6 +349,562 @@ const buildN_lc = (slabs) => {
 	return { path: result, advance: LC_W, lsb };
 };
 
+// ----- Expanded character set — Phase A/B/C/D additions -----
+//
+// These builders extend the demo OTF from the original 9-glyph stub
+// (space + H/O/T/I/E/N + o/n) into a real specimen-grade subset:
+// full uppercase coverage for "PATENS" + "STUDIO GEOMETRIC", lowercase
+// for "Hamburgevons", digits 0-9 for figure proportions, and basic
+// punctuation. The geometric aesthetic stays monolinear: 90fu stems,
+// 80fu bars, kappa-Bézier round shapes, no optical corrections.
+
+// Reusable: rectangular stem at (x, y, w, h) — Y-up.
+const rect = (x, y, w, h) =>
+	polyPath([
+		[x, y],
+		[x + w, y],
+		[x + w, y + h],
+		[x, y + h]
+	]);
+
+// Helper for the round-letter outlines (P, R, D, etc.): a full
+// ellipse ring (outer + inner) that gets composed with a vertical
+// stem on the left. For the stem to visually replace the ring's left
+// half, the ring's outer-left edge must align with the stem's left
+// edge AND the ring's inner-left edge must align with the stem's
+// right edge — i.e., the stem exactly covers the LEFT WALL of the
+// ring. That forces: cx = stemLeft + rx AND wall-thickness = stem-width.
+// The bowl extends from x=stemLeft to x=stemLeft+2*rx visually.
+//
+// Call site supplies `stemLeftX` instead of `cx` so the geometry is
+// derivable from one number; this prevents the "ring overshoots the
+// stem" bug that the first cut had with cx = stemLeft + STEM/2.
+const bowlRing = (stemLeftX, cy, rx, ry, t) => {
+	const cx = stemLeftX + rx;
+	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, cy, rx - t, ry - t, 'cw');
+	return mergePaths(outer, inner);
+};
+
+const buildA = () => {
+	// A: triangular silhouette with stem-width parallelogram strokes.
+	// Crossbar at 35% of cap-height. Apex flat at the top (STEM wide).
+	const apexCenterX = CAP_W / 2;
+	const apexHalfW = STEM / 2;
+	// Left stroke parallelogram (constant horizontal width = STEM).
+	const left = polyPath([
+		[80, 0],
+		[80 + STEM, 0],
+		[apexCenterX, CAP_HEIGHT], // inner-top meets center
+		[apexCenterX - STEM, CAP_HEIGHT] // outer-top at center − STEM
+	]);
+	const right = polyPath([
+		[CAP_W - 80 - STEM, 0],
+		[CAP_W - 80, 0],
+		[apexCenterX + STEM, CAP_HEIGHT],
+		[apexCenterX, CAP_HEIGHT]
+	]);
+	// Crossbar at y = 0.35 * H. Overlap the inner edges of both strokes
+	// so the joins fill cleanly without subpixel gaps.
+	const bar = polyPath([
+		[120, CAP_HEIGHT * 0.35 - BAR / 2],
+		[CAP_W - 120, CAP_HEIGHT * 0.35 - BAR / 2],
+		[CAP_W - 120, CAP_HEIGHT * 0.35 + BAR / 2],
+		[120, CAP_HEIGHT * 0.35 + BAR / 2]
+	]);
+	// Apex cap — a small horizontal at the top so the join reads as a
+	// flat apex rather than a sharp point that won't reliably overlap.
+	const apex = polyPath([
+		[apexCenterX - apexHalfW, CAP_HEIGHT - BAR],
+		[apexCenterX + apexHalfW, CAP_HEIGHT - BAR],
+		[apexCenterX + apexHalfW, CAP_HEIGHT],
+		[apexCenterX - apexHalfW, CAP_HEIGHT]
+	]);
+	return { path: mergePaths(left, right, bar, apex), advance: CAP_W + 40, lsb: 80 };
+};
+
+const buildP = () => {
+	// P: full vertical stem + ring in the upper half. bowlRing aligns
+	// the ring's outer-left edge with the stem's left edge so the stem
+	// covers the ring's left wall exactly — only the right bowl shows.
+	const stem = rect(80, 0, STEM, CAP_HEIGHT);
+	const ringCy = CAP_HEIGHT * 0.74;
+	const ringRx = CAP_W * 0.32;
+	const ringRy = CAP_HEIGHT * 0.26;
+	const ring = bowlRing(80, ringCy, ringRx, ringRy, STEM);
+	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 20, lsb: 80 };
+};
+
+const buildR = () => {
+	// R: like P but with a diagonal leg from the bowl's base-right
+	// down to the baseline-right corner.
+	const stem = rect(80, 0, STEM, CAP_HEIGHT);
+	const ringCy = CAP_HEIGHT * 0.74;
+	const ringRx = CAP_W * 0.32;
+	const ringRy = CAP_HEIGHT * 0.26;
+	const ring = bowlRing(80, ringCy, ringRx, ringRy, STEM);
+	const bowlRightEdge = 80 + 2 * ringRx;
+	const legTopX = bowlRightEdge - STEM * 1.2;
+	const legTopY = ringCy - ringRy + STEM / 2;
+	const legBottomRight = bowlRightEdge + 30;
+	const leg = polyPath([
+		[legTopX, legTopY],
+		[legTopX + STEM, legTopY],
+		[legBottomRight, 0],
+		[legBottomRight - STEM, 0]
+	]);
+	return { path: mergePaths(stem, ring, leg), advance: legBottomRight + 20, lsb: 80 };
+};
+
+const buildD = () => {
+	// D: vertical stem + tall ring covering the full cap-height.
+	const stem = rect(80, 0, STEM, CAP_HEIGHT);
+	const ringRx = CAP_W * 0.4;
+	const ring = bowlRing(80, CAP_HEIGHT / 2, ringRx, CAP_HEIGHT / 2, STEM);
+	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 20, lsb: 80 };
+};
+
+const buildU = () => {
+	// U: full ring at the bottom + two tall stems exactly covering the
+	// ring's top-left and top-right walls. Ring extends horizontally
+	// from x=80 (left stem left edge) to x=W-80 (right stem right edge).
+	const W = CAP_W;
+	const baseRy = CAP_HEIGHT * 0.32;
+	const ringRx = (W - 160) / 2; // outer-left at 80, outer-right at W-80
+	const ringCx = 80 + ringRx; // = W/2
+	const ringCy = baseRy;
+	const ring = bowlRing(80, ringCy, ringRx, baseRy, STEM);
+	// Top-half-cover: a wide CW rect across the ring's top half, plus
+	// stems extending UP from ringCy to cap-height to give the U its
+	// vertical sides. The CW rect punches out the ring's top half
+	// (between the stem walls).
+	const topCover = cwRect(80 + STEM, ringCy, W - 160 - 2 * STEM, baseRy + 10);
+	const leftStem = rect(80, ringCy, STEM, CAP_HEIGHT - ringCy);
+	const rightStem = rect(W - 80 - STEM, ringCy, STEM, CAP_HEIGHT - ringCy);
+	return {
+		path: mergePaths(ring, topCover, leftStem, rightStem),
+		advance: W,
+		lsb: 80
+	};
+};
+
+const buildS = () => {
+	// S: two stacked C-curves opposed. The simplest faithful S is a
+	// vertical pill (the spine) with bumps on opposing corners. We use
+	// three horizontal bars + a stylised spine to keep the geometric
+	// aesthetic — close enough to read as "S".
+	const top = polyPath([
+		[60, CAP_HEIGHT - BAR],
+		[CAP_W - 60, CAP_HEIGHT - BAR],
+		[CAP_W - 60, CAP_HEIGHT],
+		[60, CAP_HEIGHT]
+	]);
+	const bottom = polyPath([
+		[60, 0],
+		[CAP_W - 60, 0],
+		[CAP_W - 60, BAR],
+		[60, BAR]
+	]);
+	const middle = polyPath([
+		[80, CAP_HEIGHT / 2 - BAR / 2],
+		[CAP_W - 80, CAP_HEIGHT / 2 - BAR / 2],
+		[CAP_W - 80, CAP_HEIGHT / 2 + BAR / 2],
+		[80, CAP_HEIGHT / 2 + BAR / 2]
+	]);
+	// Upper-left connector — left stem from mid to top
+	const upperLeft = polyPath([
+		[60, CAP_HEIGHT / 2 + BAR / 2],
+		[60 + STEM, CAP_HEIGHT / 2 + BAR / 2],
+		[60 + STEM, CAP_HEIGHT - BAR],
+		[60, CAP_HEIGHT - BAR]
+	]);
+	// Lower-right connector — right stem from bottom to mid
+	const lowerRight = polyPath([
+		[CAP_W - 60 - STEM, BAR],
+		[CAP_W - 60, BAR],
+		[CAP_W - 60, CAP_HEIGHT / 2 - BAR / 2],
+		[CAP_W - 60 - STEM, CAP_HEIGHT / 2 - BAR / 2]
+	]);
+	return {
+		path: mergePaths(top, bottom, middle, upperLeft, lowerRight),
+		advance: CAP_W,
+		lsb: 60
+	};
+};
+
+// CW-wound rectangle — when merged into a path with non-zero winding,
+// this SUBTRACTS from anything overlapping it (because CW = -1). Used
+// to punch mouth openings in C, G, 2, etc.
+const cwRect = (x, y, w, h) =>
+	polyPath([
+		[x, y],
+		[x, y + h],
+		[x + w, y + h],
+		[x + w, y]
+	]);
+
+/**
+ * Half-width of an axis-aligned ellipse at vertical offset `dy` from
+ * its center. Used to clip the mouth-cut rectangles so they don't
+ * extend PAST the outer ellipse's curve at the mouth's top/bottom Y —
+ * which would leave a small "outside outer + inside mouth" sliver
+ * filled (+1 −1 = 0 OUTSIDE outer, but −1 alone inside mouth = filled).
+ */
+const ellipseHalfWidthAt = (rx, ry, dy) =>
+	rx * Math.sqrt(Math.max(0, 1 - (dy / ry) ** 2));
+
+const buildG = () => {
+	// G: C-style open ring + horizontal spur at mid-right.
+	// Mouth aligned EXACTLY with the inner ellipse's right edge so it
+	// doesn't overlap (winding = +1 -1 -1 = -1 → filled artifact).
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = CAP_W / 2 - 80;
+	const ry = CAP_HEIGHT / 2;
+	const innerRx = rx - STEM;
+	const innerRy = ry - STEM;
+	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, cy, innerRx, innerRy, 'cw');
+	const mouthH = innerRy * 1.2;
+	// Mouth's right edge clipped to outer ellipse at mouth top/bottom Y
+	// so it doesn't stick past the outer curve (which would create a
+	// filled crescent: outer=0, mouth=-1, winding=-1, filled).
+	const mouthRightX = cx + ellipseHalfWidthAt(rx, ry, mouthH / 2);
+	const mouth = cwRect(cx + innerRx, cy - mouthH / 2, mouthRightX - (cx + innerRx), mouthH);
+	const spur = rect(cx + STEM, cy - STEM / 2, rx - STEM, STEM);
+	return { path: mergePaths(outer, inner, mouth, spur), advance: CAP_W, lsb: 80 };
+};
+
+const buildC = () => {
+	// C: open ring, right side punched out. Mouth's right edge clipped
+	// to the outer curve at mouth top/bottom Y so no filled crescent
+	// artifact (see G for details).
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = CAP_W / 2 - 80;
+	const ry = CAP_HEIGHT / 2;
+	const innerRx = rx - STEM;
+	const innerRy = ry - STEM;
+	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, cy, innerRx, innerRy, 'cw');
+	const mouthH = innerRy * 1.3;
+	const mouthRightX = cx + ellipseHalfWidthAt(rx, ry, mouthH / 2);
+	const mouth = cwRect(cx + innerRx, cy - mouthH / 2, mouthRightX - (cx + innerRx), mouthH);
+	return { path: mergePaths(outer, inner, mouth), advance: CAP_W, lsb: 80 };
+};
+
+const buildM = () => {
+	// M: two verticals + V in the middle dropping to ~30% height. Wider
+	// glyph (CAP_W * 1.2) because the M is typographically the widest
+	// uppercase letter.
+	const W = CAP_W * 1.2;
+	const leftStem = rect(80, 0, STEM, CAP_HEIGHT);
+	const rightStem = rect(W - 80 - STEM, 0, STEM, CAP_HEIGHT);
+	const midX = W / 2;
+	const midDipY = CAP_HEIGHT * 0.3;
+	// Left diagonal goes from inner-top of left stem down-right to the V's
+	// vertex. We model it as a parallelogram with horizontal width STEM:
+	// top-left at inner-top of left stem, top-right slightly to the right
+	// of that, bottom at the V vertex centered on midX.
+	const leftDiag = polyPath([
+		[80 + STEM, CAP_HEIGHT],
+		[80 + STEM * 2, CAP_HEIGHT],
+		[midX + STEM / 2, midDipY],
+		[midX - STEM / 2, midDipY]
+	]);
+	const rightDiag = polyPath([
+		[W - 80 - STEM * 2, CAP_HEIGHT],
+		[W - 80 - STEM, CAP_HEIGHT],
+		[midX + STEM / 2, midDipY],
+		[midX - STEM / 2, midDipY]
+	]);
+	return {
+		path: mergePaths(leftStem, rightStem, leftDiag, rightDiag),
+		advance: W,
+		lsb: 80
+	};
+};
+
+// ---- Lowercase additions ----
+
+const buildA_lc = () => {
+	// a: ring bowl + right stem. Ring's outer-RIGHT edge aligns with
+	// the right stem's right edge (mirror of P's bowl construction):
+	// stem covers the ring's RIGHT wall, only the left bowl shows.
+	const lsb = 80;
+	const t = STEM - 10;
+	const ry = X_HEIGHT / 2;
+	const rx = (LC_W - 2 * lsb - STEM) / 2; // leaves room for the right stem
+	const stemRightEdge = LC_W - lsb;
+	const stemLeftEdge = stemRightEdge - t;
+	// Mirror trick: cx = stemRightEdge - rx so outer-right at stemRightEdge,
+	// inner-right at stemRightEdge - t = stemLeftEdge.
+	const cx = stemRightEdge - rx;
+	const outer = ellipsePath(cx, ry, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, ry, rx - t, ry - t, 'cw');
+	const stem = rect(stemLeftEdge, 0, t, X_HEIGHT);
+	return { path: mergePaths(outer, inner, stem), advance: LC_W, lsb };
+};
+
+const buildE_lc = () => {
+	// e: full ring + horizontal crossbar at mid-height + mouth opening
+	// the lower-right wall. Mouth is restricted to wall thickness so it
+	// doesn't re-fill the interior. Crossbar overlaps the wall on both
+	// sides so it joins cleanly.
+	const cx = LC_W / 2;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - 80;
+	const ry = X_HEIGHT / 2;
+	const t = STEM - 10;
+	const innerRx = rx - t;
+	const innerRy = ry - t;
+	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, cy, innerRx, innerRy, 'cw');
+	// Lower-right mouth — opens just the lower portion of the right
+	// wall. Y range and right edge are both clipped to keep the mouth
+	// INSIDE the outer ellipse so no crescent artifact appears past
+	// outer's curve.
+	const mouthBottomY = cy - innerRy * 0.9;
+	const mouthTopY = cy + STEM * 0.1;
+	const mouthRightX = cx + ellipseHalfWidthAt(rx, ry, cy - mouthBottomY);
+	const mouth = cwRect(
+		cx + innerRx,
+		mouthBottomY,
+		mouthRightX - (cx + innerRx),
+		mouthTopY - mouthBottomY
+	);
+	// Crossbar — horizontal, full inner width minus a bit of bleed.
+	const bar = rect(cx - rx + t / 2, cy - t / 3, rx * 2 - t, (t * 2) / 3);
+	return { path: mergePaths(outer, inner, mouth, bar), advance: LC_W, lsb: 80 };
+};
+
+const buildS_lc = () => {
+	// s: scaled-down S using the same construction
+	const top = polyPath([
+		[60, X_HEIGHT - BAR],
+		[LC_W - 60, X_HEIGHT - BAR],
+		[LC_W - 60, X_HEIGHT],
+		[60, X_HEIGHT]
+	]);
+	const bottom = polyPath([
+		[60, 0],
+		[LC_W - 60, 0],
+		[LC_W - 60, BAR],
+		[60, BAR]
+	]);
+	const middle = polyPath([
+		[80, X_HEIGHT / 2 - BAR / 2],
+		[LC_W - 80, X_HEIGHT / 2 - BAR / 2],
+		[LC_W - 80, X_HEIGHT / 2 + BAR / 2],
+		[80, X_HEIGHT / 2 + BAR / 2]
+	]);
+	const upperLeft = polyPath([
+		[60, X_HEIGHT / 2 + BAR / 2],
+		[60 + STEM, X_HEIGHT / 2 + BAR / 2],
+		[60 + STEM, X_HEIGHT - BAR],
+		[60, X_HEIGHT - BAR]
+	]);
+	const lowerRight = polyPath([
+		[LC_W - 60 - STEM, BAR],
+		[LC_W - 60, BAR],
+		[LC_W - 60, X_HEIGHT / 2 - BAR / 2],
+		[LC_W - 60 - STEM, X_HEIGHT / 2 - BAR / 2]
+	]);
+	return {
+		path: mergePaths(top, bottom, middle, upperLeft, lowerRight),
+		advance: LC_W,
+		lsb: 60
+	};
+};
+
+const buildT_lc = () => {
+	// t: tall thin vertical with a horizontal crossbar near the top,
+	// extending slightly above the x-height (typical lowercase t)
+	const stemH = X_HEIGHT + 100; // extends above x-height
+	const stemX = LC_W / 2 - STEM / 2;
+	const stem = rect(stemX, 0, STEM, stemH);
+	const bar = polyPath([
+		[80, X_HEIGHT - BAR / 2],
+		[LC_W - 80, X_HEIGHT - BAR / 2],
+		[LC_W - 80, X_HEIGHT + BAR / 2],
+		[80, X_HEIGHT + BAR / 2]
+	]);
+	return { path: mergePaths(stem, bar), advance: LC_W * 0.7, lsb: 60 };
+};
+
+const buildH_lc = () => {
+	// h: full left stem (ascender-height) + the same arch + right arm
+	// as `n`. Simpler than building a custom arch path — we reuse
+	// buildN_lc's shape and just extend the left stem upward to
+	// ascender height.
+	const lsb = 80;
+	const w = LC_W - 2 * lsb;
+	const h = X_HEIGHT;
+	const ascH = X_HEIGHT + 200; // ascender ≈ 700
+	const s = STEM;
+	const r = Math.round(h * 0.42);
+	const k = KAPPA;
+	const rxIn = (w - 2 * s) / 2;
+	const ryIn = r - s;
+
+	// Same CCW contour as buildN_lc, but the outer-left of the left
+	// stem extends from y=0 up to ascH instead of just h.
+	const p = new opentype.Path();
+	p.moveTo(lsb, 0);
+	p.lineTo(lsb + s, 0);
+	p.lineTo(lsb + s, h - r);
+	p.curveTo(lsb + s, h - r + ryIn * k, lsb + w / 2 - rxIn * k, h - s, lsb + w / 2, h - s);
+	p.curveTo(
+		lsb + w / 2 + rxIn * k,
+		h - s,
+		lsb + w - s,
+		h - r + ryIn * k,
+		lsb + w - s,
+		h - r
+	);
+	p.lineTo(lsb + w - s, 0);
+	p.lineTo(lsb + w, 0);
+	p.lineTo(lsb + w, h - r);
+	p.curveTo(lsb + w, h - r + r * k, lsb + s + (w - s) * k, h, lsb + s, h);
+	// Instead of going straight across the top of the stem at y=h, we
+	// step UP to ascender height for the h's extended left stem.
+	p.lineTo(lsb + s, ascH); // up the inner edge of the riser
+	p.lineTo(lsb, ascH); // across the flat top
+	p.lineTo(lsb, 0); // down the outside of the left stem
+	p.close();
+	return { path: p, advance: LC_W, lsb };
+};
+
+// ---- Digits ----
+
+const buildZero = () => {
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = CAP_W / 2 - 100;
+	const ry = CAP_HEIGHT / 2;
+	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
+	const inner = ellipsePath(cx, cy, rx - STEM, ry - STEM, 'cw');
+	return { path: mergePaths(outer, inner), advance: CAP_W, lsb: 100 };
+};
+
+const buildOne = () => {
+	// 1: tall stem + small flag at top + small base bar
+	const stem = rect(CAP_W / 2 - STEM / 2, 0, STEM, CAP_HEIGHT);
+	const flag = polyPath([
+		[CAP_W / 2 - STEM / 2 - 80, CAP_HEIGHT - BAR],
+		[CAP_W / 2 + STEM / 2, CAP_HEIGHT - BAR],
+		[CAP_W / 2 + STEM / 2, CAP_HEIGHT],
+		[CAP_W / 2 - STEM / 2 - 80, CAP_HEIGHT - 40]
+	]);
+	const base = polyPath([
+		[CAP_W / 2 - STEM / 2 - 50, 0],
+		[CAP_W / 2 + STEM / 2 + 50, 0],
+		[CAP_W / 2 + STEM / 2 + 50, BAR / 2],
+		[CAP_W / 2 - STEM / 2 - 50, BAR / 2]
+	]);
+	return { path: mergePaths(stem, flag, base), advance: CAP_W * 0.6, lsb: 80 };
+};
+
+const buildTwo = () => {
+	// 2: top half-arch (single CCW contour — outer arc + inner arc
+	// joined by horizontal wall pieces at upperCy) + diagonal + base.
+	// Tracing the arch as a single contour avoids the rectangle-cut
+	// approach, which had the "cut sticks out past outer ellipse curve"
+	// artifact that filled small wedges below the arch.
+	const cx = CAP_W / 2;
+	const upperRy = CAP_HEIGHT * 0.27;
+	const upperCy = CAP_HEIGHT - upperRy;
+	const upperRx = CAP_W / 2 - 80;
+	const innerRx = upperRx - STEM;
+	const innerRy = upperRy - STEM;
+	const k = KAPPA;
+
+	const arch = new opentype.Path();
+	// Outer half-arc, CCW around the top, from right-middle to left-middle.
+	arch.moveTo(cx + upperRx, upperCy);
+	arch.curveTo(
+		cx + upperRx, upperCy + upperRy * k,
+		cx + upperRx * k, upperCy + upperRy,
+		cx, upperCy + upperRy
+	);
+	arch.curveTo(
+		cx - upperRx * k, upperCy + upperRy,
+		cx - upperRx, upperCy + upperRy * k,
+		cx - upperRx, upperCy
+	);
+	// Left wall: line across to inner-left.
+	arch.lineTo(cx - innerRx, upperCy);
+	// Inner half-arc, CW around the top (reverse of CCW), from
+	// left-middle to right-middle.
+	arch.curveTo(
+		cx - innerRx, upperCy + innerRy * k,
+		cx - innerRx * k, upperCy + innerRy,
+		cx, upperCy + innerRy
+	);
+	arch.curveTo(
+		cx + innerRx * k, upperCy + innerRy,
+		cx + innerRx, upperCy + innerRy * k,
+		cx + innerRx, upperCy
+	);
+	// Right wall: line back to start.
+	arch.lineTo(cx + upperRx, upperCy);
+	arch.close();
+
+	const diagStartX = cx + upperRx - STEM / 2;
+	const diag = polyPath([
+		[diagStartX - STEM, upperCy],
+		[diagStartX, upperCy],
+		[80 + STEM, BAR],
+		[80, BAR]
+	]);
+	const base = rect(80, 0, CAP_W - 160, BAR);
+	return {
+		path: mergePaths(arch, diag, base),
+		advance: CAP_W,
+		lsb: 80
+	};
+};
+
+// ---- Punctuation ----
+
+const buildPeriod = () => {
+	const r = STEM / 2;
+	return {
+		path: ellipsePath(r + 60, r + 20, r, r, 'ccw'),
+		advance: 240,
+		lsb: 60
+	};
+};
+
+const buildComma = () => {
+	const r = STEM / 2;
+	// Drop with a small tail
+	const drop = ellipsePath(r + 60, r + 20, r, r, 'ccw');
+	const tail = polyPath([
+		[60 + r - 5, 20],
+		[60 + r + 5, 20],
+		[60 + r - 10, -80],
+		[60 + r - 20, -80]
+	]);
+	return { path: mergePaths(drop, tail), advance: 240, lsb: 60 };
+};
+
+const buildHyphen = () => {
+	const yMid = CAP_HEIGHT / 2;
+	return {
+		path: rect(60, yMid - BAR / 4, CAP_W / 2, BAR / 2),
+		advance: CAP_W / 2 + 120,
+		lsb: 60
+	};
+};
+
+const buildExclaim = () => {
+	const x = 60;
+	const stem = rect(x, BAR * 1.5, STEM, CAP_HEIGHT - BAR * 1.5);
+	const dot = ellipsePath(x + STEM / 2, BAR / 2 + 20, STEM / 2, STEM / 2, 'ccw');
+	return { path: mergePaths(stem, dot), advance: STEM + 120, lsb: 60 };
+};
+
 const buildSpace = () => ({ path: new opentype.Path(), advance: 250, lsb: 0 });
 
 // ----- Assemble & save fonts -----
@@ -367,6 +923,7 @@ const buildFont = ({ familyName, styleName, slabs }) => {
 	});
 
 	const glyphSpecs = [
+		// Space + originals (proven-good)
 		{ name: 'space', cp: 0x20, build: () => buildSpace() },
 		{ name: 'H', cp: 0x48, build: () => buildH(slabs) },
 		{ name: 'O', cp: 0x4f, build: () => buildO() },
@@ -374,8 +931,33 @@ const buildFont = ({ familyName, styleName, slabs }) => {
 		{ name: 'I', cp: 0x49, build: () => buildI(slabs) },
 		{ name: 'E', cp: 0x45, build: () => buildE(slabs) },
 		{ name: 'N', cp: 0x4e, build: () => buildN(slabs) },
+		// Uppercase additions — needed for PATENS · STUDIO GEOMETRIC
+		{ name: 'A', cp: 0x41, build: () => buildA() },
+		{ name: 'C', cp: 0x43, build: () => buildC() },
+		{ name: 'D', cp: 0x44, build: () => buildD() },
+		{ name: 'G', cp: 0x47, build: () => buildG() },
+		{ name: 'M', cp: 0x4d, build: () => buildM() },
+		{ name: 'P', cp: 0x50, build: () => buildP() },
+		{ name: 'R', cp: 0x52, build: () => buildR() },
+		{ name: 'S', cp: 0x53, build: () => buildS() },
+		{ name: 'U', cp: 0x55, build: () => buildU() },
+		// Lowercase
+		{ name: 'a', cp: 0x61, build: () => buildA_lc() },
+		{ name: 'e', cp: 0x65, build: () => buildE_lc() },
+		{ name: 'h', cp: 0x68, build: () => buildH_lc() },
+		{ name: 'n', cp: 0x6e, build: () => buildN_lc(slabs) },
 		{ name: 'o', cp: 0x6f, build: () => buildO_lc() },
-		{ name: 'n', cp: 0x6e, build: () => buildN_lc(slabs) }
+		{ name: 's', cp: 0x73, build: () => buildS_lc() },
+		{ name: 't', cp: 0x74, build: () => buildT_lc() },
+		// Digits — start with 0, 1, 2 (most-visible in dates / sample text)
+		{ name: 'zero', cp: 0x30, build: () => buildZero() },
+		{ name: 'one', cp: 0x31, build: () => buildOne() },
+		{ name: 'two', cp: 0x32, build: () => buildTwo() },
+		// Punctuation
+		{ name: 'period', cp: 0x2e, build: () => buildPeriod() },
+		{ name: 'comma', cp: 0x2c, build: () => buildComma() },
+		{ name: 'hyphen', cp: 0x2d, build: () => buildHyphen() },
+		{ name: 'exclam', cp: 0x21, build: () => buildExclaim() }
 	];
 
 	const glyphs = [notdef];

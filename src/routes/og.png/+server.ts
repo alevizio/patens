@@ -27,18 +27,34 @@ const FG = '#1B1611';
 const MUTED = '#6B6258';
 const SUBTLE = '#8C8378';
 
-/** Render `text` via opentype.js to a single SVG path d-string. */
-// opentype.js Path exposes toPathData() at runtime but our local .d.ts doesn't
-// declare it; narrow inline rather than editing the global type for this one site.
-type PathWithToPathData = { toPathData(decimals: number): string };
-
+/**
+ * Render `text` via opentype.js to a single SVG path d-string.
+ *
+ * IMPORTANT: We DON'T use opentype.js's built-in toPathData() because it
+ * has a decimal-rounding cache bug — when scaled coordinates land on
+ * values like 336.00000000000006 (floating-point noise from font scaling),
+ * it emits "NaN" into the d-string. We round manually here.
+ */
+const r = (v: number) => Math.round(v * 100) / 100;
 const textToPath = (
 	font: ReturnType<typeof parseFont>,
 	text: string,
 	x: number,
 	y: number,
 	fontSize: number
-): string => (font.getPath(text, x, y, fontSize) as unknown as PathWithToPathData).toPathData(2);
+): string =>
+	font
+		.getPath(text, x, y, fontSize)
+		.commands.map((c) => {
+			if (c.type === 'M') return `M${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'L') return `L${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'C')
+				return `C${r(c.x1)} ${r(c.y1)} ${r(c.x2)} ${r(c.y2)} ${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'Q') return `Q${r(c.x1)} ${r(c.y1)} ${r(c.x)} ${r(c.y)}`;
+			if (c.type === 'Z') return 'Z';
+			return '';
+		})
+		.join(' ');
 
 const buildPng = async (): Promise<Buffer> => {
 	const fontPath = path.join(
@@ -50,27 +66,28 @@ const buildPng = async (): Promise<Buffer> => {
 		buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength)
 	);
 
-	// All four display strings use only glyphs the demo OTF actually contains
-	// (H, O, T, I, E, N, o, n, space). Anything else would render as missing.
-	const hnPath = textToPath(font, 'Hn', 80, 470, 360);
-	const honePath = textToPath(font, 'HONE', 560, 360, 96);
-	const tonePath = textToPath(font, 'TONE', 560, 480, 96);
+	// Demo OTF has 26 glyphs: A C D E G H I M N O P R S T U + a e h n o s t + 0 1 2 + . , - !
+	// Wordmark = "Patens" (the project name) at large size.
+	// Specimen = "HONE THE TONE" + "studio geometric" at smaller sizes.
+	const wordmarkPath = textToPath(font, 'PATENS', 80, 320, 220);
+	const specimenPath = textToPath(font, 'STUDIO GEOMETRIC', 80, 420, 60);
+	const tonePath = textToPath(font, 'HONE THE TONE.', 80, 500, 60);
 
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 		<rect width="${W}" height="${H}" fill="${BG}" />
 
 		<!-- top-left eyebrow -->
-		<text x="80" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${SUBTLE}">FONT STUDIO</text>
+		<text x="80" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${SUBTLE}">PATENS · BROWSER-NATIVE TYPE DESIGN</text>
 
 		<!-- wordmark -->
-		<path d="${hnPath}" fill="${FG}" />
+		<path d="${wordmarkPath}" fill="${FG}" />
 
-		<!-- type sample -->
-		<path d="${honePath}" fill="${FG}" />
+		<!-- type specimen -->
+		<path d="${specimenPath}" fill="${FG}" />
 		<path d="${tonePath}" fill="${FG}" />
 
 		<!-- subtitle -->
-		<text x="80" y="560" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">Browser-native type design · 94-code audit · variable fonts · open source</text>
+		<text x="80" y="565" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">SvelteKit · 94-code audit · variable fonts · open source · MIT</text>
 	</svg>`;
 
 	const resvg = new Resvg(svg, {
