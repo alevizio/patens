@@ -418,6 +418,9 @@
 		content="How Patens compares to FontLab 8, Glyphs 3, RoboFont, Fontra, Glyphr Studio, typlr.app, BirdFont, and FontForge — pricing, browser-native vs desktop, audit + teaching features, OpenType + variable + color fonts, export formats."
 	/>
 	<link rel="canonical" href="https://patens.design/compare" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/compare" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/compare" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/compare" />
 	<meta property="og:title" content="Patens vs FontLab, Glyphs, Fontra — feature comparison" />
 	<meta
 		property="og:description"

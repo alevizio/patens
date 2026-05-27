@@ -36,6 +36,9 @@
 		content="Reporting security issues in Patens. Email security@patens.design with details; responsible disclosure, public CVE/credit if requested."
 	/>
 	<link rel="canonical" href="https://patens.design/security" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/security" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/security" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/security" />
 	<meta property="og:title" content="Security · Patens" />
 	<meta property="og:description" content="Responsible disclosure: security@patens.design." />
 	<meta property="og:image" content="https://patens.design/og/brand" />

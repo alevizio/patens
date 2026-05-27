@@ -258,6 +258,9 @@
 	<title>Learn type design — Patens (2026)</title>
 	<meta name="description" content="A beginner-to-shipping path for type design with Patens. Seven tutorials covering your first font, kerning, OpenType features, variable fonts, multi-script (Latin · Cyrillic · Greek), export formats, and the 94-code audit module." />
 	<link rel="canonical" href="https://patens.design/learn" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/learn" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/learn" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/learn" />
 	<meta property="og:title" content="Learn type design · Patens" />
 	<meta property="og:description" content="Seven tutorials from first font to shipping. Plus the 94-code audit reference." />
 	<meta property="og:image" content="https://patens.design/og/learn" />

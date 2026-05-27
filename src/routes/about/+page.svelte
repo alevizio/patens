@@ -56,6 +56,9 @@
 	<title>About Patens (2026) — browser-native, open-source type design</title>
 	<meta name="description" content="What Patens is, what it's built on, who made it." />
 	<link rel="canonical" href="https://patens.design/about" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/about" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/about" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/about" />
 	<meta property="og:title" content="About · Patens" />
 	<meta property="og:description" content="What Patens is, what it's built on, who made it." />
 	<meta property="og:image" content="https://patens.design/og/about" />

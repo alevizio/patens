@@ -140,6 +140,9 @@
 		content="Patens's audit module: 94 codes across contour shape, metrics, OpenType invariants, naming, coverage, anchors, variable fonts, color fonts, and brief completeness. Plain-English teaching prose on every code; around 30 codes have a one-click fix. Also runs as a CLI."
 	/>
 	<link rel="canonical" href="https://patens.design/audit" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/audit" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/audit" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/audit" />
 	<meta property="og:title" content="The audit module · Patens" />
 	<meta
 		property="og:description"

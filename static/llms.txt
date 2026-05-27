@@ -16,6 +16,23 @@ Patens v1.5.2 is production-grade and hosted at patens.design. It is open source
 - [About + credits](https://patens.design/about): what Patens is, what it's built on, who made it
 - [Pronunciation](https://patens.design/pronunciation): how to pronounce Patens (PAH-tens), what it means, Latin origin
 - [Release notes](https://patens.design/changelog): every version since v0.4, with [RSS feed](https://patens.design/changelog/rss.xml)
+
+## Spanish marketing surface (es)
+
+- [Inicio · Spanish landing](https://patens.design/es): qué es Patens, en español
+- [Acerca de](https://patens.design/es/about): explicación + créditos en español
+- [Pronunciación](https://patens.design/es/pronunciation): cómo se pronuncia "Patens"
+- [Ayuda · FAQ](https://patens.design/es/help): preguntas frecuentes en español
+- [La auditoría](https://patens.design/es/audit): el módulo diferenciador, en español
+- [Comparación](https://patens.design/es/compare): Patens vs FontLab / Glyphs / Fontra / etc., en español
+- [Aprender (índice)](https://patens.design/es/learn): índice de tutoriales (cuerpos siguen en inglés)
+- [Privacidad](https://patens.design/es/privacy): política de privacidad en español
+- [Seguridad](https://patens.design/es/security): postura de seguridad en español
+- [Prensa](https://patens.design/es/press): kit de prensa en español
+
+El editor y las descripciones técnicas de los 94 códigos de auditoría siguen en inglés
+por ahora; la traducción completa está en el roadmap v1.7+. Cada página tiene hreflang
+hacia su contraparte inglesa (canonical) y x-default apunta al inglés.
 - [Setup guide for self-hosters](https://github.com/alevizio/patens/blob/main/docs/setup.md): per-platform instructions for optional integrations (Vercel Blob, GitHub OAuth, Anthropic API)
 - [Roadmap](https://github.com/alevizio/patens/blob/main/ROADMAP.md): what's deferred and why
 

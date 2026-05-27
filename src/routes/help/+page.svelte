@@ -126,6 +126,9 @@
 	     sets generic "Patens" defaults; these override for /help so
 	     a shared link unfurls with the page-specific title and description. -->
 	<link rel="canonical" href="https://patens.design/help" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/help" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/help" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/help" />
 	<meta property="og:title" content="Help (2026) · Patens" />
 	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance. Updated 2026." />
 	<meta property="og:image" content="https://patens.design/og/brand" />

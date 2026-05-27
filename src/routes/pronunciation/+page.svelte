@@ -65,6 +65,9 @@
 		content="Patens is pronounced PAH-tens (/ˈpɑː.tɛnz/). Two syllables, stress on the first. From Latin patēns — 'lying open'."
 	/>
 	<link rel="canonical" href="https://patens.design/pronunciation" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/pronunciation" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/pronunciation" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/pronunciation" />
 	<meta property="og:title" content="Pronunciation · Patens" />
 	<meta
 		property="og:description"

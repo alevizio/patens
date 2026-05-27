@@ -73,6 +73,9 @@
 		content="Patens press kit — factsheet, one-liner, elevator pitch, technical summary, logos, screenshots, milestones, founder contact."
 	/>
 	<link rel="canonical" href="https://patens.design/press" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/press" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/press" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/press" />
 	<meta property="og:title" content="Press kit · Patens" />
 	<meta
 		property="og:description"

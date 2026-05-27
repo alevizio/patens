@@ -47,6 +47,18 @@ const ROUTES: Array<{
 	{ path: '/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-26' },
 	{ path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
+	// Spanish marketing surface (es-ES) — added 2026-05-27. Each route
+	// has its hreflang pair pointing back to the English canonical.
+	{ path: '/es', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-27' },
+	{ path: '/es/about', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
+	{ path: '/es/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
+	{ path: '/es/help', changefreq: 'monthly', priority: 0.6, lastmod: '2026-05-27' },
+	{ path: '/es/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-27' },
+	{ path: '/es/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-27' },
+	{ path: '/es/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-27' },
+	{ path: '/es/compare', changefreq: 'monthly', priority: 0.6, lastmod: '2026-05-27' },
+	{ path: '/es/audit', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-27' },
+	{ path: '/es/learn', changefreq: 'monthly', priority: 0.6, lastmod: '2026-05-27' },
 	{ path: '/project/demo/edit', changefreq: 'monthly', priority: 0.9, lastmod: '2026-05-26' },
 	{ path: '/share/demo', changefreq: 'monthly', priority: 0.9, lastmod: '2026-05-26' }
 ];

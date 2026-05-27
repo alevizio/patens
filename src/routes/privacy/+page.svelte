@@ -36,6 +36,9 @@
 		content="Patens is browser-native. Project data lives in your browser's IndexedDB. No analytics SDK, no tracking cookies. Cloud share is opt-in per project."
 	/>
 	<link rel="canonical" href="https://patens.design/privacy" />
+	<link rel="alternate" hreflang="en" href="https://patens.design/privacy" />
+	<link rel="alternate" hreflang="es" href="https://patens.design/es/privacy" />
+	<link rel="alternate" hreflang="x-default" href="https://patens.design/privacy" />
 	<meta property="og:title" content="Privacy · Patens" />
 	<meta property="og:description" content="No data leaves your browser unless you explicitly send it." />
 	<meta property="og:image" content="https://patens.design/og/brand" />

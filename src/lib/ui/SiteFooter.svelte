@@ -15,44 +15,55 @@
 	//   - Editor (/project/[id]/edit) — full-app surface
 	//   - Share specimen (/share/[id]) — read-only specimen surface
 	//   - Family hub / Families index — app surface
+	import { addLocalePrefix, chrome, type Locale } from '$lib/i18n';
+
+	type Props = { lang?: Locale };
+	let { lang = 'en' }: Props = $props();
+
+	const t = $derived(chrome[lang].footer);
+	const localize = (path: string): string =>
+		lang === 'es' && !path.startsWith('http') ? addLocalePrefix(path) : path;
+
 	type LinkGroup = { title: string; items: Array<{ label: string; href: string; external?: boolean }> };
 
-	const groups: LinkGroup[] = [
+	const groups = $derived<LinkGroup[]>([
 		{
-			title: 'Product',
+			title: t.product.title,
 			items: [
-				{ label: 'The audit module', href: '/audit' },
-				{ label: 'Compare with alternatives', href: '/compare' },
-				{ label: 'Changelog', href: '/changelog' }
+				{ label: t.product.items.auditModule, href: localize('/audit') },
+				{ label: t.product.items.compare, href: localize('/compare') },
+				{ label: t.product.items.changelog, href: localize('/changelog') }
 			]
 		},
 		{
-			title: 'Learn',
+			title: t.learn.title,
 			items: [
-				{ label: 'All tutorials', href: '/learn' },
-				{ label: 'Your first font', href: '/learn/first-font' },
-				{ label: 'Audit codes reference', href: '/learn/audit-codes' },
-				{ label: 'Help · FAQ', href: '/help' }
+				{ label: t.learn.items.all, href: localize('/learn') },
+				// /learn/first-font + /learn/audit-codes stay English for now —
+				// not yet translated. Footer links to the English versions.
+				{ label: t.learn.items.firstFont, href: '/learn/first-font' },
+				{ label: t.learn.items.auditCodes, href: '/learn/audit-codes' },
+				{ label: t.learn.items.help, href: localize('/help') }
 			]
 		},
 		{
-			title: 'Company',
+			title: t.company.title,
 			items: [
-				{ label: 'About', href: '/about' },
-				{ label: 'Pronunciation', href: '/pronunciation' },
-				{ label: 'Press kit', href: '/press' }
+				{ label: t.company.items.about, href: localize('/about') },
+				{ label: t.company.items.pronunciation, href: localize('/pronunciation') },
+				{ label: t.company.items.press, href: localize('/press') }
 			]
 		},
 		{
-			title: 'Legal · Source',
+			title: t.legal.title,
 			items: [
-				{ label: 'Privacy', href: '/privacy' },
-				{ label: 'Security', href: '/security' },
-				{ label: 'GitHub repo', href: 'https://github.com/alevizio/patens', external: true },
-				{ label: 'MIT license', href: 'https://github.com/alevizio/patens/blob/main/LICENSE', external: true }
+				{ label: t.legal.items.privacy, href: localize('/privacy') },
+				{ label: t.legal.items.security, href: localize('/security') },
+				{ label: t.legal.items.github, href: 'https://github.com/alevizio/patens', external: true },
+				{ label: t.legal.items.license, href: 'https://github.com/alevizio/patens/blob/main/LICENSE', external: true }
 			]
 		}
-	];
+	]);
 </script>
 
 <footer class="mt-28 border-t border-border/60 pt-12 pb-8">
@@ -82,7 +93,7 @@
 	<!-- Bottom rule + wordmark/social row -->
 	<div class="mt-12 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t border-border/40 pt-6">
 		<a
-			href="/"
+			href={lang === 'es' ? '/es' : '/'}
 			class="group inline-flex items-baseline gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<span
@@ -92,12 +103,12 @@
 				Patens
 			</span>
 			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-				·&nbsp; Type that teaches as you draw
+				·&nbsp; {lang === 'es' ? 'Tipografía que enseña al dibujar' : 'Type that teaches as you draw'}
 			</span>
 		</a>
 		<nav
 			class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]"
-			aria-label="Social + source"
+			aria-label={t.socialLabel}
 		>
 			<a
 				href="https://bsky.app/profile/patens.design"
@@ -122,7 +133,9 @@
 			</a>
 		</nav>
 		<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-			MIT &nbsp;·&nbsp; Personal type design tool &nbsp;·&nbsp; 2026
+			MIT &nbsp;·&nbsp; {lang === 'es'
+				? 'Herramienta personal de diseño tipográfico'
+				: 'Personal type design tool'} &nbsp;·&nbsp; 2026
 		</span>
 	</div>
 </footer>
