@@ -4,7 +4,7 @@
  * after the originator has re-shared; the canonical /api/share/[id]
  * always returns the most recent.
  *
- * Returns: { id, versions: [{ v, uploadedAt, sizeBytes, url }] }
+ * Returns: { id, versions: [{ v, uploadedAt, sizeBytes }] }
  *
  * Open read (link-as-capability — same model as GET /api/share/[id]).
  * Empty result when no history exists yet; never 404s because the
@@ -29,7 +29,7 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 		throw error(404, 'Cloud share not configured');
 	}
 
-	const versions: Array<{ v: number; uploadedAt: string; sizeBytes: number; url: string }> = [];
+	const versions: Array<{ v: number; uploadedAt: string; sizeBytes: number }> = [];
 	try {
 		const listed = await list({ prefix: historyPrefix(id), limit: 1000 });
 		for (const b of listed.blobs) {
@@ -38,8 +38,7 @@ export const GET: RequestHandler = async ({ params, setHeaders }) => {
 			versions.push({
 				v: Number(m[1]),
 				uploadedAt: b.uploadedAt.toISOString(),
-				sizeBytes: b.size,
-				url: b.url
+				sizeBytes: b.size
 			});
 		}
 		versions.sort((a, b) => b.v - a.v); // newest first

@@ -477,7 +477,6 @@ const buildU = () => {
 	const W = CAP_W;
 	const baseRy = CAP_HEIGHT * 0.32;
 	const ringRx = (W - 160) / 2; // outer-left at 80, outer-right at W-80
-	const ringCx = 80 + ringRx; // = W/2
 	const ringCy = baseRy;
 	const ring = bowlRing(80, ringCy, ringRx, baseRy, STEM);
 	// Top-half-cover: a wide CW rect across the ring's top half, plus

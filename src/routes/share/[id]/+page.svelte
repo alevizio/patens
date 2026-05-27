@@ -27,7 +27,7 @@
 	// ?v=N — we're showing an immutable historical snapshot. data.version
 	// === null means we're showing the canonical (latest) blob.
 	const pinnedVersion = $derived(data.version);
-	type ShareVersion = { v: number; uploadedAt: string; sizeBytes: number; url: string };
+	type ShareVersion = { v: number; uploadedAt: string; sizeBytes: number };
 	let availableVersions = $state<ShareVersion[]>([]);
 	onMount(async () => {
 		// Demo project doesn't have a server-side history; skip the fetch.

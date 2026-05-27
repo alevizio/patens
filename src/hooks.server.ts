@@ -1,12 +1,14 @@
 /**
  * Server-side error hook. Mirrors hooks.client.ts so server crashes
  * surface real diagnostic info instead of an opaque "Internal error".
- * The SvelteKit server function will log to Vercel's runtime logs
- * AND return the stack to the +error.svelte boundary.
+ * The SvelteKit server function logs to Vercel's runtime logs. Stack
+ * details are returned only in dev so production users don't see internals.
  */
 
 import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { dev } from '$app/environment';
 import { decodeSession, SESSION_COOKIE } from '$lib/server/session';
+import { applySecurityHeaders, serverErrorPayload } from '$lib/server/http-security';
 
 /**
  * Per-request hook: decode the signed session cookie (if present + valid)
@@ -20,16 +22,20 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const cookie = event.cookies.get(SESSION_COOKIE);
 	const secret = process.env.AUTH_SECRET;
 	event.locals.session = secret ? decodeSession(cookie, secret) : null;
-	return resolve(event);
+	const response = await resolve(event);
+	applySecurityHeaders(response.headers, event.url.protocol === 'https:');
+	return response;
 };
 
 export const handleError: HandleServerError = ({ error, event, status, message }) => {
-	console.error('[SSR handleError]', error);
-	const err = error as Error;
-	return {
-		message: err?.message ?? message ?? 'Unknown server error',
-		stack: err?.stack,
+	if (status >= 500) {
+		console.error('[SSR handleError]', error);
+	}
+	return serverErrorPayload({
+		error,
+		message,
 		status,
-		url: event.url.pathname
-	};
+		url: event.url.pathname,
+		exposeDetails: dev
+	});
 };
