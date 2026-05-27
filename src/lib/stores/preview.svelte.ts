@@ -6,11 +6,20 @@
  *   - Suffix the family name with a build counter so each new build is a
  *     distinct FontFace — this forces the browser to re-layout text.
  *   - Drop the previous FontFace from `document.fonts` after the new one loads.
+ *
+ * Lazy-load discipline:
+ *   `buildFont` (export.ts) statically imports opentype.js (~243 KB chunk).
+ *   That's worthwhile cost when the user is in the editor, but the project
+ *   /[id]/+layout.svelte mounts the previewStore on EVERY child route — the
+ *   audit page, the spacing page, the export page, etc. all of which already
+ *   carry their own heavy chunks. To stop opentype.js from landing on the
+ *   critical path of every project sub-route, we dynamically import
+ *   `buildFont` + `applyColorFontTables` inside `build()`. The first
+ *   `requestRebuild()` then incurs a one-time fetch cost (gzipped ~68 KB);
+ *   subsequent calls hit the browser's module cache.
  */
 
 import { browser } from '$app/environment';
-import { buildFont } from '$lib/font/export';
-import { applyColorFontTables } from '$lib/font/colr';
 import { projectStore } from './project.svelte';
 
 const BASE_FAMILY = 'PreviewFont';
@@ -43,6 +52,14 @@ class PreviewStore {
 		this.error = null;
 		const start = performance.now();
 		try {
+			// Lazy-load opentype.js (via export.ts) so it stays off the
+			// critical path of every /project/[id]/* sub-route that doesn't
+			// render the live preview immediately (audit / spacing / families
+			// / release / share).
+			const [{ buildFont }, { applyColorFontTables }] = await Promise.all([
+				import('$lib/font/export'),
+				import('$lib/font/colr')
+			]);
 			const { font, glyphCount, colorBaseGlyphs, colorV1BaseGlyphs } = buildFont(project, {
 				masterId: projectStore.selectedMasterId
 			});
