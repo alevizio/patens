@@ -605,6 +605,113 @@
 		{/each}
 	</div>
 
+	<!-- Recent moves (Dec 2025 – May 2026). Factual updates per the
+	     four-arc research report (docs/launch/research-notes.md, arc C).
+	     Updates the matrix's "as of May 2026" footer with specific
+	     shipped-this-window facts so reviewers can verify accuracy. -->
+	<h2
+		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
+		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+	>
+		Recent moves in the landscape (Dec 2025 – May 2026)
+	</h2>
+	<p class="mb-6 max-w-3xl text-[14px] leading-relaxed text-fg-muted">
+		Quick context on what the listed tools shipped in the last six months,
+		so the matrix above doesn't go stale silently between refreshes.
+	</p>
+	<div class="mb-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
+		<article class="border-l-2 border-accent-strong/50 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">Fontra</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Eight releases in window on a near-weekly cadence (latest 2026.5.1,
+				May 12). Shipped: shaping debugger, conditional substitutions / designspace
+				rules, .woff2 export, hidden axes in the designspace panel,
+				.fontra as new default format, and a JS→TypeScript frontend migration.
+				The most active competitor by far.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">Glyphr Studio</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Five releases in window. v2.8.6 added PWA support; v2.9.2 shipped
+				redo with clickable history; Paper.js dependency replaced by a
+				first-party bezier-boolean library. Still hobbyist-positioned by
+				its own maintainer.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">Glyphs</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Still 3.4 (October 2025) — <strong class="text-fg">Glyphs 4 has not
+				been announced as of this writing.</strong> Seifert/Scheichelbauer
+				received the Goudy Award (Feb 2026).
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">FontLab 8</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Last stable 8.4.3 (Nov 2024) — no new builds in this window.
+				Pricing unchanged ($97 Starter / $499 Pro).
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">BirdFont</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Last GPL release v2.30.0 (Feb 2025) — cadence has slowed.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">FontForge</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Last release Oct 2025. Active-but-slow maintenance posture.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">typlr.app</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				No public updates since September 2024. Status uncertain.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">RoboFont</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Continued steady iterative releases. Python-first ecosystem
+				unchanged in posture.
+			</p>
+		</article>
+	</div>
+
+	<h2
+		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
+		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+	>
+		New entrants (2025–2026)
+	</h2>
+	<p class="mb-6 max-w-3xl text-[14px] leading-relaxed text-fg-muted">
+		Two AI-assisted, browser-native tools have emerged in this window. Worth
+		being aware of even if the matrix above doesn't slot them in yet; the
+		posture they take on AI is qualitatively different from Patens's
+		BYOK-Anthropic-for-pedagogy approach.
+	</p>
+	<div class="mb-12 grid max-w-3xl grid-cols-1 gap-6 sm:grid-cols-2">
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">Lipi.ai Font Studio</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Browser-native, AI-assisted. Prompt-to-editable-font flow as the
+				headline feature. Pricing not yet public. The bet: generation
+				from prompt + manual refinement.
+			</p>
+		</article>
+		<article class="border-l-2 border-fg/10 pl-4">
+			<h3 class="mb-1 text-[15px] font-medium text-fg">Fontish</h3>
+			<p class="text-[13px] leading-relaxed text-fg-muted">
+				Another browser-native AI-assisted entrant in the same lane. Same
+				caveats apply: posture toward AI is generation-first, where
+				Patens's is pedagogy-first.
+			</p>
+		</article>
+	</div>
+
 	<h2
 		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
@@ -688,9 +795,10 @@
 	</p>
 
 	<p class="mb-4 text-[12px] leading-relaxed text-fg-muted">
-		Comparison reflects feature parity at v1.5.2 (Patens) and current
-		shipping versions of the others as of May 2026. If something here is
-		wrong about your tool, open an
+		Comparison reflects feature parity at v1.6.0-prep (Patens) and current
+		shipping versions of the others as of 2026-05-27 (verified against
+		each tool's official release page + GitHub repo).
+		If something here is wrong about your tool, open an
 		<a
 			href="https://github.com/alevizio/patens/issues/new"
 			class="text-accent-strong underline underline-offset-2"
