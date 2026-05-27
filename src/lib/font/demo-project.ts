@@ -32,6 +32,93 @@ const poly = (verts: Array<[number, number]>, winding: 'cw' | 'ccw' = 'cw'): Bez
 	return { closed: true, winding, commands };
 };
 
+/**
+ * Cubic Bézier approximation of an axis-aligned ellipse, centered at
+ * (cx, cy) with radii (rx, ry). Four cubic segments + kappa control
+ * points produce a circle indistinguishable from the real thing at
+ * editor zoom levels.
+ *
+ * `winding` controls direction:
+ *   - 'cw'  fills the interior under the editor's CW-positive rule
+ *           (used for outer contours of round letters)
+ *   - 'ccw' subtracts (used for inner counters — the hole inside O/D/P/etc.)
+ *
+ * Kappa = 4/3 × tan(π/8) ≈ 0.5523.
+ */
+const KAPPA = 0.5522847498307936;
+const curvedRing = (
+	cx: number,
+	cy: number,
+	rx: number,
+	ry: number,
+	winding: 'cw' | 'ccw' = 'cw'
+): BezierContour => {
+	const k = KAPPA;
+	// Editor's CW-labeled outer matches math-CCW traversal in Y-up
+	// font space: right → top → left → bottom (matches the existing
+	// `ring` polygon helper). CCW reverses for inner counters / holes.
+	const cw = winding === 'cw';
+	const sy = cw ? 1 : -1;
+	const commands: PathCommand[] = [
+		{ type: 'M', x: cx + rx, y: cy },
+		{
+			type: 'C',
+			x1: cx + rx,
+			y1: cy + sy * ry * k,
+			x2: cx + rx * k,
+			y2: cy + sy * ry,
+			x: cx,
+			y: cy + sy * ry
+		},
+		{
+			type: 'C',
+			x1: cx - rx * k,
+			y1: cy + sy * ry,
+			x2: cx - rx,
+			y2: cy + sy * ry * k,
+			x: cx - rx,
+			y: cy
+		},
+		{
+			type: 'C',
+			x1: cx - rx,
+			y1: cy - sy * ry * k,
+			x2: cx - rx * k,
+			y2: cy - sy * ry,
+			x: cx,
+			y: cy - sy * ry
+		},
+		{
+			type: 'C',
+			x1: cx + rx * k,
+			y1: cy - sy * ry,
+			x2: cx + rx,
+			y2: cy - sy * ry * k,
+			x: cx + rx,
+			y: cy
+		},
+		{ type: 'Z' }
+	];
+	return { closed: true, winding, commands };
+};
+
+/**
+ * Bowl ring sitting at the right side of a vertical stem. The ring's
+ * outer-LEFT edge aligns with the stem's left edge, so the stem visually
+ * covers the ring's left wall. The visible bowl extends from stem-left
+ * to (stem-left + 2·rx). Used for P, R, D, B.
+ */
+const stemBowl = (
+	stemLeftX: number,
+	cy: number,
+	rx: number,
+	ry: number,
+	t: number
+): BezierContour[] => {
+	const cx = stemLeftX + rx;
+	return [curvedRing(cx, cy, rx, ry, 'cw'), curvedRing(cx, cy, rx - t, ry - t, 'ccw')];
+};
+
 // ---------- Glyph shape builders ----------
 
 const buildH = (): BezierContour[] => [
@@ -133,17 +220,7 @@ const buildO = (): BezierContour[] => {
 	const cy = CAP_HEIGHT / 2;
 	const rx = CAP_W / 2 - 80;
 	const ry = CAP_HEIGHT / 2;
-	const t = STEM;
-	const sides = 16;
-	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
-		const pts: Array<[number, number]> = [];
-		for (let i = 0; i < sides; i++) {
-			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
-			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
-		}
-		return pts;
-	};
-	return [poly(ring(rx, ry), 'cw'), poly(ring(rx - t, ry - t, true), 'ccw')];
+	return [curvedRing(cx, cy, rx, ry, 'cw'), curvedRing(cx, cy, rx - STEM, ry - STEM, 'ccw')];
 };
 
 const buildO_lc = (): BezierContour[] => {
@@ -152,16 +229,7 @@ const buildO_lc = (): BezierContour[] => {
 	const rx = LC_W / 2 - 80;
 	const ry = X_HEIGHT / 2;
 	const t = STEM - 10;
-	const sides = 16;
-	const ring = (radX: number, radY: number, ccw = false): Array<[number, number]> => {
-		const pts: Array<[number, number]> = [];
-		for (let i = 0; i < sides; i++) {
-			const angle = (i / sides) * Math.PI * 2 * (ccw ? -1 : 1);
-			pts.push([cx + Math.cos(angle) * radX, cy + Math.sin(angle) * radY]);
-		}
-		return pts;
-	};
-	return [poly(ring(rx, ry), 'cw'), poly(ring(rx - t, ry - t, true), 'ccw')];
+	return [curvedRing(cx, cy, rx, ry, 'cw'), curvedRing(cx, cy, rx - t, ry - t, 'ccw')];
 };
 
 const buildN_lc = (): BezierContour[] => [
@@ -218,27 +286,42 @@ const buildV = (): BezierContour[] => [
 ];
 
 // A — two angled stems meeting at the top + crossbar.
-const buildA = (): BezierContour[] => [
-	poly([
-		[CAP_W / 2 - STEM / 2, CAP_HEIGHT],
-		[CAP_W / 2 + STEM / 2, CAP_HEIGHT],
-		[CAP_W - 60, 0],
-		[CAP_W - 60 - STEM, 0]
-	]),
-	poly([
-		[CAP_W / 2 - STEM / 2, CAP_HEIGHT],
-		[CAP_W / 2 + STEM / 2, CAP_HEIGHT],
-		[60 + STEM, 0],
-		[60, 0]
-	]),
-	// Crossbar at 40% height
-	poly([
-		[140, CAP_HEIGHT * 0.4 - BAR / 2],
-		[CAP_W - 140, CAP_HEIGHT * 0.4 - BAR / 2],
-		[CAP_W - 140, CAP_HEIGHT * 0.4 + BAR / 2],
-		[140, CAP_HEIGHT * 0.4 + BAR / 2]
-	])
-];
+const buildA = (): BezierContour[] => {
+	// Two parallelogram strokes meeting at a STEM-wide flat apex +
+	// crossbar at 35% cap-height. Crossbar X is computed from the
+	// inner-edge geometry so it joins the diagonals cleanly.
+	const apexL = CAP_W / 2 - STEM / 2;
+	const apexR = CAP_W / 2 + STEM / 2;
+	const baseL = 30;
+	const baseR = CAP_W - 30;
+	const crossY = CAP_HEIGHT * 0.35;
+	const t = crossY / CAP_HEIGHT;
+	const innerL = baseL + STEM + (apexR - baseL - STEM) * t;
+	const innerR = baseR - STEM + (apexL - baseR + STEM) * t;
+	return [
+		// Left diagonal
+		poly([
+			[baseL, 0],
+			[baseL + STEM, 0],
+			[apexR, CAP_HEIGHT],
+			[apexL, CAP_HEIGHT]
+		]),
+		// Right diagonal
+		poly([
+			[baseR - STEM, 0],
+			[baseR, 0],
+			[apexR, CAP_HEIGHT],
+			[apexL, CAP_HEIGHT]
+		]),
+		// Crossbar
+		poly([
+			[innerL, crossY - BAR / 2],
+			[innerR, crossY - BAR / 2],
+			[innerR, crossY + BAR / 2],
+			[innerL, crossY + BAR / 2]
+		])
+	];
+};
 
 // M — left stem, two angled inner stems meeting at center-bottom, right stem.
 const buildM = (): BezierContour[] => {
@@ -272,74 +355,52 @@ const buildM = (): BezierContour[] => {
 	];
 };
 
-// R — vertical stem + half-ring at top + diagonal leg.
-const buildR = (): BezierContour[] => [
-	poly([
-		[80, 0],
-		[80 + STEM, 0],
-		[80 + STEM, CAP_HEIGHT],
-		[80, CAP_HEIGHT]
-	]),
-	// Bowl top bar
-	poly([
-		[80, CAP_HEIGHT],
-		[CAP_W - 100, CAP_HEIGHT],
-		[CAP_W - 100, CAP_HEIGHT - BAR],
-		[80, CAP_HEIGHT - BAR]
-	]),
-	// Bowl right stem
-	poly([
-		[CAP_W - 100 - STEM, CAP_HEIGHT - BAR],
-		[CAP_W - 100, CAP_HEIGHT - BAR],
-		[CAP_W - 100, CAP_HEIGHT * 0.55 + BAR],
-		[CAP_W - 100 - STEM, CAP_HEIGHT * 0.55 + BAR]
-	]),
-	// Bowl bottom bar
-	poly([
-		[80, CAP_HEIGHT * 0.55],
-		[CAP_W - 100, CAP_HEIGHT * 0.55],
-		[CAP_W - 100, CAP_HEIGHT * 0.55 + BAR],
-		[80, CAP_HEIGHT * 0.55 + BAR]
-	]),
-	// Diagonal leg from junction to bottom-right
-	poly([
-		[80 + STEM, CAP_HEIGHT * 0.55],
-		[80 + STEM + 40, CAP_HEIGHT * 0.55],
-		[CAP_W - 60, 0],
-		[CAP_W - 60 - 80, 0]
-	])
-];
+// R — vertical stem + curved upper-half bowl + diagonal leg.
+const buildR = (): BezierContour[] => {
+	const bowlBottom = CAP_HEIGHT * 0.45;
+	const ringRy = (CAP_HEIGHT - bowlBottom) / 2;
+	const ringCy = CAP_HEIGHT - ringRy;
+	const ringRx = CAP_W * 0.32;
+	const bowlRight = 80 + 2 * ringRx;
+	const legTopX = bowlRight - STEM * 1.5;
+	const legTopY = bowlBottom + STEM / 2;
+	const legBottomR = bowlRight + 30;
+	return [
+		// Stem
+		poly([
+			[80, 0],
+			[80 + STEM, 0],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		...stemBowl(80, ringCy, ringRx, ringRy, STEM),
+		// Diagonal leg
+		poly([
+			[legTopX, legTopY],
+			[legTopX + STEM, legTopY],
+			[legBottomR, 0],
+			[legBottomR - STEM, 0]
+		])
+	];
+};
 
-// P — vertical stem + bowl (top bar / right stem / bottom bar of bowl).
-const buildP = (): BezierContour[] => [
-	poly([
-		[80, 0],
-		[80 + STEM, 0],
-		[80 + STEM, CAP_HEIGHT],
-		[80, CAP_HEIGHT]
-	]),
-	// Bowl top
-	poly([
-		[80, CAP_HEIGHT],
-		[CAP_W - 80, CAP_HEIGHT],
-		[CAP_W - 80, CAP_HEIGHT - BAR],
-		[80, CAP_HEIGHT - BAR]
-	]),
-	// Bowl right stem
-	poly([
-		[CAP_W - 80 - STEM, CAP_HEIGHT - BAR],
-		[CAP_W - 80, CAP_HEIGHT - BAR],
-		[CAP_W - 80, CAP_HEIGHT * 0.55 + BAR],
-		[CAP_W - 80 - STEM, CAP_HEIGHT * 0.55 + BAR]
-	]),
-	// Bowl bottom
-	poly([
-		[80, CAP_HEIGHT * 0.55],
-		[CAP_W - 80, CAP_HEIGHT * 0.55],
-		[CAP_W - 80, CAP_HEIGHT * 0.55 + BAR],
-		[80, CAP_HEIGHT * 0.55 + BAR]
-	])
-];
+// P — vertical stem + curved upper-half bowl.
+const buildP = (): BezierContour[] => {
+	const bowlBottom = CAP_HEIGHT * 0.45;
+	const ringRy = (CAP_HEIGHT - bowlBottom) / 2;
+	const ringCy = CAP_HEIGHT - ringRy;
+	const ringRx = CAP_W * 0.32;
+	return [
+		// Stem
+		poly([
+			[80, 0],
+			[80 + STEM, 0],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		...stemBowl(80, ringCy, ringRx, ringRy, STEM)
+	];
+};
 
 // F — vertical stem + top bar + middle bar.
 const buildF = (): BezierContour[] => [
@@ -570,7 +631,13 @@ const build8 = (): BezierContour[] => {
 };
 // B — vertical stem + two stacked half-rings (top + bottom bowls).
 const buildB = (): BezierContour[] => {
-	const mid = CAP_HEIGHT / 2;
+	// Two stacked curved bowls — upper bowl from cap-top to mid, lower
+	// bowl from mid to baseline. Stem covers each ring's left wall.
+	const ringRx = CAP_W * 0.32;
+	const topCy = CAP_HEIGHT * 0.74;
+	const topRy = CAP_HEIGHT * 0.26;
+	const botCy = CAP_HEIGHT * 0.26;
+	const botRy = CAP_HEIGHT * 0.26;
 	return [
 		// Stem
 		poly([
@@ -579,54 +646,109 @@ const buildB = (): BezierContour[] => {
 			[80 + STEM, CAP_HEIGHT],
 			[80, CAP_HEIGHT]
 		]),
-		// Top bowl: top bar
-		poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-		// Top bowl: right stem
-		poly([[CAP_W - 80 - STEM, mid + BAR / 2], [CAP_W - 80, mid + BAR / 2], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80 - STEM, CAP_HEIGHT - BAR]]),
-		// Middle bar
-		poly([[80, mid - BAR / 2], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80, mid + BAR / 2], [80, mid + BAR / 2]]),
-		// Bottom bowl: right stem
-		poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80 - STEM, mid - BAR / 2]]),
-		// Bottom bar
-		poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
+		...stemBowl(80, topCy, ringRx, topRy, STEM),
+		...stemBowl(80, botCy, ringRx, botRy, STEM)
 	];
 };
 
-// C — left stem + top bar + bottom bar (open on the right).
-const buildC = (): BezierContour[] => [
-	poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-	poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
-];
+// C — curved ring with the right-side wall cut out by an inner-counter
+// punch. The inner counter (CCW) extends past the outer-right wall so
+// the mouth is "open" — non-zero winding rule subtracts the inner from
+// the outer, but the inner's right portion lies outside the outer,
+// leaving an opening on the right side of the ring.
+const buildC = (): BezierContour[] => {
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = CAP_W / 2 - 80;
+	const ry = CAP_HEIGHT / 2;
+	// Inner counter horizontally shifted RIGHT so it extends past outer's
+	// right edge, opening the mouth. Vertically constrained so the upper-
+	// and lower-right corners (the C terminals) stay filled.
+	const innerCx = cx + STEM;
+	const innerRx = rx - STEM + STEM; // = rx (inner punch extends to outer right)
+	const innerRy = ry * 0.55;
+	return [curvedRing(cx, cy, rx, ry, 'cw'), curvedRing(innerCx, cy, innerRx, innerRy, 'ccw')];
+};
 
-// D — vertical stem + top/bottom bars + right stem (rect-style).
-const buildD = (): BezierContour[] => [
-	poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-	poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-	poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80 - STEM, CAP_HEIGHT - BAR]]),
-	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
-];
-
-// G — C with a small horizontal extension at mid-right + a vertical stub.
-const buildG = (): BezierContour[] => {
-	const mid = CAP_HEIGHT / 2;
+// D — vertical stem + full-height curved bowl.
+const buildD = (): BezierContour[] => {
+	const ringRx = CAP_W * 0.4;
 	return [
-		poly([[80, 0], [80 + STEM, 0], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-		poly([[80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT - BAR], [CAP_W - 80, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-		poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]]),
-		// Right vertical (lower half only)
-		poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, mid], [CAP_W - 80 - STEM, mid]]),
-		// Mid-right horizontal serif
-		poly([[CAP_W / 2, mid - BAR / 2], [CAP_W - 80, mid - BAR / 2], [CAP_W - 80, mid + BAR / 2], [CAP_W / 2, mid + BAR / 2]])
+		// Stem
+		poly([
+			[80, 0],
+			[80 + STEM, 0],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		...stemBowl(80, CAP_HEIGHT / 2, ringRx, CAP_HEIGHT / 2, STEM)
 	];
 };
 
-// U — two vertical stems + bottom bar.
-const buildU = (): BezierContour[] => [
-	poly([[80, BAR], [80 + STEM, BAR], [80 + STEM, CAP_HEIGHT], [80, CAP_HEIGHT]]),
-	poly([[CAP_W - 80 - STEM, BAR], [CAP_W - 80, BAR], [CAP_W - 80, CAP_HEIGHT], [CAP_W - 80 - STEM, CAP_HEIGHT]]),
-	poly([[80, 0], [CAP_W - 80, 0], [CAP_W - 80, BAR], [80, BAR]])
-];
+// G — C-style ring + horizontal spur at mid-right reaching into the
+// counter from the right wall.
+const buildG = (): BezierContour[] => {
+	const cx = CAP_W / 2;
+	const cy = CAP_HEIGHT / 2;
+	const rx = CAP_W / 2 - 80;
+	const ry = CAP_HEIGHT / 2;
+	const innerCx = cx + STEM;
+	const innerRy = ry * 0.55;
+	return [
+		curvedRing(cx, cy, rx, ry, 'cw'),
+		curvedRing(innerCx, cy, rx, innerRy, 'ccw'),
+		// Spur — horizontal bar from center to outer-right at the
+		// vertical mid, attaching to the right wall.
+		poly([
+			[cx, cy - STEM / 2],
+			[cx + rx, cy - STEM / 2],
+			[cx + rx, cy + STEM / 2],
+			[cx, cy + STEM / 2]
+		])
+	];
+};
+
+// U — two vertical stems + curved bottom bowl. The bowl is a full ring
+// at the bottom; the stems cover its top half via a CW rect-style cover
+// would clash with curve winding, so we use a different approach: the
+// stems extend from cap-top down to the bowl's center, and a wide rect
+// across the bowl's top half punches out the inside.
+const buildU = (): BezierContour[] => {
+	const cx = CAP_W / 2;
+	const baseRy = CAP_HEIGHT * 0.32;
+	const ringRx = (CAP_W - 160) / 2;
+	const ringCy = baseRy;
+	return [
+		// Left stem from ringCy up to cap-height
+		poly([
+			[80, ringCy],
+			[80 + STEM, ringCy],
+			[80 + STEM, CAP_HEIGHT],
+			[80, CAP_HEIGHT]
+		]),
+		// Right stem
+		poly([
+			[CAP_W - 80 - STEM, ringCy],
+			[CAP_W - 80, ringCy],
+			[CAP_W - 80, CAP_HEIGHT],
+			[CAP_W - 80 - STEM, CAP_HEIGHT]
+		]),
+		// Curved bottom ring
+		curvedRing(cx, ringCy, ringRx, baseRy, 'cw'),
+		curvedRing(cx, ringCy, ringRx - STEM, baseRy - STEM, 'ccw'),
+		// Top-half cover — a CCW rect across the ring's upper half punches
+		// it out so only the bottom curve shows.
+		poly(
+			[
+				[80 + STEM, ringCy],
+				[CAP_W - 80 - STEM, ringCy],
+				[CAP_W - 80 - STEM, ringCy + baseRy + 10],
+				[80 + STEM, ringCy + baseRy + 10]
+			],
+			'ccw'
+		)
+	];
+};
 
 // Y — V meeting at mid + vertical stub extending down.
 const buildY = (): BezierContour[] => {
