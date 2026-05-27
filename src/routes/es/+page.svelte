@@ -72,11 +72,26 @@
 			ESPAÑOL · BETA EN ESTA SUPERFICIE
 		</p>
 
+		<!-- H1 mirrors the EN home structure: two-line, dramatic-short
+		     line 1 + descriptive line 2. Same left-to-right clip-path
+		     reveal animation. The line itself is the Spanish parallel
+		     of "Type, / with a mentor in the margin." — "Tipografía, /
+		     con un mentor al margen." reads cleanly in neutral/LATAM
+		     register (avoiding the Castilian-only "vosotros" trap). -->
 		<h1
-			class="mb-6 text-[48px] leading-[1.05] tracking-tight text-fg sm:text-[64px]"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			class="mb-6 max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]"
 		>
-			Una herramienta de diseño tipográfico que <em class="italic">enseña</em> mientras dibujás.
+			<span
+				class="draw-line draw-line-1 block text-fg"
+				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+			>
+				Tipografía,
+			</span>
+			<span
+				class="draw-line draw-line-2 mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted"
+			>
+				con un mentor al margen.
+			</span>
 		</h1>
 
 		<p class="mb-8 max-w-2xl text-[17px] leading-relaxed text-fg-muted sm:text-[19px]">
@@ -308,3 +323,39 @@
 
 	<SiteFooter lang="es" />
 </div>
+
+<style>
+	/* H1 reveal — see src/routes/+page.svelte for the design reasoning.
+	   Duplicated here (instead of pulled into a shared component) because
+	   the rule is ~30 lines, scoped via Svelte's compiler, and the cost
+	   of a shared helper outweighs the duplication. */
+	@keyframes draw-reveal {
+		from {
+			clip-path: inset(0 100% 0 0);
+		}
+		to {
+			clip-path: inset(0 0 0 0);
+		}
+	}
+	.draw-line {
+		clip-path: inset(0 0 0 0);
+		animation: draw-reveal var(--draw-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+		animation-delay: var(--draw-delay, 0ms);
+	}
+	.draw-line-1 {
+		--draw-duration: 700ms;
+		--draw-delay: 100ms;
+	}
+	.draw-line-2 {
+		--draw-duration: 1800ms;
+		--draw-delay: 900ms;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.draw-line,
+		.draw-line-1,
+		.draw-line-2 {
+			animation: none !important;
+			clip-path: inset(0 0 0 0);
+		}
+	}
+</style>

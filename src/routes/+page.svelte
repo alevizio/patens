@@ -677,6 +677,44 @@
 			font-style: normal;
 			font-display: swap;
 		}
+
+		/* Hero H1 reveal — clip-path left-to-right wipe staggered across
+		   the two H1 lines. The brain reads slow left-to-right reveal as
+		   "writing" (not as "typewriter"), which matches Patens's
+		   sketch→trace pipeline. Easing is cubic-bezier(0.65, 0, 0.35, 1)
+		   — slow start, slow finish, runs at confident speed in the middle.
+		   `clip-path` animates on the compositor so it's 60fps and doesn't
+		   trigger layout. The `to` keyframe is the natural state, so any
+		   render before JS hydrates shows the H1 already revealed. */
+		@keyframes draw-reveal {
+			from {
+				clip-path: inset(0 100% 0 0);
+			}
+			to {
+				clip-path: inset(0 0 0 0);
+			}
+		}
+		.draw-line {
+			clip-path: inset(0 0 0 0); /* final/static state */
+			animation: draw-reveal var(--draw-duration) cubic-bezier(0.65, 0, 0.35, 1) both;
+			animation-delay: var(--draw-delay, 0ms);
+		}
+		.draw-line-1 {
+			--draw-duration: 700ms;
+			--draw-delay: 100ms;
+		}
+		.draw-line-2 {
+			--draw-duration: 1800ms;
+			--draw-delay: 900ms;
+		}
+		@media (prefers-reduced-motion: reduce) {
+			.draw-line,
+			.draw-line-1,
+			.draw-line-2 {
+				animation: none !important;
+				clip-path: inset(0 0 0 0);
+			}
+		}
 	</style>
 	<link rel="canonical" href="https://patens.design/" />
 
@@ -985,16 +1023,26 @@
 			</a>
 		{/if}
 
+		<!-- Hero H1 — animates in via a left-to-right clip-path reveal
+		     that suggests the line is being drawn rather than typed.
+		     Two lines stagger: line 1 (Hoefler serif, 80px) reveals
+		     in 700ms, line 2 (sans semibold, 48px) starts at 900ms
+		     and takes 1800ms — the longer line gets the longer arc.
+		     prefers-reduced-motion bypasses the animation and shows
+		     the text instantly. Native HTML text underneath, so SEO,
+		     screen-readers, and copy-paste keep working. -->
 		<h1
 			class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]"
 		>
 			<span
-				class="block text-fg"
+				class="draw-line draw-line-1 block text-fg"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
 			>
 				{taglineParts[0]}
 			</span>
-			<span class="mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted">
+			<span
+				class="draw-line draw-line-2 mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted"
+			>
 				{taglineParts[1]}
 			</span>
 		</h1>

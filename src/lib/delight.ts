@@ -81,25 +81,35 @@ export const timeOfDay = (now: Date = new Date()): 'morning' | 'afternoon' | 'ev
 	return 'night';
 };
 
-export const homeTagline = (now: Date = new Date()): string => {
-	// Voice rule (per docs/launch/positioning-rework.md):
-	// Pair with the welcome dialog opener "Draw a glyph; the audit
-	// will tell you what's wrong with it — in plain English."
-	// The verb "draw" + the noun "glyph" land the Method position
-	// at the smallest possible scale — one act, one letter, one
-	// rule at a time. "Design your own typeface" promised the
-	// whole arc and felt aspirational; "Draw a glyph" sells the
-	// next sixty seconds.
-	switch (timeOfDay(now)) {
-		case 'morning':
-			return 'Draw a glyph,\nquietly, in the morning.';
-		case 'afternoon':
-			return 'Draw a glyph,\none at a time.';
-		case 'evening':
-			return 'Draw a glyph,\neven just one more tonight.';
-		case 'night':
-			return 'Draw a glyph,\nlong after everyone else has logged off.';
-	}
+/**
+ * Home H1 tagline. Returns the canonical two-line headline:
+ *
+ *     Type,
+ *     with a mentor in the margin.
+ *
+ * Why this shape: foundries (Klim, Dinamo, Sharp Type) don't use
+ * verb-prompt headlines like "Design your own typeface" or "Draw a
+ * glyph" — those are SaaS-onboarding shapes, not editorial-craft
+ * shapes. A single immodest noun-phrase asserts identity. "With a
+ * mentor in the margin" carries the Patens-Method position by
+ * giving it a clear physical image: the mentor (the audit) lives in
+ * the margin (where the audit's prose explanations render in the
+ * editor, beside the glyph). See docs/launch/positioning-rework.md
+ * for the full reasoning.
+ *
+ * Why no time-of-day rotation anymore: no foundry rotates its
+ * homepage headline. Rotation itself is a SaaS-product-tour signal
+ * and was undermining the H1. One line, set perfectly, stays.
+ *
+ * Signature stays compatible (still takes a Date arg) so the
+ * existing call site in `/+page.svelte` doesn't need to change.
+ */
+export const homeTagline = (_now: Date = new Date()): string => {
+	// _now intentionally unused — kept for forward compat in case
+	// we ever bring back contextual variants without re-wiring the
+	// call site again.
+	void _now;
+	return 'Type,\nwith a mentor in the margin.';
 };
 
 /** Per-milestone copy. Concrete, specific to type design, not generic. */
