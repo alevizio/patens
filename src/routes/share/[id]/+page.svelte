@@ -20,6 +20,7 @@
 	import Link2 from '@lucide/svelte/icons/link-2';
 	import LazySection from '$lib/ui/LazySection.svelte';
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 
 	let { data } = $props();
 	const project = $derived(data.project);
@@ -501,6 +502,12 @@
 			inspectorOverlayMasters = !inspectorOverlayMasters;
 		}
 	};
+
+	// Re-share permalink copy state — wired to the "copy permalink"
+	// button next to the version selector when a historical version
+	// (?v=N) is pinned, so designers can hand around the exact-version
+	// URL without having to memorise the full path.
+	let copiedPermalink = $state(false);
 
 	// Deep-linkable inspector. `?glyph=XXXX` (hex codepoint, no U+ prefix)
 	// opens the inspector at that glyph on load. Stepping or closing
@@ -1420,10 +1427,10 @@ body {
 			{/if}
 			{#if availableVersions.length > 1}
 				<!-- Version selector — only renders when the share has 2+
-				     versions on file. The dropdown navigates to ?v=N which
-				     re-runs +page.ts's load() and fetches the immutable
-				     snapshot from /api/share/[id]?v=N. "Latest" is the
-				     null-version load path that's the recipient's default. -->
+				     versions on file. Switching navigates to ?v=N via
+				     SvelteKit's goto() with invalidateAll so the load
+				     function re-runs but the navigation stays SPA —
+				     no white-flash full reload. -->
 				<div class="mt-3 flex flex-wrap items-baseline gap-2 text-[12px]">
 					<label for="version-select" class="text-fg-subtle">
 						Version:
@@ -1437,7 +1444,7 @@ body {
 							const url = new URL(window.location.href);
 							if (v === 'latest') url.searchParams.delete('v');
 							else url.searchParams.set('v', v);
-							window.location.href = url.toString();
+							goto(url.pathname + url.search, { invalidateAll: true, noScroll: true });
 						}}
 					>
 						<option value="latest">
@@ -1445,7 +1452,9 @@ body {
 						</option>
 						{#each availableVersions as v (v.v)}
 							<option value={v.v}>
-								v{v.v} · {new Date(v.uploadedAt).toLocaleDateString()}
+								v{v.v} · {new Date(v.uploadedAt).toLocaleDateString()} · {Math.round(
+									v.sizeBytes / 1024
+								)} KB
 							</option>
 						{/each}
 					</select>
@@ -1456,6 +1465,24 @@ body {
 						>
 							pinned
 						</span>
+						<button
+							type="button"
+							class="rounded border border-border px-1.5 py-0.5 text-[11px] text-fg-muted hover:text-fg hover:border-fg/30"
+							title="Copy a permalink to this specific version"
+							onclick={async () => {
+								try {
+									await navigator.clipboard.writeText(window.location.href);
+									copiedPermalink = true;
+									setTimeout(() => (copiedPermalink = false), 1500);
+								} catch {
+									// Clipboard permission denied — fall back to a noop;
+									// share-page already has a primary "copy share link"
+									// button elsewhere that handles the fallback messaging.
+								}
+							}}
+						>
+							{copiedPermalink ? 'copied' : 'copy permalink'}
+						</button>
 					{/if}
 				</div>
 			{/if}

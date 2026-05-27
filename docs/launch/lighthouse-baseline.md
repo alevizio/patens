@@ -26,6 +26,21 @@ This is the **launch-day baseline** for the "by-the-numbers" sidebar of the laun
 
 All routes still well under the Web Vitals "good" thresholds (LCP ≤ 2.5s).
 
+### 3-cold-run resolution (2026-05-27)
+
+Re-ran each route 3× to separate signal from CDN-warming noise:
+
+| Route | Run 1 (cold) | Run 2 (warm) | Run 3 (warm) |
+|---|---|---|---|
+| `/` FCP/LCP | 612ms | 342ms | 342ms |
+| `/project/demo/edit` LCP | **1056ms** | 664ms | 658ms |
+| `/share/demo` FCP | 671ms | 522ms | 634ms |
+
+**Verdict on the +346ms editor watch-item: false alarm.** The single-run
+"regression" was cold-CDN. Warm-cache LCP on the editor is ~660ms —
+*better* than the 2026-05-26 baseline. Streaming SSR is therefore
+demoted from "must-have launch perf win" to "nice-to-have post-launch".
+
 ---
 
 ## Headline numbers (2026-05-26 — kept for diff reference)
