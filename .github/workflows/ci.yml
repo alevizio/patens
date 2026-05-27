@@ -47,13 +47,37 @@ jobs:
       - name: Unit tests (vitest)
         run: pnpm exec vitest run --coverage
 
-      - name: Upload coverage report
+      - name: Upload coverage report (CI artifact)
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: coverage
           path: coverage
           retention-days: 7
+
+      - name: Upload coverage to Codecov
+        # Closes the OpenSSF Best Practices Silver-tier "automated test
+        # coverage tracking" gap (criterion `test_statement_coverage`).
+        # Codecov turns the per-PR diff into a coverage delta comment +
+        # exposes a public badge for README.
+        #
+        # `CODECOV_TOKEN` is OPTIONAL for public repos — Codecov accepts
+        # tokenless uploads from GitHub Actions on public repos via OIDC.
+        # Set the secret only if you hit Codecov's anti-abuse rate limit
+        # on the public path; otherwise leave it unset.
+        #
+        # `fail_ci_if_error: false` keeps the rest of CI green when
+        # Codecov has an outage — coverage reporting is observability,
+        # not a release gate (eslint + svelte-check + vitest itself are
+        # the release gates).
+        if: always()
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/coverage-final.json
+          flags: unittests
+          fail_ci_if_error: false
+          verbose: false
 
       - name: Build (production)
         run: pnpm exec vite build

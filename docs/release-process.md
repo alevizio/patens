@@ -135,22 +135,82 @@ them into "Other changes" — clean that up before publishing.
 
 ## Tagging + publishing
 
+Tags are **cryptographically signed** starting v1.6.0 — closes the
+OpenSSF Best Practices Silver-tier criterion
+`tag_signed_releases`. Commits are already SSH-signed via the global
+`commit.gpgsign = true` git config (GitHub shows the green "Verified"
+badge); tag signing extends the same trust chain to release markers.
+
+### One-time setup (per machine)
+
+```sh
+# 1. Check current signing config (you should already see
+#    user.signingkey + gpg.format=ssh for commits).
+git config --get user.signingkey
+git config --get gpg.format
+
+# 2. Turn ON automatic tag signing — git tag will use the same
+#    SSH key as your commits.
+git config --global tag.gpgsign true
+
+# 3. Verify the GitHub allowed-signers file is set up. The same
+#    file commits use:
+git config --get gpg.ssh.allowedSignersFile
+# If empty: create one at ~/.config/git/allowed-signers with the
+# public key, prefixed with your committer email:
+#   alejandro@example.com ssh-ed25519 AAAA... <comment>
+git config --global gpg.ssh.allowedSignersFile ~/.config/git/allowed-signers
+```
+
+### Release flow
+
 ```sh
 # 1. Bump version in package.json. Follow semver.
-#    Use `pnpm version <patch|minor|major>` so it also tags +
-#    creates the chore(release) commit.
+#    pnpm version creates the commit + signs the tag automatically
+#    once tag.gpgsign is on.
 pnpm version patch    # or minor / major
 
-# 2. Push the commit + tag.
+# 2. Verify the tag is signed before pushing — GitHub rejects
+#    unsigned tags only if branch-protection requires verified
+#    signatures, but verifying locally catches setup drift early.
+git tag --verify "v$(node -p 'require(\"./package.json\").version')"
+# Expected: "Good signature from <your email>"
+
+# 3. Push the commit + the signed tag.
 git push origin main --follow-tags
 
-# 3. Promote the Release Drafter draft to published.
+# 4. Promote the Release Drafter draft to published.
 gh release edit "v$(node -p 'require(\"./package.json\").version')" --draft=false
 ```
 
 Vercel auto-deploys on push to `main` — the production deploy
 will be live within ~3 minutes. There's no separate "deploy"
 step; the tag is a marker, not a trigger.
+
+### Verifying signatures (consumers / auditors)
+
+Anyone cloning the repo can confirm a release tag came from the
+declared maintainer:
+
+```sh
+git fetch --tags
+git tag --verify v1.6.0
+# Expected output line:
+#   Good "git" signature for alejandro@... with ED25519 key SHA256:...
+```
+
+The `Verified` badge on the corresponding GitHub Release page is
+the equivalent online check.
+
+### SLSA / provenance (future)
+
+Full SLSA Level 3 provenance attestation for releases is on the
+post-launch roadmap (closes the OpenSSF Best Practices Gold-tier
+ambition if we ever decide to attempt Gold — currently scoped out
+because Gold requires bus-factor ≥ 2). The infrastructure piece:
+adopt `actions/attest-build-provenance` in CI to mint signed
+SLSA-format attestations alongside each release. Not blocking
+v1.6 launch.
 
 ---
 

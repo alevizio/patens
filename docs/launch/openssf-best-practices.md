@@ -276,9 +276,14 @@ ones that need a new answer beyond what Passing already established.
 > the CHANGELOG (release-drafter.yml).
 
 **Cryptographic signing for releases**
-> ⚠ Partial. Git commits are signed via SSH key (verified by GitHub).
-> Tag signing is on the v1.6.0-cut checklist. SLSA-style provenance
-> attestation can wait until post-launch.
+> ✓ Done. Git commits are SSH-signed (Verified badge on GitHub).
+> Tag signing wired via `git config --global tag.gpgsign true` —
+> documented in docs/release-process.md "Tagging + publishing"
+> section with the one-time setup, the release flow, and the
+> consumer/auditor verification path (`git tag --verify v1.6.0`).
+> SLSA Level 3 provenance attestation deferred to Gold-tier
+> ambition (Gold itself not pursued; the SLSA piece is the
+> easiest part to ship post-launch).
 
 ## Reporting (Silver)
 
@@ -301,9 +306,11 @@ channels**
 > (eslint 0 warnings = gate).
 
 **Automated test coverage tracking**
-> ⚠ Partial. vitest with --coverage runs on demand
-> (`pnpm test:coverage`). Coverage isn't yet uploaded to Codecov or
-> equivalent — to-do: wire it after launch.
+> ✓ Done. vitest with --coverage runs on every PR via
+> .github/workflows/ci.yml. Coverage uploaded to Codecov via
+> `codecov/codecov-action@v5` (tokenless OIDC for public repos).
+> Codecov adds a per-PR diff comment so reviewers see the coverage
+> delta inline.
 
 **CI runs tests on every PR**
 > ✓ Done. .github/workflows/ci.yml: svelte-check + eslint + vitest +
@@ -354,10 +361,13 @@ language and framework**
 > audit equivalent runs in CI.
 
 **Fuzz testing on parsers**
-> ⚠ Gap. We don't currently fuzz-test the .font.json parser, the
-> AGLFN name parser, or the SVG-path paste-import. Adding a small
-> fast-check property-test suite is the easiest path — on the
-> post-launch roadmap.
+> ✓ Done. fast-check property tests in
+> src/lib/font/audit.property.test.ts — 9 property tests, each running
+> 100 random inputs (900 randomized invariant checks per run).
+> Asserts: auditGlyph never throws, always returns an array, every
+> issue has the full AuditIssue shape (codepoint/severity/code/
+> message), every code is kebab-case, sortBySeverity preserves count
+> + ordering, auditGlyph is deterministic. Closes the gap.
 
 ## Dependencies (Silver)
 
