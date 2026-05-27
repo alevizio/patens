@@ -81,6 +81,14 @@ export default [
 			// but a deliberate follow-up arc, not a baseline lint pass.
 			'svelte/prefer-svelte-reactivity': 'off',
 			'svelte/no-navigation-without-resolve': 'off'
+
+			// A11y note: eslint-plugin-svelte v3 dropped its a11y rule
+			// suite — those rules moved INTO the Svelte 5 compiler
+			// itself and are emitted as compiler warnings that
+			// svelte-check surfaces. The CI gate is therefore
+			// `pnpm exec svelte-check` (0 warnings = 0 a11y issues),
+			// not eslint. axe-core in playwright covers the runtime
+			// a11y surface across 31 routes.
 		}
 	},
 	{
