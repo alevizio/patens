@@ -10,7 +10,7 @@
 	// the JSON-LD + the visible factsheet table can't drift apart.
 	const facts = {
 		product: 'Patens',
-		tagline: 'Browser-native, open-source type design environment.',
+		tagline: 'A type editor with a method. 94 rules, plain English, free forever.',
 		url: 'https://patens.design',
 		version: '1.5.2',
 		license: 'MIT',

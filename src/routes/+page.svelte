@@ -627,17 +627,17 @@
 </script>
 
 <svelte:head>
-	<title>Patens (2026) — open-source type design in the browser</title>
+	<title>Patens (2026) — a type editor with a method</title>
 	<meta
 		name="description"
-		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native."
+		content="Patens is a type editor with 94 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method."
 	/>
 	<!-- OpenGraph / Twitter card meta for link unfurls. -->
 	<meta property="og:type" content="website" />
-	<meta property="og:title" content="Patens" />
+	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
+		content="94 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -647,7 +647,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="A type design tool that teaches as you draw. 94-code audit module with plain-English fixes. Sketch, trace, ship OpenType. Open source MIT."
+		content="94 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark

@@ -36,10 +36,10 @@
 </script>
 
 <svelte:head>
-	<title>Patens (2026) — diseño de tipografías en el navegador</title>
+	<title>Patens (2026) — un editor tipográfico con un método</title>
 	<meta
 		name="description"
-		content="Patens es un editor de tipografías en el navegador con un módulo de auditoría de 94 reglas que explica cada hallazgo en lenguaje claro. Código abierto, MIT, sin instalación."
+		content="Patens es un editor tipográfico con 94 reglas corriendo por debajo. Cada regla se explica en lenguaje claro, y unas 30 arreglan el glifo por vos. Código abierto, MIT, en el navegador, sin instalación. El Método Patens."
 	/>
 	<link rel="canonical" href="https://patens.design/es" />
 	{@html hreflangLinks('/')}

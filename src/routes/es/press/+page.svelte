@@ -58,9 +58,7 @@
 		Una línea (para tweets, sub-headers de reseñas)
 	</h3>
 	<p class="mb-6 rounded-md border border-border/40 bg-fg/[0.02] p-4 text-[15px] leading-relaxed text-fg">
-		Patens es una herramienta de diseño tipográfico que corre en el navegador y enseña al
-		diseñador mientras dibuja, con un módulo de auditoría de 94 reglas que explica cada
-		hallazgo en lenguaje claro.
+		Un editor tipográfico con un método. 94 reglas, en lenguaje claro, gratis para siempre.
 	</p>
 
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
