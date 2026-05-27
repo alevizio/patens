@@ -103,7 +103,9 @@
 				Patens
 			</span>
 			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-				·&nbsp; {lang === 'es' ? 'Tipografía que enseña al dibujar' : 'Type that teaches as you draw'}
+				·&nbsp; {lang === 'es'
+					? 'Un editor tipográfico con un método. Una regla a la vez. — Alejandro'
+					: 'A type editor with a method. Made one rule at a time. — Alejandro'}
 			</span>
 		</a>
 		<nav
@@ -140,9 +142,7 @@
 			</a>
 		</nav>
 		<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-			MIT &nbsp;·&nbsp; {lang === 'es'
-				? 'Herramienta personal de diseño tipográfico'
-				: 'Personal type design tool'} &nbsp;·&nbsp; 2026
+			MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '94 rules, plain English'} &nbsp;·&nbsp; 2026
 		</span>
 	</div>
 </footer>

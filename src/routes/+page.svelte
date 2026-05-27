@@ -1144,7 +1144,7 @@
 				href="/audit"
 				class="group inline-flex items-baseline gap-1.5 font-medium text-accent-strong hover:underline"
 			>
-				Why audit-as-teaching
+				Read the Method
 				<span class="transition-transform group-hover:translate-x-0.5">→</span>
 			</a>
 			<span class="ml-3 text-fg-subtle">
@@ -1699,7 +1699,7 @@
 							class="text-[18px] leading-tight text-fg group-hover:text-accent-strong"
 							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 						>
-							{openingDemo ? 'Opening…' : 'Open the example project'}
+							{openingDemo ? 'Opening…' : 'Open the editor'}
 						</div>
 						<div
 							class="mt-1 font-mono text-[11px] tracking-wide text-fg-subtle"

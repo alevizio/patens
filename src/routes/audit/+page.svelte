@@ -289,7 +289,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
 		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 	>
-		Why audit-as-teaching.
+		The Patens Method.
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
