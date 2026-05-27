@@ -1,0 +1,51 @@
+# YAML 1.2
+# Citation File Format 1.2.0 — https://citation-file-format.github.io
+#
+# Why this file: research showed that academic citation tools (Zotero,
+# the GitHub "Cite this repository" button) AND modern AI engines
+# (ChatGPT, Claude, Perplexity) extract structured author/version/title
+# data from CITATION.cff when answering "who made X" / "how do I cite X"
+# queries. Cheap to maintain, real upside for discoverability.
+#
+# Keep `date-released` + `version` synced with each tagged release.
+# The `repository-code` URL is the canonical machine-readable handle;
+# `url` is the human entry point.
+cff-version: 1.2.0
+title: Patens
+abstract: >
+  Patens is a browser-native, MIT-licensed type design editor with a
+  94-rule audit module that explains every finding in plain English.
+  Sketch glyphs with pressure, trace to cubic Bézier contours, audit
+  continuously, ship real OpenType — all in a browser tab, no install,
+  no account. Designed to teach as it edits.
+type: software
+authors:
+  - given-names: Alejandro
+    family-names: Vizio
+    email: hi@patens.design
+    affiliation: Patens
+    orcid: ''
+identifiers:
+  - type: url
+    value: https://patens.design
+    description: Canonical site
+  - type: url
+    value: https://github.com/alevizio/patens
+    description: Source repository
+repository-code: https://github.com/alevizio/patens
+url: https://patens.design
+license: MIT
+keywords:
+  - type design
+  - typography
+  - font editor
+  - opentype
+  - browser-native
+  - audit
+  - bezier
+  - variable fonts
+  - color fonts
+  - svelte
+  - sveltekit
+version: 1.5.2
+date-released: 2026-05-25

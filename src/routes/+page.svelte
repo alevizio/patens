@@ -699,7 +699,9 @@
 				name: 'Patens',
 				description:
 					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
-				inLanguage: 'en',
+				// Marketing surface is bilingual EN+ES; editor + 94 audit code
+				// descriptions are EN-only for now (translation roadmap v1.7+).
+				inLanguage: ['en', 'es'],
 				publisher: { '@id': 'https://patens.design/#organization' }
 			},
 			{
@@ -770,6 +772,12 @@
 				publisher: { '@id': 'https://patens.design/#organization' },
 				codeRepository: 'https://github.com/alevizio/patens',
 				programmingLanguage: ['TypeScript', 'Svelte'],
+				// Marketing surface (home, /about, /help, /press, /privacy,
+				// /security, /audit, /compare, /pronunciation, /learn) is
+				// bilingual EN+ES at /es/*. Editor + 94 audit-code descriptions
+				// are EN-only for v1.6; ES translation is roadmap v1.7+.
+				inLanguage: ['en', 'es'],
+				availableLanguage: ['en', 'es'],
 				keywords:
 					'type design, font editor, browser-based, open source, OpenType, audit, teaching, variable fonts, multi-script, MIT'
 			},
