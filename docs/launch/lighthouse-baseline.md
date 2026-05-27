@@ -100,3 +100,40 @@ npx --yes lighthouse https://patens.design/ \
 ```
 
 For each route swap the URL. Compare against this file's numbers; any **FCP/LCP regression >150ms** or **new long task ≥50ms** is worth investigating.
+
+---
+
+## INP (Interaction to Next Paint) — 2026-05-27 dev-server check
+
+The discoverability research flagged a possible INP risk for the
+canvas-heavy editor (Google made INP equal-weight with LCP and CLS as
+a Core Web Vitals ranking signal in March 2026 — replacing the
+deprecated FID).
+
+Measured via `npx lighthouse` against the local dev server. INP is a
+field metric (not directly measurable in lab), so we read **TBT (Total
+Blocking Time)** as its standard lab proxy. The mapping: TBT ≤ 200ms
+strongly correlates with INP ≤ 200ms (the "good" threshold).
+
+| Route | TBT (lab) | INP risk | Notes |
+|---|---|---|---|
+| `/` (home) | **0 ms** | ✅ no risk | Home is editorial markup + image preload; no JS interactivity load |
+| `/project/demo/edit` (editor, dev server) | **50 ms** | ✅ no risk | Canvas + Svelte 5 runes + audit module; well inside 200ms threshold |
+
+The editor's dev-server **LCP** is high (5.9s vs ~921ms in production
+per the headline table above) — that's expected Vite HMR + on-the-fly
+transformation overhead and doesn't transfer to production builds. The
+**TBT 50ms** number is what matters for INP, and it's healthy.
+
+**Verdict**: no INP work required for launch. The research's worry
+about canvas-heavy editors hitting the 200ms ceiling doesn't apply
+here — the audit module runs in a Web Worker (off the main thread)
+and the canvas redraw paths are already debounced. Future regression
+guard: keep TBT under 200ms on every route under the same lab
+conditions.
+
+Re-measure post-launch with real-user-monitoring (RUM) data —
+field INP can diverge from lab TBT under poor network or low-end
+device conditions. Look for the field-vs-lab gap in Google Search
+Console's Core Web Vitals report once Patens has enough traffic
+to populate it.

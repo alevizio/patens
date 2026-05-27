@@ -239,4 +239,147 @@ Add to README badge row:
 
 ---
 
-Last updated: 2026-05-25.
+Last updated: 2026-05-27.
+
+---
+
+# OpenSSF Best Practices — Silver tier
+
+Silver adds ~55 criteria on top of Passing. Most are addressable solo;
+the few that require a second reviewer have a SHOULD-with-rationale
+escape hatch in the criteria text itself. Aim: Silver within 1-2 days
+of post-launch tidy.
+
+The full criteria list lives at
+<https://www.bestpractices.dev/en/criteria/1>. The items below are the
+ones that need a new answer beyond what Passing already established.
+
+## Basics (Silver)
+
+**General security policy on how to report vulnerabilities**
+> ✓ Done. SECURITY.md ships in the repo root and points to
+> `security@patens.design` + the private GitHub Security Advisories
+> form. The chooser at /issues/new also surfaces the Security
+> Advisory link via .github/ISSUE_TEMPLATE/config.yml.
+
+**Bug-reporting process doc**
+> ✓ Done. SUPPORT.md documents the channel split (bugs → issues,
+> ideas → discussions, security → SECURITY.md). The `bug.md` issue
+> template structures the report. CONTRIBUTING.md links downstream.
+
+## Change Control (Silver)
+
+**Documented release process**
+> ✓ Done. docs/release-process.md has the SemVer policy, the
+> Keep-a-Changelog format, and the per-release checklist. Each
+> release also creates a GitHub Release with notes auto-drafted from
+> the CHANGELOG (release-drafter.yml).
+
+**Cryptographic signing for releases**
+> ⚠ Partial. Git commits are signed via SSH key (verified by GitHub).
+> Tag signing is on the v1.6.0-cut checklist. SLSA-style provenance
+> attestation can wait until post-launch.
+
+## Reporting (Silver)
+
+**Process for reporting security vulnerabilities including private
+channels**
+> ✓ Done. SECURITY.md + the .github/ISSUE_TEMPLATE/config.yml
+> contact-link to GitHub Security Advisories ensure private
+> disclosure paths.
+
+**Respond to vulnerability reports within 14 days**
+> ✓ Stated in SECURITY.md: "Security issues get the fastest turnaround"
+> + the SUPPORT.md "Response time" section. Solo-maintenance disclaimer
+> is explicit.
+
+## Quality (Silver)
+
+**Automated static analysis**
+> ✓ Done. eslint with svelte-eslint-parser + @typescript-eslint runs
+> on every PR via .github/workflows/ci.yml. Lint failures block merge
+> (eslint 0 warnings = gate).
+
+**Automated test coverage tracking**
+> ⚠ Partial. vitest with --coverage runs on demand
+> (`pnpm test:coverage`). Coverage isn't yet uploaded to Codecov or
+> equivalent — to-do: wire it after launch.
+
+**CI runs tests on every PR**
+> ✓ Done. .github/workflows/ci.yml: svelte-check + eslint + vitest +
+> playwright + axe-core a11y. All gates at 0 errors/warnings.
+
+**Code-quality scoring service**
+> ✓ Done. OpenSSF Scorecard is configured
+> (.github/workflows/scorecard.yml) with badge in README. CodeQL
+> runs on every push (.github/workflows/codeql.yml).
+
+**Continuous deployment pipeline**
+> ✓ Done. Vercel auto-deploys main on every merge. Preview
+> deployments per PR.
+
+## Security (Silver)
+
+**Cryptographically authenticate all delivery channels**
+> ✓ Done. patens.design serves over HTTPS only (Vercel-managed TLS).
+> GitHub is HTTPS. npm-distributed CLI uses npm's registry
+> (HTTPS + integrity-checked tarballs).
+
+**Industry-standard cryptography**
+> ✓ Done. crypto.randomUUID() for IDs, constant-time-equal for the
+> share-token comparison in src/routes/api/share/[id]/+server.ts.
+> No custom crypto.
+
+**At least one cryptographer or security reviewer**
+> ⚠ Solo maintenance — SHOULD with rationale. The criterion accepts:
+> "If there is no reasonable way to do this, give the rationale."
+> Rationale: solo open-source maintainer; the no-server architecture
+> means the live attack surface is minimal (no auth, no user data,
+> all client-side). Cloud-share path uses capability tokens and
+> Vercel Blob's signed-URL primitives — reviewed against the
+> architecture-notes threat model section.
+
+**Documented security policy covers known security pitfalls of the
+language and framework**
+> ✓ Done. SECURITY.md covers XSS (no `innerHTML`, sanitization
+> policy), CSRF (capability tokens not cookies), prototype pollution
+> (TypeScript strict + readonly types), supply-chain (Dependabot
+> daily, OpenSSF Scorecard, pnpm-lock review on every PR).
+
+## Analysis (Silver)
+
+**Automated security analysis on every PR**
+> ✓ Done. CodeQL (.github/workflows/codeql.yml) + Dependency Review
+> Action on every PR (.github/workflows/dependency-review.yml). pnpm
+> audit equivalent runs in CI.
+
+**Fuzz testing on parsers**
+> ⚠ Gap. We don't currently fuzz-test the .font.json parser, the
+> AGLFN name parser, or the SVG-path paste-import. Adding a small
+> fast-check property-test suite is the easiest path — on the
+> post-launch roadmap.
+
+## Dependencies (Silver)
+
+**Monitor dependencies for known vulnerabilities**
+> ✓ Done. Dependabot daily (.github/dependabot.yml) covers npm + GH
+> Actions. OpenSSF Scorecard scoring is published. The pnpm-lock
+> surface is small enough that manual review on PRs catches edge
+> cases.
+
+**Dependency-locking mechanism**
+> ✓ Done. pnpm-lock.yaml is committed and updated transactionally
+> per release.
+
+---
+
+## Submission order
+
+1. ✅ Passing — file first (questionnaire above)
+2. Submit Silver tier — paste the answers above into the same
+   self-cert form (Silver shows once Passing is approved)
+3. Save the Silver-badge URL into README's badge row alongside Passing
+
+Gold is intentionally not pursued: it requires bus-factor ≥ 2 which
+is incompatible with solo maintenance. The Silver-tier ceiling is the
+right target for Patens.
