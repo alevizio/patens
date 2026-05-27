@@ -1,0 +1,2321 @@
+# Patens — full corpus for AI agents
+
+This file is generated from the project's canonical docs by
+`scripts/build-llms-full.mjs`. It exists as a single fetch target so
+LLM-based coding tools (Cursor, Claude Code, Windsurf, GitHub Copilot,
+Continue, Cline, etc.) can pull deep project context in one request
+rather than crawling the GitHub tree.
+
+The shorter `llms.txt` is the index. This is the body.
+
+Generated: 2026-05-27T03:02:31.304Z
+Source: https://github.com/alevizio/patens
+Live: https://patens.design
+
+---
+
+=== Patens — overview (llms.txt) ===
+Source: static/llms.txt
+
+# Patens
+
+> A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native. Latin for "lying open" — root of *patent*, used here for the opposite.
+
+Patens is a SvelteKit app that runs entirely in the browser. Every project lives in IndexedDB; nothing leaves the user's machine unless they choose to export (.font.json) or upload to a cloud-share path (Vercel Blob). The spine of the editor is a 94-code audit module covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene, and anchor naming — every code reaches five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary, and many issues offer one-click "Fix" actions. The audit is also distributed as a CLI (`npx patens audit my.font.json`) for CI pipelines and foundry lint workflows. The demo project ships 162 drawn glyphs spanning Latin (uppercase + lowercase + digits + punctuation + currency + math + brackets + composite ligatures), Cyrillic (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and Greek (14 uppercase look-alikes).
+
+Patens v1.5.2 is production-grade and hosted at patens.design. It is open source under the MIT License, maintained by Alejandro Vizio.
+
+## Core resources
+
+- [Live editor](https://patens.design/project/demo/edit): the demo project ready to open and edit
+- [Demo specimen](https://patens.design/share/demo): designer-grade specimen sheet of the demo font
+- [Source code on GitHub](https://github.com/alevizio/patens): MIT-licensed, contributions welcome
+- [Architecture documentation](https://github.com/alevizio/patens/blob/main/docs/architecture.md): one-paragraph overview + deeper technical detail
+- [Help / FAQ](https://patens.design/help): 20 common questions across 7 sections (getting started, sharing, export, editor, performance, AI, security)
+- [About + credits](https://patens.design/about): what Patens is, what it's built on, who made it
+- [Release notes](https://patens.design/changelog): every version since v0.4, with [RSS feed](https://patens.design/changelog/rss.xml)
+- [Setup guide for self-hosters](https://github.com/alevizio/patens/blob/main/docs/setup.md): per-platform instructions for optional integrations (Vercel Blob, GitHub OAuth, Anthropic API)
+- [Roadmap](https://github.com/alevizio/patens/blob/main/ROADMAP.md): what's deferred and why
+
+## Key capabilities
+
+- **Pressure-sensitive sketch tool** with stroke weight and pressure; trace to cubic-Bézier contours via boolean union + Schneider curve fitting
+- **Direct contour editing** with smooth ↔ corner points, nudge, multi-select, affine transform
+- **Variable fonts**: multiple masters at distinct axis locations, named instances, 2D variation explorer for ≥2-axis projects
+- **OpenType features**: auto-detected from glyph-name suffixes (`.ss01`, `.smcp`, `.onum`); real ligature substitution (`f_i` → fi); live HarfBuzz.js shaping preview
+- **Kerning + classes**: pair editor, class system, silhouette-distance auto-kern, family-wide kerning resolution
+- **Color fonts**: COLR v0/v1 + CPAL palettes; live color-plan rendering
+- **Anchors + composites**: GPOS mark-positioning rig with `top` / `_top` anchor convention; component composites with offset resolution
+- **94-code audit module**: contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene; one-click fixes for fixable codes; also runs from the terminal via `npx patens audit` for CI integration
+- **Export**: OTF + WOFF2 (in-browser via opentype.js), TTF (Pyodide + ttfautohint), UFO, designer-bundled .zip, portable .font.json
+- **Specimen**: print stylesheet that strips chrome and emits a PDF-ready foundry-grade specimen sheet
+- **PWA**: service worker for real offline support; install via web app manifest
+- **Accessibility**: WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 31 routes
+
+## Positioning vs other type editors
+
+Patens is differentiated by being **the only browser-native type editor designed as a teaching tool**. The 94-code audit + five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) is its unique angle. Patens is not a FontLab or Glyphs replacement — those tools are deeper, faster, and built for professionals shipping commercial families. Patens is for designers between sketches and shipping: when you've drawn a logo and want to make a full font from it, when you're learning type design and need an editor that explains its audit warnings, when you want to share a specimen without making someone install software.
+
+| Tool | Where it fits | Cost |
+|---|---|---|
+| FontLab 8 | Pro / industry, desktop-only | $499 lifetime |
+| Glyphs 3 | Pro / Mac-only | $299.90 lifetime |
+| RoboFont | Pro / Python-scripted, macOS only | ~$400 |
+| Fontra | Variable-fonts focus, Google-backed, browser + Python | Free |
+| Glyphr Studio | Hobbyist, browser-based, JS-only | Free |
+| typlr.app | Modern browser editor | Free |
+| **Patens** | **Teaching-first, browser-native, open source, multi-script** | **Free** |
+
+## Pronunciation
+
+Patens is pronounced **PAH-tens** (Latin pronunciation), like *father* + *tens*, not *PAT-ens* (English plural of *paten*). The word means "lying open, accessible" in Latin — the etymological root of English *patent*.
+
+## Tech stack
+
+SvelteKit 2 + Svelte 5 runes, Tailwind CSS v4, TypeScript strict mode, `idb-keyval` for IndexedDB project storage, `opentype.js` for OTF + WOFF2 export, Pyodide + fontTools + ttfautohint for TTF export, HarfBuzz.js for live OpenType shaping, polygon-clipping for boolean contour ops, perfect-freehand for pressure-sensitive sketch, satori + resvg-js for per-project OG image rendering, Vercel Blob for cloud share, service worker for offline.
+
+## License
+
+[MIT License](https://github.com/alevizio/patens/blob/main/LICENSE). The demo project's glyph data is part of the codebase under the same license. Designers retain full ownership of fonts they draw and export with Patens.
+
+## Contact
+
+- General: hi@patens.design
+- Security disclosures: security@patens.design
+- X: [@patenstype](https://x.com/patenstype)
+- Bluesky: [@patens.design](https://bsky.app/profile/patens.design)
+- GitHub: [alevizio/patens](https://github.com/alevizio/patens)
+
+=== README ===
+Source: README.md
+
+# Patens
+
+> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 94-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
+
+[**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
+
+[![CI](https://github.com/alevizio/patens/actions/workflows/ci.yml/badge.svg)](https://github.com/alevizio/patens/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/alevizio/patens/badge)](https://scorecard.dev/viewer/?uri=github.com/alevizio/patens)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Version](https://img.shields.io/github/package-json/v/alevizio/patens?label=version)](./package.json)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-brightgreen.svg)](./package.json)
+[![Bluesky](https://img.shields.io/badge/Bluesky-%40patens.design-0085ff.svg)](https://bsky.app/profile/patens.design)
+[![Sponsor](https://img.shields.io/github/sponsors/alevizio?label=Sponsor)](https://github.com/sponsors/alevizio)
+
+<!-- Hero demo GIF goes here — see docs/launch/demo-gif-storyboard.md
+     for the 30-second pre-record blueprint. Once recorded, drop it
+     at static/demo/patens-30s.mp4 and replace this with:
+     ![Patens — draw, trace, audit, fix, kern, export in 30s](./static/demo/patens-30s.mp4) -->
+
+Patens is a browser-native, open-source SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The differentiator isn't *that* it's browser-native — it's that the **audit module is a citizen of the editor**, not an afterthought. Every glyph, every metric, every kern pair has a teaching surface: "your sidebearings drift across the stem class" or "this contour winds the wrong way for OpenType" — with the rule, the why, and a one-click fix where one exists. ([Why audit-as-teaching →](https://patens.design/audit))
+
+The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, numerals, punctuation, currency, math, brackets, composite ligatures), a partial Cyrillic set (17 look-alike letters reusing Latin builders + bespoke Я Ж Ф), and a partial Greek set (14 uppercase look-alikes) — enough to set a UI, a price table, or a Bulgarian legal footer without falling back to system fonts.
+
+## Try it
+
+- **Live editor**: [patens.design/project/demo/edit](https://patens.design/project/demo/edit)
+- **Demo specimen**: [patens.design/share/demo](https://patens.design/share/demo)
+
+The share view is a designer-grade specimen sheet: pangram waterfall at five sizes, reading specimens at three tiers, in-context mockups (button, headline, paragraph, stat), CPAL palette switcher, master compare, glyph coverage heatmap, glyph inspector with metric guides + sidebearings + anchor viz, deep-linkable glyph URLs, and a one-click print → PDF specimen.
+
+## What it does
+
+| Capability | Notes |
+|---|---|
+| **Audit** | 94 codes covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage; teaching prose on every code + one-click fixes for the fixable ones. The headline feature — runs continuously alongside the editor, not as a separate lint step. |
+| Pressure-sensitive sketch | Drawn input with stroke weight + pressure; trace to cubic-Bézier contours via boolean union + Schneider curve fitting |
+| Direct contour editing | Smooth ↔ corner points, nudge, multi-select, transform |
+| Variable fonts | Multiple masters at distinct axis locations + named instances + a 2D variation explorer for ≥2-axis projects |
+| OpenType features | Auto-detected from glyph-name suffixes (`.ss01`, `.smcp`, `.onum`); real ligature substitution (`f_i` → fi); live HarfBuzz preview |
+| Kerning + classes | Pair editor, class system, silhouette-distance auto-kern, family-wide kerning resolution |
+| Color fonts | COLR v0/v1 + CPAL palettes; live color-plan rendering |
+| Anchors + composites | Mark-positioning rig (`top` / `_top` anchor convention) + component composites with offset resolution |
+| Export | OTF + WOFF2 (in-browser), TTF (Pyodide + ttfautohint), UFO, designer-bundled `.zip`, portable `.font.json` |
+| Specimen | Print stylesheet that strips chrome and emits a PDF-ready specimen sheet |
+| PWA | Service worker for real offline; manifest + 192/512 icons for install |
+| Accessibility | WCAG 2.0 + 2.1 + 2.2 A/AA enforced via axe-core in CI across 31 routes |
+
+## Project status
+
+**`v1.5.2`** — production-grade. Live at [patens.design](https://patens.design). Three optional integrations gracefully degrade when not configured:
+
+- **Vercel Blob** — cloud share (recipients in other browsers)
+- **GitHub OAuth** — sign-in via GitHub  
+- **Anthropic API key** — AI presets (audit explanations, consistency, kerning suggestions; user-provided key, no shared cost surface)
+
+Setup per host (Vercel, Cloudflare Pages, Netlify, self-host): see [`docs/setup.md`](./docs/setup.md).
+
+For what's deferred: [`ROADMAP.md`](./ROADMAP.md). For release history: [`CHANGELOG.md`](./CHANGELOG.md) (also at [patens.design/changelog](https://patens.design/changelog) · [RSS](https://patens.design/changelog/rss.xml)).
+
+## Running locally
+
+```sh
+pnpm install
+pnpm dev          # http://localhost:5173
+
+pnpm test         # vitest (528 unit tests + 6 perf benches)
+pnpm test:e2e     # Playwright + axe-core a11y (66 e2e tests across 7 files)
+pnpm check        # svelte-check / TypeScript strict
+pnpm build        # production build
+pnpm profile      # cold-load CDP trace (any URL)
+```
+
+## CLI — `patens audit` from the terminal
+
+Audit a `.font.json` project without opening the editor — useful for
+CI, foundries lint-checking client deliverables, or scripted batch
+work. The CLI is a thin shell around the same 94-code audit module
+the editor uses, packaged for Node 22+.
+
+```sh
+pnpm run cli:build           # bundles cli/dist/index.mjs (one-time)
+pnpm patens audit my.font.json
+pnpm patens audit my.font.json --severity=error  # CI-friendly
+pnpm patens audit my.font.json --json | jq '.'   # machine output
+pnpm patens audit my.font.json --github          # PR annotations
+pnpm patens describe self-intersecting           # explain a code
+pnpm patens help
+```
+
+Exit code is `0` when no error-severity issues, `1` when there are,
+`2` on usage / parse failure. Drop-in CI:
+
+```yaml
+- run: pnpm run cli:build
+- run: pnpm patens audit fonts/*.font.json --github --severity=warn
+```
+
+## Architecture (one paragraph)
+
+Every project is a single JSON blob (typed as `Project` in `src/lib/font/types.ts`) stored under a UUID key in IndexedDB via `idb-keyval`. The editor reads through a `projectStore` reactive store; mutations re-emit + auto-save. The share page is `ssr=false` and loads from the local IndexedDB — its only network dependency is the static SvelteKit build itself. Export is dual-path: OTF/WOFF2 via `opentype.js` in the browser, TTF + ttfautohint via Pyodide running as WASM. The audit module is the spine: **94 codes** feeding five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary. Cloud share uses Vercel Blob with token-based auth (`constantTimeEqual` for token comparison); sign-in uses HMAC-signed session cookies (`safeReturnTo` against open-redirect). Full setup details in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). PRs welcome. Run `pnpm check && pnpm test && pnpm test:e2e` before submitting.
+
+For security issues: see [SECURITY.md](./SECURITY.md) or email `security@patens.design`.
+
+## License
+
+[MIT](./LICENSE). The demo project's glyph data is part of the codebase under the same license; export an OTF and use it however you'd license your own work.
+
+---
+
+*Made by [Alejandro Vizio](https://github.com/alevizio) — [@patenstype](https://x.com/patenstype) on X, [@patens.design](https://bsky.app/profile/patens.design) on Bluesky, `hi@patens.design` for everything else.*
+
+=== Design philosophy ===
+Source: DESIGN_PHILOSOPHY.md
+
+# Design philosophy
+
+The "why" decisions behind Patens. Reference this file when proposing
+features so contributors and reviewers can converge faster on
+"yes / no / different shape."
+
+The PR template asks which principle here your change supports. If
+none of these principles apply, that's a useful signal — the feature
+is probably out of scope, or this document needs to evolve to
+include it.
+
+---
+
+## Principle 1 — Teaching-first, not foundry-first
+
+The differentiator. FontLab and Glyphs are deeper, faster, and built
+for professionals shipping commercial families across years. Patens
+is for the in-between:
+
+- The designer who drew a logo and wants a real font from it.
+- The student learning why a kerning pair feels wrong.
+- The foundry that wants to share a specimen without making a client
+  install software.
+
+**Every Patens feature is also a teaching surface.** The audit module
+isn't "things that are broken"; it's "things you might not know to
+look for yet, explained in plain language." The Help, Learn, and
+Audit pages are first-class citizens, not afterthoughts.
+
+**Implication for contributions**: features that benefit professional
+ship-velocity but make the editor feel more opaque should be pushed to
+plugins, opt-in modes, or "advanced" panels. The default surface
+explains its own ideas.
+
+---
+
+## Principle 2 — Browser-native, no installs
+
+Patens runs entirely in your browser. No download, no account, no
+sync setup, no compile step. Every project lives in IndexedDB on the
+user's machine; nothing leaves unless they choose to share.
+
+**Implication for contributions**:
+
+- Server-side features are limited to enablers the browser can't do
+  (cloud share, OG image rendering, OAuth, AI proxy). Never to the
+  core editor flow.
+- Heavy assets (Pyodide for TTF export, HarfBuzz.js for shaping) load
+  lazy and per-route; never on the home page.
+- Offline support via the service worker is table stakes, not a
+  premium feature.
+- A "log in to use this" gate is incompatible with this principle.
+
+---
+
+## Principle 3 — Open source MIT, sincerely
+
+Patens is MIT-licensed and intends to stay that way. The license is a
+commitment, not a configuration. Two consequences:
+
+- **Never paywall the core editor.** The MIT app at patens.design must
+  remain freely usable forever. Paid extras (consulting, premium
+  templates, hosted family-sharing) are fine; gating the audit module
+  or export pipeline behind a subscription is not.
+- **The code is portable.** Self-hosters running on their own Vercel,
+  Cloudflare, or Netlify deploy should get the same experience.
+  Hard-coded `patens.design` strings outside of meta tags or canonical
+  URLs are a smell.
+
+**Implication for contributions**: features that require non-MIT
+dependencies, paid third-party services without graceful fallback, or
+that bury core functionality behind a feature flag — won't merge.
+
+---
+
+## Principle 4 — No AI in the lead
+
+AI features (the "Explain (AI)" button on the audit page, the AI
+kerning suggester) exist and are useful. But:
+
+- **They're opt-in.** Activate by adding your own Anthropic API key in
+  Settings. No AI runs without that key.
+- **They're never the headline.** Patens's product story is the
+  audit + teaching surfaces, not the AI layer.
+- **They never own the source of truth.** AI suggests; the designer
+  decides. No "AI-generated kerning" path that bypasses the audit
+  module.
+
+**Implication for contributions**: AI-led features (auto-draw, AI-pick-
+better-shape, etc.) are out of scope unless explicitly approved in an
+issue first. AI-assist features (explain, summarize, suggest) are
+welcome when they fit the opt-in + non-owning model.
+
+---
+
+## Principle 5 — Audit codes are stable contracts
+
+The 94-code audit module's per-code identifiers (`empty`,
+`self-intersecting`, `sidebearing-deeply-negative-lsb`, etc.) are
+**stable identifiers**. They're referenced in:
+
+- Commit messages
+- Bug reports
+- The `/learn/audit-codes` reference page
+- The `describeAuditCode()` dictionary
+- AI-assist prompts
+
+**Renaming an audit code is a breaking change** that ripples through
+every surface. New codes are easy; renamed codes are not. New codes
+also need: a `describeAuditCode()` entry, an entry on
+`/learn/audit-codes`, and a decision about whether it's
+auto-fixable.
+
+**Implication for contributions**: when adding an audit check, the
+code name is forever. Pick carefully. When removing or renaming,
+expect to update five surfaces.
+
+---
+
+## Principle 6 — Type design is the audience
+
+Patens is a tool for type designers. Not "vague typography enthusiasts"
+or "developers who want to make pixel fonts" — type designers.
+
+This means:
+
+- The vocabulary is the type-design vocabulary. We say "sidebearings,"
+  not "left/right margin." We say "OpenType features," not "font
+  options." We say "x-height misaligned," not "height looks off."
+- The defaults reflect how type designers actually work. Letter `n`
+  is the canonical first letter. Kerning is class-based by default.
+  Spacing is calibrated in `nnnonnon`, not in lorem ipsum.
+- Power-user shortcuts are first-class. Cmd-K is the command palette;
+  `/` focuses search; `?` shows shortcuts. Vim-shaped efficiency
+  serves the audience.
+
+**Implication for contributions**: features that would benefit a
+generic "creative user" but make the editor feel less precise for a
+type designer are pushed to "considered after launch" status.
+
+---
+
+## Principle 7 — Single designer, single machine
+
+Patens is a single-designer-single-machine tool. The implications
+cascade:
+
+- No real-time collaboration. Share is a snapshot, not a session.
+- No multi-cursor / multi-user state. The editor's reactive model
+  assumes one author.
+- No account system in the default deployment. Self-hosters can opt
+  into OAuth via env vars; that's their choice.
+- Cloud share is an unguessable-URL capability model, not an auth
+  system. Anyone with the link can read; only the originator (who
+  holds the delete-token locally) can re-share or delete.
+
+**Implication for contributions**: features that assume a multi-user
+session, server-side state synchronization, or required accounts —
+out of scope.
+
+---
+
+## Principle 8 — Costs stay cheap
+
+This is a single-maintainer, side-of-desk project. Infrastructure
+costs must stay cheap. Concretely:
+
+- Vercel free tier + Vercel Blob (free tier covers the canonical
+  deployment).
+- No paid third-party SDKs without a graceful free fallback.
+- AI features use the user's own API key — Patens's server doesn't
+  pay per call.
+- The bundle stays under 5MB (CI gate).
+- No external analytics SDK, no marketing pixel, no third-party
+  cookie. Vercel's edge logs are the only telemetry.
+
+**Implication for contributions**: features that would bump the
+deployment off the free tier, require a new paid integration, or add
+a new third-party dependency that calls out from the browser — need
+an explicit cost discussion in the issue first.
+
+---
+
+## Anti-principles — things we deliberately don't do
+
+Stated explicitly so you can argue against them in an issue if you
+disagree (and so I don't keep relitigating them):
+
+- **Not "the world's most powerful type editor."** That's FontLab.
+- **Not "the type editor for everyone."** That's vague enough to
+  produce something that suits no one.
+- **Not "AI-first."** AI is a layer, not the foundation.
+- **Not "growth at all costs."** Sustainability + craft beat scale.
+- **Not "mobile-first."** Patens is desktop-first by design.
+- **Not "real-time collab."** Single-designer-single-machine.
+- **Not "always-on cloud sync."** Local-first; cloud opt-in.
+- **Not chasing Figma's WASM-renderer architecture.** Different shape
+  of product. Patens has different bottlenecks.
+
+---
+
+## When in doubt
+
+If you're proposing a feature and aren't sure whether it fits — open
+an issue first. The conversation will be more useful than a PR I have
+to close. I'd rather spend an hour talking about *should this exist*
+than have a 200-line diff sit unmerged for a month.
+
+If a principle here is wrong for where Patens is going, this document
+should change. PRs to this file are welcome.
+
+---
+
+Last updated: 2026-05-25.
+
+=== Architecture (top-level) ===
+Source: ARCHITECTURE.md
+
+# Architecture
+
+Patens is a SvelteKit 2 + Svelte 5 application. It runs almost entirely
+client-side; a handful of server routes handle cloud share, OG image
+rendering, OAuth, and the Anthropic API proxy. This file is the
+structural map — read it before working in any unfamiliar area.
+
+For the human-facing contributor workflow, see `CONTRIBUTING.md`.
+For the AI-assistant version of the same conventions, see `AGENTS.md`.
+For the why-decisions, see `DESIGN_PHILOSOPHY.md`.
+
+---
+
+## Six conceptual layers
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  src/routes/                  Pages + API endpoints              │
+│  ────────────                 SvelteKit conventions              │
+│   ├── +page.svelte               Home (project list)             │
+│   ├── about/ press/ privacy/     Marketing surfaces              │
+│   │   security/ compare/         (all prerendered, all SSR'd     │
+│   │   changelog/ help/           with JSON-LD for crawlers)      │
+│   ├── learn/                     Long-form tutorials             │
+│   ├── project/[id]/              Editor (client-only, IDB)       │
+│   ├── family/[id]/               Family hub (client-only)        │
+│   ├── share/[id]/                Read-only viewer                │
+│   └── api/                       Server endpoints                │
+│       ├── share/                 Cloud share, versioned          │
+│       ├── ai/messages/           Anthropic proxy                 │
+│       └── og/[id]/               Per-project OG image            │
+├─────────────────────────────────────────────────────────────────┤
+│  src/lib/font/                Font model + audit + export        │
+│  ─────────────                                                   │
+│   ├── types.ts                   Canonical types                 │
+│   ├── audit.ts                   94-code audit registry          │
+│   ├── audit-compatibility.ts     Master-pair compatibility       │
+│   ├── audit-preflight.ts         Release-readiness pass          │
+│   ├── path.ts                    Bézier ops, bounds              │
+│   ├── path-edit.ts               Boolean / smooth / sample       │
+│   ├── export.ts                  buildFont() — OpenType emit     │
+│   ├── feature-detect.ts          Glyph-name → OT feature map    │
+│   ├── kerning-classes.ts         Class expansion                 │
+│   ├── kerning-auto.ts            Silhouette-distance suggester  │
+│   ├── kerning-suggest.ts         Anchor-aware adjustments        │
+│   ├── family.ts                  Family CRUD                     │
+│   ├── family-kerning.ts          resolveKerning / pairOrigin     │
+│   ├── family-export.ts           Family bundle .zip              │
+│   ├── colr.ts                    COLR/CPAL color font tables     │
+│   ├── color-build.ts             Color layer plan                │
+│   ├── notdef.ts                  .notdef builder                 │
+│   ├── subset.ts                  Codepoint subset                │
+│   ├── shape.ts                   HarfBuzz.js shaping             │
+│   ├── python.ts                  Pyodide + fontTools (TTF)       │
+│   ├── ufo.ts                     UFO export                      │
+│   ├── woff2.ts                   WOFF2 wrapper                   │
+│   ├── design-md.ts               DESIGN.md generator             │
+│   └── glyph-set.ts               Codepoint groupings             │
+├─────────────────────────────────────────────────────────────────┤
+│  src/lib/glyph/               Glyph-level UI                     │
+│  ──────────────                                                  │
+│   ├── GlyphBrowser.svelte        Tile grid + bulk select         │
+│   ├── GlyphTile.svelte           Single tile rendering           │
+│   └── parse-sidebearing-delta.ts ±SB input parser                │
+├─────────────────────────────────────────────────────────────────┤
+│  src/lib/ui/                  Reusable widgets                   │
+│  ───────────                                                     │
+│   ├── Panel, Field, Input, Button, Accordion                     │
+│   ├── ToastContainer, OfflineIndicator                           │
+│   ├── CommandPalette.svelte      Global Cmd-K                    │
+│   ├── SettingsDialog, ShortcutsDialog, StorageDialog,            │
+│       CreateFontDialog, WelcomeDialog                            │
+│   └── LazySection, LoadingPanel, Sparkline, StatsPopover         │
+├─────────────────────────────────────────────────────────────────┤
+│  src/lib/stores/              Svelte 5 $state classes            │
+│  ────────────────                                                │
+│   ├── project.svelte.ts          Active project + glyph editing  │
+│   ├── audit.svelte.ts            Worker-backed audit results     │
+│   ├── preview.svelte.ts          Live FontFace pipeline          │
+│   ├── settings.svelte.ts         User preferences (localStorage) │
+│   ├── toast.svelte.ts            Notification queue              │
+│   ├── palette.svelte.ts          Cmd-K open state (shared)       │
+│   └── undo.svelte.ts             Per-glyph snapshot history      │
+├─────────────────────────────────────────────────────────────────┤
+│  Workers + AI                                                    │
+│  ─────────────                                                   │
+│   ├── src/lib/audit/audit-worker.ts   Audit pipeline off main    │
+│   ├── src/lib/sw/upgrade.ts           SW eviction logic (tested) │
+│   ├── src/service-worker.ts           PWA cache + offline        │
+│   └── src/lib/ai/                                                │
+│       ├── anthropic.ts                API client                 │
+│       ├── explain-audit-code.ts       Audit code → plain English │
+│       ├── kerning-suggest.ts          Pair suggestion            │
+│       └── glyph-suggest.ts            Shape suggestion           │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## The core flows
+
+### 1. Loading a project
+
+```
+URL: /project/<id>/edit
+  ↓
++layout.ts (ssr=false) → loadProject(id) from font-studio IDB
+  ↓
+project = $state<Project | null>(null) in projectStore
+  ↓
+Routes derive from projectStore.project as $derived
+```
+
+A project is a single record under its UUID key in the `font-studio`
+IDB database. `loadProject()` reads the JSON, runs `migrate()` to
+catch up any schema upgrades, and (if schema actually moved) writes
+back the upgraded record. The home page lists every project via
+`listProjects()` which reads a parallel index record.
+
+**Family records** live in a separate IDB database (`font-studio-
+families`) under `family.id`. The separation is historical — when the
+project DB was created in v1 it only had a `projects` store; idb-
+keyval can't add a second store to an existing DB without a manual
+version bump.
+
+### 2. Editing a glyph
+
+```
+User drags a point in the Edit canvas
+  ↓
+projectStore.updateGlyph(codepoint, updater)
+  ↓
+project.glyphs[codepoint] mutates (Svelte 5 proxy reactivity)
+  ↓
+projectStore.dirty = true; debounced flush() to IDB
+  ↓
+auditStore.request(project) [debounced 80ms]
+  ↓
+audit-worker.ts runs auditProject + auditCompatibility + preflight
+  ↓
+postMessage back → auditStore.{perGlyph,compatibility,preflight}
+  ↓
+/audit and /release pages re-derive their lists
+```
+
+The drawing canvas writes through `projectStore.updateGlyph()` which
+runs the mutation inside `untrack()` to avoid retriggering its own
+listening `$effect`s. The audit runs in a Web Worker (added in
+commit `71f1399`) so the main thread stays free for drag-frame
+smoothness. Stale-response guard via a monotonic `seq` field so a
+slow audit on old state never clobbers fresh results.
+
+### 3. Exporting a font
+
+```
+/project/<id>/export button click
+  ↓
+buildFont(project, { masterId?, family? })
+  ↓
+expandSubset() if a subset was requested
+  ↓
+For each glyph:
+  → contoursToOpentypeGlyph() (Bézier → opentype.js Path)
+  → applyFeatures() (auto-detect from glyph names)
+  → resolveKerning(project, family) [project pairs win on collision]
+  ↓
+font.toArrayBuffer() (opentype.js writes OTF)
+  ↓
+For TTF: Pyodide + fontTools + ttfautohint (lazy, first run loads ~7MB)
+For WOFF2: woff2.ts (in-browser WASM compression)
+For UFO: ufo.ts (XML directory + .zip)
+For .font.json: JSON.stringify(project)
+For bundle .zip: every above + DESIGN.md + LICENSE
+  ↓
+downloadBlob() (browser-native save dialog)
+```
+
+### 4. Cloud share + versioning
+
+```
+POST /api/share with project JSON
+  ↓
+Validate UUID id + 5MB cap
+Look up existing token; mint random if none
+Compute next version = latestVersion(id) + 1
+  ↓
+Promise.all([
+  put(shares/<id>.json, ...)            // current (= latest)
+  put(shares/<id>.token, ...)            // delete-token
+  put(shares/<id>/history/v<N>.json)    // immutable snapshot
+])
+  ↓
+Return { id, url, deleteToken, version }
+```
+
+The canonical path stays `shares/<id>.json` so every old share link
+still works. Versioned snapshots live alongside; `?v=N` on the share
+URL returns the immutable historical version. DELETE clears all
+versions in one `del()` batch.
+
+### 5. Service worker upgrade
+
+```
+New deploy lands → user opens patens.design
+  ↓
+SW install: cache PRECACHE under name `font-studio-${version}`
+  ↓
+SW activate:
+  caches.keys()
+    → cachesToEvict(keys, currentName, 'font-studio-')
+    → delete every match (old version caches)
+  → sw.clients.claim()
+  ↓
+SW fetch:
+  routeFetch(method, url, swOrigin, IMMUTABLE)
+    → 'cache-first'   for build/* (immutable hashed assets)
+    → 'network-first' for HTML routes
+    → 'passthrough'   for cross-origin + /api/ + non-GET
+```
+
+The two pure decisions (`cachesToEvict`, `routeFetch`) live in
+`src/lib/sw/upgrade.ts` and are unit-tested. The SW itself imports
+them; the rest of the file is event listener glue.
+
+---
+
+## Where SSR is on vs off
+
+| Surface | SSR | Why |
+|---|---|---|
+| Root layout (`src/routes/+layout.ts`) | **on** | Crawlers need JSON-LD + meta tags in HTML |
+| Home (`/`) | on | SSR'd at request time (project list is dynamic per visitor) |
+| Marketing pages (`/about`, `/press`, etc.) | on + prerendered | Static at build, served from CDN |
+| `/learn/*` | on + prerendered | Same |
+| `/changelog`, `/help`, `/compare` | on + prerendered | Same |
+| `/project/[id]/*` (editor) | **off** | IndexedDB is browser-only |
+| `/family/[id]` | **off** | IndexedDB |
+| `/share/[id]` | **off** | Pulls from IDB first, cloud fallback |
+
+The root layout's `ssr = true` is **load-bearing**. Flipping it would
+strip every page's `<title>`, meta tags, and JSON-LD from the HTML —
+crawlers would see a JS shell. Tests for the welcome strip + tab nav
+both depend on SSR being on; flipping would re-introduce the
+pre-hydration races that took a session to debug.
+
+---
+
+## Stores — quick reference
+
+| Store | Type | Where used | Notes |
+|---|---|---|---|
+| `projectStore` | $state class | Editor, audit, spacing, family | Single source of truth for the active project |
+| `auditStore` | $state class | /audit, /release | Worker-backed; reactive arrays of issues |
+| `previewStore` | $state class | Editor, preview tab | Builds FontFace on debounced project changes |
+| `settings` | $state class | Everywhere | User prefs, persisted to localStorage |
+| `toast` | function-call API | Everywhere | Auto-dismissing notifications |
+| `palette` | $state class | CommandPalette mount + project layout | Shared open/closed flag |
+| `undo` | $state class | Editor | Per-glyph snapshot history (Cmd-Z) |
+
+---
+
+## Audit module
+
+The structural spine of Patens. `src/lib/font/audit.ts` exports:
+
+- **`auditProject(project): AuditIssue[]`** — per-glyph checks (contour
+  shape, metrics, OpenType invariants, names, etc.)
+- **`auditCompatibility(project): AuditIssue[]`** — cross-master
+  variable-font compatibility (contour-count, point-count, axis
+  range).
+- **`preflightProject(project): AuditIssue[]`** — release-readiness
+  (vertical metrics consistency, feature integrity, metadata
+  completeness, coverage minimums).
+- **`describeAuditCode(code: string): string | undefined`** — the
+  single canonical dictionary that maps every code identifier to its
+  plain-language explanation. Surfaces: Edit-tab audit panel, /audit
+  page, /release pre-flight, /learn/audit-codes reference, the AI
+  "Explain" feature.
+
+**Audit codes are stable identifiers** (see `DESIGN_PHILOSOPHY.md`
+Principle 5). Renaming any code is a breaking change that ripples
+through 5+ surfaces. Adding codes is easy; pick the name carefully.
+
+**Fixable codes** (the `FIXABLE_CODES` set in
+`src/routes/project/[id]/audit/+page.svelte`) have one-click "Fix"
+buttons. Per-issue and per-group bulk fixes are both wired up.
+
+---
+
+## Type pipelines summary
+
+### Drawing → font binary
+```
+User draws contour
+  → BezierContour { commands: PathCommand[] }
+  → opentype.js Path via contoursToOpentypeGlyph
+  → opentype.js Glyph
+  → opentype.js Font.toArrayBuffer()
+  → ArrayBuffer (OTF)
+```
+
+### OTF → other formats
+```
+OTF buffer
+  ├─→ woff2.ts (WASM compression) → WOFF2
+  ├─→ python.ts (Pyodide + fontTools + ttfautohint) → TTF
+  ├─→ ufo.ts (XML serializer) → UFO directory → .zip
+  └─→ JSON.stringify(project) → .font.json
+```
+
+### Variable font
+```
+Multiple buildFont(project, { masterId })
+  → Array of (masterName, location, OTF buffer)
+  → buildVariableFont() in python.ts
+  → VF .ttf with gvar + HVAR tables
+```
+
+### Live preview
+```
+project changes
+  → projectStore mutates (debounced 180ms)
+  → previewStore.requestRebuild()
+  → buildFont() → register as FontFace via FontFace API
+  → CSS rules referring to "PreviewFont_<seq>" pick up the new face
+```
+
+---
+
+## Things to read before working in specific areas
+
+| Touching... | Read first |
+|---|---|
+| Audit module | `src/lib/font/audit.ts` (top 50 lines) + this doc §5 |
+| Font export | `src/lib/font/export.ts` `buildFont()` signature + JSDoc |
+| Share + versioning | `src/lib/share-blob.ts` + `src/routes/api/share/+server.ts` |
+| Service worker | `src/lib/sw/upgrade.ts` (pure helpers) + `src/service-worker.ts` (glue) |
+| Project store | `src/lib/stores/project.svelte.ts` |
+| Family kerning | `src/lib/font/family-kerning.ts` for the resolve pattern |
+| Anything routing-shaped | `src/routes/+layout.ts` (the `ssr = true` posture is load-bearing) |
+| AI features | `src/lib/ai/anthropic.ts` for the client; `/api/ai/messages` for the proxy |
+
+---
+
+## Build + test gates
+
+| Gate | Command | What it catches |
+|---|---|---|
+| Lint | `pnpm exec eslint . --max-warnings 0` | Style + unused vars + Svelte conventions |
+| Type-check | `pnpm exec svelte-check --tsconfig ./tsconfig.json` | TS strict, no any, no @ts-ignore |
+| Unit + bench | `pnpm exec vitest run` | 506 tests across font model + audit + sync + AI |
+| E2E | `pnpm exec playwright test` | 66 specs: a11y (31 routes/modals), tab-nav, welcome, audit-diag, api-smoke, command-palette |
+| Bundle | `pnpm run analyze` | Visualize chunk graph; CI gate at 5MB total |
+| Build | `pnpm run build` | Production bundle + prerendered routes |
+
+All five run on every CI push. Lint at 0 is enforced; a11y serious
+or critical violations fail.
+
+---
+
+## File-system inventory of non-obvious files
+
+| Path | What it is |
+|---|---|
+| `static/<uuid>.txt` | IndexNow site-verification key |
+| `static/llms.txt` | AI-crawler one-paragraph + link map |
+| `src/routes/llms-full.txt/+server.ts` | Long-form AI-crawler content (~18KB markdown) |
+| `static/demo-fonts/*.otf` | The font the home + share + editor actually render |
+| `src/lib/og-fonts/*.ttf` | Subsetted Inter + Lora for OG image generation |
+| `static/0a6a8b35...txt` | IndexNow API key file (legitimate, public on purpose) |
+| `scripts/subset-og-fonts.mjs` | Regenerates the subsetted OG fonts |
+| `scripts/indexnow.mjs` | Pings IndexNow + Bing + Yandex with current URLs |
+| `partykit/font-studio.ts` | PartyKit room name (legacy storage namespace) |
+
+---
+
+## Glossary
+
+A few terms used heavily in code + commit messages:
+
+- **Audit code** — stable identifier for a check the audit module
+  emits. Example: `self-intersecting`.
+- **Composite glyph** — a glyph built from references to other glyphs
+  + offsets (Á = A + acute, positioned).
+- **Master** — one drawn instance of every glyph at a specific
+  designspace location. Variable fonts need ≥2.
+- **Instance** — a named point in designspace surfaced as a style
+  ("Bold") in OS font menus.
+- **Sidebearing** — the space between a glyph's bbox and its advance.
+  Left + right.
+- **Kerning pair** — adjustment to default sidebearings between two
+  specific glyphs / classes.
+- **Specimen** — the printable / shareable presentation of a typeface.
+- **PreviewFont** — the suffix-versioned FontFace registered by
+  previewStore so CSS rules update each rebuild.
+
+---
+
+Last updated: 2026-05-25.
+
+=== Architecture (deep dive) ===
+Source: docs/architecture.md
+
+# Patens — architecture
+
+One page. The intent is "load this in your head before reading code."
+
+## The shape of a project
+
+Everything is one JSON blob. The top-level type is `Project` in `src/lib/font/types.ts`:
+
+```ts
+type Project = {
+  id: string;
+  metadata: FontMetadata;       // familyName, styleName, designer, version, ...
+  metrics: FontMetrics;         // UPM, ascender, descender, cap-height, x-height
+  glyphs: Record<number, Glyph>; // keyed by Unicode codepoint
+  kerning: KerningPair[];
+  classes?: KerningClass[];
+  sidebearingClasses?: SidebearingClass[];
+  axes?: VariableAxis[];
+  masters?: Master[];           // per-master glyph overrides
+  instances?: VariableInstance[];
+  palettes?: ColorPalette[];    // CPAL
+  brief?: BriefFields;
+  decisions?: DesignDecision[];
+  changelog?: ChangelogEntry[];
+  features?: ProjectFeatures;
+  // ... and ~20 more optional fields
+};
+```
+
+Every glyph has `contours: BezierContour[]` (and optionally `components: GlyphReference[]` for composites). Contours are arrays of `PathCommand` (M / L / Q / C / Z).
+
+## Storage
+
+`idb-keyval`. One key per project, value is the JSON blob. There's also an INDEX_KEY that stores a `ProjectIndexEntry[]` so the home page can list projects without loading their full payloads.
+
+There's no server (in the traditional CRUD sense). No accounts. No sync. **Cloud share is the one cross-browser path**: when `BLOB_READ_WRITE_TOKEN` is set, the editor can upload a project to Vercel Blob via `POST /api/share/{id}`, and any recipient hitting `/share/{id}` gets the project from the cloud blob. Auth is link-as-capability for reads (anyone with the UUID can view); the originator gets a delete-token sidechannel for `DELETE /api/share/{id}` (constant-time compared in `src/lib/share-blob.ts`). When Vercel Blob isn't configured, share gracefully degrades to local-only and the 404 page surfaces the recovery flow (open the demo, or ask the originator for a `.font.json`).
+
+The portable interchange format is `.font.json` — `JSON.stringify(project, null, 2)` with `id` stripped. Drop one on the home page to import.
+
+## Reactive layer
+
+`projectStore` (`src/lib/stores/project.svelte.ts`) is a `class` with `$state` fields. Mutations go through methods like `setGlyphContours`, `setKerningValue`, `saveProject`. Every mutation re-emits + schedules an auto-save (debounced).
+
+Other stores in `src/lib/stores/`:
+- `settings.svelte.ts` — theme, panel layouts, dismissed welcomes
+- `toast.svelte.ts` — global toast queue
+- `preview.svelte.ts` — live preview state (last typed text, font-face URL)
+- `clipboard.svelte.ts` — copy/paste of glyphs across projects
+
+## The audit module — the spine
+
+`src/lib/font/audit.ts` is the most-load-bearing module. **94 codes** covering:
+
+- Contour shape (`self-intersecting`, `duplicate-points`, `near-collinear-points`, `tiny-contour`, `contour-winding-collision`, `off-grid-points`, `sharp-kink`, `open-contour`, `empty`)
+- Vertical metrics + topology (`metrics-asc-mismatch`, `metrics-use-typo-off`, `metrics-win-clip-top`, `metrics-cap-above-ascender`, `metrics-x-above-cap`, `metrics-descender-nonnegative`, `metrics-zero-height`)
+- Spacing + sidebearings (`zero-advance`, `overflows-advance`, `sidebearing-deeply-negative-lsb/rsb`, `sidebearing-class-drift-lsb/rsb`, `sidebearings-no-classes`)
+- OpenType invariants (`palette-length-mismatch`, `pair-orphan-class`, `kerning-class-singleton`, `axis-range-invalid`, `master-out-of-range`, `feature-kern-disabled-with-pairs`, `duplicate-glyph-name`)
+- Naming + metadata (`naming-family`, `naming-style`, `naming-family-chars`, `glyph-name-not-canonical`, `glyph-name-empty/invalid/too-long`, `meta-no-copyright/designer/license/vendor-id`, `meta-vendor-id-invalid`)
+- Brief completeness (`brief-no-intent`, `brief-no-design-notes`)
+- Coverage (`coverage-typo-essentials`, `coverage-latin-1-supp`, `coverage-currency`, `coverage-math`, `glyph-count-low`, `control-glyphs-missing`, `figures-non-tabular`)
+- Anchors (`anchor-naming-mark-no-prefix`, `anchor-naming-base-with-prefix`, `anchor-without-partner`, `anchors-missing`)
+- Variable-font compatibility (`master-contour-count`, `master-point-count`, `master-axis-unknown/out-of-range/missing`, `master-empty`, `master-orphan-axis`, `instance-orphan-axis`, `no-instances`)
+- Kerning classes (`class-empty`, `class-missing-member`, `class-name-format`, `pair-missing-glyph`, `kerning-no-classes`, `kerning-extreme`, `kerning-pair-self`)
+- Color fonts (`color-layer-no-palette`, `color-layer-out-of-range`)
+- Notes / flags (`notes-todo`, `flagged-for-review`)
+
+Every code has a `message` (the short flag) and a `describeAuditCode(code)` entry (the longer "what does this mean and how do I fix it" copy) — 94/94 coverage as of v1.5.0, the missing-description gap was closed in that release. The same 94-code engine ships as a CLI (`npx patens audit`) for CI pipelines.
+
+The audit is consumed on **five teaching surfaces**:
+
+1. **Editor right-sidebar Audit accordion** — issues for the current glyph; one-click fixes for the fixable codes
+2. **Audit page (`/project/[id]/audit`)** — every issue across the project, filterable by severity + by code, deep-linkable via `?code=X`
+3. **Release pre-flight** — same audit filtered to error severity, gates a release
+4. **Family hub (`/family/[id]`)** — per-sibling audit roll-up (error / warn / clean)
+5. **Home page** — per-project audit chip in the card
+
+All five read from `auditProject(project)` + `describeAuditCode(code)`. Adding a new code = update audit.ts + add a describe entry; the five surfaces pick it up automatically.
+
+## Export pipeline
+
+Two paths:
+
+**OTF + WOFF2 — in-browser via opentype.js.** `src/lib/font/export.ts` builds the font object from the project, writes glyph outlines via `opentype.path` operations, attaches kern + GPOS + GSUB tables, serialises. WOFF2 compression happens via a wasm module. No server, ~150ms for the demo font.
+
+**TTF + ttfautohint — Pyodide.** When the user asks for hinted TTF, we load Pyodide (~7MB, cached) + fontTools + ttfautohint and pipe the OTF through. ~5-10 seconds first time, ~2 seconds on subsequent calls.
+
+The share page's Download buttons use the in-browser path only; the editor's Export tab offers both.
+
+## Share page
+
+`src/routes/share/[id]/+page.svelte` is one of the longest single-file components (~2600 lines). It does a lot:
+
+- Foundry-style tester (master switch + size + tracking + features + palette + sample-text presets, all URL-synced)
+- Reading specimens at three sizes
+- In-context mockups (button, headline, stat, body)
+- Master compare (when masters > 1)
+- OT features chip list (grouped)
+- Coverage heatmap
+- Glyph grid with filter + categories
+- Glyph inspector with metric guides, master overlay, anchor visualizer
+- CSS embed snippet with copy
+- Dual-format download with master picker
+- Print specimen sheet (Cmd+P → PDF)
+
+Renders client-only (`ssr=false`). Lazy-mounts the heaviest sections via `LazySection.svelte` so cold load doesn't pay for all ~80 GlyphTile SVGs at once.
+
+## Composite resolution
+
+Some glyphs (Aacute, æ, œ, fi, fl) have empty `contours` but non-empty `components`. The share page's `resolveContours(g)` walks components, applies their offsets, concatenates the resolved contours of each base. Recursion is depth-limited (6) to guard against cycles. The same logic is what makes the demo's drawn ß + composite ligatures both visible everywhere.
+
+## Variable fonts
+
+`Project.masters[]` carries per-master glyph overrides (just the deltas, indexed by codepoint). The default master is implicit in `Project.glyphs`. The Italic master in the demo applies a `slnt`-axis shear with per-glyph-class deviation (caps 8°, lowercase 9-11°, digits 0°, punctuation 4°) so the result reads as drawn rather than as a uniform CSS transform.
+
+## OpenType features
+
+Detected via glyph-name suffixes. Glyphs named `a.ss01`, `c.smcp`, `zero.onum` get auto-emitted as substitutions in the corresponding feature at export time. Ligature substitutions use underscore-joined names: `f_i` → `fi` for the `liga` feature. See `src/lib/font/feature-detect.ts`.
+
+The share page's tester applies the substitutions live in the typeset loop — toggle `ss01` and the `a` morphs, toggle `liga` and `fi` collapses.
+
+## Things that aren't here yet
+
+See [ROADMAP.md](../ROADMAP.md).
+
+=== Setup guide for self-hosters ===
+Source: docs/setup.md
+
+# Setup — enabling the optional integrations
+
+Patens runs fully in the browser by default. Three optional integrations require server-side credentials. Each gracefully degrades when not configured — the editor still works, the integration is just hidden.
+
+This file documents what to set up for each, on each hosting platform.
+
+| Integration | Required for | Status when unset |
+|---|---|---|
+| **Vercel Blob** | Cloud share — recipients in other browsers can open shared links | `/api/share` 503s; share button warns, falls back to local-only |
+| **GitHub OAuth** | Sign-in via GitHub (per-account UI) | `/auth/login` 503s; AccountButton toasts "Sign-in not configured" |
+| **Anthropic API key** | AI presets (audit-explain, consistency audit, design notes essay, kerning suggestions) | AI tab shows "Set your Anthropic API key" prompt |
+
+Project data stays in IndexedDB regardless of which integrations are enabled. None of these are needed to draw glyphs, kern them, or export OpenType fonts.
+
+---
+
+## 1. Vercel Blob — cloud share
+
+### Vercel (recommended host)
+
+1. Go to your project on https://vercel.com
+2. Settings → Storage → **Create Database** → Blob
+3. Connect it to the project. Vercel auto-injects `BLOB_READ_WRITE_TOKEN` as a build env var on the next deploy.
+4. Redeploy.
+
+Verify: `curl https://your-domain.vercel.app/api/share -X POST -H "Content-Type: application/json" -d '{"id":"test","metadata":{}}'` should return JSON with a URL (or a 400 validation error — that means the route is alive). If it returns 503 with "Cloud share not configured", the env var didn't get picked up — check Settings → Environment Variables.
+
+### Cloudflare Pages / Netlify / self-host
+
+Vercel Blob is a Vercel-only service. To run cloud share elsewhere:
+- Swap `@vercel/blob`'s `put` / `list` / `del` calls in `src/routes/api/share/` for an S3-compatible client (e.g. AWS S3, Cloudflare R2, Backblaze B2).
+- The interface is small: write `shares/{id}.json` + `shares/{id}.token`, list by prefix, delete by URL.
+- 30–60 minutes of work; the schema is documented in `src/lib/share-blob.ts`.
+
+Until you do this, leave `BLOB_READ_WRITE_TOKEN` unset and the share route gracefully 503s.
+
+---
+
+## 2. GitHub OAuth — sign-in
+
+Required env vars: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `AUTH_SECRET` (all three must be set or every `/auth/*` route 503s).
+
+### Step 1 — register a GitHub OAuth app (one-time, ~2 minutes)
+
+1. https://github.com/settings/applications/new
+2. Application name: `Patens` (or your fork's name)
+3. Homepage URL: `https://your-domain.com`
+4. Authorization callback URL: `https://your-domain.com/auth/callback/github`
+5. Click **Register application**
+6. On the next page, copy the **Client ID**
+7. Click **Generate a new client secret**, copy it before it disappears
+
+For local dev, register a second OAuth app with `http://localhost:5173/auth/callback/github` as the callback. GitHub's UI only allows one callback per app; for prod + dev you need two apps.
+
+### Step 2 — generate the cookie-signing secret
+
+```sh
+# Any random 32+ character hex string. Used to HMAC-sign session cookies.
+openssl rand -hex 32
+```
+
+### Step 3 — set the env vars on your host
+
+**Vercel:**
+1. Project → Settings → Environment Variables
+2. Add three entries (all three environments: Production + Preview + Development):
+   - `GITHUB_CLIENT_ID` — from step 1
+   - `GITHUB_CLIENT_SECRET` — from step 1
+   - `AUTH_SECRET` — from step 2
+3. Redeploy.
+
+**Cloudflare Pages:**
+1. Project → Settings → Environment variables
+2. Add the same three variables under "Production" and "Preview"
+3. Trigger a new deployment from Settings → Deployments → "Retry deployment"
+
+**Netlify:**
+1. Site → Site settings → Environment variables → Add a variable
+2. Add the same three; set scopes to "All deploy contexts"
+3. Trigger a new build.
+
+**Self-host (Node):**
+Add to your process environment before starting the server. With systemd, in the unit file:
+```ini
+[Service]
+Environment=GITHUB_CLIENT_ID=...
+Environment=GITHUB_CLIENT_SECRET=...
+Environment=AUTH_SECRET=...
+```
+Or with a `.env` file consumed by your process manager (PM2, Docker Compose).
+
+### Step 4 — verify
+
+1. Open `https://your-domain.com/project/demo/edit`
+2. Top-right corner shows "Sign in" instead of nothing
+3. Click → bounces to GitHub → returns to the editor showing your avatar + username
+4. Account dropdown → "Sign out" clears the cookie and returns to anonymous
+
+If you see "Sign-in not configured" on click, one or more env vars is missing or the host hasn't redeployed since they were added.
+
+---
+
+## 3. Anthropic API key — AI presets
+
+The Anthropic key is **per-user, stored in localStorage**, not a deployment-wide env var. Each user provides their own key — there's no shared cost surface for the app maintainer.
+
+### For the user
+
+1. Open https://console.anthropic.com → Settings → API Keys
+2. Create a new key (any name). Copy it before navigating away.
+3. In Patens: top-right ⚙ Settings → paste into "Anthropic API key" → Save.
+4. AI tab on any project now activates. Each preset run is metered against your own Anthropic account.
+
+The key stays in `localStorage` keyed by origin. It's sent to `/api/ai/messages` on each AI request (server-side proxy that adds CORS handling); the server doesn't persist the key.
+
+### Cost expectations
+
+Typical preset run is one `messages` call to `claude-sonnet-4-6` (the default; user-configurable in Settings → Preferred model) with ≤2k input + ≤1.5k output tokens. At Claude 4.6 Sonnet rates that's ~$0.01–0.03 per run. Heavy users running every preset on every project hit $1–3/month; light users stay under $0.50.
+
+The "Consistency audit (visual)" preset is most expensive because it sends a rendered PNG of up to 20 glyphs as the input. Users on tighter budgets can switch to Claude Haiku 4.5 (`claude-haiku-4-5-20251001`) for ~5× lower cost at moderately reduced quality on the audit-explanation copy.
+
+### Switching providers
+
+To use OpenAI / Gemini / another provider instead of Anthropic:
+- `src/lib/ai/anthropic.ts` is the only file that knows the API shape
+- `src/routes/api/ai/messages/+server.ts` is the proxy
+- Both can be swapped or extended. The presets in `/project/[id]/ai/+page.svelte` use a high-level `askClaude({ system, messages, maxTokens })` interface — point it at whichever provider you prefer.
+
+---
+
+## Local development checklist
+
+To run with all integrations enabled on `pnpm dev`:
+
+```sh
+# .env.local (gitignored)
+BLOB_READ_WRITE_TOKEN=vercel_blob_rw_XXX     # from `vercel env pull`
+GITHUB_CLIENT_ID=Iv1.XXX                      # localhost OAuth app
+GITHUB_CLIENT_SECRET=XXX                      # localhost OAuth app
+AUTH_SECRET=XXX                               # `openssl rand -hex 32`
+```
+
+```sh
+pnpm install
+pnpm dev
+# Open http://localhost:5173
+# Settings → paste your Anthropic API key
+```
+
+Without any of these, `pnpm dev` still works — just with the corresponding feature 503'd.
+
+=== Release process ===
+Source: docs/release-process.md
+
+# Release process
+
+The solo-maintainer release playbook. Patens ships semver releases
+as git tags + GitHub Releases; there's no separate release branch
+or staging environment beyond Vercel's deploy previews.
+
+This doc exists so future-me (or a co-maintainer if that ever
+happens) can run a release without reconstructing the steps. It's
+prescriptive on purpose — every step is here because forgetting
+it has bitten someone before.
+
+> **Audience.** Anyone with push access to the `main` branch + the
+> `npm publish` rights (not yet used — Patens ships from source,
+> the CLI is bundled in `cli/dist/` and run via `npx patens`).
+> Most external contributors don't need to read this; for the
+> contribution workflow see [`CONTRIBUTING.md`](../CONTRIBUTING.md).
+
+---
+
+## Cadence
+
+There's no fixed release cadence. The pattern that's emerged:
+
+- **Patch (`1.5.x`)** — one or more times per week when bug fixes
+  land. Often same-day as the fix.
+- **Minor (`1.x.0`)** — when a coherent feature batch is ready
+  (typically 2–4 weeks of work, sometimes more for big arcs like
+  v1.5's OSS-readiness pass).
+- **Major (`x.0.0`)** — reserved for breaking changes. None
+  shipped to date. If the storage namespace `font-studio-*` ever
+  needed to change, that's a 2.0.0.
+
+Releases happen when the work is ready, not on a calendar. Solo
+maintainer; deadline-driven releases are a known burnout vector.
+
+---
+
+## Versioning rules
+
+Semantic versioning, with these project-specific clarifications:
+
+- **Breaking** = anything that requires a user to take action
+  before their existing project file or saved state continues to
+  work. Examples: changing the storage namespace, removing an
+  audit code that a project file references, changing the public
+  CLI flag surface in `cli/`.
+- **Minor** = new features, new audit codes, new export options,
+  new UI surfaces — anything additive.
+- **Patch** = bug fixes, copy edits, perf improvements, internal
+  refactors, dependency bumps, doc updates.
+
+Audit-code numeric IDs are **stable forever** once shipped. If a
+code is wrong, deprecate (mark `severity: 'info'` + add
+`deprecated: true` to the description) rather than reuse the
+number. This is the same contract OpenSSF Scorecard and CodeQL
+use for their check IDs.
+
+---
+
+## Pre-release checklist
+
+Run this checklist before tagging. Each item is here because
+skipping it once produced a bad release.
+
+### 1. Working tree clean
+
+```sh
+git status            # must be clean
+git pull --rebase     # in case of upstream changes
+```
+
+### 2. Quality gates green
+
+The same gates CI runs, but locally — faster feedback than
+waiting for the PR.
+
+```sh
+pnpm lint             # 0 errors. Warnings ratcheted, no new ones.
+pnpm check            # svelte-check strict — 0 errors, 0 warnings.
+pnpm test             # vitest unit (~450 tests + 6 benches).
+pnpm test:e2e         # Playwright + axe-core a11y across 31 routes.
+pnpm build            # vite build — must succeed.
+```
+
+If any gate fails, **stop and fix**. Never skip with `--no-verify`
+or by commenting tests out — the gates exist because they catch
+real regressions (see ADR-009).
+
+### 3. Bundle budget under cap
+
+```sh
+pnpm run analyze      # Opens rollup-plugin-visualizer in browser.
+```
+
+Check the **client** bundle (`dist/_app/`) total under the 5120 KB
+cap. If it's over, the release is blocked. Common offenders:
+accidentally pulled fontTools / Pyodide into the editor preload
+(see ADR-010), or a heavy dep was added without lazy-loading.
+
+### 4. Smoke test the editor
+
+```sh
+pnpm dev
+```
+
+Open the demo project. Touch the surfaces that are most likely
+to silently break:
+
+- Draw a glyph. Trace it. Save.
+- Open the audit panel. Confirm codes still describe correctly.
+- Export OTF + WOFF2. Open the OTF in FontGoggles or a similar
+  external tool.
+- Open a share link from a previous release in a private window.
+  Capability-token auth must still work; project must render.
+
+This is 10 minutes and catches the kind of regression that unit
+tests don't (Worker postMessage shape changes, IndexedDB schema
+drift, SvelteKit route boundary changes).
+
+### 5. Changelog draft
+
+Release Drafter (configured in
+`.github/workflows/release-drafter.yml`) keeps a draft at the top
+of the Releases page, rebuilt on every push to `main`. Open it:
+
+```sh
+gh release view --json url -q .url
+```
+
+Verify the draft groups commits sensibly. If commits were merged
+without conventional-commit prefixes, Release Drafter will dump
+them into "Other changes" — clean that up before publishing.
+
+---
+
+## Tagging + publishing
+
+```sh
+# 1. Bump version in package.json. Follow semver.
+#    Use `pnpm version <patch|minor|major>` so it also tags +
+#    creates the chore(release) commit.
+pnpm version patch    # or minor / major
+
+# 2. Push the commit + tag.
+git push origin main --follow-tags
+
+# 3. Promote the Release Drafter draft to published.
+gh release edit "v$(node -p 'require(\"./package.json\").version')" --draft=false
+```
+
+Vercel auto-deploys on push to `main` — the production deploy
+will be live within ~3 minutes. There's no separate "deploy"
+step; the tag is a marker, not a trigger.
+
+---
+
+## Post-release
+
+### Verify production
+
+```sh
+curl -sS https://patens.design/api/health
+# Then open https://patens.design in a private window and:
+# - Confirm the version footer matches the new tag
+# - Open a saved project from prior release (storage namespace
+#   `font-studio-*` must still work — see ADR-007)
+# - Run an audit, export an OTF
+```
+
+### Update the in-app changelog (if user-visible)
+
+If the release added a user-visible feature, the editor's
+"What's new" surface lives at `src/lib/data/changelog.ts`. Add an
+entry with the version, date, and 1–3 bullet points. Keep it
+short — this is read by users mid-task, not browsed for fun.
+
+### Announce (only for minor + major)
+
+Patch releases ship silently. For minor and major:
+
+- Post to Bluesky + X via the `@patenstype` accounts. Lead with
+  one concrete user benefit, not a feature list. Link to the
+  GitHub release for the full notes.
+- If the release ships a new audit code or a new export option,
+  cross-post to TypeDrawers + r/typography.
+
+Don't announce every patch. The signal-to-noise ratio matters —
+followers tune out a maintainer who posts every dependency bump.
+
+### Backfill memory
+
+If the release exposed something surprising (a regression that
+slipped past the gates, a new contributor pattern, a deploy
+quirk), drop a note in the relevant memory file under
+`~/.claude/projects/-Users-alevizio-font/memory/` so the next
+release benefits from it.
+
+---
+
+## Hotfix flow
+
+A bug bad enough to need an out-of-band release (data loss, hard
+crash on a common surface, security issue): same flow as above,
+but compressed. The hotfix branch convention:
+
+```sh
+git checkout -b hotfix/share-token-bypass  main
+# fix + tests on the branch
+git push -u origin hotfix/share-token-bypass
+gh pr create --base main --fill --label hotfix
+# After CI green + self-review, merge to main, then run the
+# normal tagging flow as a PATCH release.
+```
+
+Security hotfixes follow the disclosure timeline in
+[`SECURITY.md`](../SECURITY.md) — coordinate the release with the
+reporter where possible.
+
+---
+
+## Rollback
+
+Vercel keeps the previous deployments addressable. If a release
+ships a critical regression:
+
+```sh
+# 1. Identify the bad deploy.
+vercel ls patens
+
+# 2. Promote the last good deploy to production.
+vercel promote <deployment-url>
+
+# 3. Open a `revert: ...` PR against main.
+git revert <bad-commit-sha>
+gh pr create --fill --label hotfix
+```
+
+The git tag stays — don't delete published tags, even bad ones.
+Cut a new patch release with the revert + the actual fix.
+
+---
+
+## See also
+
+- [`CONTRIBUTING.md`](../CONTRIBUTING.md) — contribution workflow.
+- [`MAINTAINERS.md`](../MAINTAINERS.md) — maintainer scope + SLA.
+- [`AGENTS.md`](../AGENTS.md) — conventions for AI-assisted work.
+- [`SECURITY.md`](../SECURITY.md) — security disclosure timeline.
+- [`docs/decisions/`](./decisions/) — ADRs explaining the
+  load-bearing choices a release should never silently break.
+
+=== Roadmap ===
+Source: ROADMAP.md
+
+# Roadmap
+
+What's deliberately deferred from the current line (v1.5.2 → v1.6.0) and why. Sections are tagged with the version where each item was last touched; ✅ marks items that shipped since the original deferral.
+
+## M3 — Cloud sharing ✅ SHIPPED in v1.0.0
+
+The share-link recipient story is no longer browser-local. Tier 2 shipped:
+
+- **Vercel Blob backend.** `src/routes/api/share/+server.ts` accepts a project JSON `POST` from the editor and the home page, uploads to `shares/{id}.json` keyed by the project's existing UUID. 5MB cap; payload validation; 503 when `BLOB_READ_WRITE_TOKEN` isn't set.
+- **Share page hydration.** `src/routes/share/[id]/+page.ts` tries IndexedDB first, then `GET /api/share/{id}` (Vercel Blob), then surfaces the 404 recovery copy if both miss. The fetched project is saved to IDB so the next view is instant.
+- **Link-as-capability auth.** No accounts. The share URL contains the project's existing UUID (already unguessable client-generated). Anyone with the URL can view; no one without it can.
+- **Upload-on-share.** Editor header + home-page card "Copy share link" buttons now upload first, then copy. Failure modes handled: 503 (cloud not configured) falls back to local-only with a clear warning; network errors surface as toast errors.
+
+What's still deferred:
+- **Re-share versioning.** Re-uploads currently overwrite. A version history (with deep-link to a specific version) is future work.
+- ~~**Delete API.**~~ ✅ Shipped (was already in `src/routes/api/share/[id]/+server.ts:73` — `DELETE` accepts an `X-Share-Token` header, constant-time-compares against the originator's token blob, and `del()`s both the share + token blobs idempotently. Wired into the project layout's "Unshare project" Trash button — visible only when `hasShareToken` is true, with a confirm dialog. The ROADMAP entry was just stale.)
+- **Per-project OG image.** Now achievable with cloud — server-render a preview at request time using the uploaded project. ~1 day on top of the cloud arc.
+
+## Per-project OG image ✅ SHIPPED in v1.1.0
+
+`src/routes/og/[id]/+server.ts` renders a 1200×630 PNG via satori + resvg-js. Family name in self-hosted Lora serif, designer + version + glyph count below. Demo OG renders on the fly; uploaded projects render from cloud storage; brand variant at `/og/home` for the home-page unfurl. Font files self-hosted under `static/og-fonts/` (Wave 11) so OG rendering no longer depends on Google Fonts being reachable.
+
+Still deferred: regenerating OG on re-share (today the OG is rendered at request time, so re-shares already pick up new metadata — but a cached-pre-rendered variant for higher hit rate is future work).
+
+## Account system
+
+If cloud storage lands, account boundaries become relevant (deletes, quotas, sharing controls). v1 doesn't have any of this; everything is "if you can guess the URL you can see it."
+
+- Sign-in via OAuth (GitHub, Google) — no email/password.
+- Per-account project list page (separate from the home page's IndexedDB list).
+- Project visibility: private / unlisted (link-only) / public.
+
+Estimated effort: 3-5 days.
+
+## Editor — features we haven't drawn
+
+Bullets, not estimates — each is its own discovery + design + build cycle:
+
+- **Real curve-fitting on existing geometric glyphs.** The polygon primitives that built the demo letters are honest but rough. Replacing them with hand-tuned Béziers (or with a curve-fit pass over the polygon data) would lift visual quality across the whole demo.
+- **Drawn Italic master** (vs the slant-axis shear). A real italic redraws specific glyphs (a, e, g especially) rather than transforming the upright. Marked as future work in the demo's decision log.
+- **Cyrillic / Greek glyph sets — partial.** v1.2.0 added 17 Cyrillic look-alike glyphs (А В Е К М Н О Р С Т Х uppercase + а е о р с х lowercase) and 14 Greek look-alike glyphs (Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ uppercase) — all reuse Latin builders where the geometric-sans shape is identical. Bespoke Cyrillic shapes (Я Ж Ф) and the entire Greek lowercase set remain explicit future work.
+- **AI features.** "Explain this audit code in plain language" with an LLM; "Suggest a kerning value for this pair" via a learned model. Both need an API key + cost handling.
+
+## Editor — features we've made progress on but haven't shipped
+
+- ~~**Family-wide kerning propagation.**~~ ✅ Core path shipped. `family-kerning.ts` (`resolveKerning` + `resolveClasses`) was always in place; the missing piece was the export pipeline calling it. `buildFont(project, { family })` now merges family-level pairs + classes onto the project before generating the kern feature — project pairs win on (left, right) collision, family-only pairs are inherited. Wired into `/project/[id]/export` so the family kerning a user edited at `/family/[id]` actually reaches the exported file. Still deferred: inherited-pair badges in the per-project spacing UI (today the user has to switch to /family/[id] to see family pairs).
+- ~~**Multi-master variation explorer.**~~ ✅ Shipped — the /designspace page has a 200×200 SVG 2D explorer that plots every master + the default location, lets the designer drag a crosshair through the design space to set `previewLocation`, and live-renders the sample text via the FontFace interpolation. Pointer handlers harden against pointercancel + lostpointercapture in commit `5ed873`. Beyond 2 axes the explorer still shows axes[0]×axes[1]; an axis-pair picker for 3+ axis fonts is a small follow-up but no longer roadmap-blocking.
+
+## Polish we deliberately deferred
+
+- **Per-device responsive test.** Code-level audit shipped in v1.6.0 at `docs/launch/responsive-audit.md` (covers iOS Safari input-zoom risk, touch-target findings, viewport-meta verification, editor mobile-gate). The remaining iPhone + iPad device-test sign-off list is documented in that doc; needs real hardware in hand and is tagged as Tier-3 (human-only) on the launch plan. PRs reporting issues with screenshots welcome — match against the sign-off checklist for the route.
+- ~~**Real bundle-size budgets in CI.**~~ ✅ Shipped in v1.2.0 Wave 7 — `ci.yml` now has a "Bundle size budget" step that fails PRs exceeding 5120 KB of client output. Inspect the breakdown locally via `pnpm run analyze`.
+- **Accessibility audit beyond focus traps + accordion ARIA.** axe-core runs in Playwright E2E for the home + welcome + tab-nav routes; full audit across every route + every modal is future work.
+
+## Known issues
+
+Tracked here so future readers see them without re-discovering. Each links to the surface where it shows up:
+
+- ~~**`tab-nav.spec.ts` Designspace timing.**~~ ✅ Closed in v1.5.x SSR work. The rapid-fire tab-nav flake traced to the welcome-strip flicker during route transitions, not a SvelteKit CSR race. With SSR enabled the strip landed in the SSR'd HTML and got removed by hydration milliseconds later — the DOM repaint during that window competed for the click event with the URL update. Seeding `welcomeDismissed=true` via `addInitScript` (commit `6473204`) means the strip never renders, the flicker doesn't happen, and the `networkidle` workaround was removed in favour of `assertTabMounted` as the natural sync point. 5/5 consecutive runs ~7s each (was ~11s with the wait).
+
+- **`harfbuzz.wasm` 404 in dev mode.** Vite's dep-optimisation pre-bundles `harfbuzzjs` but loses the wasm reference, then the SSR handler 404s on `/node_modules/.vite/deps/harfbuzz.wasm`. v1.0.0-beta added `optimizeDeps.exclude: ['harfbuzzjs']` to route the wasm via its natural path; if the error returns, check whether `harfbuzzjs` was upgraded and now needs a different exclusion.
+
+- **Pre-existing a11y warnings (moderate / minor).** axe-core reports a small number of moderate / minor violations (color contrast on tinted backgrounds, sparse landmarks on some routes). These don't block CI but are logged via `[a11y minor/moderate]` lines in the test output. Each is small; future PRs should tighten as they touch the affected components.
+
+- ~~**Lint warning baseline.**~~ ✅ Closed — 0 warnings / 0 errors as of the v1.6.0 prep pass. Ratchet: 52 → 47 → 30 → 22 → 2 → 0 across v1.4.x → v1.5.2 → v1.6.0. CI gate remains at 5 to absorb future drift without immediate failure; new code must continue adding zero new warnings.
+
+- ~~**43 audit codes without descriptions.**~~ ✅ Closed — `describeAuditCode()` now covers all 94 emitted codes. New descriptions span brief completeness, coverage subsets, glyph count, UPM, naming top-level fields, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
+
+- ~~**WCAG 2.2 target-size (2.5.8) on editor filter chips.**~~ ✅ Closed — `min-h-[24px]` on each GlyphBrowser status chip lifts every target to the WCAG 2.5.8 baseline. Visual change is +6px height per chip; padding kept at `py-0.5` so the chip still reads as compact and the row height adjusts gracefully. A11y test suite now includes `wcag22aa`, so any regression on this rule blocks CI.
+
+- **Lighthouse insights — 4 still surfacing as warnings.** Triaged from the production lighthouse audit at v1.4.0. Each is now `warn` (not `error`) in `lighthouserc.json` so CI doesn't block, but they're real and needs profiling to address:
+	- ~~**`forced-reflow-insight`**~~ ✅ Closed in profile run after `030f78f`. The `scripts/profile-cold-load.mjs` CDP trace shows the home page has only 2 layout events (20ms initial + 4.8ms post-mount), `/share/demo` has 1 (11.6ms), and `/project/demo/edit` has 3 (35ms / 8.8ms / 4ms — the 35ms is the GlyphBrowser tile grid mounting). All within normal first-render territory — the lighthouse warning came from the chained-modulepreload waterfall that `preload-mjs` already eliminated.
+	- ~~**`network-dependency-tree-insight`**~~ ✅ Closed in commit `030f78f`. Switched `kit.output.preloadStrategy` from the default `'modulepreload'` (emitted inside the inline bootstrap, so blocking) to `'preload-mjs'` which puts the link tags in `<head>`. Home page went from 0 preload tags → 45 (the full chunk graph fetches in parallel with HTML parsing).
+	- ~~**`max-potential-fid`**~~ ✅ Closed in profile run after `030f78f`. CDP trace shows **0 long tasks (≥50ms)** across the home, share, and editor cold loads. Total `EvaluateScript` time on the home page is 9.6ms. The lighthouse warning was a chained-fetch artifact; with parallel preload, the main thread stays clear throughout cold load.
+	- ~~**`uses-rel-preconnect`**~~ ⚪ False positive confirmed. The home-page HTML is fully same-origin (zero external refs); the warning came from Vercel's auto-injected analytics scripts. Documenting as known-noise rather than chasing.
+
+	Two related insights were already closed in commit `31f3ef4`: `uses-passive-event-listeners` (EditorTour scroll listener → passive) and `label-content-name-mismatch` (4 toolbar buttons → moved aria-label to title). All 6 lighthouse insights surfaced in the v1.4.0 audit are now closed or confirmed non-issues.
+
+## Anti-goals
+
+The things we explicitly don't want:
+
+- **A FontLab / Glyphs competitor.** Patens is a specific bet: browser-native, single-designer, share-friendly. Trying to match desktop-grade type-design tools feature-for-feature would dilute the bet.
+- **A multi-user collaborative editor.** Type design is mostly solo work; the collaboration story we want is async share + comment, not Figma-style co-editing.
+- **An npm package.** This is an app, not a library. The reusable bits (audit module, opentype.js wrapper) might one day ship as packages, but not by default.
+
+=== Contributing ===
+Source: CONTRIBUTING.md
+
+# Contributing to Patens
+
+Thanks for your interest. Patens is a single-author project at the moment, but PRs are welcome — especially around the type-design surfaces (audits, OpenType features, glyph editing) and the share-page polish. This guide covers the basics. The other docs you'll want to know about:
+
+- [`docs/architecture.md`](./docs/architecture.md) — what each module does and how the editor flow holds together.
+- [`DESIGN_PHILOSOPHY.md`](./DESIGN_PHILOSOPHY.md) — *why* Patens looks and behaves the way it does. Read this before proposing UX changes.
+- [`docs/decisions/`](./docs/decisions/) — ADRs (Architecture Decision Records) explaining the load-bearing technical choices: SSR-at-root, browser-native, MIT-forever, capability-token sharing, storage namespace, audit worker, BYOK AI, strict quality gates.
+- [`MAINTAINERS.md`](./MAINTAINERS.md) — current maintainer, response SLA, what's in scope vs. out.
+- [`AGENTS.md`](./AGENTS.md) — conventions if you're contributing with AI-coding-tool assistance (this is fully supported and encouraged; `Co-Authored-By:` trailers are preserved).
+- [`docs/release-process.md`](./docs/release-process.md) — how releases are cut. Mostly for maintainers, but useful context for "when will this PR ship."
+
+## Getting set up
+
+```sh
+git clone https://github.com/alevizio/patens.git
+cd patens
+pnpm install
+pnpm dev
+```
+
+The dev server runs at `http://localhost:5173`. Open `/project/demo/edit` to land in the editor with the example project loaded.
+
+### Before you push
+
+```sh
+pnpm lint              # ESLint — must add no new errors
+pnpm check             # svelte-check / TypeScript strict — must pass
+pnpm test              # Vitest unit tests + perf benches (~528 + 6)
+pnpm test:e2e          # Playwright + axe-core a11y
+```
+
+CI runs all four on every PR. The lint baseline has 47 known warnings (ratcheted from 52 in v1.2.x); new code should add zero. CI also enforces a 5120 KB client-bundle budget — inspect locally via `pnpm run analyze`. The "why no exceptions" rationale lives in [ADR-009](./docs/decisions/009-strict-quality-gates.md).
+
+## Branch model
+
+- `main` is the trunk; deploys to production on push (Vercel).
+- Feature branches: short-lived, named like `feat/share-coverage-fix` or `fix/cmd-shift-v-conflict`.
+- No long-running release branches — releases are tags.
+
+## Commit messages
+
+Conventional Commits, short subject + a body that explains *why*:
+
+```
+feat(share): glyph inspector master-overlay toggle
+
+When a project has multiple masters, the inspector can now show
+every master's version of the same codepoint as a stroke overlay
+on top of the default fill. Designers see the slant or weight
+delta on a single drawing instead of jumping between renders.
+
+  - M key inside the inspector toggles
+  - Legend names the colors back to their masters
+  - Stroke weight scales with fontSpan/120 so it stays readable
+    across UPM scales
+```
+
+The body should describe the problem the change solves, not just the code.
+
+## Pull requests
+
+1. Fork + branch.
+2. Make your change. Add or update tests where the change has clear behaviour.
+3. Run the four checks above locally.
+4. Open a PR against `main`. The PR template will ask for: problem, solution, screenshots (if UI), test plan.
+5. CI must be green before review.
+
+## Where things live
+
+```
+src/
+├── lib/
+│   ├── font/         # Type-design domain: glyphs, contours, audit, export
+│   ├── ui/           # Reusable UI primitives (Button, Panel, Dialog, etc.)
+│   ├── glyph/        # Glyph-specific UI (GlyphTile, GlyphBrowser)
+│   ├── drawing/      # Canvas + drawing tools
+│   └── stores/       # Reactive stores (project, settings, toast)
+├── routes/           # SvelteKit routes
+│   ├── +page.svelte  # Home — project list
+│   ├── project/[id]/ # Editor + spacing + audit + features + ...
+│   ├── share/[id]/   # Read-only specimen view
+│   └── family/[id]/  # Multi-style family hub
+e2e/                  # Playwright tests
+scripts/              # Build helpers (demo-font generation)
+```
+
+Mutation flow: every glyph / kerning / metadata write goes through `projectStore` (`src/lib/stores/project.svelte.ts`), which re-emits the reactive project + auto-saves to IndexedDB.
+
+## Areas where help is wanted
+
+- **More audit codes.** The audit module is the spine; new checks land cleanly. See `src/lib/font/audit.ts` and the five-surface contract in `docs/architecture.md`.
+- **Curve fitting refinements.** The Schneider trace is competent but doesn't handle every sketch shape well. Real type designers have opinions; PRs welcome.
+- **Bespoke Cyrillic / Greek glyph builders.** v1.2.0 shipped 17 Cyrillic + 14 Greek look-alike glyphs that reuse Latin builders. The script-specific shapes (Я Ж Ф for Cyrillic; entire Greek lowercase) need real type-design work. Real type designers have opinions here; PRs welcome.
+- **More audit code descriptions** — `describeAuditCode()` covers all 94 codes today (closed in v1.4.0), but tightening copy for clarity + adding fix-action hints in the audit panel UI would be a polish win.
+
+## Anti-goals
+
+- We don't accept changes that introduce a new framework / state library / styling system. Patens is SvelteKit + Tailwind + Svelte 5 runes; stay inside that.
+- No new third-party fonts in the repo — the demo project's "font" is its own SVG path data. (The 2 fonts under `static/og-fonts/` are exceptions: Lora + Inter used only for server-rendered OG cards.)
+- No new backend services. Cloud sharing went through Vercel Blob in v1.1.0 — additional cloud features (delete API, per-share versioning, account systems) need explicit roadmap buy-in before PRs.
+
+## Code of conduct
+
+See [CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md). TL;DR: be kind, be specific, assume good faith. Disagreements are about the work, not the people. The maintainer has final say but will explain reasoning.
+
+## License
+
+By contributing, you agree your contributions are released under the [MIT License](./LICENSE).
+
+=== Support — where to ask, where to report ===
+Source: SUPPORT.md
+
+# Where to ask, where to report
+
+Patens is maintained solo by one person ([@alevizio](https://github.com/alevizio)).
+To keep the issue tracker actionable and the conversation surface useful,
+the channels are deliberately distinct:
+
+## Found a bug?
+
+→ **[Open an issue](https://github.com/alevizio/patens/issues/new?template=bug.md)**
+
+Examples of bugs: a route 500s, a glyph fails to export, an audit fix
+breaks geometry, a keyboard shortcut doesn't fire, a calculation is
+wrong. Use the bug template — it asks for the route, the action, and
+the actual vs. expected behaviour, which is what I need to reproduce.
+
+## Have an idea for a new feature?
+
+→ **[Open a feature request](https://github.com/alevizio/patens/issues/new?template=feature.md)**
+
+For sharp, well-formed proposals (the problem, who it's for, why now).
+If you're still thinking out loud, [Discussions](https://github.com/alevizio/patens/discussions)
+is the better venue — see below.
+
+## Have a question? Want to show off a font you drew? Half-formed idea?
+
+→ **[Discussions](https://github.com/alevizio/patens/discussions)**
+
+That's where Q&A lives, where people share what they've made with Patens,
+and where feature ideas get sanded into something concrete before becoming
+an issue. Discussions are conversational; issues are a punch list.
+
+Some things that belong in Discussions:
+
+- "How do I do X in the editor?" (likely the [Help page](https://patens.design/help) too)
+- "I exported a font and the kerning looks weird — is this expected?"
+- "I made a font — here it is" (show-and-tell)
+- "What would it take to support [feature]?" (RFC-style)
+- "Why doesn't Patens do X?" (philosophy / scope)
+
+## Found a security vulnerability?
+
+→ **Do NOT file a public issue.** Use one of:
+
+- The private security advisory form: https://github.com/alevizio/patens/security/advisories/new
+- Email: `security@patens.design`
+
+Full disclosure policy in [SECURITY.md](./SECURITY.md).
+
+## Want to contribute code?
+
+→ [CONTRIBUTING.md](./CONTRIBUTING.md) covers the dev setup, the commit
+conventions, and how to run the test suite. The [ROADMAP.md](./ROADMAP.md)
+covers what's deliberately deferred and why — useful context before
+opening a large PR.
+
+## Response time
+
+This is a solo project. I read everything but I don't always respond
+quickly — security issues get the fastest turnaround. For most other
+things, expect days, not hours.
+
+=== Security policy ===
+Source: SECURITY.md
+
+# Security Policy
+
+## Supported versions
+
+| Version | Supported |
+|---------|-----------|
+| `v1.x`  | ✅ Active — security fixes land on `main` |
+| `< 1.0` | ❌ Pre-release. Upgrade to `v1.x`. |
+
+## Reporting a vulnerability
+
+If you've found a security issue in Patens, please **don't open a public issue**. Instead:
+
+- **Email**: `security@patens.design` (preferred). Or open a private security advisory at https://github.com/alevizio/patens/security/advisories/new.
+- Include the steps to reproduce, the affected route or component, the expected vs actual behavior, and (if relevant) the impact on a user's IndexedDB project data or the cloud-share blob.
+
+## What counts
+
+In scope:
+
+- XSS / HTML injection via project metadata fields (brief, decisions, glyph notes — anywhere user-provided text reaches the rendered DOM).
+- Path traversal or unauthorized access via the `/api/share/[id]` endpoint.
+- Anything that lets one project's data appear in another project's share view.
+- CSRF / clickjacking against the editor's mutation routes.
+- Dependencies with known CVEs (`pnpm audit`).
+
+Out of scope (these are intentional design choices):
+
+- "Anyone with a share URL can view it." That's link-as-capability auth by design (documented in [ROADMAP.md](./ROADMAP.md) under M3 — Cloud sharing). If you want non-public projects, don't upload them.
+- "The editor accepts pasted SVG paths." The trace + paste flow is meant for designer convenience; we validate but don't sandbox.
+- Self-hosted instances with `BLOB_READ_WRITE_TOKEN` exposed in client code. The server-only secret is server-only by design.
+
+## Response
+
+I (the maintainer) read security mail same-day in most cases. Expect:
+
+- Acknowledgment within 48 hours.
+- Initial assessment within 5 business days.
+- Fix + advisory within 30 days for high-severity, 90 days for lower-severity issues.
+
+## Disclosure
+
+Once a fix is shipped to `main` and tagged, I'll publish a GitHub Security Advisory crediting the reporter (unless they prefer anonymity). The CHANGELOG entry for the affected release will reference the advisory ID.
+
+## Hardening notes (for self-hosters)
+
+If you're running Patens on your own Vercel project:
+
+1. **Set `BLOB_READ_WRITE_TOKEN`** only in the production environment, not in preview deployments — preview URLs are public-accessible by default.
+2. **Enable Vercel Deployment Protection** for preview deploys so authenticated reviewers can audit changes before they're shareable.
+3. **Pin dependencies.** The repo's `pnpm-lock.yaml` is committed; `pnpm install --frozen-lockfile` (the CI command) is the right invocation for production builds.
+4. **Run `pnpm audit` regularly.** Dependabot is enabled on the upstream repo; mirror that on your fork.
+
+=== Instructions for AI agents touching this code ===
+Source: AGENTS.md
+
+# AGENTS.md
+
+Instructions for AI coding assistants (Cursor, Claude Code, Copilot,
+Codex, Gemini CLI, Devin, Jules, Amp, Factory, etc.) working in this
+repo. Standard format per [agents.md](https://agents.md/), backed
+by the Linux Foundation's Agentic AI Foundation alongside MCP + A2A.
+
+Human contributors: read `CONTRIBUTING.md` first; this file is the
+machine-readable subset of the same conventions.
+
+---
+
+## Project shape
+
+**Patens** is a browser-native, open-source type design environment.
+SvelteKit 2 + Svelte 5 runes, Tailwind CSS v4, TypeScript strict
+mode. Production at <https://patens.design>.
+
+The codebase has six conceptual layers — see `ARCHITECTURE.md` for the
+full map.
+
+```
+src/routes/                  pages + API endpoints
+src/lib/font/                font model, audit module, OpenType pipeline
+src/lib/glyph/               glyph-level UI (browser, tile)
+src/lib/ui/                  reusable widgets (Panel, Dialog, etc.)
+src/lib/stores/              Svelte 5 $state-class stores
+src/lib/audit/               audit Web Worker + entry
+src/lib/ai/                  Anthropic API client + AI features
+```
+
+---
+
+## Run before claiming work is complete
+
+These commands gate every commit. Run them locally; the CI runs the
+same set.
+
+```sh
+pnpm exec eslint . --max-warnings 0        # lint MUST be at 0 warnings
+pnpm exec svelte-check --tsconfig ./tsconfig.json
+pnpm exec vitest run --reporter=dot
+pnpm exec playwright test --reporter=line
+```
+
+The `vite build` step is also part of CI but takes ~10s — run when
+you've touched route configuration or build-time prerenders.
+
+---
+
+## Conventions
+
+### TypeScript
+
+- **Strict mode is on.** No `any`, no `as any`, no `// @ts-ignore`.
+- Prefer named exports: `export const Foo = ...` over `export default`.
+- File names: `kebab-case.ts` for modules, `kebab-case.svelte` for
+  components; the component class itself is PascalCase.
+
+### Svelte 5
+
+- Use `$state` for reactive state, `$derived` for computed values,
+  `$effect` for side effects. The legacy `<script>` reactivity (`$:`)
+  is forbidden — this is a clean Svelte 5 codebase.
+- Stores are `$state` classes in `src/lib/stores/*.svelte.ts`. Export
+  a singleton instance, not the class.
+- When passing state across a Web Worker boundary, **`$state.snapshot()`
+  the value first** — proxies aren't structured-cloneable. The audit
+  worker (`src/lib/audit/`) is the reference pattern.
+- `<svelte:head>` content needs SSR enabled at the root to reach
+  crawlers. Don't add `ssr = false` at the root layout.
+
+### Styling
+
+- **Tailwind utility-first.** Never use inline `style={{}}` or CSS-in-JS.
+- Colors / spacing / typography use **design tokens** (CSS custom
+  properties under `--color-*`, `--space-*`). Never hardcode hex.
+- `text-success` / `text-warn` / `text-danger` carry contrast risk on
+  tinted backgrounds — use the `-strong` variants there.
+- The `class:` directive is the right form for conditional classes.
+  Use the project's `cn()` utility for complex compositions.
+
+### Accessibility
+
+- Every interactive element needs an accessible name (`aria-label`,
+  `title`, or visible text). The a11y suite in `e2e/a11y.spec.ts`
+  enforces WCAG 2.0 + 2.1 + 2.2 A/AA via axe-core across 31 routes
+  and 5 modals.
+- Touch targets: min 24×24 (WCAG 2.5.8). Use `inline-flex` + a `size-*`
+  container around small icons to satisfy the target-size without
+  enlarging the icon itself.
+- Run the suite before committing UI changes. A serious or critical
+  violation fails CI.
+
+### Tests
+
+- Unit tests: `*.test.ts` next to source. Vitest.
+- E2E: `e2e/*.spec.ts`. Playwright.
+- New routes need an a11y test in `e2e/a11y.spec.ts`.
+- Benchmarks: `*.bench.test.ts` for perf regression guards.
+- **Mock external APIs.** Never call real endpoints in tests.
+
+### Comments
+
+- **Default to writing no comments.** A well-named identifier is the
+  documentation.
+- Write a comment only when the **why** is non-obvious — a hidden
+  constraint, a subtle invariant, a workaround for a specific bug, a
+  defensive pattern that would surprise a reader.
+- Don't explain *what* code does. Don't reference the current task
+  ("added for the audit-worker fix") — that belongs in the commit
+  message.
+- Keep comments tight; one line is usually enough. Multi-paragraph
+  prose belongs in `docs/` or a `.md` file, not source.
+
+### Git
+
+- Conventional commits: `feat:`, `fix:`, `refactor:`, `perf:`,
+  `polish:`, `chore:`, `docs:`, `test:`.
+- Commit messages explain *why* in the body. Leading line under 70
+  characters.
+- One logical change per commit.
+- Branch off `main`; PR back to `main`.
+- **DCO** (`Signed-off-by:` trailer) preferred. No CLA.
+
+---
+
+## AI-assistant disclosure
+
+If you (the AI assistant) substantively wrote the code in a PR, the
+human author should:
+
+1. Mention this in the PR description ("AI-assisted with [tool]").
+2. Preserve the `Co-Authored-By: <Tool> <noreply@vendor.com>` trailer
+   in commit messages. Do not strip it.
+3. Apply the standard PR checklist (tests pass, lint at 0,
+   svelte-check clean, manual screenshot of any UI change).
+
+This isn't legally required, but it's the 2026 OSS norm and it lets
+maintainers calibrate review depth. AI-generated code carries 15–18%
+more security vulnerabilities and 4.6× longer review time per industry
+data — so the screenshot + test requirements are stricter than for
+human-only changes.
+
+---
+
+## File-system conventions
+
+### Where things live
+
+| Path | Contents |
+|---|---|
+| `src/routes/` | Pages + API endpoints. SvelteKit conventions. |
+| `src/routes/api/share/` | Cloud-share endpoints. Token auth. |
+| `src/routes/api/ai/` | Anthropic API proxy (user supplies their own key). |
+| `src/routes/learn/` | Long-form `/learn/*` tutorials. Prerendered. |
+| `src/lib/font/` | Font model + 94-code audit + OpenType pipeline. |
+| `src/lib/font/audit.ts` | Audit code registry + `describeAuditCode()`. |
+| `src/lib/audit/audit-worker.ts` | Web Worker entry — audit runs off main thread. |
+| `src/lib/stores/` | Svelte 5 `$state`-class stores. |
+| `src/lib/og-fonts/` | Subsetted Inter + Lora for OG image rendering. |
+| `static/` | Public root: `llms.txt`, `robots.txt`, demo OTF, OG-key. |
+| `e2e/` | Playwright specs. |
+| `docs/` | Design docs, architecture notes, launch plans. |
+| `scripts/` | One-shot Node scripts (IndexNow ping, OG-font subset). |
+
+### Files NOT to edit without explicit ask
+
+- `src/lib/og-fonts/*.ttf` — already subsetted via
+  `scripts/subset-og-fonts.mjs`; regenerate via that script if needed.
+- `static/demo-fonts/*.otf` — the demo project's actual font; treat
+  as a build artifact.
+- `static/<uuid>.txt` — IndexNow site verification key.
+- `.svelte-kit/` — build output.
+
+---
+
+## Constraints to honor
+
+- **Never paywall the core editor.** The MIT-licensed Patens app at
+  patens.design must remain freely usable forever.
+- **Never lead with AI features in marketing.** AI is helpful inside
+  the editor (opt-in via API key), but the product story is the
+  audit + teaching surfaces.
+- **Storage identifiers stay `font-studio-*`** (legacy from pre-
+  rename). Migrating would orphan every existing user's data —
+  IndexedDB database names, localStorage keys, service-worker cache,
+  PartyKit room name, session cookie. Never rename without an explicit
+  migration arc.
+- **Open-source MIT positioning** is explicit on every surface (home,
+  /about, /press, /compare, README). Don't add features that quietly
+  depend on closed-source services.
+- **Single maintainer.** "Keep it cheap" infra constraint: no
+  surprise multi-thousand-dollar bills. Vercel free tier + Vercel
+  Blob + Anthropic API key (user-supplied) are the canonical
+  dependencies.
+
+---
+
+## Things to read before working in specific areas
+
+| Touching... | Read first |
+|---|---|
+| The audit module | `src/lib/font/audit.ts` first 50 lines + `src/lib/audit/audit-worker.ts` |
+| Font export pipeline | `src/lib/font/export.ts` `buildFont()` signature |
+| The share + versioning contract | `src/lib/share-blob.ts` + `src/routes/api/share/+server.ts` |
+| Service worker | `src/service-worker.ts` + `src/lib/sw/upgrade.ts` |
+| Project store | `src/lib/stores/project.svelte.ts` |
+| `/spacing` kerning UI | `src/lib/font/family-kerning.ts` for the resolve pattern |
+| Anything routing-shaped | `src/routes/+layout.ts` (`ssr = true` at root) |
+
+---
+
+## Out of scope
+
+If your task touches any of these, stop and ask the human maintainer:
+
+- Renaming storage identifiers (`font-studio-*` → anything else)
+- Changing the license (MIT) or relicensing
+- Removing the MIT-only positioning from any surface
+- Paywalling any editor feature
+- Adding required-account flows (the project is account-free)
+- Changing the SSR posture at the root layout
+- Anything affecting `BLOB_READ_WRITE_TOKEN`, `ANTHROPIC_API_KEY`,
+  or session cookie HMAC keys
+
+---
+
+## Quick orientation for first contact
+
+1. Read `README.md` for the human-facing pitch.
+2. Read `ARCHITECTURE.md` for the structural map.
+3. Read `CONTRIBUTING.md` for the human-facing workflow.
+4. Read `DESIGN_PHILOSOPHY.md` for the "why" decisions.
+5. Run `pnpm install` then `pnpm dev` — confirm <http://localhost:5173>
+   loads cleanly.
+6. Run the test suites once to capture the baseline:
+   `pnpm exec vitest run` + `pnpm exec playwright test`.
+
+The codebase rewards reading. There's a `describeAuditCode()`
+dictionary, a `buildFont()` contract, a `resolveKerning()` rule. Find
+the canonical function first; the call sites usually fall into place.
+
+=== Maintainers + governance ===
+Source: MAINTAINERS.md
+
+# Maintainers
+
+Patens is a **solo-maintainer project**. This file is the pre-commit
+to a sustainable posture — the bus-factor risk is real (the 2026
+industry average is a ~36% chance per year of losing a solo
+maintainer to burnout or job change), and being honest about scope
++ cadence is the only defense.
+
+---
+
+## Current maintainer
+
+**Alejandro Vizio**
+- GitHub: [@alevizio](https://github.com/alevizio)
+- X / Bluesky: [@patenstype](https://x.com/patenstype) · [@patens.design](https://bsky.app/profile/patens.design)
+- Email: hi@patens.design (general) · security@patens.design (security)
+- Time zone: typically responsive in US Eastern business hours
+
+---
+
+## Response SLA — what to expect
+
+This is what I'll aim for, calibrated to be sustainable on top of the
+day job.
+
+| You sent | I'll respond by |
+|---|---|
+| **First-time-contributor PR** | 72 hours (the dropout point in PR-conversion data) |
+| Repeat-contributor PR | 1 week |
+| Bug report (issue) | 1 week (faster if it's a regression you can repro) |
+| Feature request (issue) | 2 weeks (or "out of scope" / "added to roadmap" in 1 week) |
+| Security report (security@) | 48 hours, then triage within 7 days — see `SECURITY.md` |
+| Question (Discussion) | Best-effort, 1–2 weeks |
+
+If I'm at a conference, on vacation, or in a deep-work block, I'll
+say so in a pinned issue. Don't read silence as rudeness — read it as
+solo-maintainer reality.
+
+---
+
+## Triage cadence
+
+I aim to clear the inbox **once a week**, typically Monday mornings.
+Triage means: label, route to milestone, ask clarifying questions,
+or close with a polite explanation. It does not mean every issue gets
+fixed in that pass — many will sit in `help wanted` or `good first
+issue` for a contributor to pick up.
+
+---
+
+## What's in scope
+
+Things I will personally work on or actively review:
+
+- The core editor (drawing, contour editing, audit, kerning, export).
+- The 94-code audit module — both new codes and the per-code teaching surfaces.
+- Type designer workflow polish (anything in the `enhancement / editor` label).
+- Multi-script support: Latin, Cyrillic, Greek as already shipped; extending coverage.
+- Variable-font workflow + the 2D variation explorer.
+- Cloud share + the versioning contract.
+- Accessibility (WCAG 2.0 + 2.1 + 2.2 A/AA — the bar I've held).
+- Performance regressions (the audit-worker arc + IDB batching baseline).
+- SEO / AIO foundation (the JSON-LD + llms.txt machinery already shipped).
+
+---
+
+## What's out of scope
+
+Things I won't merge or maintain, even from a good PR. Listed so we
+don't burn each other's time:
+
+- **Mobile editor.** Desktop-first by design.
+- **Real-time collaboration.** Single-designer-single-machine positioning.
+- **Required-account flows.** Patens is account-free; OAuth is opt-in for self-hosters.
+- **Paywalled editor features.** MIT core stays free forever.
+- **Server-side font hosting.** Fonts you draw are yours; no Patens-hosted serving tier.
+- **PWA push notifications.** No notification story makes sense for a creative tool.
+- **Replacing the SvelteKit framework.** Patens is a SvelteKit 2 + Svelte 5 codebase.
+- **Switching the license away from MIT.** The license is a commitment, not a configuration.
+- **AI features that aren't opt-in.** Anthropic API integration requires the user's own key.
+- **Renaming the storage identifiers** (`font-studio-*`) — that would orphan every existing user's data.
+
+If your contribution is in one of these zones, please open an issue
+*before* coding. I'll explain the reasoning, and we can find an
+adjacent path that fits.
+
+---
+
+## Decision-making
+
+For now: I'm the single decision-maker. This is unhealthy in the
+abstract (bus factor of 1) but realistic for a v1.x project. The
+explicit plan is:
+
+1. **v1.x**: I make all calls. Document decisions in commit messages
+   + `ROADMAP.md` + `docs/decisions/*.md` so a future maintainer
+   inherits context, not folklore.
+2. **v2.0 onward**: if active external contributors emerge (define:
+   3+ merged PRs over 6+ months from someone who isn't me), invite
+   them as co-maintainers with merge rights.
+3. **Eventually**: a `STEERING.md` if we ever need a council. Not now.
+
+Until then: this is a [BDFL](https://en.wikipedia.org/wiki/Benevolent_dictator_for_life)-shaped
+project run with a permissive license. If you don't like a decision,
+the recourse is fork — that's MIT working as intended.
+
+---
+
+## What I won't do, ever
+
+- **Run a Discord server alone.** I'd burn out moderating. GitHub
+  Discussions is the canonical community surface; if/when a Discord
+  arrives, it needs a co-moderator first.
+- **Accept paid feature priority above 20% of roadmap.** When the
+  funding model stabilizes (Sponsors + Polar + grants), the cap is
+  set in `FUNDING.md`.
+- **Sign a CLA.** DCO (`Signed-off-by:`) is the contributor
+  attribution mechanism. CLAs read corporate; we're not.
+- **Strip `Co-Authored-By:` trailers from AI-assisted commits.**
+  The Linux Foundation Agentic AI Foundation's 2026 norm is
+  preservation; I follow it.
+
+---
+
+## Releases
+
+Tagged releases at least monthly during active development. The
+full step-by-step playbook (pre-release checklist, tagging,
+post-release verification, hotfix flow, rollback) is documented
+in [`docs/release-process.md`](./docs/release-process.md). Release
+notes go in GitHub Releases + mirrored to `CHANGELOG.md`. Format:
+
+```
+## v1.5.x — short headline
+
+### Highlights
+- Bullets a designer would care about
+
+### Under the hood
+- Bullets a developer would care about
+
+### Bug fixes
+- Bullets a bug-affected user would search for
+```
+
+---
+
+## Burnout firebreak
+
+Pre-committed escape-valves so I don't blow up at a stressful moment:
+
+- **Hard weekly cap**: 12 hours of Patens work outside the day job.
+  When I hit the cap, I stop. The codebase will still be here next
+  Monday.
+- **Pinned issue if I'll be slow**: I'll post one to the issues list
+  if I expect a 2+ week gap. Don't read silence as anger.
+- **The "I can't" prerogative**: I reserve the right to say "I can't
+  ship this" to any specific request, even a polite one, without an
+  essay-length defense. The roadmap is a guide, not a contract.
+- **Forking is fine**: Patens is MIT. If you need it to do something
+  I won't ship, fork it and run with the new ideas. That's how
+  open source is supposed to work.
+
+---
+
+## How to be helpful
+
+Ranked by what actually moves the needle for a solo maintainer:
+
+1. **Open issues with clear repro + screenshots.** Saves me 80% of the
+   triage work.
+2. **PR a `good first issue` after reading `DESIGN_PHILOSOPHY.md` +
+   `ARCHITECTURE.md`.** Shows you've done the homework.
+3. **Star the repo.** Trivial cost, real impact on GitHub Trending +
+   downstream discoverability.
+4. **Sponsor on GitHub Sponsors** (link in `FUNDING.yml`). Even $5/mo
+   is meaningful; the median active sponsor count for a 500-star
+   project is ~3 in 2026.
+5. **Tell one type designer about Patens.** Word-of-mouth in the type
+   community is how this thing breaks past the dev-tool ceiling.
+
+I'll never ask for stars or sponsors as a condition of anything.
+
+---
+
+Last updated: 2026-05-25.
+
+=== Changelog ===
+Source: CHANGELOG.md
+
+# Changelog
+
+All notable changes to Patens. Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions are tagged as `vX.Y.Z` on the [GitHub repo](https://github.com/alevizio/patens).
+
+## [Unreleased]
+
+The OSS-readiness arc + TypeCon Portland launch prep. Accumulates since v1.5.2; will tag as v1.6.0 once the demo GIF lands + real-device responsive sweep is complete.
+
+### Added
+- **CLI: `npx patens audit`** — the 94-code audit module + preflight + compatibility checks shipped as a Node CLI. Single bundled ESM via esbuild, 3 output formats (`text` / `json` / `github` for PR annotations), exit code 2 on errors. Drop-in CI step; closes the "audit is locked inside the editor" critique. 13 unit tests cover the formatters.
+- **10 Architecture Decision Records** under `docs/decisions/` (Michael Nygard format). Documents the load-bearing choices: browser-native, MIT-forever, SSR-at-root, audit worker, share-as-capability, storage namespace stays `font-studio-*`, BYOK AI, strict quality gates, demo open-by-default.
+- **TypeDoc API reference** — `pnpm run docs:api` builds HTML docs under `docs/api/` for the audit + export + family-kerning + kerning-classes + path + font-machinery modules. Output gitignored, regenerable from source.
+- **2 new perf benchmarks** — `buildFont` (50/162/500-glyph projects: 2.4ms / 19ms / 126ms per call) + `expandKerningClasses` (small/medium/large with up to 360k expanded pairs in 19ms). Mirror the existing `audit.bench` pattern.
+- **30-second demo GIF storyboard** at `docs/launch/demo-gif-storyboard.md` — frame-by-frame pre-record blueprint: setup checklist, ffmpeg compression commands, per-surface delivery table.
+- **Responsive audit + sign-off checklist** at `docs/launch/responsive-audit.md` — code-level findings plus the iPhone + iPad device-test list that requires real hardware.
+- **AGENTS.md** — Linux Foundation cross-tool AI-assistant onboarding standard.
+- **ARCHITECTURE.md** — six-layer map + the core flows (cold-load, audit, share-write, export) + the SSR posture rationale.
+- **DESIGN_PHILOSOPHY.md** — the *why* behind Patens (teaching-first, audit-as-citizen, no AI-led marketing, never paywall the editor). Referenced from PR template.
+- **MAINTAINERS.md** — solo-maintainer response SLA, triage cadence, scope vs. out-of-scope.
+- **`docs/release-process.md`** — solo-maintainer release playbook: cadence, semver rules (audit-code IDs stable forever), pre-release checklist, tagging, post-release verification, hotfix flow, rollback via Vercel promote.
+- **CodeQL SAST + OpenSSF Scorecard + Dependency-review + Release-drafter** GitHub Actions workflows.
+- **CycloneDX SBOM via cdxgen** in CI — EU CRA future-proofing.
+- **Devcontainer config** for Codespaces + VS Code dev-container.
+- **OSS-readiness signal artifacts**: `FUNDING.yml`, RFC 9116 `security.txt`, `humans.txt`, `CONTRIBUTORS.md`. Plus 6 paste-ready prep docs under `docs/launch/` — NLnet NGI Zero Commons, OpenSSF Best Practices, USPTO trademark walkthrough, GitHub Sponsors, Polar, 3 awesome-list PRs.
+- **`/privacy` + `/security` pages** — plain-English, GDPR-shaped data inventory + responsible-disclosure flow. Both prerendered with full JSON-LD.
+- **`/press` kit** — factsheet (structured-data canonical), three-length descriptions, brand assets + screenshots placeholder, milestones.
+- **Re-share version picker UI** on `/share/[id]` + multi-master axis-pair picker on `/designspace`. Closes the two "server-ready, UI pending" items from the v1.5 backlog.
+- **NEW: dedicated `/audit` marketing page** — differentiator landing for the 94-code audit module. Hero + 9-family breakdown + 6 verbatim sample codes + CLI integration + 7-Q&A FAQPage + see-it-in-action CTAs. Prerendered to ~33KB. WebPage + BreadcrumbList + FAQPage JSON-LD for AI-engine citation.
+- **Trust band** on home page — 4-column Swiss-disciplined "by the numbers" row below the hero: 94 audit codes · 162 demo glyphs · 528 tests · MIT open source. Mono-uppercase labels + Hoefler-serif numerals.
+- **"How the audit teaches" 3-card sample** on home — verbatim `describeAuditCode()` prose for `self-intersecting` (fixable), `xheight-misaligned` (designer judgment), `sidebearing-class-drift-lsb` (designer judgment). Demonstrates the differentiator IN SITU.
+- **SiteHeader + SiteFooter components** — `src/lib/ui/SiteHeader.svelte` (sticky top nav, audit-led 4-item navigation with prefix-match active state) + `src/lib/ui/SiteFooter.svelte` (4-column grid: Product · Learn · Company · Legal & Source). Wired into 16 marketing pages + the 404 page.
+- **6 dedicated Satori-rendered OG variants** — `/og/audit`, `/og/learn`, `/og/compare`, `/og/press`, `/og/about`, plus the existing `/og/brand` and `/og/home`. Each marketing page's `og:image` + `twitter:image` now point at its route-specific card with route-specific copy + URL stamp.
+- **Article schema per release on `/changelog`** — top 10 releases now ship as discrete schema-typed entities (Article + datePublished + author + publisher + description) so AI engines can cite "what changed in Patens v1.5.2" as a specific citable answer.
+
+### Changed
+- **Audit-led home welcome strip copy.** The first-visit non-blocking strip now leads with the audit module as the differentiator: "A type design tool that teaches as you draw." Compresses cleanly to a tweet or a Show HN headline. Welcome dialog later enriched with a mono-uppercase metadata row (94 codes · 30 one-click fixes · MIT · no installs) + a new "Why audit-as-teaching →" CTA pointing at `/audit`.
+- **Swiss-influenced heading scale-up across 8 marketing pages.** Hero `sm:64` → `sm:80`, h1 `36` → `48`, h2 canonical `20` → `28` (incl. `/changelog` `24` → `28`, `/learn` `22/40` → `28/48`). h2 vertical rhythm `mt-12 mb-3` → `mt-16 mb-4`. Body sizes unchanged — Patens's density (14-15) is deliberate.
+- **Section rules on document-flow pages** (`/about`, `/privacy`, `/security`) — `border-t border-border/30 pt-12` above each h2 for structural skeleton.
+- **CONTRIBUTING + MAINTAINERS cross-links** to ADRs, DESIGN_PHILOSOPHY, AGENTS, release-process. Lint-gate exception rationale points at ADR-009.
+- **README opening blurb** reworked to lead with audit-as-teaching positioning, not feature-list. Capability table reorders Audit to the top as the headline row. Closing paragraph back-links to `/audit` so GitHub visitors can drill into the differentiator marketing page.
+- **Comprehensive SEO + AIO completeness sweep.** Every public route now ships: JSON-LD (WebSite + Organization + Person + WebApplication on home; CollectionPage + ItemList on /learn; FAQPage on /audit + /help; Article × 10 on /changelog; TechArticle on reference pages; HowTo on tutorials), canonical URLs, absolute `og:image` URLs, `og:image:alt` + `twitter:image:alt`, `twitter:site` + `twitter:creator` (@patenstype), `meta name="author"`, `og:locale` en_US, `og:image:type` image/png. Sitemap shipped with per-route honest `lastmod` dates (replacing the "everything updated today" anti-pattern that lowers crawler trust).
+- **PWA manifest enrichment** — added `id`, `display_override` (window-controls-overlay), `screenshots`, and 2 app `shortcuts` (Demo + Audit) for richer install prompts on Chrome Desktop + Android.
+
+### Fixed
+- **Home page Lighthouse A11y 98 → 100.** axe-core flagged `landmark-one-main`: the home page lacked a `<main>` landmark. The outer drag-drop surface (`<div role="application">`) became `<main>`; drag-drop event handlers unchanged.
+- **Editor mobile-gate.** A phone hitting `/project/[id]/edit` used to get the desktop editor crammed into a 375px viewport with no warning. Non-dismissible `<1024px` banner inside the project layout now names the constraint. iPad in landscape (≈1180px) clears it.
+- **Pin button on home cards** was invisible on touch devices (`opacity-0 group-hover:`). Now `opacity-60` on mobile, hover-revealed on `sm:+`.
+- **Stale `security.txt`** pointed at `font-studio.vercel.app`; updated to canonical `patens.design` URLs.
+- **`/families` 500 in production** — `+page.ts` called `listFamilies()` (idb-keyval) in the SSR load function, where `indexedDB` is undefined. Added `export const ssr = false;` matching the posture of `/share/[id]` and `/project/[id]/*`.
+- **Dev-server cache thrash** — Vite's HMR file-watcher was firing on every `.vercel/output/static/**` regeneration (~17 HTML files per build × 50 commits = hundreds of bogus reload cycles, corrupting the dep-optimizer cache). Watcher now ignores `.vercel/**`, `.svelte-kit/output/**`, `build/`, `dist/`, all `*.md`, and doc trees. Also added `pnpm run clean` script for one-command cache wipes.
+- **Bench test bounds + timeouts for CI** — `buildFont` 500-glyph bench bound 2000ms → 8000ms (CI runners are 15-20× slower than local); vitest test timeout raised to 30s to absorb the warm-up + iter × per-call walltime.
+- **Stale "88 glyphs" + "8 glyphs drawn" copy** on home page's "See it in action" Hn section — last of the 88→162 surface sweep that earlier passes missed.
+
+### Performance
+- **Editor cold-load: 593 KB → 486 KB (−106 KB / −17.9%).** Four-stage defer pass:
+  - Audit module dynamically imported on `requestIdleCallback`; the 94-check × every-glyph badge computation no longer blocks first paint.
+  - SettingsDialog (5KB) + ShortcutsDialog (5KB) + StatsPopover (19KB) lazy-mount on first open.
+  - CommandPalette (15KB) lazy-mounted in the root layout — saves 15 KB on every cold load across every route, marketing pages included.
+  - EditorTour (7KB) lazy on tour activation.
+  - 5 right-sidebar panels (CompositeEditor 15KB + ReferenceImagePanel 11KB + RevisionsPanel 8KB + MetricsInspector 5KB + StemsPanel 3KB) batched into a single `Promise.all` import on `requestIdleCallback` ~200ms after canvas mount.
+- **Pyodide lazy-loaded off the home-page eager chain.** UFO import now dynamic-imports `$lib/font/python` on first use; first-visit home no longer ships the Python runtime in the preload graph.
+
+## [1.5.2] — 2026-05-25
+
+### Security
+- **Closed open-redirect via `?returnTo` on `/auth/login`, `/auth/callback/github`, `/auth/logout`.** `safeReturnTo()` helper validates the redirect target resolves to the same origin; off-origin / scheme-relative / `javascript:` / `data:` URLs fall back to `/`. 13 unit tests cover the helper + the encode/decode/tamper paths.
+- **Replaced `===` token comparison with `timingSafeEqual`** in share POST + DELETE (`constantTimeEqual` in `src/lib/share-blob.ts`). Defense-in-depth against timing attacks.
+
+### Fixed
+- **Pointer-listener leak in the 2D variation explorer.** Inline-template handler was recreated on every reactive update + added new listeners on every pointerdown with no cleanup if pointerup was missed (pointercancel / lostpointercapture / ESC during drag). Hoisted to script block; added re-entrancy guard + listens for all drag-end events.
+
+### Added
+- **Family kerning UI panel on `/family/[id]`** — completes the v1.5.0 Day 9 data-only work. Table of family-wide pairs (left + right + value + delete) + inline add form. Pairs apply to every sibling at resolution time via `resolveKerning()`.
+- **e2e API smoke tests** (`e2e/api-smoke.spec.ts`) — 12 tests covering health version, sitemap + RSS XML validity, OG byte size with PNG magic-number check, manifest PWA shape, share endpoints 503/404 paths, auth gates. Catches the regression classes that `docs/qa-checklist.md` exists for, in CI instead of post-deploy.
+- **`session.test.ts`** — 13 unit tests for the signed-cookie session helpers + the new `safeReturnTo` open-redirect defense.
+
+### Changed
+- **Lint baseline ratcheted 22 → 2** (CI gate at 5). Cleaned vestigial vars across `svg-path.ts` (cx/cy/startX/startY current-point trackers that were never read), `audit.ts` (unused depth counter), `path.ts` (dead pts[] + last in reverseContour), `export.ts` (orphan effectiveContours wrapper), `GlyphBrowser.svelte` (orphan handleDelete), and a few placeholder/escape-character tightenings.
+- **Cold-load baseline refresh** at `patens.design` (post-rebrand + post-preload-mjs): home FCP **1057ms** (was 1319ms in v1.4.0 — 20% faster), editor FCP **906ms**, share FCP **1356ms**. 0 long tasks anywhere.
+
+## [1.5.1] — 2026-05-25
+
+### Changed
+- **Rebrand: Font Studio → Patens.** Canonical domain `patens.design`. Latin for "lying open, accessible" — root of *patent*, the word for openness before lawyers got to it. Open-source positioning made explicit in the name.
+- **Canonical-domain 301 redirects** in `vercel.json` — `patens.app` / `patens.studio` / `font-studio.vercel.app` all permanently redirect to `patens.design`. One source of truth for SEO + OG previews.
+- **Storage namespaces deliberately preserved** as `font-studio-*` (IndexedDB, localStorage, cookies, service-worker cache, PartyKit room) — backward compatibility with existing browser data.
+
+## [1.5.0] — 2026-05-25
+
+### Added
+- **WCAG 2.0 + 2.1 + 2.2 A/AA test coverage.** axe-core via Playwright now runs the full WCAG A/AA tag set across 19 routes. Caught + fixed: scrollable-region-focusable on /share, link-in-text-block on 6 files (13 sites), label-content-name-mismatch on 4 editor toolbar buttons, and target-size on the 9 GlyphBrowser filter chips (now `min-h-[24px]`).
+- **Cold-load profiler.** `scripts/profile-cold-load.mjs` drives headless Chromium via CDP, captures the Performance trace, and digests long tasks + layout events + FCP/LCP markers. Wired as `pnpm profile [url]`. v1.4.0 baselines documented in `docs/qa-checklist.md`.
+- **Post-deploy QA checklist.** `docs/qa-checklist.md` — 9 sections covering URL smoke tests, OG image byte verification, health version drift, end-to-end editor walk, share + cloud, RSS validation, perf profile, lighthouse + axe, and CI status. Triggered by 2 production bugs caught during v1.4.0 deploy that the checklist now catches in 30 seconds.
+- **CODE_OF_CONDUCT.md** — Contributor Covenant 2.1, linked from CONTRIBUTING.
+
+### Fixed
+- **`/og/[id]` 500 in production** — `@resvg/resvg-js-linux-x64-gnu` native binding wasn't bundled when prebuilt-deploying from Mac. Fix: `pnpm.supportedArchitectures` config + deploy without `--prebuilt` so Vercel installs the right native bindings on Linux.
+- **`/og/[id]` 500 after first fix** — Lora + Inter fonts under `static/og-fonts/` aren't bundled with serverless functions. Moved to `src/lib/og-fonts/` and read via `$app/server`'s `read()` so the binaries embed in the function bundle.
+- **Lighthouse CI broken on every push** — the `lighthouse:no-pwa` preset's strict insight assertions were erroring on `forced-reflow-insight`, `network-dependency-tree-insight`, `target-size`, `uses-passive-event-listeners`, `uses-rel-preconnect`, `bf-cache`. Relaxed to `warn`; ratcheted category-score thresholds (perf 0.85, a11y 0.90) to `error` to gate on real regressions.
+
+### Changed
+- **Network preload strategy** → `preload-mjs`. Default `'modulepreload'` only emits inside the inline bootstrap script; switched to `'preload-mjs'` which puts `<link rel="preload" as="script">` in `<head>`. Home page went from 0 → 45 preload tags; the full chunk graph fetches in parallel with HTML parsing. Closes `network-dependency-tree-insight` + transitively eliminates the long-task waterfall behind `max-potential-fid`.
+- **EditorTour scroll listener** → passive (`{ capture: true, passive: true }`). Closes `uses-passive-event-listeners`.
+- **Editor toolbar buttons** — moved descriptive aria-label text to `title=` so the visible button text becomes the accessible name. Voice-control users can now say "click Undo stroke" / "click Copy path" / etc. Closes `label-content-name-mismatch`.
+- **describeAuditCode()** — added the 43 missing descriptions; full 94-code coverage. New entries span brief completeness, coverage subsets, glyph count, UPM, naming, OS/2 metadata, vertical-metric mismatches, designspace orphans, kerning classes, and anchor coverage.
+- **/changelog** — RSS 2.0 feed at `/changelog/rss.xml` (autodiscovered + visible link); h2 deep-link anchors; visible Subscribe-via-RSS affordance.
+- **/help** — h2 deep-link anchors on each section; FAQPage schema.org JSON-LD for Google rich results; per-page OG + Twitter meta with `og:image=/og/brand`.
+- **/about** — per-page OG + Twitter meta + `og:image=/og/brand`. Version read from `package.json` so it can't drift.
+- **/health** — version read from `package.json` (was hardcoded).
+- **Home page footer** — Help / Changelog / About / GitHub nav added.
+- **Sitemap** — adds /help, /changelog, /about, /changelog/rss.xml.
+- **`docs/next-90-days.md` + `docs/phase-c-sprint-plan.md`** — frozen as archival snapshots.
+
+### Deferred
+- `forced-reflow-insight` — closed via profiler measurement (max 35ms layout on editor cold-load, all normal first-render territory).
+- `max-potential-fid` — closed via profiler measurement (0 long tasks ≥50ms across all profiled routes).
+- `uses-rel-preconnect` — false positive (Vercel auto-injected analytics, not site code).
+
+## [1.4.0] — 2026-05-24
+
+### Added
+- **PWA install support.** `static/manifest.json` with name, short_name, description, start_url, scope, display: standalone, theme + background colors, 3 icons (svg + 192/512 PNG, "any maskable" purpose), categories. Linked from `app.html`. Installable on Chrome/Edge desktop and iOS home-screen "Add to Home Screen".
+- **Favicon variants.** Rasterized `static/icon-192.png` and `icon-512.png` from the favicon.svg (light-mode H-on-#fafaf9), wired as `<link rel="icon" type="image/png">` and `apple-touch-icon`.
+- **/help page.** FAQ across six sections (getting started, sharing, export, editor, performance, broken). 17 questions answered. Static, prerendered.
+
+### Fixed
+- **Share page JSON-LD parsing.** Escaped the inline `</script>` literal in the `{@html}` block as `<\/script>` so the svelte-eslint-parser doesn't terminate the script context prematurely. Functionally identical at runtime.
+- **Changelog `{@html}` lint.** Moved the eslint-disable-next-line comment to the same block as the actual `{@html}` paragraph render.
+
+## [1.2.0] — 2026-05-24
+
+### Added
+- **Multi-script starter set.** 17 Cyrillic look-alike glyphs (А В Е К М Н О Р С Т Х uppercase + а е о р с х lowercase) and 14 Greek look-alike glyphs (Α Β Ε Ζ Η Ι Κ Μ Ν Ο Ρ Τ Υ Χ uppercase). All reuse Latin builders where the shape is identical in a geometric sans; bespoke Cyrillic/Greek shapes (Я Ж Ф + entire Greek lowercase) are explicit future work.
+- **5 new audit codes:** `color-layer-no-palette`, `color-layer-out-of-range`, `kerning-pair-self`, `master-empty`, `feature-kern-disabled-with-pairs`. Audit code count: 88 → 93.
+- Demo `brief.differentiation` + `decisions` updated to acknowledge the multi-script starter and frame the trade-off honestly.
+
+## [1.1.0] — 2026-05-24
+
+### Added
+- **Cloud share.** New `POST /api/share` + `GET /api/share/[id]` endpoints back by Vercel Blob; share URLs now work for recipients in any browser (not just the originator's). Link-as-capability auth — the share URL contains an unguessable UUID. Upload-on-share wired into the editor header + home-page card Share buttons; clear 503 fallback when `BLOB_READ_WRITE_TOKEN` isn't configured.
+- **Per-project OG image.** `/og/[id]` route renders a 1200×630 PNG via satori + resvg-js. Family name in Lora serif, designer + version + glyph count below. Demo OG renders on the fly; uploaded projects render from cloud storage; brand variant at `/og/home` for the home-page unfurl.
+- **Launch copy drafts.** `docs/launch/copy.md` with Show HN, Twitter/Bluesky thread, Reddit, DM, and email templates. Anti-patterns section to avoid in launch copy.
+
+### Changed
+- Share-404 page copy: "This link is browser-local" → "Project not found" (cloud sharing exists; the 404 now means the upload didn't happen or this deployment doesn't have cloud configured).
+- README "Project status" bumped from `v1.0.0-beta` to `v1.0.0` with a "Configuring cloud share" section.
+- ROADMAP M3 section marked ✅ SHIPPED with the precise list of what landed.
+
+## [1.0.0] — 2026-05-24
+
+### Added
+- v1.0.0 milestone. Production-grade.
+
+### Fixed
+- **Critical: app.html slot bug.** The literal string `%sveltekit.body%` inside an HTML comment was substituted by SvelteKit's templating, breaking the actual body slot. Every E2E test that interacted with the page failed because the JS bundle never loaded.
+- **designspace infinite `$effect` loop.** The previewLocation initializer effect read AND wrote `previewLocation`. Wrapped the write in `untrack()` so the effect tracks only the axes array. This was the root cause of the entire 16-test CI failure cliff.
+- **Cmd+Shift+V paste-glyph regression.** The bare-V key handler in the editor's keydown chain caught Cmd+Shift+V before the paste-glyph branch. Added `!metaKey && !ctrlKey` guards. Found by ESLint's no-dupe-else-if rule on first run.
+- **Vercel Lighthouse false positives.** Vercel's audit was running against per-deployment URLs behind Deployment Protection, scoring an auth wall page. Documented the fix in ROADMAP known-issues section.
+
+### Changed
+- **Welcome dialog → non-blocking strip.** First-visit modal blocking the home page replaced with an inline strip at the top. Visitors see the actual product immediately.
+- **Microcopy sweep.** "Copied path (1842 chars)" → "Copied SVG path for {name}"; "Clipboard write failed." → "Could not copy — try Cmd+Shift+C"; "[ ] navigation" tooltip spelled out.
+- **Pre-hydration shim.** `app.html` paints html/body backgrounds in canvas-token colors before SvelteKit hydrates so the cold-load flash matches the eventual theme.
+- **Share-404 detects share links** and shows specific recovery copy (open demo + import `.font.json`).
+- **Brand serif consistency.** All home-page section headers use Hoefler Text.
+- **LoadingPanel italics rule.** Removed `italic` entries from the type-flicker cycle per project's no-italics-in-UI rule.
+
+### Repository hygiene
+- Real README replacing the SvelteKit boilerplate.
+- LICENSE (MIT) added.
+- `package.json` metadata: name → `font-studio`, description, author, license, homepage, repository, bugs, keywords.
+- `CONTRIBUTING.md` with setup, branch model, commit conventions, PR flow.
+- `docs/architecture.md` — one-page mental-model loading.
+- `ROADMAP.md` — deferred M3 work + known issues.
+- GitHub `ISSUE_TEMPLATE` (bug / feature / question) and `pull_request_template.md`.
+
+### Engineering
+- **ESLint flat config** with typescript-eslint + eslint-plugin-svelte. Real-bug rules at error (caught the Cmd+Shift+V conflict on first run). Stylistic rules at warn (52-warning baseline).
+- **Vitest coverage** (`@vitest/coverage-v8`). Baseline: 77.58% statements, 79.16% lines, 80.46% functions, 64.56% branches. CI uploads as artifact.
+- **Bundle analyzer** (`rollup-plugin-visualizer`). `pnpm run analyze` writes `bundle-report.html` to repo root.
+- **WAI-ARIA disclosure** on Accordion (the right-sidebar collapsible sections). Header + region linked via aria-controls + aria-labelledby.
+- **Focus traps** on all major modals (ShortcutsDialog, Settings, Storage, Welcome, CreateFont).
+
+## [0.6.0] — content-complete
+
+13 new glyphs ($, ©, ®, ™, §, [, ], {, }, °, ±, ×, ÷), 10 `.onum` digits, 2 `.case` parens, `g.ss02` alternate. Liga ligatures (fi, fl). Demo project at 119 glyphs.
+
+## [0.5.0] — finished
+
+ß as drawn shape, fi/fl ligature GSUB, focus traps, accordion a11y, math glyphs, denser kerning.
+
+## [0.4.0] — share-complete
+
+Foundry-style tester (master pills + size + tracking sliders), live OpenType feature toggles, reading specimens (Display / Body / Caption), glyph inspector with metric guides + sidebearings + anchors + master overlay, deep-linkable inspector, glyph grid filter, shareable tester URL, palette switcher, print specimen sheet, sample-text presets, OT features grouped, in-context mockups, coverage heatmap, anchor visualizer.
+
+## Earlier
+
+See [git history](https://github.com/alevizio/font-studio/commits/main) for prior 153 commits. The pre-0.4.0 commits built out the foundational editor (sketch + trace pipeline, opentype.js export, audit module, IndexedDB project store, COLR + variable font support, harfbuzz live shaping).
+
