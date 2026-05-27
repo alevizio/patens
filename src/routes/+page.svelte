@@ -772,6 +772,29 @@
 				programmingLanguage: ['TypeScript', 'Svelte'],
 				keywords:
 					'type design, font editor, browser-based, open source, OpenType, audit, teaching, variable fonts, multi-script, MIT'
+			},
+			{
+				// SoftwareSourceCode — the open-source-repo half of the
+				// WebApplication entity above. Cross-references via
+				// targetProduct so a crawler hitting either schema knows
+				// the two are linked. Useful for AI-agent retrieval that
+				// asks "what's the source code for this product" and for
+				// SERPs that want to surface the GitHub repo alongside
+				// the live web app.
+				'@type': 'SoftwareSourceCode',
+				'@id': 'https://patens.design/#sourcecode',
+				name: 'Patens (source code)',
+				codeRepository: 'https://github.com/alevizio/patens',
+				url: 'https://github.com/alevizio/patens',
+				programmingLanguage: ['TypeScript', 'Svelte', 'JavaScript'],
+				runtimePlatform: 'Web Browser',
+				license: 'https://opensource.org/licenses/MIT',
+				codeSampleType: 'full',
+				targetProduct: { '@id': 'https://patens.design/#webapp' },
+				author: { '@id': 'https://patens.design/#maintainer' },
+				maintainer: { '@id': 'https://patens.design/#maintainer' },
+				keywords:
+					'type design, font editor, sveltekit, svelte 5, open source, MIT'
 			}
 		]
 	}).replace(/<\/script/g, '<\\/script')}<\/script>`}
