@@ -387,65 +387,70 @@ const bowlRing = (stemLeftX, cy, rx, ry, t) => {
 };
 
 const buildA = () => {
-	// A: triangular silhouette with stem-width parallelogram strokes.
-	// Crossbar at 35% of cap-height. Apex flat at the top (STEM wide).
-	const apexCenterX = CAP_W / 2;
-	const apexHalfW = STEM / 2;
-	// Left stroke parallelogram (constant horizontal width = STEM).
+	// A: two diagonal strokes meeting at a flat apex (cap-width STEM)
+	// + horizontal crossbar at 35% cap-height. The diagonals are
+	// constant-horizontal-width parallelograms; the apex is naturally
+	// flat (STEM wide) where the inner edges of the two strokes meet
+	// the outer edges at the top — no separate "apex cap" needed.
+	const apexL = CAP_W / 2 - STEM / 2;
+	const apexR = CAP_W / 2 + STEM / 2;
+	// Wider base so the triangle reads as a proper A silhouette
+	// (previously the base was just CAP_W wide, making A look tall
+	// and narrow rather than a confident wide triangle).
+	const baseL = 30;
+	const baseR = CAP_W - 30;
+	// Left stroke: parallelogram from (baseL, 0) to (apexL, CAP_H).
 	const left = polyPath([
-		[80, 0],
-		[80 + STEM, 0],
-		[apexCenterX, CAP_HEIGHT], // inner-top meets center
-		[apexCenterX - STEM, CAP_HEIGHT] // outer-top at center − STEM
+		[baseL, 0],
+		[baseL + STEM, 0],
+		[apexR, CAP_HEIGHT],
+		[apexL, CAP_HEIGHT]
 	]);
+	// Right stroke: mirror of left.
 	const right = polyPath([
-		[CAP_W - 80 - STEM, 0],
-		[CAP_W - 80, 0],
-		[apexCenterX + STEM, CAP_HEIGHT],
-		[apexCenterX, CAP_HEIGHT]
+		[baseR - STEM, 0],
+		[baseR, 0],
+		[apexR, CAP_HEIGHT],
+		[apexL, CAP_HEIGHT]
 	]);
-	// Crossbar at y = 0.35 * H. Overlap the inner edges of both strokes
-	// so the joins fill cleanly without subpixel gaps.
-	const bar = polyPath([
-		[120, CAP_HEIGHT * 0.35 - BAR / 2],
-		[CAP_W - 120, CAP_HEIGHT * 0.35 - BAR / 2],
-		[CAP_W - 120, CAP_HEIGHT * 0.35 + BAR / 2],
-		[120, CAP_HEIGHT * 0.35 + BAR / 2]
-	]);
-	// Apex cap — a small horizontal at the top so the join reads as a
-	// flat apex rather than a sharp point that won't reliably overlap.
-	const apex = polyPath([
-		[apexCenterX - apexHalfW, CAP_HEIGHT - BAR],
-		[apexCenterX + apexHalfW, CAP_HEIGHT - BAR],
-		[apexCenterX + apexHalfW, CAP_HEIGHT],
-		[apexCenterX - apexHalfW, CAP_HEIGHT]
-	]);
-	return { path: mergePaths(left, right, bar, apex), advance: CAP_W + 40, lsb: 80 };
+	// Crossbar — compute the inner-edge X at the crossbar Y so it joins
+	// the diagonals cleanly (no overshoot, no gap).
+	const crossY = CAP_HEIGHT * 0.35;
+	const t = crossY / CAP_HEIGHT;
+	// Left inner-edge runs from (baseL + STEM, 0) to (apexR, CAP_H).
+	const innerL = baseL + STEM + (apexR - baseL - STEM) * t;
+	const innerR = baseR - STEM + (apexL - baseR + STEM) * t;
+	const bar = rect(innerL, crossY - BAR / 2, innerR - innerL, BAR);
+	return { path: mergePaths(left, right, bar), advance: CAP_W, lsb: baseL };
 };
 
 const buildP = () => {
-	// P: full vertical stem + ring in the upper half. bowlRing aligns
-	// the ring's outer-left edge with the stem's left edge so the stem
-	// covers the ring's left wall exactly — only the right bowl shows.
+	// P: full vertical stem + LARGE upper-half bowl. Bowl extends from
+	// cap-top down to ~45% cap-height — was 48%, but the visual "tiny
+	// bowl floating on a long stick" feeling came from bowl-height
+	// being only 0.52 of cap-height. Going to 0.55+ makes the bowl
+	// dominate visually like a real geometric P.
 	const stem = rect(80, 0, STEM, CAP_HEIGHT);
-	const ringCy = CAP_HEIGHT * 0.74;
-	const ringRx = CAP_W * 0.32;
-	const ringRy = CAP_HEIGHT * 0.26;
+	const bowlBottom = CAP_HEIGHT * 0.45;
+	const ringRy = (CAP_HEIGHT - bowlBottom) / 2;
+	const ringCy = CAP_HEIGHT - ringRy;
+	const ringRx = CAP_W * 0.4;
 	const ring = bowlRing(80, ringCy, ringRx, ringRy, STEM);
-	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 20, lsb: 80 };
+	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 30, lsb: 80 };
 };
 
 const buildR = () => {
-	// R: like P but with a diagonal leg from the bowl's base-right
-	// down to the baseline-right corner.
+	// R: like P (large bowl) + diagonal leg from bowl-base-right to
+	// baseline-right corner.
 	const stem = rect(80, 0, STEM, CAP_HEIGHT);
-	const ringCy = CAP_HEIGHT * 0.74;
-	const ringRx = CAP_W * 0.32;
-	const ringRy = CAP_HEIGHT * 0.26;
+	const bowlBottom = CAP_HEIGHT * 0.45;
+	const ringRy = (CAP_HEIGHT - bowlBottom) / 2;
+	const ringCy = CAP_HEIGHT - ringRy;
+	const ringRx = CAP_W * 0.4;
 	const ring = bowlRing(80, ringCy, ringRx, ringRy, STEM);
 	const bowlRightEdge = 80 + 2 * ringRx;
-	const legTopX = bowlRightEdge - STEM * 1.2;
-	const legTopY = ringCy - ringRy + STEM / 2;
+	const legTopX = bowlRightEdge - STEM * 1.5;
+	const legTopY = bowlBottom + STEM / 2;
 	const legBottomRight = bowlRightEdge + 30;
 	const leg = polyPath([
 		[legTopX, legTopY],
@@ -453,15 +458,16 @@ const buildR = () => {
 		[legBottomRight, 0],
 		[legBottomRight - STEM, 0]
 	]);
-	return { path: mergePaths(stem, ring, leg), advance: legBottomRight + 20, lsb: 80 };
+	return { path: mergePaths(stem, ring, leg), advance: legBottomRight + 30, lsb: 80 };
 };
 
 const buildD = () => {
-	// D: vertical stem + tall ring covering the full cap-height.
+	// D: vertical stem + full-cap-height bowl. Bowl extends to give the
+	// D a wide, confident silhouette.
 	const stem = rect(80, 0, STEM, CAP_HEIGHT);
-	const ringRx = CAP_W * 0.4;
+	const ringRx = CAP_W * 0.48;
 	const ring = bowlRing(80, CAP_HEIGHT / 2, ringRx, CAP_HEIGHT / 2, STEM);
-	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 20, lsb: 80 };
+	return { path: mergePaths(stem, ring), advance: 80 + 2 * ringRx + 30, lsb: 80 };
 };
 
 const buildU = () => {
@@ -489,10 +495,12 @@ const buildU = () => {
 };
 
 const buildS = () => {
-	// S: two stacked C-curves opposed. The simplest faithful S is a
-	// vertical pill (the spine) with bumps on opposing corners. We use
-	// three horizontal bars + a stylised spine to keep the geometric
-	// aesthetic — close enough to read as "S".
+	// S: three horizontal bars (top, middle, bottom) joined by two
+	// stem connectors at opposite corners — geometric/brutalist S.
+	// Previous "two ring" attempt produced a "+" artifact because the
+	// middle bar filled both rings' inner counters. Rectangular S
+	// reads cleanly even if it's not curved, and matches the H/E/T
+	// rectangular aesthetic the rest of the alphabet uses.
 	const top = polyPath([
 		[60, CAP_HEIGHT - BAR],
 		[CAP_W - 60, CAP_HEIGHT - BAR],
@@ -506,25 +514,18 @@ const buildS = () => {
 		[60, BAR]
 	]);
 	const middle = polyPath([
-		[80, CAP_HEIGHT / 2 - BAR / 2],
-		[CAP_W - 80, CAP_HEIGHT / 2 - BAR / 2],
-		[CAP_W - 80, CAP_HEIGHT / 2 + BAR / 2],
-		[80, CAP_HEIGHT / 2 + BAR / 2]
-	]);
-	// Upper-left connector — left stem from mid to top
-	const upperLeft = polyPath([
-		[60, CAP_HEIGHT / 2 + BAR / 2],
-		[60 + STEM, CAP_HEIGHT / 2 + BAR / 2],
-		[60 + STEM, CAP_HEIGHT - BAR],
-		[60, CAP_HEIGHT - BAR]
-	]);
-	// Lower-right connector — right stem from bottom to mid
-	const lowerRight = polyPath([
-		[CAP_W - 60 - STEM, BAR],
-		[CAP_W - 60, BAR],
+		[60, CAP_HEIGHT / 2 - BAR / 2],
 		[CAP_W - 60, CAP_HEIGHT / 2 - BAR / 2],
-		[CAP_W - 60 - STEM, CAP_HEIGHT / 2 - BAR / 2]
+		[CAP_W - 60, CAP_HEIGHT / 2 + BAR / 2],
+		[60, CAP_HEIGHT / 2 + BAR / 2]
 	]);
+	const upperLeft = rect(60, CAP_HEIGHT / 2 - BAR / 2, STEM, CAP_HEIGHT / 2 - BAR / 2);
+	const lowerRight = rect(
+		CAP_W - 60 - STEM,
+		BAR,
+		STEM,
+		CAP_HEIGHT / 2 - BAR / 2
+	);
 	return {
 		path: mergePaths(top, bottom, middle, upperLeft, lowerRight),
 		advance: CAP_W,
@@ -571,7 +572,10 @@ const buildG = () => {
 	// filled crescent: outer=0, mouth=-1, winding=-1, filled).
 	const mouthRightX = cx + ellipseHalfWidthAt(rx, ry, mouthH / 2);
 	const mouth = cwRect(cx + innerRx, cy - mouthH / 2, mouthRightX - (cx + innerRx), mouthH);
-	const spur = rect(cx + STEM, cy - STEM / 2, rx - STEM, STEM);
+	// Spur — horizontal bar at the middle. Spans from CENTER of the
+	// ring (cx) to the OUTER right edge (cx+rx) so it visually attaches
+	// to the right wall AND extends halfway into the counter.
+	const spur = rect(cx, cy - STEM / 2, rx, STEM);
 	return { path: mergePaths(outer, inner, mouth, spur), advance: CAP_W, lsb: 80 };
 };
 
@@ -631,15 +635,17 @@ const buildA_lc = () => {
 	// a: ring bowl + right stem. Ring's outer-RIGHT edge aligns with
 	// the right stem's right edge (mirror of P's bowl construction):
 	// stem covers the ring's RIGHT wall, only the left bowl shows.
+	// rx derived from the FULL visible ring width (lsb → stemRightEdge),
+	// not the previous over-narrow formula.
 	const lsb = 80;
 	const t = STEM - 10;
 	const ry = X_HEIGHT / 2;
-	const rx = (LC_W - 2 * lsb - STEM) / 2; // leaves room for the right stem
 	const stemRightEdge = LC_W - lsb;
 	const stemLeftEdge = stemRightEdge - t;
-	// Mirror trick: cx = stemRightEdge - rx so outer-right at stemRightEdge,
-	// inner-right at stemRightEdge - t = stemLeftEdge.
-	const cx = stemRightEdge - rx;
+	const ringLeftEdge = lsb;
+	const ringRightEdge = stemRightEdge;
+	const rx = (ringRightEdge - ringLeftEdge) / 2;
+	const cx = (ringRightEdge + ringLeftEdge) / 2;
 	const outer = ellipsePath(cx, ry, rx, ry, 'ccw');
 	const inner = ellipsePath(cx, ry, rx - t, ry - t, 'cw');
 	const stem = rect(stemLeftEdge, 0, t, X_HEIGHT);

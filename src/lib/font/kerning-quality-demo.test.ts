@@ -181,13 +181,13 @@ describe('auto-kern regression vs demo font', () => {
 		// shifts make typographic sense, or did the algorithm break?"
 		expect(results).toMatchInlineSnapshot(`
 			{
-			  "AT": -118,
-			  "PA": -19,
-			  "Pe": -11,
-			  "Po": -11,
-			  "RT": 16,
-			  "TA": -78,
-			  "Ta": -245,
+			  "AT": -107,
+			  "PA": -42,
+			  "Pe": -18,
+			  "Po": -18,
+			  "RT": -6,
+			  "TA": -107,
+			  "Ta": -155,
 			  "To": -155,
 			}
 		`);
