@@ -198,3 +198,189 @@ Thanks for any time you can give it.
 - **Don't oversell the multi-master story.** The Italic is a slant axis with per-glyph deviation, not a hand-drawn italic master. Be honest about scope — it's on the roadmap, not shipping.
 - **Don't pronounce it for people in writing.** "Pronounced PAH-tens" reads as defensive. Let X-mention pronunciation explain itself naturally in replies.
 - **Don't oversell the AI features.** They're user-key-gated, so most visitors won't experience them. Lead with the deterministic features (audit teaching + sketch → vector + OpenType export); AI is a footnote in everything except the privacy doc (where it must be explicit).
+
+---
+
+## TypeDrawers introduction thread
+
+TypeDrawers is the type-design community centroid (Shift, Fontra, et al. were introduced here). Strict mods + sharp readers — don't post until v1.6 has the audit module polished and demo project ready.
+
+**Forum category**: Open Source
+
+**Title**: `Patens — browser-native open-source type design tool with a 94-rule audit module`
+
+**Body**:
+
+```
+Hello TypeDrawers,
+
+I've been building a browser-native type design tool called Patens
+(Latin for "lying open", root of "patent"). Source on GitHub at
+github.com/alevizio/patens (MIT), live at patens.design.
+
+The differentiator I'd like feedback on is the audit module. Every
+contour, metric, kerning pair, and OpenType invariant gets checked
+against 94 type-design rules — each explained in plain English, with
+one-click Fix on ~30 of them. Each rule has its own page at
+patens.design/audit/[code] — they grew out of realising that the only
+place on the open web where you can find plain-English explanations
+of rules like "contour-winding-collision" or "anchor-naming-mark-no-
+prefix" is inside Glyphs's tooltips. Now they're a public reference.
+
+The demo project ships 162 drawn glyphs across Latin / Cyrillic /
+Greek. patens.design/project/demo/edit to fiddle. The audit also
+distributes as a CLI (`npx patens audit my.font.json`) for CI lint.
+
+Explicitly NOT positioning Patens as a Glyphs/FontLab replacement —
+those tools are deeper, faster, built for professionals shipping
+commercial families. Patens is for designers between sketches and
+shipping: when you've drawn a logo and want a full font from it,
+when you're learning type design and need an editor that explains
+its warnings, when you want to share a specimen without making
+someone install software.
+
+Looking for feedback on:
+1. Rules I'm missing — particularly advanced typographic-detail
+   ones (cursive joins, ink-traps, optical correction at small sizes).
+2. Auto-fix actions — which feel reliable vs which feel like
+   they'd make wrong calls?
+3. The Brief feature — useful start-of-project structure or
+   just overhead?
+4. The CLI audit's output format — useful for CI lint, or
+   integration patterns I'm not seeing?
+
+Roadmap at github.com/alevizio/patens/blob/main/ROADMAP.md.
+
+— Alejandro
+```
+
+**Tips**:
+- Reply patiently + concretely. TypeDrawers values precision.
+- Don't dodge criticism with feature-roadmap promises. Acknowledge limitations honestly.
+- Link rule pages (patens.design/audit/<code>) when conversation lands on a specific topic.
+- Cross-post screenshots — visual evidence carries weight.
+
+---
+
+## dev.to / Hashnode cross-posts (3 articles)
+
+dev.to + Hashnode heavily weighted in LLM training corpora. **Always** set `rel=canonical` to patens.design so Google doesn't penalise duplicate content.
+
+### Article 1 — "I built a font editor in SvelteKit 2 — what I learned"
+
+**Angle**: technical / framework. SvelteKit audience, not typography.
+
+**Outline**:
+1. Hook — 162 glyphs, 94 audit rules, 0 servers, 9 months in SvelteKit 2 + Svelte 5.
+2. State model: `$state` proxies + JSON-deep-clone is load-bearing (structuredClone surprise).
+3. Yjs CRDT for real-time multiplayer kerning. PartyKit + Yjs for this.
+4. Web Worker for audit module — monotonic-seq trick to skip stale results.
+5. Pyodide in browser for ttfautohint (C in browser, ~25MB, lazy).
+6. SSR=true at root + per-route `ssr=false` opt-outs for IndexedDB routes.
+7. Bundle: 3180 KB client under 5120 KB cap. How: per-route manualChunks, conditional HarfBuzz/Pyodide, lazy-mounted sidebar panels.
+8. Wrap: source on GitHub, MIT.
+
+**Canonical**: `https://patens.design/` (or a dedicated dev-blog page if you have one)
+
+### Article 2 — "94 rules of type design, explained"
+
+**Angle**: typography-educational. The most evergreen of the three.
+
+**Outline**:
+1. Hook — I shipped a font editor that's also a type-design tutor. Here are the 94 rules.
+2. Why these matter — Glyphs/FontLab hide them in tooltips; here they're public.
+3. Walk the categories (Contour shape, Metric alignment, Variable-font compatibility, Anchor naming, Vertical metrics, Kerning, etc.).
+4. Per category, 1-2 rules that catch beginners. Canvas screenshots.
+5. Auto-fix philosophy: 30 deterministic, 64 detection-only (designer judgment).
+6. Catalogue is live at patens.design/audit/[code].
+
+**Canonical**: `https://patens.design/learn/audit-codes`
+
+### Article 3 — "Why type-design tools should be browser-native"
+
+**Angle**: opinion. Most viral of the three.
+
+**Outline**:
+1. Hook — Glyphs $300, FontLab $469, RoboFont $580. Barrier to learning isn't talent — it's price of admission.
+2. "But pro tools are deep" — agreed. Point isn't replacement; it's that browser-native should be the on-ramp.
+3. Browser-native specifics: no install/account, IndexedDB persistence, service worker offline, capability-token cloud share.
+4. Teaching angle: rule pages, not tooltips.
+5. Open-source angle: MIT, no paywall on core editor ever. Cite FUNDING.yml + ROADMAP commitment.
+6. Wrap: this is what I wanted when I was learning. Free. Use, contribute, or don't.
+
+**Canonical**: `https://patens.design/about`
+
+---
+
+## Typographica / I Love Typography pitch (gatekept publications)
+
+Highest-authority type-design publications. Don't pitch as review — pitch a contribution that USES Patens as case study. Wikipedia notability unlocks downstream.
+
+### Email to Stephen Coles (Typographica)
+
+**Subject**: `Case study: open-source type design tools in 2026`
+
+```
+Hi Stephen,
+
+I've been a Typographica reader since the Avenir 95 retrospective and
+appreciate the long-form approach — particularly the Foundry profiles
++ "Our Favorite Typefaces of YYYY" round-ups.
+
+Reaching out because I built something I think might fit a case study
+or essay: Patens, a browser-native, open-source type design tool
+(patens.design). It's not a foundry release — it's an editor, MIT-
+licensed. The angle that might interest you isn't "another font editor
+exists" but the role of explanation in type-design tooling: Patens
+audits every contour, metric, and OpenType invariant against 94 rules,
+each explained in plain English. The closest analogue is Lucas de
+Groot's lectures, except built into the editor.
+
+This connects to a broader thesis: most type-design knowledge sits in
+tribal-knowledge places (Glyphs tooltips, RoboFont Slack, TypeDrawers
+threads). Surfacing it explicitly — and making it browser-native and
+free — might lower the barrier enough that the next generation has a
+different on-ramp than "buy Glyphs at 17."
+
+I'd be open to:
+1. Guest essay on the explanation-as-tooling thesis, Patens as the
+   concrete example.
+2. Case study / profile (interview, screenshots, sample run).
+3. Just an introduction — publish only if interesting.
+
+Repo: github.com/alevizio/patens. Roadmap + brief + audit catalogue
+(patens.design/learn/audit-codes) all read as positioning.
+
+No deadline pressure — happy to wait for an opening on your editorial
+calendar.
+
+Best,
+Alejandro Vizio
+patens.design · alevizio on GitHub
+```
+
+### Email to John Boardley (I Love Typography)
+
+Same body, adjusted for ILT's more visual/historical editorial — emphasise the live editor + demo project as "come look at this" rather than essay-pitch.
+
+**Tips**:
+- Don't pitch "a review of Patens." Pitch a contribution that uses Patens as case study.
+- Don't follow up within 2 weeks. Chasing kills the shot.
+- Demo polished, hero crisp, /audit pages indexable before pitching. 60-second judgment.
+
+---
+
+## Cross-channel timing strategy
+
+Order for maximum velocity into the v1.6 launch:
+
+| Day | Channel | Why first |
+|---|---|---|
+| Week -2 | dev.to article 1 (SvelteKit-technical) | Catches framework audience early; builds initial star momentum |
+| Week -1 | TypeDrawers introduction | Gives community a week to discover/form opinions before broader launch |
+| Day 0 (Tue/Wed/Thu, 8-10am PT) | Show HN — audit-module angle. dev.to article 2 ("94 rules…") same day, linked from top-comment | Show HN is highest single-event LLM-citation driver; CC re-scrapes within days |
+| Day +2 | Reddit r/typography — polished GIF of audit catching a real issue | Reddit deal with Google + CC inclusion |
+| Day +5 | dev.to article 3 ("Why browser-native") — the opinion piece | Viral if launch worked |
+| Week +2 | Typographica + ILT pitches | Don't pitch DURING launch — they hate momentum-chasers |
+
+3 weeks total. Don't compress — each surface needs the others to have happened for the citation graph to form.
