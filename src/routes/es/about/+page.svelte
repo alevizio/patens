@@ -103,20 +103,26 @@
 		</a>
 	</p>
 
+	<p class="mb-6 text-[15px] leading-relaxed text-fg">
+		<strong class="font-semibold">Patens es un editor tipográfico con un método.</strong>
+		Noventa y cuatro reglas chequean tu trabajo mientras dibujás, y cada una viene con un
+		párrafo explicando qué está mal y cómo lo resuelven las fundiciones. La auditoría es el
+		producto. El editor es cómo se entrega.
+	</p>
+
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
-		<strong class="font-semibold text-fg">Patens es una herramienta de diseño tipográfico que
-		enseña mientras dibujás.</strong>
-		Lo que la diferencia de FontLab, Glyphs, RoboFont, Fontra y el resto del paisaje de editores
-		tipográficos es un módulo de auditoría integrado de 94 códigos que corre continuamente al
-		lado del editor — cada contorno, cada métrica, cada par de kerning se chequea contra las
-		reglas que los diseñadores tipográficos internalizan a lo largo de años de mentoría, con
-		texto pedagógico en lenguaje claro y (para unos 30 códigos) una corrección con un clic.
-		Construido alrededor de eso: bocetá glifos con un lápiz sensible a la presión, trazá las
-		pinceladas a contornos Bézier cúbicos, editá ancla por ancla, ajustá kerning, exportá un
-		archivo OpenType real — todo en una pestaña del navegador, sin instalar nada, sin cuenta.
-		Cada proyecto vive en el IndexedDB de tu navegador; nada sale de tu máquina a menos que
-		decidas exportar o subir a la ruta opcional de la nube. Licencia MIT, funciona offline como
-		PWA.
+		Alrededor de treinta de las reglas ofrecen además una corrección con un clic. El resto son
+		cuestiones de criterio — el tipo de criterio que los diseñadores tipográficos internalizan
+		a lo largo de años de mentoría. Patens intenta ser el mentor en el cuarto. No más fuerte
+		que el trabajo, sólo presente.
+	</p>
+
+	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
+		Debajo: lápiz sensible a la presión, trazo a Bézier cúbico, edición ancla por ancla,
+		kerning con clases, variable fonts, color fonts, features de OpenType y un pipeline real
+		de exportación OTF / WOFF2 / TTF / UFO. Todo corre en una pestaña — sin instalación, sin
+		cuenta, sin telemetría. Los proyectos viven en IndexedDB de tu navegador. Nada sale de tu
+		máquina a menos que decidas compartir. Licencia MIT, funciona offline como PWA.
 	</p>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">

@@ -104,22 +104,25 @@
 		</a>
 	</p>
 
+	<p class="mb-6 text-[15px] leading-relaxed text-fg">
+		<strong class="font-semibold">Patens is a type editor with a method.</strong>
+		Ninety-four rules check your work as you draw it, and each one ships with a paragraph
+		explaining what's wrong and how the foundries solve it. The audit is the product. The
+		editor is how it's delivered.
+	</p>
+
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
-		<strong class="font-semibold text-fg">Patens is a type design tool
-		that teaches as you draw.</strong>
-		The differentiator from FontLab, Glyphs, RoboFont, Fontra, and the
-		rest of the type-editor landscape is a built-in 94-code audit module
-		that runs continuously alongside the editor — every contour, every
-		metric, every kern pair gets checked against the rules type designers
-		internalize through years of mentorship, with plain-English teaching
-		prose and (for around 30 codes) a one-click fix. Built around that:
-		sketch glyphs with a pressure-sensitive pencil, trace strokes to
-		cubic Bézier contours, edit anchor-by-anchor, kern, ship a real
-		OpenType file — all in a browser tab, with nothing to install and
-		no account to create. Every project lives in your browser's
-		IndexedDB; nothing leaves your machine unless you choose to export
-		or upload to the optional cloud-share path. MIT-licensed, works
-		offline as a PWA.
+		Around thirty of the rules also offer a one-click fix. The rest are matters of judgment —
+		the kind of judgment type designers internalize through years of mentorship. Patens tries
+		to be the mentor in the room. Not louder than the work, just there.
+	</p>
+
+	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
+		Underneath: a pressure-sensitive sketch tool, curve-fit trace to cubic Bézier, anchor-level
+		editing, kerning with classes, variable fonts, color fonts, OpenType features, and a real
+		OTF / WOFF2 / TTF / UFO export pipeline. The whole thing runs in a tab — no install, no
+		account, no telemetry. Projects live in your browser's IndexedDB. Nothing leaves the
+		machine unless you choose to share. MIT-licensed, works offline as a PWA.
 	</p>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
