@@ -1,0 +1,28 @@
+# Issue-template chooser config. This file is what GitHub renders at
+# `/issues/new/choose` — it sits ABOVE the templates and lets us route
+# Q&A / vulnerability reports OUT of the issue tracker entirely.
+#
+# `blank_issues_enabled: false` forces the chooser, so people don't bypass
+# the templates with a blank issue. (They can still file one from the URL
+# directly if they really want to — this just removes the button.)
+
+blank_issues_enabled: false
+
+contact_links:
+  - name: Q&A · show your work · feature brainstorms
+    url: https://github.com/alevizio/patens/discussions
+    about: >-
+      Questions about how Patens works, "I drew this — what now?" posts,
+      half-formed feature ideas. Discussions are conversational; issues
+      are the punch list.
+  - name: Help · FAQ · keyboard shortcuts
+    url: https://patens.design/help
+    about: >-
+      The Help page covers the common "how do I…" questions, the
+      keyboard shortcut reference, and the audit-code glossary. Worth
+      a glance before filing.
+  - name: Security vulnerability (private disclosure)
+    url: https://github.com/alevizio/patens/security/advisories/new
+    about: >-
+      Do NOT file security issues publicly. Use this form, or email
+      security@patens.design. See SECURITY.md for the full policy.
