@@ -986,7 +986,11 @@
 		</h1>
 
 		<p class="mt-8 max-w-xl text-[15px] leading-relaxed text-fg-muted">
-			Sketch, audit against 94 type-design rules with one-click fixes, and export a real <span class="font-mono text-fg" data-numeric>.otf</span> — all in your browser. Every project saved locally.
+			A type editor with the <em class="not-italic font-medium text-fg">Patens Method</em>
+			built in — <span class="font-mono text-fg" data-numeric>94</span> practices for
+			drawing type, every one explained in plain English. Sketch, kern, and ship a real
+			<span class="font-mono text-fg">.otf</span> — all in your browser, all stored
+			locally.
 		</p>
 
 		<div class="mt-10 flex flex-wrap items-baseline gap-x-6 gap-y-3">

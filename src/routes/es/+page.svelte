@@ -81,10 +81,12 @@
 
 		<p class="mb-8 max-w-2xl text-[17px] leading-relaxed text-fg-muted sm:text-[19px]">
 			<strong class="font-semibold text-fg">Patens</strong>
-			es un editor de tipografías para el navegador con un módulo de auditoría de 94 reglas que
-			explica cada hallazgo en lenguaje claro — y con un clic arregla unas 30 de ellas.
-			Bocetá glifos con presión, trazá a curvas Bézier, ajustá kerning, exportá OpenType real.
-			Todo en una pestaña, sin instalación, sin cuenta. Código abierto, licencia MIT.
+			es un editor tipográfico con el
+			<em class="not-italic font-medium text-fg">Método Patens</em> integrado —
+			<span class="font-mono text-fg" data-numeric>94</span> prácticas para dibujar tipografía,
+			cada una explicada en lenguaje claro. Bocetá, ajustá kerning, exportá un
+			<span class="font-mono text-fg">.otf</span> real — todo en una pestaña, todo guardado
+			localmente. Código abierto, licencia MIT.
 		</p>
 
 		<div class="flex flex-wrap items-center gap-4">
