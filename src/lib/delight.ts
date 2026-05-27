@@ -82,15 +82,23 @@ export const timeOfDay = (now: Date = new Date()): 'morning' | 'afternoon' | 'ev
 };
 
 export const homeTagline = (now: Date = new Date()): string => {
+	// Voice rule (per docs/launch/positioning-rework.md):
+	// Pair with the welcome dialog opener "Draw a glyph; the audit
+	// will tell you what's wrong with it — in plain English."
+	// The verb "draw" + the noun "glyph" land the Method position
+	// at the smallest possible scale — one act, one letter, one
+	// rule at a time. "Design your own typeface" promised the
+	// whole arc and felt aspirational; "Draw a glyph" sells the
+	// next sixty seconds.
 	switch (timeOfDay(now)) {
 		case 'morning':
-			return 'Design your own typeface,\nquietly, in the morning.';
+			return 'Draw a glyph,\nquietly, in the morning.';
 		case 'afternoon':
-			return 'Design your own typeface,\none glyph at a time.';
+			return 'Draw a glyph,\none at a time.';
 		case 'evening':
-			return 'Design your own typeface,\neven just one more tonight.';
+			return 'Draw a glyph,\neven just one more tonight.';
 		case 'night':
-			return 'Design your own typeface,\nlong after everyone else has logged off.';
+			return 'Draw a glyph,\nlong after everyone else has logged off.';
 	}
 };
 
