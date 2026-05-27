@@ -148,6 +148,10 @@
 			<dt class="w-40 font-mono text-[11px] uppercase tracking-[0.1em] text-fg-subtle">X</dt>
 			<dd class="flex-1 text-fg">@patenstype</dd>
 		</div>
+		<div class="flex flex-wrap gap-x-3 border-b border-border/30 pb-2">
+			<dt class="w-40 font-mono text-[11px] uppercase tracking-[0.1em] text-fg-subtle">Instagram</dt>
+			<dd class="flex-1 text-fg">@patens.type</dd>
+		</div>
 	</dl>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">

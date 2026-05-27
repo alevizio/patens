@@ -43,7 +43,8 @@
 				sameAs: [
 					'https://github.com/alevizio',
 					'https://x.com/patenstype',
-					'https://bsky.app/profile/patens.design'
+					'https://bsky.app/profile/patens.design',
+					'https://instagram.com/patens.type'
 				],
 				email: 'mailto:hi@patens.design',
 				worksFor: { '@type': 'Organization', name: 'Patens' }
@@ -147,14 +148,21 @@
 			rel="noopener"
 		>
 			Bluesky
-		</a>
-		o
+		</a>,
 		<a
 			href="https://x.com/patenstype"
 			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
 			rel="noopener"
 		>
 			X
+		</a>
+		o
+		<a
+			href="https://instagram.com/patens.type"
+			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+			rel="noopener"
+		>
+			Instagram
 		</a>.
 	</p>
 

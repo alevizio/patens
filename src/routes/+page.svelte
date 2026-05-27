@@ -716,7 +716,8 @@
 				sameAs: [
 					'https://github.com/alevizio/patens',
 					'https://x.com/patenstype',
-					'https://bsky.app/profile/patens.design'
+					'https://bsky.app/profile/patens.design',
+					'https://instagram.com/patens.type'
 				]
 			},
 			{
@@ -728,7 +729,8 @@
 				sameAs: [
 					'https://github.com/alevizio',
 					'https://x.com/patenstype',
-					'https://bsky.app/profile/patens.design'
+					'https://bsky.app/profile/patens.design',
+					'https://instagram.com/patens.type'
 				],
 				worksFor: { '@id': 'https://patens.design/#organization' }
 			},

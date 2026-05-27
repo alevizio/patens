@@ -39,7 +39,8 @@
 				sameAs: [
 					'https://github.com/alevizio',
 					'https://x.com/patenstype',
-					'https://bsky.app/profile/patens.design'
+					'https://bsky.app/profile/patens.design',
+					'https://instagram.com/patens.type'
 				],
 				email: 'mailto:hi@patens.design',
 				worksFor: { '@type': 'Organization', name: 'Patens' }
@@ -203,6 +204,13 @@
 			class="text-fg-muted hover:text-fg"
 		>
 			bsky/@patens.design
+		</a>
+		<a
+			href="https://instagram.com/patens.type"
+			rel="me noopener"
+			class="text-fg-muted hover:text-fg"
+		>
+			instagram/@patens.type
 		</a>
 		<a
 			href="mailto:hi@patens.design"

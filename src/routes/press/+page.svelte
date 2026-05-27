@@ -21,7 +21,8 @@
 		pronunciation: 'PAH-tens (Latin: /ˈpɑː.tɛns/)',
 		contact: 'hi@patens.design',
 		twitter: '@patenstype',
-		bluesky: '@patens.design'
+		bluesky: '@patens.design',
+		instagram: '@patens.type'
 	};
 
 	const oneLiner =
@@ -165,7 +166,7 @@
 					{facts.contact}
 				</a>
 			</dd>
-			<dt class="text-fg-subtle">X / Bluesky</dt>
+			<dt class="text-fg-subtle">Social</dt>
 			<dd class="text-fg">
 				<a href="https://x.com/{facts.twitter.replace('@', '')}" class="text-accent-strong underline underline-offset-2">
 					{facts.twitter}
@@ -173,6 +174,10 @@
 				<span class="mx-1 text-fg-subtle">·</span>
 				<a href="https://bsky.app/profile/{facts.bluesky.replace('@', '')}" class="text-accent-strong underline underline-offset-2">
 					bsky/{facts.bluesky}
+				</a>
+				<span class="mx-1 text-fg-subtle">·</span>
+				<a href="https://instagram.com/{facts.instagram.replace('@', '')}" class="text-accent-strong underline underline-offset-2">
+					instagram/{facts.instagram}
 				</a>
 			</dd>
 		</dl>

@@ -6,6 +6,7 @@ Founder + maintainer: Alejandro Vizio
   Site: https://github.com/alevizio
   X:    @patenstype
   Bsky: @patens.design
+  IG:   @patens.type
   From: ✋ hi@patens.design
 
 /* THANKS */

@@ -56,6 +56,7 @@ Pronunciation: **PAH-tens** (Latin: /ˈpɑː.tɛns/) — short *a* like
 Built and maintained by Alejandro Vizio. Contact: hi@patens.design,
 [@patenstype](https://x.com/patenstype) on X,
 [@patens.design](https://bsky.app/profile/patens.design) on Bluesky,
+[@patens.type](https://instagram.com/patens.type) on Instagram,
 [alevizio/patens](https://github.com/alevizio/patens) on GitHub.
 
 `;
