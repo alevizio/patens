@@ -22,7 +22,7 @@ import {
 	historyPrefix,
 	fetchExistingToken,
 	requireBlobToken,
-	constantTimeEqual
+	tokenMatchesStored
 } from '$lib/share-blob';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
@@ -115,7 +115,7 @@ export const DELETE: RequestHandler = async ({ params, request, fetch }) => {
 		return new Response(null, { status: 204 });
 	}
 
-	if (!constantTimeEqual(provided, existing)) {
+	if (!tokenMatchesStored(provided, existing)) {
 		throw error(403, 'Token does not match');
 	}
 

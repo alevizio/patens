@@ -5,7 +5,7 @@
 
 import { list } from '@vercel/blob';
 import { error } from '@sveltejs/kit';
-import { timingSafeEqual } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 
 /**
  * Constant-time string compare for security-sensitive token comparison.
@@ -18,6 +18,18 @@ export const constantTimeEqual = (a: string, b: string): boolean => {
 	const bBuf = Buffer.from(b);
 	if (aBuf.length !== bBuf.length) return false;
 	return timingSafeEqual(aBuf, bBuf);
+};
+
+const TOKEN_DIGEST_PREFIX = 'sha256:';
+
+export const hashShareToken = (token: string): string =>
+	`${TOKEN_DIGEST_PREFIX}${createHash('sha256').update(token).digest('hex')}`;
+
+export const tokenMatchesStored = (provided: string, stored: string): boolean => {
+	if (stored.startsWith(TOKEN_DIGEST_PREFIX)) {
+		return constantTimeEqual(hashShareToken(provided), stored);
+	}
+	return constantTimeEqual(provided, stored);
 };
 
 export const sharePath = (id: string): string => `shares/${id}.json`;
@@ -79,8 +91,10 @@ export const requireBlobToken = (): void => {
 };
 
 /**
- * Returns the delete-token stored alongside a share, or null if no token
+ * Returns the stored token verifier alongside a share, or null if no token
  * blob exists (which means no share has ever been uploaded with this id).
+ * New writes store sha256 digests; legacy raw tokens still verify so old
+ * shares can be deleted or re-shared and migrate on their next write.
  */
 export const fetchExistingToken = async (
 	id: string,

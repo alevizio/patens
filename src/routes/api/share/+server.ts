@@ -23,7 +23,8 @@ import {
 	isUuidish,
 	requireBlobToken,
 	fetchExistingToken,
-	constantTimeEqual
+	hashShareToken,
+	tokenMatchesStored
 } from '$lib/share-blob';
 
 const MAX_SIZE_BYTES = 5 * 1024 * 1024;
@@ -59,19 +60,19 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 		throw error(413, 'Project too large for share — use the .font.json export instead');
 	}
 
-	// Re-share auth — if a token already exists for this id, the caller must
-	// provide a matching one via the X-Share-Token header.
+	// Re-share auth — if a token verifier already exists for this id, the caller
+	// must provide the raw token via the X-Share-Token header.
 	const existing = await fetchExistingToken(p.id, fetch);
 	const provided = request.headers.get('X-Share-Token');
 	let token: string;
 	if (existing) {
-		if (!provided || !constantTimeEqual(provided, existing)) {
+		if (!provided || !tokenMatchesStored(provided, existing)) {
 			throw error(
 				403,
 				'A share already exists for this project; only the originator (who has the delete-token) can re-share.'
 			);
 		}
-		token = existing;
+		token = provided;
 	} else {
 		// First upload — mint a fresh random token.
 		token = crypto.randomUUID() + '-' + crypto.randomUUID();
@@ -93,7 +94,7 @@ export const POST: RequestHandler = async ({ request, fetch }) => {
 				addRandomSuffix: false,
 				allowOverwrite: true
 			}),
-			put(tokenPath(p.id), token, {
+			put(tokenPath(p.id), hashShareToken(token), {
 				access: 'public',
 				contentType: 'text/plain',
 				addRandomSuffix: false,

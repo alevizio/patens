@@ -19,6 +19,10 @@ test('/health returns service: "patens" + a version', async ({ request }) => {
 	const res = await request.get('/health');
 	expect(res.status()).toBe(200);
 	expect(res.headers()['content-type']).toContain('application/json');
+	expect(res.headers()['x-content-type-options']).toBe('nosniff');
+	expect(res.headers()['x-frame-options']).toBe('DENY');
+	expect(res.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+	expect(res.headers()['permissions-policy']).toContain('camera=()');
 	const body = (await res.json()) as {
 		status: string;
 		service: string;
@@ -136,6 +140,32 @@ test('/api/share/[id]/versions GET returns 404 when cloud is unconfigured', asyn
 	// 404 (matching GET /api/share/[id]) so the share-page version-history UI
 	// gracefully renders "no history" rather than a configuration warning.
 	expect(res.status()).toBe(404);
+});
+
+test('/api/ai/messages rejects unsupported models before upstream call', async ({ request }) => {
+	const res = await request.post('/api/ai/messages', {
+		data: {
+			apiKey: 'sk-ant-test',
+			model: 'claude-unbounded-future-model',
+			max_tokens: 32,
+			messages: [{ role: 'user', content: 'Hello' }]
+		}
+	});
+	expect(res.status()).toBe(400);
+	expect(await res.json()).toEqual({ error: 'Unsupported Anthropic model' });
+});
+
+test('/api/ai/messages rejects oversize max_tokens before upstream call', async ({ request }) => {
+	const res = await request.post('/api/ai/messages', {
+		data: {
+			apiKey: 'sk-ant-test',
+			model: 'claude-sonnet-4-6',
+			max_tokens: 100_000,
+			messages: [{ role: 'user', content: 'Hello' }]
+		}
+	});
+	expect(res.status()).toBe(400);
+	expect(await res.json()).toEqual({ error: 'max_tokens must be an integer from 1-4096' });
 });
 
 test('/api/share/[id]?v=abc returns 400 for non-numeric version', async ({ request }) => {
