@@ -220,10 +220,10 @@
 		<div class="space-y-4">
 			{#each section.items as item (item.q)}
 				<details
-					class="group rounded-md border border-border bg-surface-2/30 transition-colors hover:bg-surface-2/50"
+					class="group rounded-md border border-border bg-surface-2/30 transition-colors hover:bg-surface-2/50 has-[summary:focus-visible]:border-fg has-[summary:focus-visible]:ring-2 has-[summary:focus-visible]:ring-accent/40 has-[summary:focus-visible]:ring-offset-2 has-[summary:focus-visible]:ring-offset-canvas"
 				>
 					<summary
-						class="cursor-pointer list-none px-4 py-3 text-[14px] font-medium text-fg [&::-webkit-details-marker]:hidden"
+						class="cursor-pointer list-none px-4 py-3 text-[14px] font-medium text-fg outline-none [&::-webkit-details-marker]:hidden"
 					>
 						<span class="mr-2 text-accent-strong group-open:rotate-90 inline-block transition-transform">
 							›

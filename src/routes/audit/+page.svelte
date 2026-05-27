@@ -164,7 +164,7 @@
 
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="mb-8 inline-flex items-center gap-1.5 rounded-sm text-[12px] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<ArrowLeft class="size-3" />
 		Back to the foundry
@@ -333,14 +333,14 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	<div class="mb-16 flex flex-wrap gap-4">
 		<a
 			href="/project/demo/edit"
-			class="group inline-flex items-center gap-2 rounded-md bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong"
+			class="group inline-flex items-center gap-2 rounded-md bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<ArrowRight class="size-4" />
 			Open the demo editor
 		</a>
 		<a
 			href="/learn/audit-codes"
-			class="group inline-flex items-center gap-1.5 text-[13px] font-medium text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+			class="group inline-flex items-center gap-1.5 rounded-sm text-[13px] font-medium text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<Terminal class="size-3.5" />
 			Full reference (all 94 codes) →

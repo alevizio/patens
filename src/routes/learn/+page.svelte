@@ -364,7 +364,7 @@
 	<section id="patens-guides" class="mb-16 grid gap-4 sm:grid-cols-2">
 		<a
 			href="/learn/first-font"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Tutorial · 10 steps
@@ -382,7 +382,7 @@
 		</a>
 		<a
 			href="/learn/kerning"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -400,7 +400,7 @@
 		</a>
 		<a
 			href="/learn/variable-fonts"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -418,7 +418,7 @@
 		</a>
 		<a
 			href="/learn/opentype-features"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -436,7 +436,7 @@
 		</a>
 		<a
 			href="/learn/multi-script"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -454,7 +454,7 @@
 		</a>
 		<a
 			href="/learn/export-formats"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Reference
@@ -472,7 +472,7 @@
 		</a>
 		<a
 			href="/learn/audit-codes"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30"
+			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Reference
