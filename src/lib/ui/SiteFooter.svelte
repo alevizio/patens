@@ -39,6 +39,7 @@
 			title: 'Company',
 			items: [
 				{ label: 'About', href: '/about' },
+				{ label: 'Pronunciation', href: '/pronunciation' },
 				{ label: 'Press kit', href: '/press' }
 			]
 		},

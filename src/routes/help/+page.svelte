@@ -120,17 +120,17 @@
 </script>
 
 <svelte:head>
-	<title>Help · Patens</title>
-	<meta name="description" content="Common questions about Patens — sharing, export, the editor, performance." />
+	<title>Help (2026) · Patens — sharing, export, editor, performance</title>
+	<meta name="description" content="Common questions about Patens — sharing, export, the editor, performance. Updated 2026." />
 	<!-- Per-page OG overrides — same pattern as /share. The global layout
 	     sets generic "Patens" defaults; these override for /help so
 	     a shared link unfurls with the page-specific title and description. -->
 	<link rel="canonical" href="https://patens.design/help" />
-	<meta property="og:title" content="Help · Patens" />
-	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance." />
+	<meta property="og:title" content="Help (2026) · Patens" />
+	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance. Updated 2026." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
-	<meta name="twitter:title" content="Help · Patens" />
+	<meta name="twitter:title" content="Help (2026) · Patens" />
 	<meta name="twitter:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />

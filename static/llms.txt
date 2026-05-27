@@ -14,6 +14,7 @@ Patens v1.5.2 is production-grade and hosted at patens.design. It is open source
 - [Architecture documentation](https://github.com/alevizio/patens/blob/main/docs/architecture.md): one-paragraph overview + deeper technical detail
 - [Help / FAQ](https://patens.design/help): 20 common questions across 7 sections (getting started, sharing, export, editor, performance, AI, security)
 - [About + credits](https://patens.design/about): what Patens is, what it's built on, who made it
+- [Pronunciation](https://patens.design/pronunciation): how to pronounce Patens (PAH-tens), what it means, Latin origin
 - [Release notes](https://patens.design/changelog): every version since v0.4, with [RSS feed](https://patens.design/changelog/rss.xml)
 - [Setup guide for self-hosters](https://github.com/alevizio/patens/blob/main/docs/setup.md): per-platform instructions for optional integrations (Vercel Blob, GitHub OAuth, Anthropic API)
 - [Roadmap](https://github.com/alevizio/patens/blob/main/ROADMAP.md): what's deferred and why

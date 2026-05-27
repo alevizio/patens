@@ -132,14 +132,14 @@
 </script>
 
 <svelte:head>
-	<title>Changelog · Patens</title>
-	<meta name="description" content="Patens release history — every version since v0.4." />
+	<title>Changelog (2026) · Patens — release history since v0.4</title>
+	<meta name="description" content="Patens release history — every version since v0.4. Updated through 2026." />
 	<link rel="canonical" href="https://patens.design/changelog" />
-	<meta property="og:title" content="Changelog · Patens" />
-	<meta property="og:description" content="Patens release history — every version since v0.4." />
+	<meta property="og:title" content="Changelog (2026) · Patens" />
+	<meta property="og:description" content="Patens release history — every version since v0.4. Updated through 2026." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />
-	<meta name="twitter:title" content="Changelog · Patens" />
+	<meta name="twitter:title" content="Changelog (2026) · Patens" />
 	<meta name="twitter:description" content="Patens release history — every version since v0.4." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 94-code audit module" />

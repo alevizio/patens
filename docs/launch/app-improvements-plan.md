@@ -1,9 +1,30 @@
 # App improvements — what's shipped, what's left
 
-Living doc. Last refresh: 2026-05-25 after the big autonomous session.
+Living doc. Last refresh: 2026-05-27 after the demo-font + security-PR arc.
 Target: TypeCon Portland Aug 6–8, 2026. ~10 weeks runway.
 
 **Unit**: 1 day = ~5h focused solo-dev. Estimates are honest but soft.
+
+## Update 5 — late-May refresh (2026-05-27)
+
+After auditing the live site against the P0 checklist, most "P0
+unshipped" items are actually live in production:
+
+- [x] `/press`, `/privacy`, `/security` — all serving real content.
+- [x] `/llms-full.txt` — dynamic route at `src/routes/llms-full.txt/`.
+- [x] Year-in-title pass — "2026" in `<title>` on /, /about, /compare,
+      /help (updated this commit), /changelog (updated this commit),
+      and every /learn/* route.
+- [x] `/pronunciation` page (new this commit) — FAQPage JSON-LD entry
+      for "how do you pronounce Patens" queries, linked from footer.
+- [x] Demo OTF + in-editor demo project — bowls/A/lowercase a
+      refined with curves (commits 3a7355b, 086fa94).
+- [x] Security PR #8 merged: token sha256 hashing, baseline HTTP
+      security headers, error-detail hiding, Anthropic proxy
+      hardening with model allowlist.
+
+What's actually left is in the **P0 — Still launch-blocking** section
+below, which has been trimmed to the real gaps.
 
 ---
 
@@ -159,21 +180,15 @@ Skipped (honestly, with reasons):
 
 ---
 
-## P0 — Still launch-blocking (estimated 2.5d remaining)
+## P0 — Still launch-blocking (estimated 1.5d remaining)
 
-### Launch artifacts (1d)
-- [ ] `/press` page — logos, screenshots, factsheet, founder photo, MIT badge.
-      Press editors will not write about Patens without this.
-- [ ] `/llms-full.txt` — concat of `/learn/*` + `/compare` + `/help` + `/about`.
-      Per Otterly / getmint.ai sources, Cursor + Claude Desktop crawl this
-      more than `llms.txt` itself in 2026.
-- [ ] `/privacy` + `/security` pages — 1 page each. Plain English:
-      "No data leaves your browser. No analytics SDK. No cookies."
-      GDPR coverage even though we have zero PII to leak.
-- [ ] Year-in-title pass — "2026" in `<title>` + `<h1>` across landing routes.
-      Leapd GEO study: +30% citation rate from visible year.
+### Launch artifacts — SHIPPED in Update 5
 
-### Final pre-launch QA (1.5d)
+All of the launch-artifact tasks are done. The H1 across landing routes
+hasn't been audited for "2026" content yet — titles have it, but H1
+copy may not. Re-check during the QA pass.
+
+### Final pre-launch QA (1.5d) — needs hand-on-keyboard from Alejandro
 - [ ] Lighthouse run against production — capture before/after numbers,
       log any regression > 5 points.
 - [ ] Cold-load profile via `scripts/profile-cold-load.mjs` on home,

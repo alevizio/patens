@@ -43,6 +43,7 @@ const ROUTES: Array<{
 	{ path: '/llms.txt', changefreq: 'monthly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/llms-full.txt', changefreq: 'monthly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/about', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-26' },
+	{ path: '/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
 	{ path: '/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-26' },
 	{ path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
