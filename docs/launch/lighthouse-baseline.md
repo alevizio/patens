@@ -1,14 +1,34 @@
 # Patens Lighthouse Baseline
 
-**Last refreshed**: 2026-05-26 (post landing+SEO+nav arc, v1.6.0 prep)
+**Last refreshed**: 2026-05-27 (post-demo-font-refinement + security PR #8 merge)
 **Method**: `scripts/profile-cold-load.mjs <url>` (CDP-instrumented Playwright run against production patens.design). Lighthouse-equivalent metrics (FCP, LCP, layout events, long tasks, EvaluateScript total).
-**Build**: post-`225bbd4` — every defer + lazy-mount + audit-led copy + new /audit subpage + SiteHeader/Footer + 6 OG variants commit deployed via Vercel.
+**Build**: post-`415ce5b` — pronunciation page + year-in-title + demo-project curve refinements + security PR #8.
 
 This is the **launch-day baseline** for the "by-the-numbers" sidebar of the launch post + a regression guard for everything that ships after.
 
 ---
 
-## Headline numbers
+## Headline numbers (2026-05-27 refresh)
+
+| Route | FCP | LCP | Long tasks (≥50ms) | EvaluateScript |
+|---|---|---|---|---|
+| `/` (home, SSR) | **632ms** | **632ms** | 0 | 8.5ms |
+| `/project/demo/edit` (editor) | **1124ms** | **1267ms** | 0 | 1.2ms |
+| `/share/demo` (specimen) | **714ms** | **714ms** | 0 | 1.8ms |
+
+**vs. 2026-05-26 baseline** (single-run delta; ~±200ms network noise applies):
+
+- Home: 571 → 632 FCP (+61ms). Within noise.
+- Editor: 921 → 1267 LCP (+346ms). **Watch-item.** Likely the curve-refined
+  demo-project bumps initial render compute slightly; EvaluateScript
+  actually dropped 12.9 → 1.2ms thanks to the opentype.js defer.
+- Share: 1102 → 714 FCP (−388ms improvement). Probably noise / CDN warming.
+
+All routes still well under the Web Vitals "good" thresholds (LCP ≤ 2.5s).
+
+---
+
+## Headline numbers (2026-05-26 — kept for diff reference)
 
 | Route | FCP | LCP | Long tasks (≥50ms) | EvaluateScript |
 |---|---|---|---|---|

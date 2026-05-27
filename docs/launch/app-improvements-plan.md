@@ -216,20 +216,17 @@ These would land the launch with more substance but aren't blocking.
       strip is non-blocking and works; opportunity is to tighten what the
       first-time visitor sees in their first 10 seconds.
 
-### Editor polish (1.5d)
-- [ ] Inherited-pair badges in `/project/[id]/spacing` — show family-wide
-      pairs alongside project pairs (today the user has to switch to
-      `/family/[id]` to see them). Closes the second half of family-wide
-      kerning.
-- [ ] Audit "Apply Fix to all in this group" — when an entire code group
-      is auto-fixable (the new pill flagged this), surface a bulk-fix
-      button. Already half-implemented via `fixAllVisible`; tightening UX.
+### Editor polish — both SHIPPED (verified 2026-05-27)
+- [x] Inherited-pair badges in `/project/[id]/spacing` — already at
+      `src/routes/project/[id]/spacing/+page.svelte:2481-2535`
+      ("inherited" badge, family pair count, link to family hub).
+- [x] Audit "Apply Fix to all in this group" — `fixCodeGroup()` is wired
+      at `src/routes/project/[id]/audit/+page.svelte:215` + the per-group
+      button at line 630 + the global `fixAllVisible` at line 554.
 
-### Content gaps (1d)
-- [ ] `/learn/multi-script` — Latin → Cyrillic look-alike reuse pattern;
-      what shapes are bespoke (`Я Ж Ф`); Greek lowercase status.
-- [ ] `/learn/export-formats` — OTF vs WOFF2 vs TTF vs UFO vs .font.json;
-      which format for which audience. Closes the deferred /learn slot.
+### Content gaps — both SHIPPED (verified 2026-05-27)
+- [x] `/learn/multi-script` — live at `src/routes/learn/multi-script/`.
+- [x] `/learn/export-formats` — live at `src/routes/learn/export-formats/`.
 
 ---
 
@@ -261,16 +258,17 @@ Each is its own self-contained ship-or-don't decision.
       adding `subset-font` or `pyftsubset` to dev deps. Skipped this
       session to avoid the dependency commit.
 
-### Codebase health (~2d)
+### Codebase health (~1d)
 - [ ] Streaming SSR on the editor shell (~1d) — load IDB project payload
       as a streamed promise; render chrome immediately. Smaller win on
       client-bottlenecked apps (per perf research) but real for first
       project-open after cold load.
 - [ ] Re-share versioning UI on `/share/[id]` (~0.5d) — version dropdown
       + "view as of v3" deep-link. Pairs with the server-side P2 above.
-- [ ] Add Playwright trace upload to CI on failure (~0.5d) — debugging
-      e2e flakes was hand-running tests this session; CI traces would
-      have made the welcome-strip + worker-clone races faster to root.
+- [x] Playwright trace upload to CI on failure — already wired in
+      `.github/workflows/ci.yml` (lines 108-124, `if: failure()` +
+      7-day retention + playwright-report + test-results) +
+      `trace: 'retain-on-failure'` in playwright.config.ts.
 
 ---
 
