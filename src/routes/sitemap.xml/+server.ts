@@ -9,6 +9,7 @@
  */
 
 import type { RequestHandler } from './$types';
+import { AUDIT_CATALOGUE } from '$lib/font/audit-catalogue';
 
 const BASE = 'https://patens.design';
 
@@ -49,18 +50,32 @@ const ROUTES: Array<{
 	{ path: '/share/demo', changefreq: 'monthly', priority: 0.9, lastmod: '2026-05-26' }
 ];
 
+// The ~93 audit-rule pages get folded in dynamically — one URL each at
+// /audit/[code]. Adding them via map keeps the sitemap honest as the
+// audit catalogue grows; no per-rule lastmod is tracked, so we share
+// the date of the /audit landing page.
+const AUDIT_RULE_LASTMOD = '2026-05-27';
+
 export const GET: RequestHandler = ({ setHeaders }) => {
-	const urls = ROUTES.map(
+	const staticUrls = ROUTES.map(
 		(r) => `	<url>
 		<loc>${BASE}${r.path}</loc>
 		<lastmod>${r.lastmod}</lastmod>
 		<changefreq>${r.changefreq}</changefreq>
 		<priority>${r.priority}</priority>
 	</url>`
-	).join('\n');
+	);
+	const auditRuleUrls = AUDIT_CATALOGUE.map(
+		(rule) => `	<url>
+		<loc>${BASE}/audit/${rule.code}</loc>
+		<lastmod>${AUDIT_RULE_LASTMOD}</lastmod>
+		<changefreq>monthly</changefreq>
+		<priority>0.6</priority>
+	</url>`
+	);
 	const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls}
+${[...staticUrls, ...auditRuleUrls].join('\n')}
 </urlset>
 `;
 	setHeaders({

@@ -335,18 +335,28 @@
 				</p>
 				<dl class="space-y-5">
 					{#each codes as { code, description } (code)}
-						<div class="grid grid-cols-[auto_1fr] gap-x-4 border-b border-border/30 pb-5">
+						<div
+							id={`code-${code}`}
+							class="grid grid-cols-[auto_1fr] gap-x-4 border-b border-border/30 pb-5 scroll-mt-16"
+						>
 							<dt class="font-mono text-[12px] text-accent-strong">
 								<a
-									href={`#code-${code}`}
-									id={`code-${code}`}
-									class="hover:underline"
+									href={`/audit/${code}`}
+									class="rounded-sm underline-offset-[5px] hover:underline focus-visible:outline-none focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40"
+									title={`Open the dedicated page for ${code}`}
 								>
 									{code}
 								</a>
 							</dt>
 							<dd class="text-[14px] leading-relaxed text-fg-muted">
 								{description}
+								<a
+									href={`/audit/${code}`}
+									class="ml-1 text-fg-subtle underline underline-offset-[5px] hover:text-fg focus-visible:outline-none focus-visible:text-fg"
+									aria-label={`Read the dedicated rule page for ${code}`}
+								>
+									→
+								</a>
 							</dd>
 						</div>
 					{/each}
