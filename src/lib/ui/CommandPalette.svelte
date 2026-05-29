@@ -181,8 +181,8 @@
 				if (projectId) goto(`/project/${projectId}/${p.slug}`);
 			} else {
 				// Project-scoped pages have no meaning without a project; route
-				// to the home page so the user can pick one.
-				goto('/');
+				// to the projects dashboard so the user can pick one.
+				goto('/alpha');
 			}
 			onclose();
 			return;

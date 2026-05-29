@@ -616,7 +616,7 @@
 		role="status"
 	>
 		Patens is built for 1024px+ screens. Some controls won't fit comfortably on this device.
-		<a href="/" class="underline hover:text-warn-strong">Return to projects ↩</a>
+		<a href="/alpha" class="underline hover:text-warn-strong">Return to projects ↩</a>
 	</div>
 	<!-- Two-row header, editorial chrome. Row 1 (~52px) carries identity +
 	     system actions; row 2 (~38px) carries the tab nav + edit actions.
@@ -627,7 +627,7 @@
 		<!-- Row 1: identity, family/version meta, save status, system buttons. -->
 		<div class="flex h-[52px] items-center gap-4 px-5">
 			<a
-				href="/"
+				href="/alpha"
 				class="inline-flex size-7 items-center justify-center text-fg-subtle transition-colors hover:text-fg"
 				aria-label="Back to projects"
 				title="Back to projects"
@@ -759,7 +759,7 @@
 							<div class="px-4 py-3 text-[12px] text-fg-subtle">No other projects.</div>
 						{/if}
 						<a
-							href="/"
+							href="/alpha"
 							class="block border-t border-border px-4 py-2.5 text-[12px] font-medium text-accent-strong transition-colors hover:bg-accent-soft/30"
 						>
 							All projects · New font →

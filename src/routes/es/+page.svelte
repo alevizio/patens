@@ -1,9 +1,7 @@
 <script lang="ts">
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
-	import ExternalLink from '@lucide/svelte/icons/external-link';
-
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
+	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
 	import { hreflangLinks } from '$lib/i18n';
 
 	// Marketing landing en español. NO project-list logic — la app
@@ -104,23 +102,23 @@
 			localmente. Código abierto, licencia MIT.
 		</p>
 
-		<div class="flex flex-wrap items-center gap-4">
-			<!-- El editor está en inglés por ahora — sé transparente en el CTA -->
-			<a
-				href="/project/demo/edit"
-				class="group inline-flex items-center gap-2 rounded-md bg-fg px-5 py-2.5 text-[14px] font-medium text-canvas transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-			>
-				Abrir el editor
-				<ArrowRight class="size-3.5 transition-transform group-hover:translate-x-0.5" />
-			</a>
-			<a
-				href="https://github.com/alevizio/patens"
-				class="inline-flex items-center gap-2 rounded-md border border-border px-5 py-2.5 text-[14px] text-fg-muted transition-colors hover:border-fg/30 hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-				rel="noopener"
-			>
-				GitHub
-				<ExternalLink class="size-3" aria-hidden="true" />
-			</a>
+		<!-- Alpha privada: el alta de invitación es la acción principal; el
+		     demo (en inglés) queda abierto al público como anticipo. Voz tú,
+		     neutral/LATAM. -->
+		<div class="max-w-md">
+			<p class="mb-3 text-[13px] font-medium text-fg">
+				Está en alpha privada. Pide una invitación.
+			</p>
+			<WaitlistForm lang="es" />
+			<p class="mt-3 text-[12px] text-fg-subtle">
+				¿Tienes un código de acceso?
+				<a
+					href="/alpha"
+					class="font-medium text-accent-strong underline-offset-4 hover:underline"
+				>
+					Entrar →
+				</a>
+			</p>
 		</div>
 
 		<p class="mt-6 text-[13px] leading-relaxed text-fg-subtle">
@@ -232,14 +230,7 @@
 				</h3>
 				<p class="text-[15px] leading-relaxed text-fg-muted">
 					Sin paywall en el editor. Sin "free tier" que te empuje a un plan pago. Todo el código
-					está en
-					<a
-						href="https://github.com/alevizio/patens"
-						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-					>
-						github.com/alevizio/patens
-					</a>
-					— forkeá, contribuí, autoalojate, lo que necesites.
+					es abierto bajo licencia MIT — para forkear, contribuir o autoalojar cuando quieras.
 				</p>
 			</div>
 		</div>

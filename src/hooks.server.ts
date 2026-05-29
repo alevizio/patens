@@ -5,9 +5,15 @@
  * details are returned only in dev so production users don't see internals.
  */
 
-import type { Handle, HandleServerError } from '@sveltejs/kit';
+import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
 import { dev } from '$app/environment';
 import { decodeSession, SESSION_COOKIE } from '$lib/server/session';
+import {
+	ALPHA_COOKIE,
+	alphaGateEnabled,
+	isAlphaCookieValid,
+	isAlphaProtectedPath
+} from '$lib/server/alpha';
 import { applySecurityHeaders, serverErrorPayload } from '$lib/server/http-security';
 
 /**
@@ -17,11 +23,26 @@ import { applySecurityHeaders, serverErrorPayload } from '$lib/server/http-secur
  *
  * Tampering or missing AUTH_SECRET → null, no session. Routes that need
  * to gate on auth check `locals.session` and respond accordingly.
+ *
+ * Alpha gate: when ALPHA_PASSCODE + AUTH_SECRET are set, requests to the
+ * gated app surface (/alpha, /project, …) without a valid alpha cookie
+ * are bounced to /unlock with a ?next= so we return them after they
+ * enter the code. Unconfigured → fail-open (local dev just works).
  */
 export const handle: Handle = async ({ event, resolve }) => {
 	const cookie = event.cookies.get(SESSION_COOKIE);
 	const secret = process.env.AUTH_SECRET;
 	event.locals.session = secret ? decodeSession(cookie, secret) : null;
+
+	if (alphaGateEnabled() && isAlphaProtectedPath(event.url.pathname)) {
+		const passcode = process.env.ALPHA_PASSCODE!;
+		const granted = isAlphaCookieValid(event.cookies.get(ALPHA_COOKIE), passcode, secret!);
+		if (!granted) {
+			const next = event.url.pathname + event.url.search;
+			throw redirect(303, `/unlock?next=${encodeURIComponent(next)}`);
+		}
+	}
+
 	const response = await resolve(event);
 	applySecurityHeaders(response.headers, event.url.protocol === 'https:');
 	return response;
