@@ -53,13 +53,9 @@
 		<p class="text-[17px] text-fg">
 			<strong class="font-semibold">Patens es código abierto MIT.</strong> Cualquier
 			afirmación que hagamos acá podés verificarla leyendo el código en
-			<a
-				href="https://github.com/alevizio/patens"
-				class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-				rel="noopener"
-			>
+			
 				github.com/alevizio/patens
-			</a>.
+			.
 		</p>
 	</section>
 
@@ -146,16 +142,6 @@
 				security@patens.design
 			</a>
 		</li>
-		<li class="border-l-2 border-fg/10 pl-4">
-			<strong class="text-fg">GitHub Security Advisory:</strong>
-			<a
-				href="https://github.com/alevizio/patens/security/advisories/new"
-				class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-				rel="noopener"
-			>
-				new advisory
-			</a> (canal preferido — la coordinación de embargo y CVE se hace ahí)
-		</li>
 	</ul>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 		SLA del solo-maintainer: triage inicial dentro de 7 días, fix con la urgencia que el
@@ -163,15 +149,7 @@
 	</p>
 
 	<p class="mb-8 text-[13px] leading-relaxed text-fg-muted">
-		Ver
-		<a
-			href="https://github.com/alevizio/patens/blob/main/SECURITY.md"
-			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-			rel="noopener"
-		>
-			SECURITY.md
-		</a>
-		en el repo para el texto completo (en inglés).
+		La política de seguridad completa se publica con el lanzamiento público.
 	</p>
 
 	<SiteFooter lang="es" />

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
@@ -207,14 +206,9 @@
 		covers the Latin baseline you'll usually start from.
 	</p>
 
-	<a
-		href="/project/demo/edit"
-		class="group mt-12 inline-flex items-baseline gap-2 text-[14px] text-accent-strong underline underline-offset-2"
-	>
-		Open the demo's multi-script glyph set
-		<ArrowRight
-			class="size-3 translate-y-0.5 transition-transform group-hover:translate-x-0.5"
-		/>
-	</a>
+	<p class="mt-12 text-[14px] text-fg-muted">
+		Patens is in private alpha.
+		<a href="/" class="text-accent-strong underline underline-offset-2">Request an invite →</a>
+	</p>
 	<SiteFooter />
 </div>

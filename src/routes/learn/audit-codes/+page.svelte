@@ -367,13 +367,7 @@
 
 	<p class="mt-16 mb-4 text-[13px] leading-relaxed text-fg-muted">
 		If a code is missing or its description doesn't match what you see in
-		the editor, file an
-		<a
-			href="https://github.com/alevizio/patens/issues/new"
-			class="text-accent-strong underline underline-offset-2"
-		>
-			issue
-		</a>. Accuracy here is the difference between the audit module
+		the editor, email hi@patens.design. Accuracy here is the difference between the audit module
 		feeling like a teaching tool and feeling like noise.
 	</p>
 	<SiteFooter />

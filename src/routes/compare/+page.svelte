@@ -771,27 +771,11 @@
 	</h2>
 	<p class="mb-3 text-[14px] leading-relaxed text-fg-muted">
 		The demo project ships with 162 drawn glyphs across Latin, Cyrillic, and
-		Greek. Open it in your browser and edit a real font:
+		Greek. Patens is in private alpha — request an invite to draw a real font in
+		your browser.
 	</p>
-	<p class="mb-16 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[14px]">
-		<a
-			href="/project/demo/edit"
-			class="text-accent-strong underline underline-offset-2"
-		>
-			Open the demo editor
-		</a>
-		<a
-			href="/share/demo"
-			class="text-fg-muted underline underline-offset-2 hover:text-fg"
-		>
-			View the specimen sheet
-		</a>
-		<a
-			href="https://github.com/alevizio/patens"
-			class="text-fg-muted underline underline-offset-2 hover:text-fg"
-		>
-			Source on GitHub
-		</a>
+	<p class="mb-16 text-[14px]">
+		<a href="/" class="text-accent-strong underline underline-offset-2"> Request an invite → </a>
 	</p>
 
 	<p class="mb-4 text-[12px] leading-relaxed text-fg-muted">
@@ -799,12 +783,9 @@
 		shipping versions of the others as of 2026-05-27 (verified against
 		each tool's official release page + GitHub repo).
 		If something here is wrong about your tool, open an
-		<a
-			href="https://github.com/alevizio/patens/issues/new"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		
 			issue
-		</a>
+		
 		and it'll be corrected — accuracy beats marketing.
 	</p>
 	<SiteFooter />

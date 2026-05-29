@@ -139,13 +139,9 @@
 	</h2>
 	<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
 		Patens lo hace
-		<a
-			href="https://github.com/alevizio"
-			class="font-medium text-fg underline decoration-fg-subtle/40 underline-offset-2 hover:decoration-fg"
-			rel="noopener"
-		>
+		
 			Alejandro Vizio
-		</a> — diseñador de producto que también programa. Lo construí como una herramienta
+		 — diseñador de producto que también programa. Lo construí como una herramienta
 		personal para diseñar mis propias tipografías y porque las herramientas que existían eran o
 		muy caras, o muy duras, o ambas. Si lo encontrás útil, contribuí en GitHub o contame en
 		<a

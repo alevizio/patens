@@ -100,11 +100,11 @@
 			items: [
 				{
 					q: 'I found a bug.',
-					a: 'Open an issue on GitHub: https://github.com/alevizio/patens/issues/new?template=bug.md — the template asks for browser, OS, project, and steps to reproduce.'
+					a: 'Email hi@patens.design with your browser, OS, project, and steps to reproduce. Patens is in private alpha; public issue tracking opens at launch.'
 				},
 				{
 					q: 'I have a feature idea.',
-					a: 'Same path with the feature template: https://github.com/alevizio/patens/issues/new?template=feature.md — lead with the problem you want to solve before suggesting how.'
+					a: 'Email hi@patens.design — lead with the problem you want to solve before suggesting how.'
 				},
 				{
 					q: 'I want to contribute code.',
@@ -185,20 +185,7 @@
 		Help
 	</h1>
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
-		The questions that come up most. For the deeper architecture, see
-		<a
-			href="https://github.com/alevizio/patens/blob/main/docs/architecture.md"
-			class="text-accent-strong underline underline-offset-2"
-		>
-			docs/architecture.md
-		</a>. For everything else, the
-		<a
-			href="https://github.com/alevizio/patens/issues"
-			class="text-accent-strong underline underline-offset-2"
-		>
-			GitHub issues
-		</a>
-		are open.
+		The questions that come up most. Patens is in private alpha; for anything not covered here, email hi@patens.design.
 	</p>
 
 	{#each sections as section (section.heading)}

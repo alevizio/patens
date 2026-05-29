@@ -50,39 +50,19 @@
 			</h1>
 			<p class="mx-auto max-w-lg text-[14px] leading-relaxed text-fg-muted">
 				The share URL was either never uploaded to the cloud, or this
-				deployment doesn't have cloud sharing configured. Two ways forward:
+				deployment doesn't have cloud sharing configured.
 			</p>
 			<div class="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
-				<a
-					href="/share/demo"
-					class="group flex items-baseline gap-3 rounded-md border border-border bg-surface px-4 py-3 transition-colors hover:border-accent"
-				>
-					<span class="font-mono text-[10px] tracking-wider uppercase text-fg-subtle">
-						1
-					</span>
-					<span class="flex-1">
-						<span class="block text-[14px] text-fg group-hover:text-accent-strong">
-							Open the public demo specimen
-						</span>
-						<span class="block text-[12px] text-fg-muted">
-							162 glyphs across Latin + Cyrillic + Greek, two masters, ligatures — the example project the foundry ships
-						</span>
-					</span>
-					<ArrowRight class="size-4 shrink-0 text-fg-subtle group-hover:text-accent-strong" />
-				</a>
 				<a
 					href="/"
 					class="group flex items-baseline gap-3 rounded-md border border-border bg-surface px-4 py-3 transition-colors hover:border-accent"
 				>
-					<span class="font-mono text-[10px] tracking-wider uppercase text-fg-subtle">
-						2
-					</span>
 					<span class="flex-1">
 						<span class="block text-[14px] text-fg group-hover:text-accent-strong">
-							Import a project file
+							Back to patens.design
 						</span>
 						<span class="block text-[12px] text-fg-muted">
-							Ask the sender to export a <span class="font-mono">.font.json</span> and drop it on the home page
+							Patens is in private alpha — request an invite from the home page
 						</span>
 					</span>
 					<ArrowRight class="size-4 shrink-0 text-fg-subtle group-hover:text-accent-strong" />

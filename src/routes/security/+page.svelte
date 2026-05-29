@@ -138,7 +138,7 @@
 		<li>· The /api/ai/messages proxy (key handling, header passthrough).</li>
 		<li>· The /auth/* OAuth flow (where enabled by self-hosters).</li>
 		<li>· Service worker eviction logic (cache poisoning, stale-version attacks).</li>
-		<li>· The source code at <a href="https://github.com/alevizio/patens" class="text-accent-strong underline underline-offset-2">github.com/alevizio/patens</a>.</li>
+		<li>· The source code at github.com/alevizio/patens.</li>
 	</ul>
 
 	<h2

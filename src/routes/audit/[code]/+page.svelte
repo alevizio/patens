@@ -198,13 +198,7 @@
 			</h2>
 			<p class="mt-3 text-[15px] leading-relaxed text-fg-muted">
 				Patens runs every audit rule live as you draw — including this one.
-				Open the
-				<a
-					href="/project/demo/edit"
-					class="rounded-sm underline underline-offset-[5px] hover:text-fg focus-visible:outline-none focus-visible:text-fg"
-					>example project</a
-				>
-				to see <code class="font-mono text-fg">{rule.code}</code> firing on real
+				The editor (in private alpha) shows <code class="font-mono text-fg">{rule.code}</code> firing on real
 				glyphs, or check your own work from the CLI:
 			</p>
 			<pre

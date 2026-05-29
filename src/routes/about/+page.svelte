@@ -175,24 +175,15 @@
 	</h2>
 	<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
 		Built and maintained by
-		<a
-			href="https://github.com/alevizio"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		
 			Alejandro Vizio
-		</a>. Open source under the
-		<a
-			href="https://github.com/alevizio/patens/blob/main/LICENSE"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		. Open source under the
+		
 			MIT License
-		</a>. Contributions welcome — see
-		<a
-			href="https://github.com/alevizio/patens/blob/main/CONTRIBUTING.md"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		. Contributions welcome — see
+		
 			CONTRIBUTING.md
-		</a>.</p>
+		.</p>
 	<p class="mb-8 flex flex-wrap items-baseline gap-x-5 gap-y-1 text-[13px] text-fg-muted">
 		<a
 			href="https://x.com/patenstype"
@@ -271,12 +262,9 @@
 	</p>
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		What's deferred to a future arc lives in
-		<a
-			href="https://github.com/alevizio/patens/blob/main/ROADMAP.md"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		
 			ROADMAP.md
-		</a>
+		
 		— most notably a real drawn Italic master, bespoke Cyrillic + Greek
 		shapes, and a proper account system.
 	</p>

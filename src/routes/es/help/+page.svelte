@@ -195,21 +195,7 @@
 	</h1>
 	<p class="mb-12 text-[15px] leading-relaxed text-fg-muted">
 		Las preguntas que aparecen más seguido — compartir, exportar, el editor, performance, AI,
-		seguridad. ¿No encontrás lo que buscás? Abrí un issue en
-		<a
-			href="https://github.com/alevizio/patens/issues"
-			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-			rel="noopener"
-		>
-			GitHub
-		</a> o una discusión en
-		<a
-			href="https://github.com/alevizio/patens/discussions"
-			class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-			rel="noopener"
-		>
-			Discussions
-		</a>.
+		seguridad. ¿No encontrás lo que buscás? Escribinos a hi@patens.design.
 	</p>
 
 	{#each sections as section (section.title)}

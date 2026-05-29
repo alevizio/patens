@@ -98,13 +98,6 @@
 			</a>
 		{/each}
 		<a
-			href="https://github.com/alevizio/patens"
-			class="rounded-sm text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-			rel="noopener"
-		>
-			GitHub
-		</a>
-		<a
 			href={switchTarget}
 			hreflang={otherLocale}
 			class="inline-flex items-center gap-1 rounded-sm text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"

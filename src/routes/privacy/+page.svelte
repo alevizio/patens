@@ -186,12 +186,9 @@
 		describes the design intent of the code, but operational responsibility
 		is yours — you choose your hosting, your logging policy, and which
 		integrations to enable. See
-		<a
-			href="https://github.com/alevizio/patens/blob/main/docs/setup.md"
-			class="text-accent-strong underline underline-offset-2"
-		>
+		
 			docs/setup.md
-		</a>
+		
 		for the per-platform instructions.
 	</p>
 

@@ -335,11 +335,11 @@ npx patens audit fonts/*.font.json --github</code></pre>
 
 	<div class="mb-16 flex flex-wrap gap-4">
 		<a
-			href="/project/demo/edit"
+			href="/"
 			class="group inline-flex items-center gap-2 rounded-md bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<ArrowRight class="size-4" />
-			Open the demo editor
+			Request an alpha invite
 		</a>
 		<a
 			href="/learn/audit-codes"

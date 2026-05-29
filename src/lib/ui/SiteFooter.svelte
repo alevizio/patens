@@ -62,9 +62,7 @@
 			title: t.legal.title,
 			items: [
 				{ label: t.legal.items.privacy, href: localize('/privacy') },
-				{ label: t.legal.items.security, href: localize('/security') },
-				{ label: t.legal.items.github, href: 'https://github.com/alevizio/patens', external: true },
-				{ label: t.legal.items.license, href: 'https://github.com/alevizio/patens/blob/main/LICENSE', external: true }
+				{ label: t.legal.items.security, href: localize('/security') }
 			]
 		}
 	]);
@@ -136,13 +134,6 @@
 				rel="noopener me"
 			>
 				@patens.type
-			</a>
-			<a
-				href="https://github.com/alevizio/patens"
-				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-				rel="noopener me"
-			>
-				github.com/alevizio/patens
 			</a>
 		</nav>
 		<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">

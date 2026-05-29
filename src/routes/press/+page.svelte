@@ -1,7 +1,6 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Download from '@lucide/svelte/icons/download';
-	import Camera from '@lucide/svelte/icons/camera';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
@@ -282,33 +281,13 @@
 			Screenshots
 		</h2>
 		<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
-			Visit the live editor at
-			<a href="/project/demo/edit" class="text-accent-strong underline underline-offset-2">/project/demo/edit</a>
-			and screenshot directly — every surface is camera-ready (no real user
-			data, the demo project is shipped open). Email for hi-res renders if
-			you need 2× retina exports or specific framing.
+			Patens is in private alpha — the editor isn't publicly accessible yet. Email
+			<a href="mailto:hi@patens.design" class="text-accent-strong underline underline-offset-2"
+				>hi@patens.design</a
+			>
+			for screenshots or hi-res renders (2× retina, specific framing) of any surface —
+			drawing, audit, spacing, designspace, features, or specimen.
 		</p>
-		<div class="grid gap-3 sm:grid-cols-2">
-			{#each [
-				{ name: 'Editor — drawing surface', path: '/project/demo/edit' },
-				{ name: 'Audit module', path: '/project/demo/audit' },
-				{ name: 'Spacing + kerning', path: '/project/demo/spacing' },
-				{ name: 'Designspace + variation explorer', path: '/project/demo/designspace' },
-				{ name: 'Features tab + HarfBuzz preview', path: '/project/demo/features' },
-				{ name: 'Specimen', path: '/project/demo/specimen' }
-			] as shot (shot.name)}
-				<a
-					href={shot.path}
-					class="group rounded-lg border border-border bg-surface p-4 transition-colors hover:border-fg/30"
-				>
-					<div class="mb-2 flex h-20 items-center justify-center rounded bg-surface-2 text-fg-subtle">
-						<Camera class="size-5" />
-					</div>
-					<div class="text-[13px] font-medium text-fg">{shot.name}</div>
-					<div class="mt-1 font-mono text-[10px] text-fg-subtle">{shot.path}</div>
-				</a>
-			{/each}
-		</div>
 	</section>
 
 	<!-- MILESTONES -->
@@ -358,8 +337,7 @@
 				<a href="/changelog/rss.xml" class="text-accent-strong underline underline-offset-2">/changelog/rss.xml</a>.
 			</li>
 			<li>
-				<a href="https://github.com/alevizio/patens" class="text-accent-strong underline underline-offset-2">Source on GitHub</a>
-				— MIT-licensed, public roadmap, public issues.
+				Open source under MIT. Source and roadmap open at public launch.
 			</li>
 		</ul>
 	</section>

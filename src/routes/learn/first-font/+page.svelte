@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ArrowRight from '@lucide/svelte/icons/arrow-right';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
@@ -212,27 +211,15 @@
 		covers the next 17 things people ask after their first font.
 	</p>
 	<p class="mb-16 text-[14px] leading-relaxed text-fg-muted">
-		Stuck? Open an
-		<a
-			href="https://github.com/alevizio/patens/issues/new"
-			class="text-accent-strong underline underline-offset-2"
-		>
-			issue
-		</a>
-		or email
+		Stuck? Email
 		<a href="mailto:hi@patens.design" class="text-accent-strong underline underline-offset-2">
 			hi@patens.design
 		</a>.
 	</p>
 
-	<a
-		href="/project/demo/edit"
-		class="group inline-flex items-baseline gap-2 text-[14px] text-accent-strong underline underline-offset-2"
-	>
-		Open the demo and start
-		<ArrowRight
-			class="size-3 translate-y-0.5 transition-transform group-hover:translate-x-0.5"
-		/>
-	</a>
+	<p class="text-[14px] text-fg-muted">
+		Patens is in private alpha.
+		<a href="/" class="text-accent-strong underline underline-offset-2">Request an invite →</a>
+	</p>
 	<SiteFooter />
 </div>
