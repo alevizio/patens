@@ -17,9 +17,12 @@
  *     v1.6 launch arc; deferred to v1.7+ per docs/launch/research-notes.md.
  *
  * Voice rule for Spanish:
- *   - tú form (matches the friendly-technical English voice)
- *   - Neutral / LATAM-leaning — avoid Castilian-only constructions
- *     ("vosotros", "ordenador" → "computadora" or just "navegador")
+ *   - voseo (Rioplatense): "dibujás", "tenés", "contame", "si lo
+ *     encontrás útil". A deliberate, distinctive regional voice —
+ *     it fits the editorial / not-generic-SaaS brand better than a
+ *     flattened neutral tú. Keep it consistent across every /es page.
+ *   - Still avoid Castilian-only constructions ("vosotros",
+ *     "ordenador" → "computadora" or just "navegador").
  *   - Don't translate brand terms: Patens, OpenType, Bézier, kerning,
  *     and similar technical loanwords stay as-is.
  */

@@ -111,7 +111,7 @@
 			</p>
 			<WaitlistForm lang="es" />
 			<p class="mt-3 text-[12px] text-fg-subtle">
-				¿Tienes un código de acceso?
+				¿Tenés un código de acceso?
 				<a
 					href="/alpha"
 					class="font-medium text-accent-strong underline-offset-4 hover:underline"

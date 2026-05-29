@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ExternalLink from '@lucide/svelte/icons/external-link';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
@@ -230,15 +229,7 @@
 			<li
 				class="flex items-baseline gap-2 border-b border-border/40 pb-2 text-[13px] leading-relaxed"
 			>
-				<a
-					href={dep.url}
-					target="_blank"
-					rel="noopener"
-					class="group inline-flex shrink-0 items-baseline gap-1 font-medium text-fg hover:text-accent-strong"
-				>
-					{dep.name}
-					<ExternalLink class="size-2.5 opacity-50 transition-opacity group-hover:opacity-100" />
-				</a>
+				<span class="shrink-0 font-medium text-fg">{dep.name}</span>
 				<span class="text-fg-subtle">·</span>
 				<span class="text-fg-muted">{dep.what}</span>
 			</li>

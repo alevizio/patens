@@ -1,6 +1,5 @@
 <script lang="ts">
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import ExternalLink from '@lucide/svelte/icons/external-link';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
@@ -178,14 +177,7 @@
 	<ul class="mb-8 space-y-3 text-[14px]">
 		{#each deps as dep (dep.name)}
 			<li class="border-l-2 border-fg/10 pl-4">
-				<a
-					href={dep.url}
-					class="inline-flex items-baseline gap-1 font-medium text-fg underline decoration-fg-subtle/40 underline-offset-2 hover:decoration-fg"
-					rel="noopener"
-				>
-					{dep.name}
-					<ExternalLink class="size-2.5" aria-hidden="true" />
-				</a>
+				<span class="font-medium text-fg">{dep.name}</span>
 				<span class="ml-1 text-fg-muted">— {dep.what}</span>
 			</li>
 		{/each}

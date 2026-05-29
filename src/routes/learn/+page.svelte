@@ -140,7 +140,7 @@
 		{
 			name: 'fontmake',
 			role: 'Builds static + variable binaries from Glyphs / UFO / designspace.',
-			href: 'https://github.com/googlefonts/fontmake'
+			href: 'https://pypi.org/project/fontmake/'
 		},
 		{
 			name: 'FontBakery',

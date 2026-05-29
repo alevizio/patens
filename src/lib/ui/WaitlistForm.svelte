@@ -28,7 +28,7 @@
 			submitting: 'Enviando…',
 			success: 'Estás en la lista. Te escribimos cuando se abra un lugar.',
 			invalid: 'Eso no parece un correo.',
-			failure: 'Algo salió mal. Inténtalo de nuevo en un momento.',
+			failure: 'Algo salió mal. Probá de nuevo en un momento.',
 			aria: 'Correo electrónico para la lista de invitaciones del alpha'
 		}
 	} as const;
