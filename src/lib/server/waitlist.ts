@@ -4,9 +4,8 @@
  * Vercel Blob.
  *
  * Storage key is sha256(email): deterministic, so a re-signup overwrites
- * its own record (free dedupe), and — since blobs can't be listed without
- * the read-write token — an entry is only reachable by someone who already
- * knows the email. That keeps the public-blob store non-enumerable.
+ * its own record (free dedupe). The blob itself is written to a private
+ * store (see +server.ts), so the address isn't publicly readable.
  */
 
 import { createHash } from 'node:crypto';

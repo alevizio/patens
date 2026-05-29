@@ -1,8 +1,9 @@
 /**
  * POST /api/waitlist — persist a private-alpha invite-list email to
- * Vercel Blob. Key is sha256(email) (deterministic → re-signup dedupes;
- * non-listable → non-enumerable). We never return the blob URL, so the
- * stored address can't leak back to the caller.
+ * Vercel Blob. The store is private (access: 'private'), so the address
+ * isn't readable without the read-write token — the right posture for
+ * PII. Key is sha256(email): deterministic, so a re-signup overwrites
+ * its own record (free dedupe). We never return the blob URL either.
  *
  * Unconfigured (no BLOB_READ_WRITE_TOKEN) → 503, mirroring /api/share.
  */
@@ -46,7 +47,7 @@ export const POST: RequestHandler = async ({ request }) => {
 	const record = JSON.stringify({ email, locale, ts: new Date().toISOString() });
 	try {
 		await put(waitlistKey(email), record, {
-			access: 'public',
+			access: 'private',
 			contentType: 'application/json',
 			addRandomSuffix: false,
 			allowOverwrite: true
