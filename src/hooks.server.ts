@@ -6,7 +6,7 @@
  */
 
 import { redirect, type Handle, type HandleServerError } from '@sveltejs/kit';
-import { dev } from '$app/environment';
+import { building, dev } from '$app/environment';
 import { decodeSession, SESSION_COOKIE } from '$lib/server/session';
 import {
 	ALPHA_COOKIE,
@@ -34,7 +34,11 @@ export const handle: Handle = async ({ event, resolve }) => {
 	const secret = process.env.AUTH_SECRET;
 	event.locals.session = secret ? decodeSession(cookie, secret) : null;
 
-	if (alphaGateEnabled() && isAlphaProtectedPath(event.url.pathname)) {
+	// Skip the gate during prerender/build: `building` is true while
+	// SvelteKit prerenders, and a prerendered page (e.g. /es) links to
+	// /alpha — without this guard the crawler hits the gate, gets a 303,
+	// and the build fails on the redirect. The gate is a runtime concern.
+	if (!building && alphaGateEnabled() && isAlphaProtectedPath(event.url.pathname)) {
 		const passcode = process.env.ALPHA_PASSCODE!;
 		const granted = isAlphaCookieValid(event.cookies.get(ALPHA_COOKIE), passcode, secret!);
 		if (!granted) {
