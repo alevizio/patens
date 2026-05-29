@@ -436,7 +436,7 @@
 		);
 		if (!ok) return;
 		await deleteFamily(family.id);
-		goto('/alpha');
+		goto('/studio-c104c94c');
 	};
 
 	const axisChips = (a: FamilyAxes | undefined): string[] => {
@@ -452,7 +452,7 @@
 
 <div class="mx-auto max-w-5xl px-6 py-12">
 	<a
-		href="/alpha"
+		href="/studio-c104c94c"
 		class="mb-6 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
 	>
 		<ArrowLeft class="size-3.5" />

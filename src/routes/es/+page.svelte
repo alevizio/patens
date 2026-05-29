@@ -110,15 +110,6 @@
 				Está en alpha privada. Pide una invitación.
 			</p>
 			<WaitlistForm lang="es" />
-			<p class="mt-3 text-[12px] text-fg-subtle">
-				¿Tenés un código de acceso?
-				<a
-					href="/alpha"
-					class="font-medium text-accent-strong underline-offset-4 hover:underline"
-				>
-					Entrar →
-				</a>
-			</p>
 		</div>
 
 		<p class="mt-6 text-[13px] leading-relaxed text-fg-subtle">

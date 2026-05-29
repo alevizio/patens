@@ -39,6 +39,7 @@
 		"build:demo-fonts": "node scripts/build-demo-fonts.mjs",
 		"build:github-social": "node scripts/build-github-social.mjs",
 		"validate:json-ld": "node scripts/validate-json-ld.mjs",
+		"waitlist:export": "node scripts/waitlist-export.mjs",
 		"cli:build": "node cli/build.mjs",
 		"docs:api": "typedoc",
 		"test": "vitest run",

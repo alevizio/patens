@@ -20,7 +20,7 @@
 	<header
 		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
 	>
-		<a href="/alpha" class="group inline-flex items-center gap-2.5">
+		<a href="/studio-c104c94c" class="group inline-flex items-center gap-2.5">
 			<span
 				class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
 			>
@@ -48,7 +48,7 @@
 				{/if}
 			</button>
 			<a
-				href="/alpha"
+				href="/studio-c104c94c"
 				class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
 			>
 				<ArrowLeft class="size-3.5" />
@@ -99,7 +99,7 @@
 					to link siblings.
 				</p>
 				<a
-					href="/alpha"
+					href="/studio-c104c94c"
 					class="mt-2 inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
 				>
 					Browse projects →

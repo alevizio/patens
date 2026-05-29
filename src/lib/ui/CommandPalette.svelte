@@ -182,7 +182,7 @@
 			} else {
 				// Project-scoped pages have no meaning without a project; route
 				// to the projects dashboard so the user can pick one.
-				goto('/alpha');
+				goto('/studio-c104c94c');
 			}
 			onclose();
 			return;

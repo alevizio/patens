@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Public teaser — the indexable face of Patens during private alpha.
-	// The full app moved to /alpha (gated by passcode); this page explains
-	// the product, demonstrates the differentiator (the audit teaches), and
-	// captures invite-list emails. Invited testers enter via "Have a code?".
+	// The full app lives at an unguessable URL (/studio-c104c94c) — no
+	// passcode, just an unlisted link shared directly with invited testers.
+	// This page explains the product and captures invite-list emails.
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
@@ -224,15 +224,6 @@
 					It's in private alpha. Get an invite.
 				</p>
 				<WaitlistForm lang="en" />
-				<p class="mt-3 text-[12px] text-fg-subtle">
-					Already have an access code?
-					<a
-						href="/alpha"
-						class="font-medium text-accent-strong underline-offset-4 hover:underline"
-					>
-						Enter →
-					</a>
-				</p>
 			</div>
 		</section>
 

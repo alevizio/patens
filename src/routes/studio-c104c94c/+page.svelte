@@ -719,7 +719,7 @@
 			}
 		}
 	</style>
-	<link rel="canonical" href="https://patens.design/alpha" />
+	<link rel="canonical" href="https://patens.design/studio-c104c94c" />
 
 	<!-- JSON-LD @graph — multi-entity structured data covering the WebSite,
 	     the Organization, the maintainer Person, and the WebApplication
@@ -876,7 +876,7 @@
 	<header
 		class="mb-16 flex items-baseline justify-between gap-3 border-b border-border/50 pb-5"
 	>
-		<a href="/alpha" class="group inline-flex items-baseline gap-3">
+		<a href="/studio-c104c94c" class="group inline-flex items-baseline gap-3">
 			<span
 				class="text-[20px] leading-none tracking-tight text-fg transition-colors group-hover:text-accent-strong"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
