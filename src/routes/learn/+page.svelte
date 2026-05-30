@@ -1,8 +1,4 @@
 <script lang="ts">
-	import BookOpen from '@lucide/svelte/icons/book-open';
-	import Compass from '@lucide/svelte/icons/compass';
-	import Pencil from '@lucide/svelte/icons/pen-tool';
-	import Wrench from '@lucide/svelte/icons/wrench';
 	import ExternalLink from '@lucide/svelte/icons/external-link';
 
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
@@ -367,7 +363,7 @@
 	<section id="patens-guides" class="mb-16 grid gap-4 sm:grid-cols-2">
 		<a
 			href="/learn/first-font"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Tutorial · 10 steps
@@ -385,7 +381,7 @@
 		</a>
 		<a
 			href="/learn/kerning"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -403,7 +399,7 @@
 		</a>
 		<a
 			href="/learn/variable-fonts"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -421,7 +417,7 @@
 		</a>
 		<a
 			href="/learn/opentype-features"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -439,7 +435,7 @@
 		</a>
 		<a
 			href="/learn/multi-script"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Guide · 9 steps
@@ -457,7 +453,7 @@
 		</a>
 		<a
 			href="/learn/export-formats"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Reference
@@ -475,7 +471,7 @@
 		</a>
 		<a
 			href="/learn/audit-codes"
-			class="group rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-fg/30 focus-visible:outline-none focus-visible:border-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group border-t border-border/40 pt-5 transition-colors hover:bg-surface-2/30 focus-visible:outline-none focus-visible:bg-surface-2/40 focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<div class="mb-1 font-mono text-[10px] uppercase tracking-[0.14em] text-fg-subtle">
 				Reference
@@ -496,19 +492,14 @@
 	<!-- TIMELINE — primary section, biggest treatment -->
 	<section id="timeline" class="mb-16 scroll-mt-8">
 		<div class="mb-6 flex items-baseline gap-3">
-			<Compass class="size-5 self-center text-accent" />
-			<h2
-				class="text-[28px] leading-none tracking-tight text-fg"
-				
-			>
-				Beginner timeline
-			</h2>
+			<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>
+			<h2 class="text-[28px] leading-none tracking-tight text-fg">Beginner timeline</h2>
 			<span class="text-[12px] text-fg-subtle">8–12 weeks</span>
 		</div>
 		<ol class="grid gap-3">
 			{#each TIMELINE as phase, i (phase.weeks)}
 				<li
-					class="grid grid-cols-1 gap-5 rounded-2xl border border-border bg-surface p-5 transition-colors hover:border-accent/40 md:grid-cols-[180px_1fr]"
+					class="grid grid-cols-1 gap-5 border-t border-border/40 pt-5 md:grid-cols-[180px_1fr]"
 				>
 					<!-- Big phase number + weeks on the left -->
 					<div class="flex items-baseline gap-3 md:flex-col md:items-start md:gap-1">
@@ -555,17 +546,12 @@
 	<!-- EXERCISES — secondary, 2-col grid -->
 	<section id="exercises" class="mb-16 scroll-mt-8">
 		<div class="mb-5 flex items-baseline gap-3">
-			<Pencil class="size-4 self-center text-accent" />
-			<h2
-				class="text-[28px] leading-none tracking-tight text-fg"
-				
-			>
-				Exercises that teach you to see
-			</h2>
+			<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>
+			<h2 class="text-[28px] leading-none tracking-tight text-fg">Exercises that teach you to see</h2>
 		</div>
 		<div class="grid gap-3 sm:grid-cols-2">
 			{#each EXERCISES as ex (ex.title)}
-				<div class="rounded-2xl border border-border bg-surface p-5">
+				<div class="border-t border-border/40 pt-5">
 					<div
 						class="text-[15px] leading-tight text-fg"
 						
@@ -583,13 +569,8 @@
 	<section id="tools" class="mb-16 grid scroll-mt-8 gap-8 md:grid-cols-[4fr_8fr] md:gap-10">
 		<div>
 			<div class="flex items-baseline gap-3">
-				<Wrench class="size-4 self-center text-accent" />
-				<h2
-					class="text-[28px] leading-tight tracking-tight text-fg"
-					
-				>
-					Tools the practice runs on
-				</h2>
+				<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>
+				<h2 class="text-[28px] leading-tight tracking-tight text-fg">Tools the practice runs on</h2>
 			</div>
 			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
 				The actual editors and pipelines used in production. Most are
@@ -602,7 +583,7 @@
 					href={t.href}
 					target="_blank"
 					rel="noopener"
-					class="group flex items-baseline gap-4 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
+					class="group flex items-baseline gap-4 border-b border-border/40 py-4 transition-colors hover:bg-surface-2/30"
 				>
 					<div
 						class="w-[130px] shrink-0 text-[14px] text-fg"
@@ -630,7 +611,7 @@
 					href={r.href}
 					target="_blank"
 					rel="noopener"
-					class="group rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
+					class="group border-b border-border/40 py-4 transition-colors hover:bg-surface-2/30"
 				>
 					<div class="flex items-baseline justify-between gap-3">
 						<span
@@ -656,13 +637,8 @@
 		</div>
 		<div>
 			<div class="flex items-baseline gap-3">
-				<BookOpen class="size-4 self-center text-accent" />
-				<h2
-					class="text-[28px] leading-tight tracking-tight text-fg"
-					
-				>
-					Reading
-				</h2>
+				<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>
+				<h2 class="text-[28px] leading-tight tracking-tight text-fg">Reading</h2>
 			</div>
 			<p class="mt-3 text-[13px] leading-relaxed text-fg-muted">
 				Books that train the eye, plus the standards docs that govern the
@@ -674,13 +650,8 @@
 	<!-- FOUNDRIES — 2-col grid of cards, slightly more typographic -->
 	<section id="foundries" class="mb-16 scroll-mt-8">
 		<div class="mb-5 flex items-baseline gap-3">
-			<Compass class="size-4 self-center text-accent" />
-			<h2
-				class="text-[28px] leading-none tracking-tight text-fg"
-				
-			>
-				Foundries worth studying
-			</h2>
+			<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>05</span>
+			<h2 class="text-[28px] leading-none tracking-tight text-fg">Foundries worth studying</h2>
 		</div>
 		<p class="mb-4 max-w-2xl text-[13px] leading-relaxed text-fg-muted">
 			The strongest type-design education isn't in books — it's reading how
@@ -693,7 +664,7 @@
 					href={f.href}
 					target="_blank"
 					rel="noopener"
-					class="group rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
+					class="group border-b border-border/40 py-4 transition-colors hover:bg-surface-2/30"
 				>
 					<div class="flex items-baseline justify-between gap-2">
 						<span
@@ -717,13 +688,8 @@
 	<!-- RESEARCH — small tertiary section -->
 	<section id="research" class="mb-16 scroll-mt-8">
 		<div class="mb-4 flex items-baseline gap-3">
-			<BookOpen class="size-4 self-center text-accent" />
-			<h2
-				class="text-[18px] leading-none tracking-tight text-fg"
-				
-			>
-				Legibility research
-			</h2>
+			<span class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>06</span>
+			<h2 class="text-[18px] leading-none tracking-tight text-fg">Legibility research</h2>
 			<span class="text-[11px] text-fg-subtle">
 				Why proof paragraphs matter more than polished hero glyphs
 			</span>
@@ -734,7 +700,7 @@
 					href={r.href}
 					target="_blank"
 					rel="noopener"
-					class="group flex items-baseline gap-4 rounded-xl border border-border bg-surface px-4 py-3 transition-colors hover:border-accent hover:bg-accent-soft/20"
+					class="group flex items-baseline gap-4 border-b border-border/40 py-4 transition-colors hover:bg-surface-2/30"
 				>
 					<div class="min-w-0 flex-1">
 						<div
@@ -778,7 +744,7 @@
 			</div>
 			<a
 				href="/"
-				class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-accent px-5 py-2.5 text-[13px] font-medium text-accent-fg transition-colors hover:bg-accent/90"
+				class="inline-flex shrink-0 items-center gap-1.5 bg-fg px-5 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent"
 			>
 				New project →
 			</a>
