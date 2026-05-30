@@ -34,7 +34,10 @@ export const celebrate = async (level: 'small' | 'medium' | 'large' = 'medium') 
 	const success = getComputedStyle(document.documentElement)
 		.getPropertyValue('--color-success')
 		.trim();
-	const colors = [accent || '#5B9BD5', success || '#7BB87B', '#E8E2D3'];
+	// Fallback palette mirrors the Swiss tokens when the CSS variables
+	// haven't resolved yet: accent → Swiss Red, success → green hold-over,
+	// neutral → stone-200 so the bursts read against stone-50 canvas.
+	const colors = [accent || '#C8102E', success || '#7BB87B', '#e7e5e4'];
 	void confetti({
 		particleCount: counts[level],
 		spread: level === 'large' ? 90 : 60,
@@ -54,7 +57,9 @@ export const celebrateSeal = async () => {
 	const accent = getComputedStyle(document.documentElement)
 		.getPropertyValue('--color-accent')
 		.trim();
-	const colors = [accent || '#5B9BD5', '#E8E2D3', '#888', '#222'];
+	// Swiss seal palette: accent (red), stone-200 neutral, stone-500 quiet,
+	// stone-900 anchor — restrained per the rebrand.
+	const colors = [accent || '#C8102E', '#e7e5e4', '#78716c', '#1c1917'];
 	const common = {
 		particleCount: 60,
 		angle: 0,
@@ -153,28 +158,31 @@ let helloShown = false;
 export const consoleHello = () => {
 	if (helloShown || typeof window === 'undefined') return;
 	helloShown = true;
-	const banner = [
-		'',
-		'  ████████╗██╗   ██╗██████╗ ███████╗',
-		'  ╚══██╔══╝╚██╗ ██╔╝██╔══██╗██╔════╝',
-		'     ██║    ╚████╔╝ ██████╔╝█████╗  ',
-		'     ██║     ╚██╔╝  ██╔═══╝ ██╔══╝  ',
-		'     ██║      ██║   ██║     ███████╗',
-		'     ╚═╝      ╚═╝   ╚═╝     ╚══════╝',
-		''
-	].join('\n');
-	// Easter-egg banner shown to anyone who opens DevTools. Intentional
-	// console.log usage; the rule is "no debug console.log", not "no
-	// branding console.log."
+	// Editorial console greeting for the curious. Five lines, set in the
+	// brand's display + mono pair, signed. Restrained: no ASCII art, no
+	// emoji, the typography carries it.
+	const sans = 'font-family: "IBM Plex Sans", system-ui, sans-serif;';
+	const mono = 'font-family: "IBM Plex Mono", ui-monospace, monospace;';
 	/* eslint-disable no-console */
-	console.log(`%c${banner}`, 'color: hsl(220, 60%, 55%); font-family: monospace; line-height: 1.0;');
 	console.log(
-		'%cPatens — a personal type design tool.',
-		'color: #888; font-family: ui-serif, serif; font-style: italic;'
+		'%cPatens',
+		`${sans} font-weight: 300; font-size: 36px; letter-spacing: -0.03em; color: #1c1917; line-height: 1.0;`
 	);
 	console.log(
-		'%cPoking around the source? It\'s SvelteKit + opentype.js + Pyodide.',
-		'color: #666; font-size: 11px;'
+		'%cA type editor with a method.\nThe audit teaches as you draw.',
+		`${mono} font-weight: 500; font-size: 12px; color: #57534e; line-height: 1.6;`
+	);
+	console.log(
+		'%c→ patens.design/audit',
+		`${mono} font-weight: 500; font-size: 11px; color: #C8102E; letter-spacing: 0.05em;`
+	);
+	console.log(
+		'%cSvelteKit · opentype.js · Pyodide · canvas-confetti · MIT',
+		`${mono} font-weight: 500; font-size: 10px; color: #78716c; letter-spacing: 0.1em; text-transform: uppercase;`
+	);
+	console.log(
+		'%c— Alejandro',
+		`${sans} font-weight: 300; font-size: 12px; color: #57534e;`
 	);
 	/* eslint-enable no-console */
 };

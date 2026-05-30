@@ -7,6 +7,8 @@
 	// Honeypot: a visually-hidden `company` field. Real users never fill
 	// it; bots autofill every field, so a non-empty value → silent success
 	// (we drop it without hitting the API).
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import type { Locale } from '$lib/i18n';
 
 	type Props = { lang?: Locale; class?: string };
@@ -83,13 +85,23 @@
 </script>
 
 {#if status === 'done'}
+	<!-- Subtle entry: a brief fly-up + fade, 240ms ease-out. The transition
+	     is the one delight moment in the form — gated by reduced-motion
+	     through Svelte's built-in respect for prefers-reduced-motion. -->
 	<p
+		in:fly={{ y: 6, duration: 240, easing: cubicOut }}
 		class="text-[15px] leading-relaxed text-fg {extraClass}"
 		role="status"
 		aria-live="polite"
 		data-testid="waitlist-success"
 	>
-		<span class="mr-1.5 text-accent-strong" aria-hidden="true">✓</span>{message}
+		<span
+			in:fade={{ duration: 320, delay: 120 }}
+			class="mr-1.5 inline-block text-accent-strong"
+			aria-hidden="true"
+		>
+			✓
+		</span>{message}
 	</p>
 {:else}
 	<form onsubmit={submit} class="flex flex-col gap-2 {extraClass}" novalidate>
