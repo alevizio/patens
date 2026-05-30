@@ -19,6 +19,7 @@
 		birdfont: Cell;
 		fontforge: Cell;
 		lipi: Cell;
+		fontish: Cell;
 	};
 
 	type Group = { title: string; rows: Row[] };
@@ -38,7 +39,8 @@
 					typlr: 'Free',
 					birdfont: 'Donateware',
 					fontforge: 'Free',
-					lipi: 'Freemium'
+					lipi: 'Freemium',
+					fontish: '$6.49+/mo'
 				},
 				{
 					feature: 'Open source',
@@ -51,7 +53,8 @@
 					typlr: false,
 					birdfont: 'GPL',
 					fontforge: 'GPL',
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Runs in browser',
@@ -65,7 +68,8 @@
 					typlr: true,
 					birdfont: false,
 					fontforge: false,
-					lipi: true
+					lipi: true,
+					fontish: true
 				},
 				{
 					feature: 'Platforms',
@@ -78,7 +82,8 @@
 					typlr: 'Any browser',
 					birdfont: 'macOS, Windows, Linux',
 					fontforge: 'macOS, Windows, Linux',
-					lipi: 'Any browser'
+					lipi: 'Any browser',
+					fontish: 'Any browser'
 				},
 				{
 					feature: 'Offline support',
@@ -92,7 +97,8 @@
 					typlr: false,
 					birdfont: true,
 					fontforge: true,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Data lives',
@@ -105,7 +111,8 @@
 					typlr: 'Your browser',
 					birdfont: 'Your disk',
 					fontforge: 'Your disk',
-					lipi: 'Cloud'
+					lipi: 'Cloud',
+					fontish: 'Cloud'
 				}
 			]
 		},
@@ -124,7 +131,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: false,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Direct Bézier editing',
@@ -137,7 +145,8 @@
 					typlr: true,
 					birdfont: true,
 					fontforge: true,
-					lipi: true
+					lipi: true,
+					fontish: true
 				},
 				{
 					feature: 'Components / composites',
@@ -150,7 +159,8 @@
 					typlr: 'partial',
 					birdfont: true,
 					fontforge: true,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Anchor-based mark positioning',
@@ -163,7 +173,8 @@
 					typlr: false,
 					birdfont: 'partial',
 					fontforge: true,
-					lipi: false
+					lipi: false,
+					fontish: false
 				}
 			]
 		},
@@ -181,7 +192,8 @@
 					typlr: 'partial',
 					birdfont: false,
 					fontforge: 'partial',
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'OpenType features (GSUB)',
@@ -194,7 +206,8 @@
 					typlr: 'partial',
 					birdfont: 'partial',
 					fontforge: true,
-					lipi: 'partial'
+					lipi: 'partial',
+					fontish: false
 				},
 				{
 					feature: 'Variable fonts',
@@ -208,7 +221,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: 'partial',
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Kerning + classes',
@@ -221,7 +235,8 @@
 					typlr: 'partial',
 					birdfont: 'partial',
 					fontforge: true,
-					lipi: 'partial'
+					lipi: 'partial',
+					fontish: 'partial'
 				},
 				{
 					feature: 'Color fonts (COLR / CPAL)',
@@ -234,7 +249,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: 'partial',
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Multi-script (Latin + Cyrillic + Greek)',
@@ -247,7 +263,8 @@
 					typlr: 'partial',
 					birdfont: 'partial',
 					fontforge: true,
-					lipi: 'partial'
+					lipi: 'partial',
+					fontish: 'partial'
 				}
 			]
 		},
@@ -266,7 +283,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: 'partial',
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'One-click "Fix" actions',
@@ -279,7 +297,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: false,
-					lipi: 'partial'
+					lipi: 'partial',
+					fontish: 'partial'
 				},
 				{
 					feature: 'Teaching-grade explanations',
@@ -293,7 +312,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: false,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Pre-flight release check',
@@ -306,7 +326,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: false,
-					lipi: false
+					lipi: false,
+					fontish: false
 				}
 			]
 		},
@@ -324,7 +345,8 @@
 					typlr: true,
 					birdfont: true,
 					fontforge: true,
-					lipi: true
+					lipi: true,
+					fontish: true
 				},
 				{
 					feature: 'TTF + autohinting',
@@ -337,7 +359,8 @@
 					typlr: 'partial',
 					birdfont: true,
 					fontforge: true,
-					lipi: 'partial'
+					lipi: 'partial',
+					fontish: false
 				},
 				{
 					feature: 'WOFF2 export',
@@ -350,7 +373,8 @@
 					typlr: true,
 					birdfont: 'partial',
 					fontforge: true,
-					lipi: true
+					lipi: true,
+					fontish: false
 				},
 				{
 					feature: 'UFO export',
@@ -363,7 +387,8 @@
 					typlr: false,
 					birdfont: false,
 					fontforge: true,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'One-click cloud share link',
@@ -377,7 +402,8 @@
 					typlr: 'partial',
 					birdfont: false,
 					fontforge: false,
-					lipi: false
+					lipi: false,
+					fontish: false
 				},
 				{
 					feature: 'Printable specimen sheet',
@@ -390,7 +416,8 @@
 					typlr: 'partial',
 					birdfont: false,
 					fontforge: false,
-					lipi: false
+					lipi: false,
+					fontish: false
 				}
 			]
 		}
@@ -411,7 +438,8 @@
 		{ key: 'typlr', name: 'typlr.app', url: 'https://typlr.app/' },
 		{ key: 'birdfont', name: 'BirdFont', url: 'https://birdfont.org/' },
 		{ key: 'fontforge', name: 'FontForge', url: 'https://fontforge.org/' },
-		{ key: 'lipi', name: 'Lipi Font Studio', url: 'https://www.lipi.ai/font-studio' }
+		{ key: 'lipi', name: 'Lipi Font Studio', url: 'https://www.lipi.ai/font-studio' },
+		{ key: 'fontish', name: 'Fontish', url: 'https://fontish.io/' }
 	];
 
 	const renderCell = (value: Cell) => value;
