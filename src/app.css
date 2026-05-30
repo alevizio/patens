@@ -1,13 +1,17 @@
 @import 'tailwindcss';
 
 /* -------------------------------------------------------------
- * Design tokens — three-tier (global → semantic → component)
- * HSL format for runtime theme switching.
+ * Swiss International Style — stone palette, IBM Plex Sans
+ * primary, opacity-as-hierarchy (approximated via stone shades),
+ * one accent (Swiss Red #C8102E). Restrained, rectilinear, the
+ * grotesque type face does the work.
  * ------------------------------------------------------------- */
 
 @theme {
-	--font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
-	--font-mono: ui-monospace, 'SF Mono', Menlo, Monaco, 'Cascadia Mono', monospace;
+	--font-sans:
+		'IBM Plex Sans', 'Hanken Grotesk', 'Barlow', 'Host Grotesk', 'DM Sans', system-ui,
+		sans-serif;
+	--font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Monaco, 'Cascadia Mono', monospace;
 
 	--color-canvas: hsl(var(--canvas));
 	--color-surface: hsl(var(--surface));
@@ -38,30 +42,35 @@
 
 @layer base {
 	:root {
-		color-scheme: light;
+		color-scheme: light dark;
 
-		/* light theme */
-		--canvas: 240 6% 97%;
-		--surface: 0 0% 100%;
-		--surface-2: 240 6% 96%;
-		--overlay: 240 6% 100%;
-		--border: 240 6% 88%;
-		--border-strong: 240 6% 78%;
-		--fg: 240 10% 10%;
-		--fg-muted: 240 5% 38%;
-		--fg-subtle: 240 5% 45%; /* WCAG-AA contrast >= 4.5:1 against off-white canvas (#f7f7f8) */
-		--accent: 222 88% 55%;
-		--accent-fg: 0 0% 100%;
-		--accent-soft: 222 88% 95%;
-		--accent-strong: 222 88% 38%; /* for text on tinted bg — passes 4.5:1 on accent-soft */
+		/* Light theme — stone-50 canvas, stone-900 fg. Opacity approximations
+		   via stone-600 / stone-400 for muted / subtle (visually equivalent
+		   to stone-900 at 70% / 40% over stone-50). */
+		--canvas: 60 9% 98%; /* stone-50  #fafaf9 */
+		--surface: 60 5% 96%; /* stone-100 #f5f5f4 */
+		--surface-2: 20 6% 90%; /* stone-200 #e7e5e4 */
+		--overlay: 60 5% 96%; /* stone-100 */
+		--border: 20 6% 90%; /* stone-200 */
+		--border-strong: 24 6% 83%; /* stone-300 #d6d3d1 */
+		--fg: 24 10% 10%; /* stone-900 #1c1917 */
+		--fg-muted: 33 5% 32%; /* ~stone-600  ≈ stone-900 @ 70% over canvas */
+		--fg-subtle: 24 5% 64%; /* ~stone-400  ≈ stone-900 @ 40% over canvas */
+
+		/* Swiss Red — the only accent. Used sparingly. */
+		--accent: 351 86% 42%; /* #C8102E */
+		--accent-fg: 60 9% 98%; /* stone-50 on accent */
+		--accent-soft: 351 86% 95%; /* very pale red — tinted bg */
+		--accent-strong: 351 86% 35%; /* deeper red for text on accent-soft */
+
 		--success: 145 60% 38%;
 		--success-strong: 145 60% 28%;
 		--warn: 35 90% 50%;
-		--warn-strong: 35 90% 28%; /* dark enough for body text on warn/10 + on white */
+		--warn-strong: 35 90% 28%;
 		--danger: 358 75% 52%;
 		--danger-strong: 358 75% 38%;
 
-		/* metrics (used in editor overlays) */
+		/* editor metrics (independent of brand palette) */
 		--grid: 240 6% 90%;
 		--baseline: 222 88% 55%;
 		--x-height: 145 60% 45%;
@@ -69,36 +78,37 @@
 		--ascender: 280 50% 60%;
 		--descender: 20 70% 55%;
 
-		/* preview font family — set dynamically by stores/preview */
 		--preview-family: 'PreviewFont, ui-sans-serif, system-ui';
 	}
 
-	/* Light is the primary, default theme. Dark mode is opt-in via the
-	   Settings dialog (`theme-dark` class on :root). We deliberately do NOT
-	   auto-apply dark via `prefers-color-scheme: dark` — the foundry's
-	   day-shift is the canonical look, and a user on a dark-mode OS should
-	   still land on the cream canvas unless they ask otherwise. */
+	/* Light is the default. Dark mode is opt-in via the .theme-dark class
+	   on :root, toggled by the SiteHeader/Studio theme button. (We don't
+	   auto-apply via prefers-color-scheme because the toggle is the
+	   explicit user control.) */
 	:root.theme-dark {
 		color-scheme: dark;
-		--canvas: 240 8% 6%;
-		--surface: 240 8% 9%;
-		--surface-2: 240 8% 12%;
-		--overlay: 240 8% 11%;
-		--border: 240 6% 18%;
-		--border-strong: 240 6% 28%;
-		--fg: 240 8% 95%;
-		--fg-muted: 240 5% 65%;
-		--fg-subtle: 240 5% 45%;
-		--accent: 222 88% 62%;
-		--accent-fg: 240 8% 6%;
-		--accent-soft: 222 60% 18%;
-		--accent-strong: 222 88% 75%;
+		--canvas: 20 14% 4%; /* stone-950 #0c0a09 */
+		--surface: 24 10% 10%; /* stone-900 #1c1917 */
+		--surface-2: 12 6% 15%; /* stone-800 #292524 */
+		--overlay: 24 10% 10%; /* stone-900 */
+		--border: 12 6% 15%; /* stone-800 */
+		--border-strong: 30 6% 25%; /* stone-700 #44403c */
+		--fg: 60 9% 98%; /* stone-50 */
+		--fg-muted: 24 5% 64%; /* ~stone-400  ≈ stone-50 @ 70% over canvas */
+		--fg-subtle: 33 5% 32%; /* ~stone-600  ≈ stone-50 @ 40% over canvas */
+
+		--accent: 351 86% 55%; /* brighter on dark */
+		--accent-fg: 20 14% 4%; /* stone-950 on bright red */
+		--accent-soft: 351 50% 18%; /* dark muted red tint */
+		--accent-strong: 351 86% 70%; /* lighter red for text on tint */
+
 		--success: 145 60% 50%;
 		--success-strong: 145 60% 60%;
 		--warn: 35 90% 55%;
 		--warn-strong: 35 90% 65%;
 		--danger: 358 75% 60%;
 		--danger-strong: 358 75% 68%;
+
 		--grid: 240 6% 16%;
 		--baseline: 222 88% 62%;
 		--x-height: 145 60% 50%;
@@ -121,11 +131,37 @@
 			'ss01',
 			'ss03';
 		text-rendering: geometricPrecision;
+		-webkit-font-smoothing: antialiased;
 	}
 
-	/* Scrollbars hidden across the app. Content stays scrollable via
-	   wheel / trackpad / keyboard — we just don't paint the bar. Matches
-	   the foundry's no-chrome direction. */
+	/* Swiss heading defaults — light weight, tight tracking on display.
+	   Individual sizes are still set per-page via Tailwind classes; this
+	   is the brand-wide weight + letter-spacing baseline. */
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		font-weight: 300; /* font-light */
+		letter-spacing: -0.01em;
+		text-wrap: balance;
+	}
+	h1,
+	h2 {
+		letter-spacing: -0.02em; /* tracking-tight on display */
+	}
+
+	/* Defensive override — pages built in the prior Hoefler editorial
+	   register carry `style="font-family: 'Hoefler Text', …"` on many
+	   headings. Force them to fall through to the Swiss grotesque so the
+	   full surface reads in one voice without per-file edits. Targeted
+	   per-page cleanups can remove the inline style later. */
+	[style*='Hoefler'] {
+		font-family: var(--font-sans) !important;
+	}
+
+	/* Scrollbars hidden across the app. */
 	* {
 		scrollbar-width: none;
 	}
@@ -135,8 +171,11 @@
 		display: none;
 	}
 
-	/* Numeric tabular alignment for metric values everywhere */
-	[data-numeric] {
+	/* Tabular numerals everywhere they appear in data — numbered lists,
+	   tables, audit codes. Per skill. */
+	[data-numeric],
+	table,
+	.tabular-nums {
 		font-variant-numeric: tabular-nums;
 		font-feature-settings: 'tnum';
 	}
@@ -147,7 +186,6 @@
 		font-family: var(--preview-family);
 	}
 
-	/* Subtle breathing for skeleton placeholders. */
 	@keyframes skel-shimmer {
 		0%,
 		100% {
@@ -159,18 +197,9 @@
 	}
 }
 
-/* Respect user motion preferences across the whole app.
- *
- * The editor uses dozens of micro-transitions (active:scale, focus
- * rings, hover colour shifts, accordion chevron rotations, button
- * presses). Each one is a tiny delight — but for users on
- * prefers-reduced-motion (vestibular sensitivity, attention
- * disorders), the cumulative motion budget becomes hostile.
- *
- * This rule kills all animations + transitions at the source.
- * Functional state changes (focus state, hover colours) still apply
- * — they just snap instantly. Accordion content still shows + hides;
- * it just doesn't slide. No feature is removed; only the motion is. */
+/* Respect prefers-reduced-motion across the whole surface — any
+   transition / animation snaps instead of sliding for users with
+   motion sensitivity. */
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,

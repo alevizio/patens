@@ -69,20 +69,15 @@
 >
 	<a
 		href={lang === 'es' ? '/es' : '/'}
-		class="group inline-flex items-center gap-2.5 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+		class="group inline-flex items-center gap-2.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<span
-			class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform duration-150 ease-out group-hover:scale-105 group-active:scale-95"
+			class="inline-flex size-7 items-center justify-center bg-fg text-canvas transition-transform duration-150 ease-out motion-safe:group-hover:scale-105 motion-safe:group-active:scale-95"
 			aria-hidden="true"
 		>
 			<Type class="size-3.5" />
 		</span>
-		<span
-			class="text-[13px] font-medium tracking-tight text-fg"
-			style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
-		>
-			Patens
-		</span>
+		<span class="text-[14px] font-normal tracking-tight text-fg">Patens</span>
 	</a>
 
 	<nav

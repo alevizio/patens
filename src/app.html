@@ -4,42 +4,55 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<meta name="color-scheme" content="light dark" />
 		<link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
 		<link rel="icon" type="image/png" sizes="192x192" href="%sveltekit.assets%/icon-192.png" />
 		<link rel="icon" type="image/png" sizes="512x512" href="%sveltekit.assets%/icon-512.png" />
 		<link rel="apple-touch-icon" sizes="192x192" href="%sveltekit.assets%/icon-192.png" />
 		<link rel="manifest" href="%sveltekit.assets%/manifest.json" />
-		<meta name="theme-color" content="#111111" media="(prefers-color-scheme: light)" />
-		<meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: dark)" />
+		<!-- Swiss palette: stone-50 (light) / stone-950 (dark). Match the
+		     browser chrome (address bar, system UI) to the page bg so there
+		     is no contrast notch when the page mounts. -->
+		<meta name="theme-color" content="#fafaf9" media="(prefers-color-scheme: light)" />
+		<meta name="theme-color" content="#0c0a09" media="(prefers-color-scheme: dark)" />
+		<!-- IBM Plex Sans — primary face per the Swiss design system.
+		     Light (300) for display, regular (400) for body, medium (500)
+		     for emphasis, semibold (600) reserved for rare strong CTAs.
+		     Italic 300/400 carried for rare quoted material. -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+			rel="stylesheet"
+		/>
 		%sveltekit.head%
 	</head>
 	<style>
-		/* Pre-hydration base — sets the page background to the canvas
-		   token's resolved value so the cold-load flash matches the
-		   eventual theme instead of going white. The actual token is
-		   restated by Svelte once it mounts; this is a defensive shim
-		   for the ~100-300ms before hydration. */
+		/* Pre-hydration base — stone-50 light / stone-950 dark via
+		   light-dark() so the cold-load flash matches the eventual theme
+		   instead of going white. Tokens are restated by Svelte once it
+		   mounts; this is the defensive shim for the ~100-300ms before. */
 		html,
 		body {
-			background: light-dark(#fafaf9, #0c0c0c);
-			color: light-dark(#1a1a1a, #ededed);
+			background: light-dark(#fafaf9, #0c0a09);
+			color: light-dark(#1c1917, #fafaf9);
 			margin: 0;
 		}
 	</style>
 	<body data-sveltekit-preload-data="hover">
-		<!--
-			Pre-hydration skeleton — shown only while the SvelteKit JS bundle
-			is fetched + booted (typically <300ms on a warm cache). Once
-			Svelte mounts, the body slot below replaces this entirely. The
-			alternative was a white flash, which on the foundry-style share
-			pages reads as broken.
-		-->
+		<!-- Pre-hydration skeleton — shown only while the SvelteKit JS bundle
+		     is booted (typically <300ms). Once Svelte mounts, the body slot
+		     replaces this entirely. -->
 		<noscript>
-			<div style="font-family: 'Hoefler Text', ui-serif, Georgia, serif; padding: 4rem 1.5rem; text-align: center; max-width: 32rem; margin: 0 auto;">
-				<h1 style="font-size: 28px; margin: 0 0 1rem;">Patens</h1>
-				<p style="font-size: 14px; line-height: 1.5; color: #666;">
-					This app needs JavaScript to render. Every project is built and
-					stored in your browser; there's no server to fall back to.
+			<div
+				style="font-family: 'IBM Plex Sans', system-ui, sans-serif; padding: 4rem 1.5rem; text-align: center; max-width: 32rem; margin: 0 auto;"
+			>
+				<h1 style="font-size: 28px; font-weight: 300; letter-spacing: -0.02em; margin: 0 0 1rem;">
+					Patens
+				</h1>
+				<p style="font-size: 14px; line-height: 1.5; color: #57534e;">
+					This app needs JavaScript to render. Every project is built and stored in your
+					browser; there's no server to fall back to.
 				</p>
 			</div>
 		</noscript>
