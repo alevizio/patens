@@ -57,14 +57,14 @@
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
 		Una línea (para tweets, sub-headers de reseñas)
 	</h3>
-	<p class="mb-6 rounded-md border border-border/40 bg-fg/[0.02] p-4 text-[15px] leading-relaxed text-fg">
+	<p class="mb-6 border-t border-border/40 pt-4 text-[15px] leading-relaxed text-fg">
 		Un editor tipográfico con un método. 94 reglas, en lenguaje claro, gratis para siempre.
 	</p>
 
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
 		Un párrafo (para intros de artículos)
 	</h3>
-	<p class="mb-6 rounded-md border border-border/40 bg-fg/[0.02] p-4 text-[14px] leading-relaxed text-fg-muted">
+	<p class="mb-6 border-t border-border/40 pt-4 text-[14px] leading-relaxed text-fg-muted">
 		Patens es un editor de tipografías de código abierto MIT, browser-native, hecho por
 		Alejandro Vizio. Lo distingue del resto del paisaje un módulo de auditoría continuo de 94
 		códigos: en lugar de avisos opacos como "stroke crossing", cada hallazgo viene con una
@@ -78,7 +78,7 @@
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
 		Tres párrafos (para reseñas largas)
 	</h3>
-	<div class="mb-6 space-y-3 rounded-md border border-border/40 bg-fg/[0.02] p-4 text-[14px] leading-relaxed text-fg-muted">
+	<div class="mb-6 space-y-3 border-t border-border/40 pt-4 text-[14px] leading-relaxed text-fg-muted">
 		<p>
 			Patens es un editor de tipografías que corre en el navegador. Bocetá glifos con un lápiz
 			sensible a la presión, trazá las pinceladas a contornos Bézier cúbicos, ajustá métricas

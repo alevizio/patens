@@ -139,7 +139,7 @@
 	</p>
 
 	<div
-		class="rounded-md border border-fg/10 bg-fg/[0.02] p-4 text-[13px] leading-relaxed text-fg-muted"
+		class="border-t border-fg/10 pt-4 text-[13px] leading-relaxed text-fg-muted"
 	>
 		<p>
 			<span class="font-medium text-fg">Trivia.</span> El verbo latino
