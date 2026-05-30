@@ -5,11 +5,9 @@
 	// foundry" inline link at the top, not a SaaS nav bar). The
 	// footer carries the full sitemap discoverability.
 	//
-	// 4-column Swiss-aligned grid:
-	//   Product  · Learn   · Company · Legal
-	// Plus a bottom row for the wordmark, open-source links, and
-	// social handles. The whole thing sits in a `border-t` rule for
-	// editorial weight; mt-28 above to separate from the page content.
+	// Swiss-aligned 4-column link grid (Product · Learn · Company · Legal)
+	// with numerical 01/02/03/04 section prefixes. Closes with a tall
+	// wordmark + tight identity strip — editorial document, not SaaS.
 	//
 	// Used on every public marketing route. Deliberately NOT used on:
 	//   - Editor (/project/[id]/edit) — full-app surface
@@ -68,13 +66,26 @@
 	]);
 </script>
 
-<footer class="mt-28 border-t border-border/60 pt-12 pb-8">
-	<div class="grid grid-cols-2 gap-x-8 gap-y-10 md:grid-cols-4">
-		{#each groups as group (group.title)}
+<footer class="mt-28 border-t border-border/60 pt-14 pb-10">
+	<!-- 4-column link grid. Each column carries a Swiss-style 01/02/03/04
+	     section prefix in tabular-nums mono, a thin rule under the heading,
+	     and the link list below. -->
+	<div class="grid grid-cols-2 gap-x-8 gap-y-12 md:grid-cols-4">
+		{#each groups as group, i (group.title)}
 			<div>
-				<h2 class="mb-4 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
-					{group.title}
-				</h2>
+				<div class="mb-5 flex items-baseline gap-3 border-b border-border/40 pb-3">
+					<span
+						class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums"
+						data-numeric
+					>
+						{String(i + 1).padStart(2, '0')}
+					</span>
+					<h2
+						class="font-mono text-[10px] uppercase tracking-[0.18em] text-fg"
+					>
+						{group.title}
+					</h2>
+				</div>
 				<ul class="space-y-2.5">
 					{#each group.items as link (link.href)}
 						<li>
@@ -92,52 +103,58 @@
 		{/each}
 	</div>
 
-	<!-- Bottom rule + wordmark/social row -->
-	<div class="mt-12 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-3 border-t border-border/40 pt-6">
+	<!-- Identity strip. Big serif wordmark + tagline on the left; social
+	     row + MIT/year mono identifier on the right. Asymmetric, restrained,
+	     plenty of negative space — the document's colophon. -->
+	<div
+		class="mt-16 grid gap-y-8 gap-x-12 border-t border-border/60 pt-10 md:grid-cols-[1fr_auto] md:items-end"
+	>
 		<a
 			href={lang === 'es' ? '/es' : '/'}
-			class="group inline-flex items-baseline gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group block rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<span
-				class="text-[20px] tracking-tight text-fg transition-colors group-hover:text-accent-strong"
+				class="block text-[40px] leading-none tracking-tight text-fg transition-colors group-hover:text-accent-strong sm:text-[52px]"
 				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 			>
 				Patens
 			</span>
-			<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-				·&nbsp; {lang === 'es'
+			<span class="mt-3 block font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
+				{lang === 'es'
 					? 'Un editor tipográfico con un método. Una regla a la vez. — Alejandro'
 					: 'A type editor with a method. Made one rule at a time. — Alejandro'}
 			</span>
 		</a>
-		<nav
-			class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]"
-			aria-label={t.socialLabel}
-		>
-			<a
-				href="https://bsky.app/profile/patens.design"
-				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-				rel="noopener me"
+		<div class="flex flex-col gap-3 md:items-end md:text-right">
+			<nav
+				class="flex flex-wrap items-baseline gap-x-5 gap-y-2 text-[12px]"
+				aria-label={t.socialLabel}
 			>
-				@patens.design
-			</a>
-			<a
-				href="https://x.com/patenstype"
-				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-				rel="noopener me"
-			>
-				@patenstype
-			</a>
-			<a
-				href="https://instagram.com/patens.type"
-				class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-				rel="noopener me"
-			>
-				@patens.type
-			</a>
-		</nav>
-		<span class="font-mono text-[10px] tracking-wider text-fg-subtle uppercase">
-			MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '94 rules, plain English'} &nbsp;·&nbsp; 2026
-		</span>
+				<a
+					href="https://bsky.app/profile/patens.design"
+					class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+					rel="noopener me"
+				>
+					@patens.design
+				</a>
+				<a
+					href="https://x.com/patenstype"
+					class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+					rel="noopener me"
+				>
+					@patenstype
+				</a>
+				<a
+					href="https://instagram.com/patens.type"
+					class="rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+					rel="noopener me"
+				>
+					@patens.type
+				</a>
+			</nav>
+			<span class="font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
+				MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '94 rules, plain English'} &nbsp;·&nbsp; 2026
+			</span>
+		</div>
 	</div>
 </footer>

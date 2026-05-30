@@ -536,23 +536,30 @@
 	     stack of per-tool cards at small screens (because 9 columns × dozens
 	     of rows doesn't survive a phone). -->
 	<div class="hidden lg:block">
-		{#each groups as group (group.title)}
-			<section class="mb-12">
-				<h2
-					class="mb-4 text-[14px] uppercase tracking-[0.14em] text-fg-muted"
-				>
-					{group.title}
+		{#each groups as group, gi (group.title)}
+			<section class="mb-16">
+				<!-- Swiss-style section label: tabular-nums prefix + mono
+				     uppercase title, with a thin rule underneath. Pairs with
+				     the same numbered pattern in SiteFooter and the
+				     audit-families list on /. -->
+				<h2 class="mb-6 flex items-baseline gap-4 border-b border-border/40 pb-3">
+					<span
+						class="font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums"
+						data-numeric
+					>
+						{String(gi + 1).padStart(2, '0')}
+					</span>
+					<span class="font-mono text-[11px] uppercase tracking-[0.18em] text-fg">
+						{group.title}
+					</span>
 				</h2>
-				<div
-					class="overflow-hidden rounded-lg border border-border/40 bg-surface-1/40"
-				>
-					<!-- table-fixed + colgroup pins every column to the same width
-					     across every group, so the Patens column sits at the
-					     same horizontal position no matter how long the row
-					     labels in this particular group happen to be. Without
-					     this each <table> auto-sized to its own content and
-					     Patens drifted left-right between groups. -->
-					<table class="w-full table-fixed border-collapse text-[13px]">
+				<!-- table-fixed + colgroup pins every column to the same width
+				     across every group, so the Patens column sits at the
+				     same horizontal position no matter how long the row
+				     labels in this particular group happen to be. Without
+				     the card wrapper around the table — just the rules —
+				     for the editorial / Swiss register. -->
+				<table class="w-full table-fixed border-collapse text-[13px]">
 						<colgroup>
 							<col style="width: 22%" />
 							{#each competitors as c (c.key)}
@@ -635,7 +642,6 @@
 							{/each}
 						</tbody>
 					</table>
-				</div>
 			</section>
 		{/each}
 	</div>
