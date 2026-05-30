@@ -112,7 +112,7 @@
 	<section class="mb-12 space-y-4 text-[15px] leading-relaxed text-fg">
 		<p>
 			La <em>pa</em> suena como la primera sílaba de <em>padre</em> — una <em>a</em> abierta, no
-			la <em>a</em> más cerrada del inglés <em>"patent"</em>. La <em>tens</em> rima con la
+			la <em>a</em> más cerrada del inglés <em>“patent”</em>. La <em>tens</em> rima con la
 			última sílaba de <em>presente</em>.
 		</p>
 		<p>

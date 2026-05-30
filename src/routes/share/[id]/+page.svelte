@@ -1589,7 +1589,7 @@ body {
 		<input
 			type="text"
 			bind:value={typeText}
-			placeholder="Type something..."
+			placeholder="Type something…"
 			class="w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
 		/>
 		<!-- Sample-text presets. Quick pills for the passages designers
