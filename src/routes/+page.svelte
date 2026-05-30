@@ -18,6 +18,7 @@
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
 	import { homeTagline } from '$lib/delight';
+	import { hreflangLinks } from '$lib/i18n';
 
 	const taglineParts = $derived(homeTagline().split('\n'));
 
@@ -237,6 +238,8 @@
 		}
 	</style>
 	<link rel="canonical" href="https://patens.design/" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
+	{@html hreflangLinks('/')}
 
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html `<script type="application/ld+json">${JSON.stringify({

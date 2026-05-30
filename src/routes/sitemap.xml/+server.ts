@@ -25,35 +25,35 @@ const ROUTES: Array<{
 	priority: number;
 	lastmod: string;
 }> = [
-	{ path: '/', changefreq: 'weekly', priority: 1.0, lastmod: '2026-05-26' },
-	{ path: '/audit', changefreq: 'monthly', priority: 0.9, lastmod: '2026-05-26' },
-	{ path: '/learn', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-26' },
-	{ path: '/learn/first-font', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-25' },
-	{ path: '/learn/kerning', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-25' },
-	{ path: '/learn/variable-fonts', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-25' },
-	{ path: '/learn/opentype-features', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-25' },
-	{ path: '/learn/multi-script', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-25' },
-	{ path: '/learn/export-formats', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-25' },
-	{ path: '/learn/audit-codes', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-26' },
-	{ path: '/families', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-25' },
-	{ path: '/help', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-26' },
-	{ path: '/compare', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-26' },
-	{ path: '/changelog', changefreq: 'weekly', priority: 0.6, lastmod: '2026-05-26' },
-	{ path: '/changelog/rss.xml', changefreq: 'weekly', priority: 0.3, lastmod: '2026-05-26' },
+	{ path: '/', changefreq: 'weekly', priority: 1.0, lastmod: '2026-05-30' },
+	{ path: '/audit', changefreq: 'monthly', priority: 0.9, lastmod: '2026-05-30' },
+	{ path: '/learn', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-30' },
+	{ path: '/learn/first-font', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-30' },
+	{ path: '/learn/kerning', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-30' },
+	{ path: '/learn/variable-fonts', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-30' },
+	{ path: '/learn/opentype-features', changefreq: 'monthly', priority: 0.8, lastmod: '2026-05-30' },
+	{ path: '/learn/multi-script', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
+	{ path: '/learn/export-formats', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
+	{ path: '/learn/audit-codes', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
+	{ path: '/families', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-30' },
+	{ path: '/help', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
+	{ path: '/compare', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
+	{ path: '/changelog', changefreq: 'weekly', priority: 0.6, lastmod: '2026-05-30' },
+	{ path: '/changelog/rss.xml', changefreq: 'weekly', priority: 0.3, lastmod: '2026-05-30' },
 	{ path: '/llms.txt', changefreq: 'monthly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/llms-full.txt', changefreq: 'monthly', priority: 0.3, lastmod: '2026-05-26' },
 	{ path: '/about', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-26' },
-	{ path: '/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
-	{ path: '/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-26' },
-	{ path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
-	{ path: '/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-26' },
+	{ path: '/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-30' },
+	{ path: '/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-30' },
+	{ path: '/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-30' },
+	{ path: '/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-30' },
 	// Spanish marketing surface (es-ES) — added 2026-05-27. Each route
 	// has its hreflang pair pointing back to the English canonical.
 	{ path: '/es', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-27' },
 	{ path: '/es/about', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
-	{ path: '/es/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-27' },
+	{ path: '/es/pronunciation', changefreq: 'yearly', priority: 0.4, lastmod: '2026-05-30' },
 	{ path: '/es/help', changefreq: 'monthly', priority: 0.6, lastmod: '2026-05-27' },
-	{ path: '/es/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-27' },
+	{ path: '/es/press', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-30' },
 	{ path: '/es/privacy', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-27' },
 	{ path: '/es/security', changefreq: 'yearly', priority: 0.3, lastmod: '2026-05-27' },
 	{ path: '/es/compare', changefreq: 'monthly', priority: 0.6, lastmod: '2026-05-27' },
@@ -67,7 +67,7 @@ const ROUTES: Array<{
 // /audit/[code]. Adding them via map keeps the sitemap honest as the
 // audit catalogue grows; no per-rule lastmod is tracked, so we share
 // the date of the /audit landing page.
-const AUDIT_RULE_LASTMOD = '2026-05-27';
+const AUDIT_RULE_LASTMOD = '2026-05-30';
 
 export const GET: RequestHandler = ({ setHeaders }) => {
 	const staticUrls = ROUTES.map(
