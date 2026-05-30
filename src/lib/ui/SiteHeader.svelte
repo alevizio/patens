@@ -15,7 +15,10 @@
 	//   - Family hub / Families index — app surface
 	import Type from '@lucide/svelte/icons/type';
 	import Globe from '@lucide/svelte/icons/globe';
+	import Sun from '@lucide/svelte/icons/sun';
+	import Moon from '@lucide/svelte/icons/moon';
 	import { addLocalePrefix, chrome, switchLocalePath, type Locale } from '$lib/i18n';
+	import { settings } from '$lib/stores/settings.svelte';
 
 	type Props = { current?: string; lang?: Locale };
 	let { current = '', lang = 'en' }: Props = $props();
@@ -108,4 +111,21 @@
 			{otherLocale === 'es' ? 'ES' : 'EN'}
 		</a>
 	</nav>
+
+	<!-- Theme toggle. Lives outside the main <nav> so it stays visible on
+	     mobile when the nav collapses — the rest of the nav (Audit/Learn/
+	     Compare/Help + lang switcher) is sm:flex only. -->
+	<button
+		type="button"
+		onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
+		class="inline-flex size-7 items-center justify-center rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+		aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+		title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+	>
+		{#if settings.theme === 'dark'}
+			<Sun class="size-3.5" aria-hidden="true" />
+		{:else}
+			<Moon class="size-3.5" aria-hidden="true" />
+		{/if}
+	</button>
 </header>
