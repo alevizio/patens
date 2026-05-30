@@ -203,7 +203,7 @@
 	</p>
 
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
-		Open the export panel at <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[13px]">/project/[id]/export</code>
+		Open the export panel at <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[13px]">/project/[id]/export</code>
 		(Cmd+Shift+E from anywhere in the editor). Pick the format that
 		matches your downstream consumer.
 	</p>
@@ -236,7 +236,7 @@
 						<ul class="space-y-1.5 text-[13px] leading-relaxed text-fg-muted">
 							{#each f.good as point (point)}
 								<li class="grid grid-cols-[auto_1fr] gap-x-2">
-									<span class="mt-1 size-1 shrink-0 rounded-full bg-success-strong"></span>
+									<span class="mt-1 size-1 shrink-0 bg-success-strong"></span>
 									<span>{point}</span>
 								</li>
 							{/each}
@@ -249,7 +249,7 @@
 						<ul class="space-y-1.5 text-[13px] leading-relaxed text-fg-muted">
 							{#each f.bad as point (point)}
 								<li class="grid grid-cols-[auto_1fr] gap-x-2">
-									<span class="mt-1 size-1 shrink-0 rounded-full bg-fg-subtle"></span>
+									<span class="mt-1 size-1 shrink-0 bg-fg-subtle"></span>
 									<span>{point}</span>
 								</li>
 							{/each}

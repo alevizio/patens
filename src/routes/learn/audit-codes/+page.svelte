@@ -273,7 +273,7 @@
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
 		Patens runs a built-in audit module against every project. Each issue
 		it finds is reported with a stable code (e.g. <code
-			class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[13px]"
+			class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[13px]"
 		>sidebearing-deeply-negative-lsb</code>) so it's referenceable in commits,
 		bug reports, and tutorials. This page is the canonical reference for
 		what every code means.
@@ -295,7 +295,7 @@
 	<!-- TOC -->
 	<nav
 		aria-label="Families"
-		class="mb-12 rounded-lg border border-border/40 bg-surface-1/40 p-4 text-[13px]"
+		class="mb-12 rounded-none border border-border/40 bg-surface-1/40 p-4 text-[13px]"
 	>
 		<div
 			class="mb-3 text-[11px] uppercase tracking-[0.14em] text-fg-muted"

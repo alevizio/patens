@@ -532,7 +532,7 @@
 						<ul class="mt-3 grid gap-2 text-[13px] leading-relaxed text-fg-muted">
 							{#each phase.tasks as t (t)}
 								<li class="flex gap-2.5">
-									<span class="mt-2 size-1 shrink-0 rounded-full bg-fg-subtle"></span>
+									<span class="mt-2 size-1 shrink-0 bg-fg-subtle"></span>
 									<span>{t}</span>
 								</li>
 							{/each}

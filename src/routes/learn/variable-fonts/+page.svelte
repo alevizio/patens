@@ -165,7 +165,7 @@
 		{#each steps as step (step.n)}
 			<li class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2">
 				<div
-					class="row-span-2 flex size-9 items-center justify-center rounded-full border border-border bg-surface-1 text-[13px] font-medium text-fg"
+					class="row-span-2 flex size-9 items-center justify-center rounded-none border border-border bg-surface-1 text-[13px] font-medium text-fg"
 				>
 					{step.n}
 				</div>

@@ -151,11 +151,11 @@
 		position glyphs differently, based on context.</strong>
 		Patens infers features from your glyph names (the Adobe Glyph List
 		convention) instead of asking you to author a .fea file. Name a glyph
-		<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[13px]">f_i</code>
+		<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[13px]">f_i</code>
 		and you have a fi ligature in the
-		<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[13px]">liga</code>
+		<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[13px]">liga</code>
 		feature; name one
-		<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[13px]">a.smcp</code>
+		<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[13px]">a.smcp</code>
 		and you have small caps. This guide covers the auto-detect rules,
 		the major features your font will probably ship, and Patens's live
 		HarfBuzz shaping preview.
@@ -172,7 +172,7 @@
 		{#each steps as step (step.n)}
 			<li class="grid grid-cols-[auto_1fr] gap-x-5 gap-y-2">
 				<div
-					class="row-span-2 flex size-9 items-center justify-center rounded-full border border-border bg-surface-1 text-[13px] font-medium text-fg"
+					class="row-span-2 flex size-9 items-center justify-center rounded-none border border-border bg-surface-1 text-[13px] font-medium text-fg"
 				>
 					{step.n}
 				</div>
