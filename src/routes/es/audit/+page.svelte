@@ -30,6 +30,7 @@
 		content="El módulo de auditoría de Patens es el diferenciador: 94 reglas que chequean contornos, métricas, kerning, color fonts, variable fonts — con explicación pedagógica en lenguaje claro."
 	/>
 	<link rel="canonical" href="https://patens.design/es/audit" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/audit')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

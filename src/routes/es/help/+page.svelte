@@ -161,6 +161,7 @@
 		content="Preguntas frecuentes sobre Patens — compartir, exportar, el editor, performance. Actualizado 2026."
 	/>
 	<link rel="canonical" href="https://patens.design/es/help" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/help')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

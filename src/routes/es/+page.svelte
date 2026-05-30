@@ -40,6 +40,7 @@
 		content="Patens es un editor tipográfico con 94 reglas corriendo por debajo. Cada regla se explica en lenguaje claro, y unas 30 arreglan el glifo por vos. Código abierto, MIT, en el navegador, sin instalación. El Método Patens."
 	/>
 	<link rel="canonical" href="https://patens.design/es" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

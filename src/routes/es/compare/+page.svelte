@@ -111,6 +111,7 @@
 		content="Cómo se compara Patens con FontLab, Glyphs, Fontra, Glyphr Studio, BirdFont, FontForge, typlr.app, Lipi.ai, Fontish. Posicionamiento honesto."
 	/>
 	<link rel="canonical" href="https://patens.design/es/compare" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/compare')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

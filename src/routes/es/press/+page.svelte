@@ -13,6 +13,7 @@
 		content="Kit de prensa de Patens: descripciones de tres longitudes, factsheet, logos, capturas, contacto para reseñas."
 	/>
 	<link rel="canonical" href="https://patens.design/es/press" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/press')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

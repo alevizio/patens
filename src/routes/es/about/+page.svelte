@@ -60,6 +60,7 @@
 		content="Qué es Patens, sobre qué está construido, quién lo hace."
 	/>
 	<link rel="canonical" href="https://patens.design/es/about" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/about')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

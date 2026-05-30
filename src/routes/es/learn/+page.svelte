@@ -52,6 +52,7 @@
 		content="Tutoriales para aprender diseño tipográfico con Patens: tu primera tipografía, los 94 códigos de auditoría, kerning, variable fonts, OpenType features, multi-script, exportación."
 	/>
 	<link rel="canonical" href="https://patens.design/es/learn" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/learn')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

@@ -62,6 +62,7 @@
 		content="Patens se pronuncia PAH-tens (/ˈpɑː.tɛnz/). Dos sílabas, acento en la primera. Del latín patēns — 'lo que yace abierto'."
 	/>
 	<link rel="canonical" href="https://patens.design/es/pronunciation" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/pronunciation')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

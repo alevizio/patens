@@ -13,6 +13,7 @@
 		content="Política de privacidad de Patens en lenguaje claro: nada de tu trabajo sale del navegador a menos que vos lo decidas. Sin analytics SDK. Sin cookies."
 	/>
 	<link rel="canonical" href="https://patens.design/es/privacy" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/privacy')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />

@@ -23,11 +23,10 @@ let cachedPng: Buffer | null = null;
 const W = 1200;
 const H = 630;
 // Swiss palette (mirrors app.css token redirect): stone-50 canvas,
-// stone-900 fg, stone-600 muted, stone-400 subtle, Swiss Red accent.
+// stone-900 fg, stone-600 muted, Swiss Red accent.
 const BG = '#fafaf9'; // stone-50
 const FG = '#1c1917'; // stone-900
 const MUTED = '#57534e'; // stone-600
-const SUBTLE = '#a8a29e'; // stone-400
 const SWISS_RED = '#C8102E';
 
 /**

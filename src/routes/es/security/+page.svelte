@@ -13,6 +13,7 @@
 		content="Postura de seguridad de Patens: qué se almacena dónde, qué headers se envían, cómo reportar vulnerabilidades."
 	/>
 	<link rel="canonical" href="https://patens.design/es/security" />
+	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
 	{@html hreflangLinks('/security')}
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />
