@@ -15,21 +15,18 @@
 	<meta name="description" content="Every type family in your foundry — siblings, axes, and family-wide audits." />
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
 	<!-- Slim top bar — matches the home page chrome -->
 	<header
 		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
 	>
 		<a href="/studio-c104c94c" class="group inline-flex items-center gap-2.5">
 			<span
-				class="inline-flex size-7 items-center justify-center rounded-lg bg-fg text-canvas transition-transform group-hover:scale-105"
+				class="inline-flex size-7 items-center justify-center rounded-sm bg-fg text-canvas transition-transform group-hover:scale-105"
 			>
 				<Type class="size-3.5" />
 			</span>
-			<span
-				class="text-[13px] font-medium tracking-tight text-fg"
-				style="font-family: ui-monospace, 'SF Mono', Menlo, monospace;"
-			>
+			<span class="text-[13px] font-medium tracking-tight text-fg">
 				Patens
 			</span>
 		</a>
@@ -49,7 +46,7 @@
 			</button>
 			<a
 				href="/studio-c104c94c"
-				class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
+				class="inline-flex items-center gap-1.5 rounded-none px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
 			>
 				<ArrowLeft class="size-3.5" />
 				Back to projects
@@ -59,10 +56,7 @@
 
 	<!-- Hero: editorial heading + intro. Same h1 treatment as home -->
 	<section class="mb-16 max-w-3xl">
-		<h1
-			class="text-[40px] leading-[1.05] tracking-tight text-fg"
-			
-		>
+		<h1 class="text-[40px] leading-[1.05] tracking-tight text-fg">
 			Families
 		</h1>
 		<p class="mt-4 text-[15px] leading-relaxed text-fg-muted">
@@ -76,7 +70,7 @@
 		     copy on the right. Breaks the centered-card-on-empty pattern. -->
 		<section class="grid gap-8 md:grid-cols-[5fr_7fr] md:gap-12">
 			<div
-				class="rounded-2xl border border-dashed border-border bg-surface-2/30 p-8"
+				class="rounded-none border border-dashed border-border bg-surface-2/30 p-8"
 			>
 				<pre
 					class="block whitespace-pre text-left font-mono text-[11px] leading-[1.2] text-fg-subtle"
@@ -86,10 +80,7 @@
    n  o       n  o       n  o`}</pre>
 			</div>
 			<div class="flex flex-col justify-center gap-3">
-				<h2
-					class="text-[22px] leading-tight tracking-tight text-fg"
-					
-				>
+				<h2 class="text-[22px] leading-tight tracking-tight text-fg">
 					No families yet
 				</h2>
 				<p class="text-[14px] leading-relaxed text-fg-muted">
@@ -100,7 +91,7 @@
 				</p>
 				<a
 					href="/studio-c104c94c"
-					class="mt-2 inline-flex w-fit items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
+					class="mt-2 inline-flex w-fit items-center gap-1.5 rounded-none border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-accent"
 				>
 					Browse projects →
 				</a>
@@ -109,10 +100,7 @@
 	{:else}
 		<section>
 			<div class="mb-5 flex items-baseline justify-between gap-3">
-				<h2
-					class="text-[24px] leading-none tracking-tight text-fg"
-					
-				>
+				<h2 class="text-[24px] leading-none tracking-tight text-fg">
 					Your families
 				</h2>
 				<span class="font-mono text-[11px] text-fg-subtle" data-numeric>
@@ -129,7 +117,6 @@
 							<div class="min-w-0 flex-1">
 								<div
 									class="truncate text-[20px] leading-tight text-fg transition-colors group-hover:text-accent-strong"
-									
 								>
 									{f.name}
 								</div>
