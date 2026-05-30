@@ -85,7 +85,7 @@
 	   on :root, toggled by the SiteHeader/Studio theme button. (We don't
 	   auto-apply via prefers-color-scheme because the toggle is the
 	   explicit user control.) */
-	:root.theme-dark {
+	html.theme-dark {
 		color-scheme: dark;
 		--canvas: 20 14% 4%; /* stone-950 #0c0a09 */
 		--surface: 24 10% 10%; /* stone-900 #1c1917 */

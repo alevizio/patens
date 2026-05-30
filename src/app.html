@@ -28,15 +28,22 @@
 		%sveltekit.head%
 	</head>
 	<style>
-		/* Pre-hydration base — stone-50 light / stone-950 dark via
-		   light-dark() so the cold-load flash matches the eventual theme
-		   instead of going white. Tokens are restated by Svelte once it
-		   mounts; this is the defensive shim for the ~100-300ms before. */
+		/* Pre-hydration base — minimal stone defaults so the cold-load
+		   flash isn't pure white. NOT using light-dark() here: that
+		   function keys off `color-scheme`, which our explicit class-based
+		   theme toggle would conflict with (class set after hydration
+		   trails system preference). Body + tokens are restated by
+		   app.css and overridden by .theme-dark once Svelte mounts. */
 		html,
 		body {
-			background: light-dark(#fafaf9, #0c0a09);
-			color: light-dark(#1c1917, #fafaf9);
+			background: #fafaf9;
+			color: #1c1917;
 			margin: 0;
+		}
+		html.theme-dark,
+		html.theme-dark body {
+			background: #0c0a09;
+			color: #fafaf9;
 		}
 	</style>
 	<body data-sveltekit-preload-data="hover">
