@@ -127,15 +127,12 @@
 
 	<article class="mt-6">
 		<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-			<h1
-				class="text-[clamp(28px,5vw,44px)] leading-[1.1] tracking-tight text-fg"
-				
-			>
+			<h1 class="text-[clamp(28px,5vw,44px)] leading-[1.1] tracking-tight text-fg">
 				{rule.title}
 			</h1>
 			{#if rule.fixable}
 				<span
-					class="inline-flex items-center gap-1 rounded-full border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent-strong"
+					class="inline-flex items-center gap-1 rounded-none border border-accent/40 bg-accent-soft px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-accent-strong"
 					title="Patens has a one-click Fix button for this rule in the editor"
 				>
 					Auto-fix
@@ -145,7 +142,7 @@
 
 		<p class="mt-3 font-mono text-[12px] text-fg-subtle">
 			Audit code:
-			<code class="rounded bg-surface-2 px-1.5 py-0.5 text-fg">{rule.code}</code>
+			<code class="rounded-none bg-surface-2 px-1.5 py-0.5 text-fg">{rule.code}</code>
 		</p>
 
 		<section class="mt-8">
@@ -177,7 +174,7 @@
 					the editor — the audit module both detects the issue and applies a
 					deterministic correction with a labelled snapshot, so the
 					<kbd
-						class="rounded border border-border bg-surface px-1 font-mono text-[11px]"
+						class="rounded-none border border-border bg-surface px-1 font-mono text-[11px]"
 						>⌘Z</kbd
 					>
 					path back is preserved.
@@ -202,7 +199,7 @@
 				glyphs, or check your own work from the CLI:
 			</p>
 			<pre
-				class="mt-3 overflow-x-auto rounded-lg border border-border bg-surface-2/40 px-4 py-3 font-mono text-[12px] text-fg"><code>npx patens audit your-project.font.json</code></pre>
+				class="mt-3 overflow-x-auto rounded-none border border-border bg-surface-2/40 px-4 py-3 font-mono text-[12px] text-fg"><code>npx patens audit your-project.font.json</code></pre>
 		</section>
 
 		{#if peers.length > 0}
@@ -217,10 +214,10 @@
 						<li>
 							<a
 								href={`/audit/${peer.code}`}
-								class="group flex items-baseline gap-2 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-2/40 focus-visible:outline-none focus-visible:bg-surface-2/40"
+								class="group flex items-baseline gap-2 rounded-none px-2 py-1.5 transition-colors hover:bg-surface-2/40 focus-visible:outline-none focus-visible:bg-surface-2/40"
 							>
 								<code
-									class="shrink-0 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted group-hover:text-fg"
+									class="shrink-0 rounded-none bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg-muted group-hover:text-fg"
 									>{peer.code}</code
 								>
 								<span class="text-[14px] text-fg group-hover:underline">
