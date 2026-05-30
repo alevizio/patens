@@ -122,17 +122,18 @@
 		{ name: 'Glyphs', url: 'https://glyphsapp.com/' },
 		{ name: 'Fontra', url: 'https://fontra.xyz/' },
 		{ name: 'Robofont', url: 'https://robofont.com/' },
-		{ name: 'Glyphr Studio', url: 'https://www.glyphrstudio.com/' }
+		{ name: 'Glyphr Studio', url: 'https://www.glyphrstudio.com/' },
+		{ name: 'Lipi', url: 'https://www.lipi.ai/font-studio' }
 	];
 	type Cell = true | false | 'partial' | string;
 	const compareRows: Array<{ label: string; values: Cell[] }> = [
-		{ label: 'Price', values: ['Free', '$499', '$300', 'Free', '$400', 'Free'] },
-		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT'] },
-		{ label: 'Runs in the browser', values: [true, false, false, true, false, true] },
-		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false] },
-		{ label: '94-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false] },
-		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false] },
-		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false] }
+		{ label: 'Price', values: ['Free', '$499', '$300', 'Free', '$400', 'Free', 'Freemium'] },
+		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT', false] },
+		{ label: 'Runs in the browser', values: [true, false, false, true, false, true, true] },
+		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false, false] },
+		{ label: '94-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false] },
+		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false, 'partial'] },
+		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false, false] }
 	];
 </script>
 
