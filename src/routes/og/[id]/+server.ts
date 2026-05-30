@@ -1,41 +1,32 @@
 /**
- * GET /og/[id] — server-rendered OpenGraph image for a shared project.
- * The image renders at 1200×630 (standard OG dimensions) with the
- * project's family name set in Studio Slab (the bundled serif we ship
- * with the demo) + designer + version + glyph count.
+ * GET /og/[id] — server-rendered OpenGraph card.
  *
- * Render pipeline: satori (JSX-style → SVG) → resvg (SVG → PNG).
- * Both are imported lazily so the cold-start cost only lands on
- * requests for OG images, not on every page render.
+ * Swiss International Style: stone palette, single grotesque (Inter
+ * Medium), opacity-as-hierarchy, Swiss Red accent mark. Lipi/Plex/
+ * fontsource all ship WOFF/WOFF2 which Satori can't read, and the raw
+ * GitHub mirrors gate binary downloads behind redirects — so we use the
+ * Latin-subset Inter Medium we already bundle (60KB, embedded into the
+ * function bundle at build time via Vite + $app/server read()) for the
+ * entire card. Size + color opacity carry hierarchy; weight is single.
+ *
+ * Render pipeline: satori (JSX-shaped → SVG) → resvg (SVG → PNG).
  *
  * Lookup order matches the share-page loader:
- *   1. /og/demo — build demo on the fly
- *   2. Otherwise, try Vercel Blob via list+fetch (same path as
- *      /api/share/[id]); cache aggressively because OG previews are
- *      requested by social bots that follow URL changes rarely.
- *
- * If the project can't be found, returns a generic Patens brand
- * card so Slack/Twitter previews still look professional rather than
- * 404'd.
+ *   1. Named variant (home/brand/audit/learn/compare/press/about) → no
+ *      project lookup; variant-specific copy only.
+ *   2. /og/demo → build demo on the fly.
+ *   3. UUID-ish → try Vercel Blob via list+fetch.
+ *   4. Anything else → generic brand card so Slack/Twitter previews
+ *      still look intentional rather than 404.
  */
 
 import type { RequestHandler } from './$types';
 import type { Project } from '$lib/font/types';
 import { read } from '$app/server';
-// Bundled-asset imports — SvelteKit + Vite embed the binary into the
-// function bundle so it's available at runtime regardless of platform.
-// Previously read from `static/og-fonts/` via process.cwd()+readFile,
-// which broke on Vercel because static/ is served from the CDN, not
-// bundled with serverless functions. Lesson: anything the function
-// needs at runtime has to live under src/ + go through Vite.
-import loraUrl from '$lib/og-fonts/Lora-600.ttf';
 import interUrl from '$lib/og-fonts/Inter-500.ttf';
 
 const isUuidish = (s: string): boolean => /^[a-zA-Z0-9_-]{8,64}$/.test(s);
 
-// Variant types that have dedicated OG layouts. 'project' is the default
-// for any UUID-ish id; the named variants each render a marketing-page-
-// specific card.
 type Variant = 'brand' | 'audit' | 'learn' | 'compare' | 'press' | 'about' | 'project';
 
 const NAMED_VARIANTS = new Set(['home', 'brand', 'audit', 'learn', 'compare', 'press', 'about']);
@@ -54,14 +45,8 @@ const fetchProject = async (
 	id: string,
 	fetchFn: typeof fetch
 ): Promise<Project | null> => {
-	if (NAMED_VARIANTS.has(id)) {
-		// Variant cards — no project lookup. Returning null causes draw()
-		// to fall through to the variant-specific layout.
-		return null;
-	}
+	if (NAMED_VARIANTS.has(id)) return null;
 	if (id === 'demo') {
-		// Lazy-import demo builder so this route doesn't pull the demo
-		// project into the bundle when other ids are requested.
 		const { createDemoProject } = await import('$lib/font/demo-project');
 		return { ...createDemoProject(), id: 'demo' };
 	}
@@ -80,66 +65,68 @@ const fetchProject = async (
 	}
 };
 
-// Module-level cache so the font buffers persist across requests
-// within the same serverless function instance. Cold start reads from
-// disk once; subsequent renders are instant.
-let cachedFonts: { serif: ArrayBuffer; sans: ArrayBuffer } | null = null;
+// Stone palette — exact hex per @fontsource Tailwind stones, mirrored
+// in the site's CSS tokens (app.css). Opacity layers are inlined as the
+// pre-blended hex over stone-50 / stone-950 so Satori (which doesn't
+// render rgba over a background) gets a deterministic color.
+const STONE = {
+	bg: '#fafaf9', // stone-50
+	fg: '#1c1917', // stone-900
+	muted: '#57534e', // ~stone-600 = stone-900 @ ~70% over canvas
+	secondary: '#78716c', // stone-500
+	subtle: '#a8a29e' // ~stone-400 = stone-900 @ ~40% over canvas
+};
+const SWISS_RED = '#C8102E';
 
-const loadFonts = async (): Promise<{ serif: ArrayBuffer; sans: ArrayBuffer }> => {
-	if (cachedFonts) return cachedFonts;
-	// Lora (serif) for the family name, Inter (sans) for the meta lines.
-	// Both lifted in via Vite import + SvelteKit's $app/server read() so
-	// the binaries are embedded in the function bundle. No filesystem
-	// access at runtime, no dependency on static/ being co-located.
-	const [serif, sans] = await Promise.all([
-		read(loraUrl).arrayBuffer(),
-		read(interUrl).arrayBuffer()
-	]);
-	cachedFonts = { serif, sans };
-	return cachedFonts;
+// Cache the font buffer across requests within a single function instance.
+let cachedFont: ArrayBuffer | null = null;
+const loadFont = async (): Promise<ArrayBuffer> => {
+	if (cachedFont) return cachedFont;
+	cachedFont = await read(interUrl).arrayBuffer();
+	return cachedFont;
 };
 
 const draw = async (
 	project: Project | null,
 	variant: Variant = 'brand'
 ): Promise<{ png: Buffer; status: number }> => {
-	// Variant-specific content. The layout shape (eyebrow + headline +
-	// bottom-left meta + bottom-right domain) is shared across variants;
-	// only the text changes.
 	let eyebrow: string;
 	let headline: string;
 	let metaLeftTop: string;
 	let metaLeftBottom: string;
+	let domain: string;
 
 	if (variant === 'audit') {
-		// Differentiator card — what unfurls when someone shares
-		// https://patens.design/audit on Bluesky / X / Show HN / Slack.
 		eyebrow = 'The audit module · Patens';
 		headline = 'Teaches as you draw.';
 		metaLeftTop = '94 codes · 30 one-click fixes';
 		metaLeftBottom = 'OPEN SOURCE · MIT · TYPE DESIGN';
+		domain = 'patens.design/audit';
 	} else if (variant === 'learn') {
 		eyebrow = 'Learn · Patens';
 		headline = 'Type design tutorials.';
 		metaLeftTop = 'Seven tutorials · 94-code reference';
 		metaLeftBottom = 'BEGINNER TO SHIPPING · OPEN SOURCE';
+		domain = 'patens.design/learn';
 	} else if (variant === 'compare') {
 		eyebrow = 'Comparison · Patens';
-		headline = 'Patens vs the world.';
-		metaLeftTop = 'FontLab · Glyphs · Fontra · Glyphr · typlr';
+		headline = 'Patens vs the field.';
+		metaLeftTop = 'FontLab · Glyphs · Fontra · Lipi · Fontish';
 		metaLeftBottom = 'FREE · MIT · BROWSER-NATIVE';
+		domain = 'patens.design/compare';
 	} else if (variant === 'press') {
 		eyebrow = 'Press kit · Patens';
 		headline = 'Press kit.';
 		metaLeftTop = 'Factsheet · brand assets · contact';
 		metaLeftBottom = 'OPEN SOURCE · INDEPENDENT';
+		domain = 'patens.design/press';
 	} else if (variant === 'about') {
 		eyebrow = 'About · Patens';
 		headline = 'About Patens.';
 		metaLeftTop = 'Browser-native · open source · MIT';
 		metaLeftBottom = 'BY ALEJANDRO VIZIO · 2026';
+		domain = 'patens.design/about';
 	} else if (project) {
-		// Per-project specimen card (the default for /og/[uuid] paths).
 		const glyphCount = Object.values(project.glyphs).filter(
 			(g) => g.contours.length > 0 || (g.components?.length ?? 0) > 0
 		).length;
@@ -147,21 +134,27 @@ const draw = async (
 		headline = project.metadata.familyName ?? 'Patens';
 		metaLeftTop = project.metadata.designer || 'Unsigned';
 		metaLeftBottom = `${project.metadata.version} · ${glyphCount} glyphs`;
+		domain = 'patens.design';
 	} else {
-		// Generic brand card — /og/brand and /og/home.
-		eyebrow = 'Type design in the browser';
+		eyebrow = 'A type editor with a method';
 		headline = 'Patens';
-		metaLeftTop = 'Browser-native type design';
-		metaLeftBottom = 'OPEN SOURCE · MIT · v1.0';
+		metaLeftTop = 'Browser-native · 94 rules, plain English';
+		metaLeftBottom = 'OPEN SOURCE · MIT · PRIVATE ALPHA · 2026';
+		domain = 'patens.design';
 	}
 
-	// Lazy-load the heavy bits so unrelated routes don't pay.
 	const [{ default: satori }, { Resvg }] = await Promise.all([
 		import('satori'),
 		import('@resvg/resvg-js')
 	]);
 
-	const { serif, sans } = await loadFonts();
+	const fontData = await loadFont();
+
+	// Headline sizes — brand + project specimens get the largest display
+	// (Swiss poster scale). Marketing-variant headlines are longer, scale
+	// down so they fit without truncation.
+	const headlineFontSize =
+		variant === 'brand' || variant === 'project' ? '180px' : '120px';
 
 	const node = {
 		type: 'div',
@@ -172,57 +165,61 @@ const draw = async (
 				display: 'flex',
 				flexDirection: 'column',
 				justifyContent: 'space-between',
-				padding: '80px',
-				background: '#fafaf9',
-				color: '#1a1a1a'
+				padding: '72px 80px',
+				background: STONE.bg,
+				color: STONE.fg,
+				fontFamily: 'Sans',
+				position: 'relative'
 			},
 			children: [
+				// Swiss Red corner mark — single 56×6 rule top-right. The one
+				// chromatic accent on an otherwise stone-only card.
+				{
+					type: 'div',
+					props: {
+						style: {
+							position: 'absolute',
+							top: '72px',
+							right: '80px',
+							width: '56px',
+							height: '6px',
+							background: SWISS_RED
+						}
+					}
+				},
+				// Top: eyebrow only.
 				{
 					type: 'div',
 					props: {
 						style: {
 							display: 'flex',
-							flexDirection: 'column',
-							alignItems: 'flex-start',
-							gap: '12px'
+							fontSize: '20px',
+							letterSpacing: '0.2em',
+							textTransform: 'uppercase',
+							color: STONE.muted
 						},
-						children: [
-							{
-								type: 'div',
-								props: {
-									style: {
-										fontSize: '20px',
-										letterSpacing: '0.2em',
-										textTransform: 'uppercase',
-										color: '#737373',
-										fontFamily: 'Sans'
-									},
-									children: eyebrow
-								}
-							},
-							{
-								type: 'div',
-								props: {
-									style: {
-										// Named-variant headlines vary in length; scale so
-										// each fits comfortably. brand + project get the
-										// max (140); marketing-page variants shrink to 104
-										// for longer multi-word headlines without truncation.
-										fontSize:
-											variant === 'brand' || variant === 'project'
-												? '140px'
-												: '104px',
-										lineHeight: '1.05',
-										letterSpacing: '-0.02em',
-										fontFamily: 'Serif',
-										maxWidth: '1040px'
-									},
-									children: headline
-								}
-							}
-						]
+						children: eyebrow
 					}
 				},
+				// Middle: large grotesque headline. Anchored to the bottom of
+				// its flex slot so the eye lands on the wordmark, then sweeps
+				// down to the meta. Swiss display restraint — single weight,
+				// big size carries the visual.
+				{
+					type: 'div',
+					props: {
+						style: {
+							display: 'flex',
+							fontSize: headlineFontSize,
+							lineHeight: '1.0',
+							letterSpacing: '-0.04em',
+							color: STONE.fg,
+							maxWidth: '1040px'
+						},
+						children: headline
+					}
+				},
+				// Bottom row: meta left + domain right.
 				{
 					type: 'div',
 					props: {
@@ -239,16 +236,16 @@ const draw = async (
 									style: {
 										display: 'flex',
 										flexDirection: 'column',
-										gap: '6px'
+										gap: '8px'
 									},
 									children: [
 										{
 											type: 'div',
 											props: {
 												style: {
-													fontSize: '24px',
-													fontFamily: 'Serif',
-													color: '#404040'
+													display: 'flex',
+													fontSize: '22px',
+													color: STONE.muted
 												},
 												children: metaLeftTop
 											}
@@ -257,10 +254,11 @@ const draw = async (
 											type: 'div',
 											props: {
 												style: {
-													fontSize: '16px',
-													fontFamily: 'Sans',
-													color: '#737373',
-													letterSpacing: '0.1em'
+													display: 'flex',
+													fontSize: '14px',
+													letterSpacing: '0.2em',
+													textTransform: 'uppercase',
+													color: STONE.secondary
 												},
 												children: metaLeftBottom
 											}
@@ -272,24 +270,13 @@ const draw = async (
 								type: 'div',
 								props: {
 									style: {
-										fontSize: '14px',
-										fontFamily: 'Sans',
-										color: '#a3a3a3',
-										letterSpacing: '0.2em',
-										textTransform: 'uppercase'
+										display: 'flex',
+										fontSize: '16px',
+										letterSpacing: '0.18em',
+										textTransform: 'uppercase',
+										color: STONE.subtle
 									},
-									children:
-										variant === 'audit'
-											? 'patens.design/audit'
-											: variant === 'learn'
-												? 'patens.design/learn'
-												: variant === 'compare'
-													? 'patens.design/compare'
-													: variant === 'press'
-														? 'patens.design/press'
-														: variant === 'about'
-															? 'patens.design/about'
-															: 'patens.design'
+									children: domain
 								}
 							}
 						]
@@ -302,10 +289,7 @@ const draw = async (
 	const svg = await satori(node as unknown as Parameters<typeof satori>[0], {
 		width: 1200,
 		height: 630,
-		fonts: [
-			{ name: 'Serif', data: serif, weight: 600, style: 'normal' },
-			{ name: 'Sans', data: sans, weight: 500, style: 'normal' }
-		]
+		fonts: [{ name: 'Sans', data: fontData, weight: 500, style: 'normal' }]
 	});
 	const png = new Resvg(svg, { fitTo: { mode: 'width', value: 1200 } })
 		.render()
@@ -319,10 +303,9 @@ export const GET: RequestHandler = async ({ params, fetch, setHeaders }) => {
 	const { png } = await draw(project, variant);
 	setHeaders({
 		'content-type': 'image/png',
-		// 60s edge cache + 10 min SWR matches the project payload route
-		// so OG updates after a re-share land within the same window.
-		// Static variants (brand/audit) get longer SWR since their
-		// content is fixed.
+		// Static variants (brand/audit/etc) cache aggressively. Project
+		// specimens (which can change on re-share) get the same 60s edge
+		// cache + 10min SWR as the project payload route.
 		'cache-control':
 			variant === 'project'
 				? 'public, max-age=60, s-maxage=60, stale-while-revalidate=600'

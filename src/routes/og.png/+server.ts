@@ -22,10 +22,13 @@ let cachedPng: Buffer | null = null;
 
 const W = 1200;
 const H = 630;
-const BG = '#FAF6EE';
-const FG = '#1B1611';
-const MUTED = '#6B6258';
-const SUBTLE = '#8C8378';
+// Swiss palette (mirrors app.css token redirect): stone-50 canvas,
+// stone-900 fg, stone-600 muted, stone-400 subtle, Swiss Red accent.
+const BG = '#fafaf9'; // stone-50
+const FG = '#1c1917'; // stone-900
+const MUTED = '#57534e'; // stone-600
+const SUBTLE = '#a8a29e'; // stone-400
+const SWISS_RED = '#C8102E';
 
 /**
  * Render `text` via opentype.js to a single SVG path d-string.
@@ -76,8 +79,11 @@ const buildPng = async (): Promise<Buffer> => {
 	const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
 		<rect width="${W}" height="${H}" fill="${BG}" />
 
+		<!-- Swiss Red corner mark -->
+		<rect x="${W - 80 - 56}" y="72" width="56" height="6" fill="${SWISS_RED}" />
+
 		<!-- top-left eyebrow -->
-		<text x="80" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${SUBTLE}">PATENS · BROWSER-NATIVE TYPE DESIGN</text>
+		<text x="80" y="110" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="20" letter-spacing="5" fill="${MUTED}">PATENS · BROWSER-NATIVE TYPE DESIGN</text>
 
 		<!-- wordmark -->
 		<path d="${wordmarkPath}" fill="${FG}" />
