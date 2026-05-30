@@ -197,10 +197,8 @@
 		The 94 codes are stable forever — once shipped, a code's ID never gets reused. If a rule turns out to be wrong, it's deprecated (marked <code class="font-mono text-fg">severity: 'info'</code> + <code class="font-mono text-fg">deprecated: true</code>) rather than recycled. That's the same contract OpenSSF Scorecard, CodeQL, and ESLint use for their check IDs — it makes the codes referenceable from commits, bug reports, tutorials, and downstream tooling without ambiguity.
 	</p>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		94 codes across 9 families.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>94 codes across 9 families.
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -228,10 +226,8 @@
 		>/learn/audit-codes</a>.
 	</p>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Six examples, verbatim.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Six examples, verbatim.
 	</h2>
 
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
@@ -248,7 +244,7 @@
 				<p class="text-[14px] leading-relaxed text-fg-muted">{s.description}</p>
 				<div class="mt-auto">
 					{#if s.fixable}
-						<span class="inline-flex items-baseline gap-1.5 rounded bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong">
+						<span class="inline-flex items-baseline gap-1.5 rounded-none bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong">
 							<span aria-hidden="true">✓</span>
 							One-click Fix
 						</span>
@@ -260,17 +256,15 @@
 		{/each}
 	</div>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Run it from your terminal.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Run it from your terminal.
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
 		The same 94-code engine ships as a CLI. Drop it into your CI as a font-design lint step, or batch-audit a directory of project files before a foundry release.
 	</p>
 
-	<pre class="mb-6 overflow-x-auto rounded border border-border bg-surface-2/40 p-4 font-mono text-[12px] leading-relaxed text-fg"><code><span class="text-fg-subtle"># Audit a single project</span>
+	<pre class="mb-6 overflow-x-auto rounded-none border border-border bg-surface-2/40 p-4 font-mono text-[12px] leading-relaxed text-fg"><code><span class="text-fg-subtle"># Audit a single project</span>
 npx patens audit my.font.json
 
 <span class="text-fg-subtle"># Error-severity only, for CI gates</span>
@@ -286,10 +280,8 @@ npx patens audit fonts/*.font.json --github</code></pre>
 		Exit code is <code class="font-mono text-fg">0</code> when no error-severity issues, <code class="font-mono text-fg">1</code> when there are, <code class="font-mono text-fg">2</code> on usage / parse failure. <code class="font-mono text-fg">describe</code> any code by name to get the same prose the editor shows: <code class="font-mono text-fg">npx patens describe self-intersecting</code>.
 	</p>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		The Patens Method.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>The Patens Method.
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -304,10 +296,8 @@ npx patens audit fonts/*.font.json --github</code></pre>
 		This is the difference that justifies opening Patens instead of one of the four other browser-based type editors. Glyphr Studio, Fontra, typlr.app, and FontStruct all check fonts for errors. Patens is the only one designed to teach you why each error matters.
 	</p>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Common questions.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>05</span>Common questions.
 	</h2>
 
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
@@ -323,10 +313,8 @@ npx patens audit fonts/*.font.json --github</code></pre>
 		{/each}
 	</dl>
 
-	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		See it in action.
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>06</span>See it in action.
 	</h2>
 
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
@@ -336,7 +324,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	<div class="mb-16 flex flex-wrap gap-4">
 		<a
 			href="/"
-			class="group inline-flex items-center gap-2 rounded-md bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="group inline-flex items-center gap-2 rounded-none bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline-none focus-visible:bg-accent-strong focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<ArrowRight class="size-4" />
 			Request an alpha invite
