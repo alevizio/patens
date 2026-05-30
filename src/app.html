@@ -18,34 +18,46 @@
 		<!-- IBM Plex Sans — primary face per the Swiss design system.
 		     Light (300) for display, regular (400) for body, medium (500)
 		     for emphasis, semibold (600) reserved for rare strong CTAs.
-		     Italic 300/400 carried for rare quoted material. -->
+		     Italic 300/400 carried for rare quoted material.
+		     Async-load pattern: media=print fetches the CSS without
+		     render-blocking; onload swaps to media=all once the file
+		     lands. Plex Sans then takes over from system-ui via the
+		     display=swap directive on the @font-face declarations. -->
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 		<link
 			href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
 			rel="stylesheet"
+			media="print"
+			onload="this.media='all'"
 		/>
+		<noscript>
+			<link
+				href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap"
+				rel="stylesheet"
+			/>
+		</noscript>
+		<style>
+			/* Pre-hydration base — minimal stone defaults so the cold-load
+			   flash isn't pure white. NOT using light-dark() here: that
+			   function keys off `color-scheme`, which our explicit class-based
+			   theme toggle would conflict with (class set after hydration
+			   trails system preference). Body + tokens are restated by
+			   app.css and overridden by .theme-dark once Svelte mounts. */
+			html,
+			body {
+				background: #fafaf9;
+				color: #1c1917;
+				margin: 0;
+			}
+			html.theme-dark,
+			html.theme-dark body {
+				background: #0c0a09;
+				color: #fafaf9;
+			}
+		</style>
 		%sveltekit.head%
 	</head>
-	<style>
-		/* Pre-hydration base — minimal stone defaults so the cold-load
-		   flash isn't pure white. NOT using light-dark() here: that
-		   function keys off `color-scheme`, which our explicit class-based
-		   theme toggle would conflict with (class set after hydration
-		   trails system preference). Body + tokens are restated by
-		   app.css and overridden by .theme-dark once Svelte mounts. */
-		html,
-		body {
-			background: #fafaf9;
-			color: #1c1917;
-			margin: 0;
-		}
-		html.theme-dark,
-		html.theme-dark body {
-			background: #0c0a09;
-			color: #fafaf9;
-		}
-	</style>
 	<body data-sveltekit-preload-data="hover">
 		<!-- Pre-hydration skeleton — shown only while the SvelteKit JS bundle
 		     is booted (typically <300ms). Once Svelte mounts, the body slot
