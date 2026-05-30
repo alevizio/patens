@@ -100,32 +100,34 @@
 				{item.label}
 			</a>
 		{/each}
+	</nav>
+
+	<!-- Lang switcher + theme toggle. Live outside the main <nav> so they
+	     stay visible on mobile when the rest of the nav (Audit/Learn/
+	     Compare/Help) collapses. -->
+	<div class="flex items-center gap-1">
 		<a
 			href={switchTarget}
 			hreflang={otherLocale}
-			class="inline-flex items-center gap-1 rounded-sm text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			class="inline-flex h-7 items-center gap-1 rounded-sm px-1.5 text-[12px] text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 			aria-label={switcher.ariaLabel}
 			title={switcher.switchTo}
 		>
 			<Globe class="size-3" aria-hidden="true" />
 			{otherLocale === 'es' ? 'ES' : 'EN'}
 		</a>
-	</nav>
-
-	<!-- Theme toggle. Lives outside the main <nav> so it stays visible on
-	     mobile when the nav collapses — the rest of the nav (Audit/Learn/
-	     Compare/Help + lang switcher) is sm:flex only. -->
-	<button
-		type="button"
-		onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
-		class="inline-flex size-7 items-center justify-center rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
-		aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-		title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-	>
-		{#if settings.theme === 'dark'}
-			<Sun class="size-3.5" aria-hidden="true" />
-		{:else}
-			<Moon class="size-3.5" aria-hidden="true" />
-		{/if}
-	</button>
+		<button
+			type="button"
+			onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
+			class="inline-flex size-7 items-center justify-center rounded-sm text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+			aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+			title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+		>
+			{#if settings.theme === 'dark'}
+				<Sun class="size-3.5" aria-hidden="true" />
+			{:else}
+				<Moon class="size-3.5" aria-hidden="true" />
+			{/if}
+		</button>
+	</div>
 </header>
