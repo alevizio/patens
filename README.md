@@ -23,10 +23,11 @@ The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, num
 
 ## Try it
 
-- **Live editor**: [patens.design/project/demo/edit](https://patens.design/project/demo/edit)
-- **Demo specimen**: [patens.design/share/demo](https://patens.design/share/demo)
+- **Marketing site**: [patens.design](https://patens.design) — long-scroll editorial with the audit's worldview, an annotated specimen of the demo OTF, an interface mock of the editing surface, the 94 codes by family, and a comparison vs every other tool in the field (FontLab, Glyphs, Robofont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish).
+- **Compare table**: [patens.design/compare](https://patens.design/compare) — 11 tools × 26 distinguishing features.
+- **The Method** (the 94 codes): [patens.design/audit](https://patens.design/audit) — what each family checks, what's plain-English-explained, what's one-click-fixable.
 
-The share view is a designer-grade specimen sheet: pangram waterfall at five sizes, reading specimens at three tiers, in-context mockups (button, headline, paragraph, stat), CPAL palette switcher, master compare, glyph coverage heatmap, glyph inspector with metric guides + sidebearings + anchor viz, deep-linkable glyph URLs, and a one-click print → PDF specimen.
+The app itself is in **private alpha** at an unlisted URL — invitees only. Public launch is scheduled for **TypeCon Portland, August 6–8, 2026**. Sign up for an invite at [patens.design](https://patens.design); the waitlist endpoint persists to Vercel Blob.
 
 ## What it does
 
@@ -47,7 +48,7 @@ The share view is a designer-grade specimen sheet: pangram waterfall at five siz
 
 ## Project status
 
-**`v1.5.2`** — production-grade. Live at [patens.design](https://patens.design). Three optional integrations gracefully degrade when not configured:
+**`v1.5.2`** — production code-grade, private alpha by invitation. The marketing surface and OG cards are live at [patens.design](https://patens.design); the editor sits at an unlisted URL handed out to alpha invitees. Public launch at TypeCon Portland, August 6–8, 2026 (~10 weeks). Three optional integrations gracefully degrade when not configured:
 
 - **Vercel Blob** — cloud share (recipients in other browsers)
 - **GitHub OAuth** — sign-in via GitHub  
@@ -63,7 +64,7 @@ For what's deferred: [`ROADMAP.md`](./ROADMAP.md). For release history: [`CHANGE
 pnpm install
 pnpm dev          # http://localhost:5173
 
-pnpm test         # vitest (528 unit tests + 6 perf benches)
+pnpm test         # vitest (722 unit tests + 6 perf benches)
 pnpm test:e2e     # Playwright + axe-core a11y (66 e2e tests across 7 files)
 pnpm check        # svelte-check / TypeScript strict
 pnpm build        # production build
