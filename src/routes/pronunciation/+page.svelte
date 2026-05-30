@@ -148,7 +148,7 @@
 		export quota. The work is laid open while you do it.
 	</p>
 
-	<div class="rounded-md border border-fg/10 bg-fg/[0.02] p-4 text-[13px] leading-relaxed text-fg-muted">
+	<div class="border-t border-fg/10 pt-4 text-[13px] leading-relaxed text-fg-muted">
 		<p>
 			<span class="font-medium text-fg">Trivia.</span> The Latin verb
 			<em>patēre</em> is also the root of "patio" — an outdoor space lying open to the sky.

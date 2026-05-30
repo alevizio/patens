@@ -559,7 +559,7 @@
 					</p>
 					<div class="mt-auto">
 						<span
-							class="inline-flex items-baseline gap-1.5 rounded bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong"
+							class="inline-flex items-baseline gap-1.5 rounded-none bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong"
 						>
 							<span aria-hidden="true">✓</span>
 							One-click Fix
@@ -638,7 +638,7 @@
 			     audit panel. Monochrome, rule-based, no shadows — matches the
 			     real editor's restrained chrome. -->
 			<div
-				class="overflow-hidden rounded-lg border border-border/60 bg-surface"
+				class="overflow-hidden rounded-none border border-border/60 bg-surface"
 				aria-label="Stylized editor interface"
 			>
 				<!-- Top chrome -->
@@ -675,7 +675,7 @@
 						<div class="grid grid-cols-3 gap-1 text-[14px] text-fg-muted font-mono">
 							{#each ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'] as ch (ch)}
 								<div
-									class="grid aspect-square place-items-center rounded {ch === 'a'
+									class="grid aspect-square place-items-center rounded-none {ch === 'a'
 										? 'bg-accent-soft text-accent-strong font-medium'
 										: ''}"
 								>
@@ -717,28 +717,28 @@
 						<ul class="space-y-3">
 							<li>
 								<div class="flex items-center gap-1.5">
-									<span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+									<span class="size-1.5 bg-accent" aria-hidden="true"></span>
 									<span class="font-mono text-fg">near-collinear-points</span>
 								</div>
 								<p class="ml-3 mt-0.5 text-fg-muted">contour 1, points 4–6</p>
 							</li>
 							<li>
 								<div class="flex items-center gap-1.5">
-									<span class="size-1.5 rounded-full bg-fg-subtle" aria-hidden="true"></span>
+									<span class="size-1.5 bg-fg-subtle" aria-hidden="true"></span>
 									<span class="font-mono text-fg">xheight-overshoot</span>
 								</div>
 								<p class="ml-3 mt-0.5 text-fg-muted">+14u above x-height</p>
 							</li>
 							<li>
 								<div class="flex items-center gap-1.5">
-									<span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+									<span class="size-1.5 bg-accent" aria-hidden="true"></span>
 									<span class="font-mono text-fg">aperture-asymmetric</span>
 								</div>
 								<p class="ml-3 mt-0.5 text-fg-muted">right side −6u</p>
 							</li>
 							<li>
 								<div class="flex items-center gap-1.5">
-									<span class="size-1.5 rounded-full bg-accent" aria-hidden="true"></span>
+									<span class="size-1.5 bg-accent" aria-hidden="true"></span>
 									<span class="font-mono text-fg">stem-thickness</span>
 								</div>
 								<p class="ml-3 mt-0.5 text-fg-muted">+8% bottom downstroke</p>
@@ -747,7 +747,7 @@
 						<button
 							type="button"
 							disabled
-							class="mt-5 w-full cursor-default rounded border border-border bg-canvas py-1.5 font-mono text-[9px] uppercase tracking-wider text-fg"
+							class="mt-5 w-full cursor-default rounded-none border border-border bg-canvas py-1.5 font-mono text-[9px] uppercase tracking-wider text-fg"
 						>
 							Fix · 3 of 4
 						</button>

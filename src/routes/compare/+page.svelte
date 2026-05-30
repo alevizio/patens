@@ -650,7 +650,7 @@
 	<div class="lg:hidden">
 		{#each competitors as c (c.key)}
 			<section
-				class="mb-8 rounded-lg border p-4"
+				class="mb-8 rounded-none border p-4"
 				class:border-accent-strong={c.highlight}
 				class:bg-accent-soft={c.highlight}
 				class:border-border={!c.highlight}
