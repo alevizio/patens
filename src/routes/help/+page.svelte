@@ -172,28 +172,27 @@
 
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="mb-8 inline-flex items-center gap-1.5 rounded-sm text-[12px] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<ArrowLeft class="size-3" />
 		Back to the foundry
 	</a>
 
-	<h1
-		class="mb-3 text-[48px] leading-tight tracking-tight text-fg"
-		
-	>
+	<h1 class="mb-3 text-[48px] leading-tight tracking-tight text-fg">
 		Help
 	</h1>
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		The questions that come up most. Patens is in private alpha; for anything not covered here, email hi@patens.design.
 	</p>
 
-	{#each sections as section (section.heading)}
+	{#each sections as section, i (section.heading)}
 		<h2
 			id={slugify(section.heading)}
 			class="group mt-16 border-t border-border/30 pt-12 mb-4 scroll-mt-8 text-[28px] tracking-tight text-fg"
-			
 		>
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>
+				{String(i + 1).padStart(2, '0')}
+			</span>
 			<a
 				href={`#${slugify(section.heading)}`}
 				class="inline-flex items-baseline gap-2 hover:text-accent-strong"
@@ -210,7 +209,7 @@
 		<div class="space-y-4">
 			{#each section.items as item (item.q)}
 				<details
-					class="group rounded-md border border-border bg-surface-2/30 transition-colors hover:bg-surface-2/50 has-[summary:focus-visible]:border-fg has-[summary:focus-visible]:ring-2 has-[summary:focus-visible]:ring-accent/40 has-[summary:focus-visible]:ring-offset-2 has-[summary:focus-visible]:ring-offset-canvas"
+					class="group rounded-none border border-border bg-surface-2/30 transition-colors hover:bg-surface-2/50 has-[summary:focus-visible]:border-fg has-[summary:focus-visible]:ring-2 has-[summary:focus-visible]:ring-accent/40 has-[summary:focus-visible]:ring-offset-2 has-[summary:focus-visible]:ring-offset-canvas"
 				>
 					<summary
 						class="cursor-pointer list-none px-4 py-3 text-[14px] font-medium text-fg outline-none [&::-webkit-details-marker]:hidden"
