@@ -129,7 +129,7 @@
 		<div class="flex flex-wrap items-baseline gap-x-3 gap-y-1">
 			<h1
 				class="text-[clamp(28px,5vw,44px)] leading-[1.1] tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+				
 			>
 				{rule.title}
 			</h1>

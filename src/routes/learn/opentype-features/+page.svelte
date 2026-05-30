@@ -140,7 +140,7 @@
 
 	<h1
 		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		OpenType features.
 	</h1>
@@ -178,7 +178,7 @@
 				</div>
 				<h2
 					class="text-[20px] leading-tight tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					{step.title}
 				</h2>
@@ -200,7 +200,7 @@
 
 	<h2
 		class="mt-16 mb-3 text-[20px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Related
 	</h2>

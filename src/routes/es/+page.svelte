@@ -81,7 +81,7 @@
 		>
 			<span
 				class="draw-line draw-line-1 block text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+				
 			>
 				Tipografía,
 			</span>
@@ -129,7 +129,7 @@
 			</p>
 			<p
 				class="mt-1 text-[36px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 				data-numeric
 			>
 				94
@@ -141,7 +141,7 @@
 			</p>
 			<p
 				class="mt-1 text-[36px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 				data-numeric
 			>
 				162
@@ -153,7 +153,7 @@
 			</p>
 			<p
 				class="mt-1 text-[36px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 				data-numeric
 			>
 				714
@@ -165,7 +165,7 @@
 			</p>
 			<p
 				class="mt-1 text-[36px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				MIT
 			</p>
@@ -176,7 +176,7 @@
 	<section class="mb-20">
 		<h2
 			class="mb-8 text-[28px] leading-tight tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Lo que hace distinto a Patens
 		</h2>
@@ -231,7 +231,7 @@
 	<section class="mb-20">
 		<h2
 			class="mb-6 text-[20px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Páginas en español
 		</h2>

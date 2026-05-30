@@ -347,7 +347,7 @@
 			<h1 class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]">
 				<span
 					class="draw-line draw-line-1 block text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+					
 				>
 					{taglineParts[0]}
 				</span>
@@ -384,7 +384,7 @@
 					</p>
 					<h2
 						class="mt-3 text-[28px] tracking-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						What it makes.
 					</h2>
@@ -431,7 +431,7 @@
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg sm:text-[34px]"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Every glyph gets a margin reading.
 				</h2>
@@ -622,7 +622,7 @@
 					</p>
 					<h2
 						class="mt-3 text-[28px] tracking-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						One tab. No install. No account.
 					</h2>
@@ -650,7 +650,7 @@
 						<span class="text-fg-subtle">·</span>
 						<span
 							class="text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							Studio Geometric
 						</span>
@@ -770,7 +770,7 @@
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Contour to brief, everything reads.
 				</h2>
@@ -796,7 +796,7 @@
 								</span>
 								<span
 									class="flex-1 text-[18px] tracking-tight text-fg sm:text-[20px]"
-									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+									
 								>
 									{f.name}
 								</span>
@@ -842,7 +842,7 @@
 					</p>
 					<h2
 						class="mt-3 text-[28px] tracking-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						Among the rest of the field.
 					</h2>
@@ -936,7 +936,7 @@
 			</p>
 			<h2
 				class="mt-3 max-w-2xl text-balance text-[32px] leading-tight tracking-tight text-fg sm:text-[40px]"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				When it's ready, you're first.
 			</h2>

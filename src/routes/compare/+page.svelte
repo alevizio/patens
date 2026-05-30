@@ -509,7 +509,7 @@
 
 	<h1
 		class="mb-6 max-w-3xl text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Patens vs the world.
 	</h1>
@@ -659,7 +659,7 @@
 					class="mb-3 text-[28px] tracking-tight"
 					class:text-accent-strong={c.highlight}
 					class:text-fg={!c.highlight}
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					{#if c.url}
 						<a
@@ -710,7 +710,7 @@
 	     shipped-this-window facts so reviewers can verify accuracy. -->
 	<h2
 		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Recent moves in the landscape (Dec 2025 – May 2026)
 	</h2>
@@ -782,7 +782,7 @@
 
 	<h2
 		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		New entrants (2025–2026)
 	</h2>
@@ -813,7 +813,7 @@
 
 	<h2
 		class="mt-16 mb-3 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		When Patens is the right answer
 	</h2>
@@ -842,7 +842,7 @@
 
 	<h2
 		class="mt-12 mb-3 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		When it isn't
 	</h2>
@@ -864,7 +864,7 @@
 
 	<h2
 		class="mt-12 mb-3 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Try it
 	</h2>

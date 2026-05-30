@@ -1413,7 +1413,7 @@ body {
 		<div class="min-w-0">
 			<h1
 				class="text-[28px] leading-tight tracking-tight text-fg sm:text-[36px]"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				{project.metadata.familyName}
 			</h1>

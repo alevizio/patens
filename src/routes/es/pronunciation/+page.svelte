@@ -96,7 +96,7 @@
 
 	<h1
 		class="mb-2 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Patens
 	</h1>

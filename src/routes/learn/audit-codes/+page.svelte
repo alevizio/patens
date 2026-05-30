@@ -265,7 +265,7 @@
 
 	<h1
 		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Audit codes.
 	</h1>
@@ -326,7 +326,7 @@
 			<section id={sectionId} class="mb-12 scroll-mt-16">
 				<h2
 					class="mb-2 text-[24px] tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					{fam.title}
 				</h2>

@@ -89,7 +89,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		About Patens
 	</h1>
@@ -146,7 +146,7 @@
 	<h2
 		id="pronunciation"
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		How to say it
 	</h2>
@@ -168,7 +168,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Maintainer
 	</h2>
@@ -215,7 +215,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Standing on
 	</h2>
@@ -238,7 +238,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Status
 	</h2>

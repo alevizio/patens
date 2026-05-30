@@ -34,7 +34,7 @@
 
 	<h1
 		class="mb-3 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Prensa
 	</h1>
@@ -50,7 +50,7 @@
 		</a>.
 	</p>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Descripciones (tres longitudes)
 	</h2>
 
@@ -103,7 +103,7 @@
 		</p>
 	</div>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Datos
 	</h2>
 	<dl class="mb-8 space-y-3 text-[14px] leading-relaxed text-fg-muted">
@@ -152,7 +152,7 @@
 		</div>
 	</dl>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Capturas y assets
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">

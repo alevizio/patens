@@ -61,7 +61,7 @@
 	<section class="mb-16 max-w-3xl">
 		<h1
 			class="text-[40px] leading-[1.05] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+			
 		>
 			Families
 		</h1>
@@ -88,7 +88,7 @@
 			<div class="flex flex-col justify-center gap-3">
 				<h2
 					class="text-[22px] leading-tight tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					No families yet
 				</h2>
@@ -111,7 +111,7 @@
 			<div class="mb-5 flex items-baseline justify-between gap-3">
 				<h2
 					class="text-[24px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Your families
 				</h2>
@@ -129,7 +129,7 @@
 							<div class="min-w-0 flex-1">
 								<div
 									class="truncate text-[20px] leading-tight text-fg transition-colors group-hover:text-accent-strong"
-									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+									
 								>
 									{f.name}
 								</div>

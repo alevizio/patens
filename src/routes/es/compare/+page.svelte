@@ -132,7 +132,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Patens vs el paisaje
 	</h1>
@@ -182,7 +182,7 @@
 	<section class="mb-12 border-t border-border/30 pt-12">
 		<h2
 			class="mb-6 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Nuevos entrantes (2025–2026)
 		</h2>

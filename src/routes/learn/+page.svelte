@@ -321,7 +321,7 @@
 	<section class="mb-16 max-w-3xl">
 		<h1
 			class="text-[48px] leading-[1.05] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+			
 		>
 			Learn type design
 		</h1>
@@ -374,7 +374,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Make your first font
 			</div>
@@ -392,7 +392,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Kerning
 			</div>
@@ -410,7 +410,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Variable fonts
 			</div>
@@ -428,7 +428,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				OpenType features
 			</div>
@@ -446,7 +446,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Multi-script fonts
 			</div>
@@ -464,7 +464,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Export formats
 			</div>
@@ -482,7 +482,7 @@
 			</div>
 			<div
 				class="mb-2 text-[18px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Audit codes
 			</div>
@@ -499,7 +499,7 @@
 			<Compass class="size-5 self-center text-accent" />
 			<h2
 				class="text-[28px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Beginner timeline
 			</h2>
@@ -514,7 +514,7 @@
 					<div class="flex items-baseline gap-3 md:flex-col md:items-start md:gap-1">
 						<div
 							class="text-[44px] leading-none text-accent"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 							data-numeric
 						>
 							{i + 1}
@@ -534,7 +534,7 @@
 					<div class="min-w-0">
 						<div
 							class="text-[18px] leading-tight text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							{phase.phase}
 						</div>
@@ -558,7 +558,7 @@
 			<Pencil class="size-4 self-center text-accent" />
 			<h2
 				class="text-[28px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Exercises that teach you to see
 			</h2>
@@ -568,7 +568,7 @@
 				<div class="rounded-2xl border border-border bg-surface p-5">
 					<div
 						class="text-[15px] leading-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						{ex.title}
 					</div>
@@ -586,7 +586,7 @@
 				<Wrench class="size-4 self-center text-accent" />
 				<h2
 					class="text-[28px] leading-tight tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Tools the practice runs on
 				</h2>
@@ -606,7 +606,7 @@
 				>
 					<div
 						class="w-[130px] shrink-0 text-[14px] text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						{t.name}
 					</div>
@@ -635,7 +635,7 @@
 					<div class="flex items-baseline justify-between gap-3">
 						<span
 							class="text-[14px] leading-tight text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							{r.title}
 						</span>
@@ -659,7 +659,7 @@
 				<BookOpen class="size-4 self-center text-accent" />
 				<h2
 					class="text-[28px] leading-tight tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Reading
 				</h2>
@@ -677,7 +677,7 @@
 			<Compass class="size-4 self-center text-accent" />
 			<h2
 				class="text-[28px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Foundries worth studying
 			</h2>
@@ -698,7 +698,7 @@
 					<div class="flex items-baseline justify-between gap-2">
 						<span
 							class="text-[15px] leading-tight text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							{f.name}
 						</span>
@@ -720,7 +720,7 @@
 			<BookOpen class="size-4 self-center text-accent" />
 			<h2
 				class="text-[18px] leading-none tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Legibility research
 			</h2>
@@ -739,7 +739,7 @@
 					<div class="min-w-0 flex-1">
 						<div
 							class="text-[14px] leading-tight text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							{r.title}
 						</div>
@@ -767,7 +767,7 @@
 			<div class="flex-1">
 				<div
 					class="text-[28px] leading-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Ready to start?
 				</div>

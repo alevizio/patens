@@ -879,7 +879,7 @@
 		<a href="/studio-c104c94c" class="group inline-flex items-baseline gap-3">
 			<span
 				class="text-[20px] leading-none tracking-tight text-fg transition-colors group-hover:text-accent-strong"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Patens
 			</span>
@@ -1015,7 +1015,7 @@
 				<span class="font-mono uppercase tracking-wider" data-numeric>
 					← Continue
 				</span>
-				<span style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+				<span>
 					{continueGreeting(continueCandidate.updatedAt)}
 				</span>
 				<span class="text-fg-subtle">·</span>
@@ -1039,7 +1039,7 @@
 		>
 			<span
 				class="draw-line draw-line-1 block text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, 'Times New Roman', serif;"
+				
 			>
 				{taglineParts[0]}
 			</span>
@@ -1096,7 +1096,7 @@
 			<div class="flex flex-col gap-1">
 				<span
 					class="text-[36px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					94
 				</span>
@@ -1107,7 +1107,7 @@
 			<div class="flex flex-col gap-1">
 				<span
 					class="text-[36px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					162
 				</span>
@@ -1118,7 +1118,7 @@
 			<div class="flex flex-col gap-1">
 				<span
 					class="text-[36px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					528
 				</span>
@@ -1129,7 +1129,7 @@
 			<div class="flex flex-col gap-1">
 				<span
 					class="text-[36px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					MIT
 				</span>
@@ -1152,7 +1152,7 @@
 		<div class="mb-8 flex items-baseline justify-between gap-3">
 			<h2
 				class="text-[28px] tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				How the audit teaches.
 			</h2>
@@ -1227,7 +1227,7 @@
 			<div class="mb-6 flex items-baseline justify-between gap-3">
 				<h2
 					class="text-[18px] tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Or pick a kind
 				</h2>
@@ -1276,7 +1276,7 @@
 			<div class="mb-5 flex items-baseline justify-between gap-3">
 				<h2
 					class="text-[28px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Your fonts
 				</h2>
@@ -1449,7 +1449,7 @@
 							>
 								<div
 									class="flex size-10 shrink-0 items-center justify-center overflow-hidden text-fg"
-									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+									
 								>
 									{#if p.thumbnail}
 										<svg
@@ -1476,7 +1476,7 @@
 									<div class="flex items-center gap-2">
 										<div
 											class="truncate text-[16px] leading-tight text-fg transition-colors group-hover:text-accent-strong"
-											style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+											
 										>{p.name}</div>
 										{#if p.locked}
 											<LockIcon class="size-3 text-warn" aria-label="Locked" />
@@ -1573,7 +1573,7 @@
 									{#if p.tagline}
 										<div
 											class="mt-0.5 truncate text-[11px] text-fg-subtle"
-											style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+											
 										>
 											{p.tagline}
 										</div>
@@ -1701,7 +1701,7 @@
 						>
 							<span
 								class="min-w-0 truncate text-[14px] text-fg group-hover:text-accent-strong"
-								style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+								
 							>
 								{r.name}
 							</span>
@@ -1728,7 +1728,7 @@
 		<div>
 			<h2
 				class="text-[28px] leading-[1.05] tracking-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				See it in action.
 			</h2>
@@ -1762,7 +1762,7 @@
 					<div>
 						<div
 							class="text-[18px] leading-tight text-fg group-hover:text-accent-strong"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							{openingDemo ? 'Opening…' : 'Open the editor'}
 						</div>
@@ -1829,7 +1829,7 @@
 				/>
 				<div
 					class="text-[44px] leading-none tracking-tight text-fg"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					Drop here.
 				</div>

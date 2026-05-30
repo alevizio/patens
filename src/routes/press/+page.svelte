@@ -109,7 +109,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Patens — press kit.
 	</h1>
@@ -124,7 +124,7 @@
 	<section class="mb-16">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Factsheet
 		</h2>
@@ -186,7 +186,7 @@
 	<section class="mb-16">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Descriptions
 		</h2>
@@ -217,7 +217,7 @@
 	<section class="mb-16">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Logos + brand assets
 		</h2>
@@ -276,7 +276,7 @@
 	<section class="mb-16">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Screenshots
 		</h2>
@@ -294,7 +294,7 @@
 	<section class="mb-16">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Milestones
 		</h2>
@@ -314,7 +314,7 @@
 	<section class="mb-12">
 		<h2
 			class="mb-4 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Further reading
 		</h2>

@@ -180,7 +180,7 @@
 
 	<h1
 		class="mb-3 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Help
 	</h1>
@@ -192,7 +192,7 @@
 		<h2
 			id={slugify(section.heading)}
 			class="group mt-16 border-t border-border/30 pt-12 mb-4 scroll-mt-8 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			<a
 				href={`#${slugify(section.heading)}`}

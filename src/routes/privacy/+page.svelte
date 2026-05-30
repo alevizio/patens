@@ -65,7 +65,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Privacy.
 	</h1>
@@ -81,7 +81,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		What stays on your machine
 	</h2>
@@ -111,7 +111,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		What leaves your machine — only when you choose
 	</h2>
@@ -149,7 +149,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Server logs
 	</h2>
@@ -162,7 +162,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		GDPR + CCPA
 	</h2>
@@ -177,7 +177,7 @@
 
 	<h2
 		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Self-hosters
 	</h2>

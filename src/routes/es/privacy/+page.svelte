@@ -41,7 +41,7 @@
 
 	<h1
 		class="mb-2 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Privacidad
 	</h1>
@@ -62,7 +62,7 @@
 		</p>
 	</section>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Qué guardamos del lado nuestro
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
@@ -89,7 +89,7 @@
 		</li>
 	</ul>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Qué NO usamos
 	</h2>
 	<ul class="mb-8 space-y-2 text-[14px] leading-relaxed text-fg-muted">
@@ -112,7 +112,7 @@
 		</li>
 	</ul>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		API key de Anthropic (opcional)
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
@@ -128,7 +128,7 @@
 		requests.
 	</p>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Contacto
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">

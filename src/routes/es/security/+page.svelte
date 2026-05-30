@@ -41,7 +41,7 @@
 
 	<h1
 		class="mb-2 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Seguridad
 	</h1>
@@ -59,7 +59,7 @@
 		</p>
 	</section>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Modelo de amenazas
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
@@ -97,7 +97,7 @@
 		</li>
 	</ul>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Headers HTTP de hardening
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
@@ -125,7 +125,7 @@
 		</li>
 	</ul>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Reportar vulnerabilidades
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">

@@ -722,7 +722,7 @@
 							{:else}
 								<span
 									class="text-2xl leading-none text-fg-muted"
-									style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+									
 								>
 									H
 								</span>
@@ -732,7 +732,7 @@
 							<a
 								href="/project/{s.id}/edit"
 								class="block truncate text-[15px] leading-tight text-fg transition-colors hover:text-accent-strong"
-								style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+								
 							>
 								{s.name}
 							</a>

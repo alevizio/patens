@@ -179,7 +179,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		An audit module that teaches as you draw.
 	</h1>
@@ -198,7 +198,7 @@
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		94 codes across 9 families.
 	</h2>
@@ -229,7 +229,7 @@
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Six examples, verbatim.
 	</h2>
@@ -261,7 +261,7 @@
 	</div>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Run it from your terminal.
 	</h2>
@@ -287,7 +287,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		The Patens Method.
 	</h2>
@@ -305,7 +305,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Common questions.
 	</h2>
@@ -324,7 +324,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 	</dl>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		See it in action.
 	</h2>

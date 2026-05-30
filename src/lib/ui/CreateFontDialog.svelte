@@ -98,7 +98,7 @@
 					<h2
 						id="create-font-title"
 						class="text-xl tracking-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						Start a new font
 					</h2>

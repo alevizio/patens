@@ -1742,7 +1742,7 @@
 						>
 							<div
 								class="flex w-12 items-center justify-center rounded font-mono text-[16px] tracking-tight"
-								style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+								
 							>
 								{kerningSideLabel(s.left)}{kerningSideLabel(s.right)}
 							</div>

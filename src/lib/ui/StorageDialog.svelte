@@ -71,7 +71,7 @@
 						<h2
 							id="storage-title"
 							class="text-[18px] leading-tight tracking-tight text-fg"
-							style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+							
 						>
 							Browser storage
 						</h2>

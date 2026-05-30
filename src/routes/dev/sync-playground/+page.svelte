@@ -112,7 +112,7 @@
 <div class="mx-auto max-w-3xl space-y-4 p-6">
 	<header>
 		<h1 class="text-[24px] leading-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Phase C sync playground
 		</h1>

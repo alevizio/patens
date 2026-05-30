@@ -88,7 +88,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Acerca de Patens
 	</h1>
@@ -133,7 +133,7 @@
 		ella.
 	</p>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Quién lo hace
 	</h2>
 	<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
@@ -167,7 +167,7 @@
 		</a>.
 	</p>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Sobre qué está construido
 	</h2>
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -183,7 +183,7 @@
 		{/each}
 	</ul>
 
-	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg" style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;">
+	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
 		Versión actual
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">

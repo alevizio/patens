@@ -200,7 +200,7 @@
 			{#if block.type === 'h1'}
 				<h1
 					class="mb-6 text-[48px] leading-tight tracking-tight"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					{block.text}
 				</h1>
@@ -208,7 +208,7 @@
 				<h2
 					id={slugify(block.text)}
 					class="group mt-12 mb-4 scroll-mt-8 text-[28px] tracking-tight"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 				>
 					<a
 						href={`#${slugify(block.text)}`}

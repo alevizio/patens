@@ -657,7 +657,7 @@
 					value={nameInput}
 					oninput={(e) => projectStore.updateName(e.currentTarget.value)}
 					class="min-w-0 max-w-[14rem] truncate border-0 bg-transparent px-1 text-[15px] text-fg outline-none focus:ring-1 focus:ring-accent"
-					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+					
 					aria-label="Project name"
 				/>
 				<button
@@ -711,7 +711,7 @@
 											{:else}
 												<span
 													class="text-[22px] leading-none"
-													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+													
 												>
 													{(p.familyName[0] ?? 'A').toUpperCase()}
 												</span>
@@ -721,7 +721,7 @@
 											<div class="flex items-center gap-1.5">
 												<div
 													class="truncate text-[14px] leading-tight text-fg"
-													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+													
 												>
 													{p.name}
 												</div>
@@ -745,7 +745,7 @@
 											{#if p.tagline}
 												<div
 													class="mt-0.5 truncate text-[11px] leading-snug text-fg-subtle"
-													style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+													
 												>
 													{p.tagline}
 												</div>

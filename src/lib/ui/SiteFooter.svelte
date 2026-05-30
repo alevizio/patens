@@ -115,7 +115,7 @@
 		>
 			<span
 				class="block text-[40px] leading-none tracking-tight text-fg transition-colors group-hover:text-accent-strong sm:text-[52px]"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Patens
 			</span>

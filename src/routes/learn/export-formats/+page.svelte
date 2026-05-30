@@ -189,7 +189,7 @@
 
 	<h1
 		class="mb-6 text-[36px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Export formats.
 	</h1>
@@ -214,7 +214,7 @@
 				<div class="mb-2 flex items-baseline gap-3">
 					<h2
 						class="text-[24px] tracking-tight text-fg"
-						style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+						
 					>
 						{f.ext}
 					</h2>
@@ -262,7 +262,7 @@
 
 	<h2
 		class="mt-16 mb-3 text-[20px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Quick recipes
 	</h2>
@@ -281,7 +281,7 @@
 
 	<h2
 		class="mt-12 mb-3 text-[20px] tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		Related
 	</h2>

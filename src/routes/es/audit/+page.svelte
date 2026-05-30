@@ -51,7 +51,7 @@
 
 	<h1
 		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+		
 	>
 		El módulo de auditoría
 	</h1>
@@ -77,7 +77,7 @@
 	<section class="mb-12">
 		<h2
 			class="mb-6 text-[28px] tracking-tight text-fg"
-			style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+			
 		>
 			Las 13 familias de reglas
 		</h2>

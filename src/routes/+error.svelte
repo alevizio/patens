@@ -44,7 +44,7 @@
 			</div>
 			<h1
 				class="mb-3 text-[32px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Project not found.
 			</h1>
@@ -84,7 +84,7 @@
 			</div>
 			<h1
 				class="mb-3 text-[36px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Not in this typeface.
 			</h1>
@@ -101,7 +101,7 @@
 			</div>
 			<h1
 				class="mb-3 text-[32px] leading-tight text-fg"
-				style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
+				
 			>
 				Something's off.
 			</h1>
