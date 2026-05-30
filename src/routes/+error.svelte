@@ -32,7 +32,7 @@
 			     forward: the public demo, or asking the originator for a
 			     .font.json file (the async-share workflow). -->
 			<div
-				class="mx-auto mb-8 grid size-40 place-items-center rounded-md border-2 border-fg/30 bg-fg/[0.03]"
+				class="mx-auto mb-8 grid size-40 place-items-center rounded-none border-2 border-fg/30 bg-fg/[0.03]"
 				aria-hidden="true"
 			>
 				<span
@@ -42,10 +42,7 @@
 					{asCodepoint}
 				</span>
 			</div>
-			<h1
-				class="mb-3 text-[32px] leading-tight text-fg"
-				
-			>
+			<h1 class="mb-3 text-[32px] leading-tight text-fg">
 				Project not found.
 			</h1>
 			<p class="mx-auto max-w-lg text-[14px] leading-relaxed text-fg-muted">
@@ -55,7 +52,7 @@
 			<div class="mx-auto mt-6 flex max-w-md flex-col gap-3 text-left">
 				<a
 					href="/"
-					class="group flex items-baseline gap-3 rounded-md border border-border bg-surface px-4 py-3 transition-colors hover:border-accent"
+					class="group flex items-baseline gap-3 rounded-none border border-border bg-surface px-4 py-3 transition-colors hover:border-accent"
 				>
 					<span class="flex-1">
 						<span class="block text-[14px] text-fg group-hover:text-accent-strong">
@@ -72,7 +69,7 @@
 			<!-- "Tofu" box — what a font renderer shows when a glyph is missing.
 			     The page metaphor: this route isn't drawn in the typeface. -->
 			<div
-				class="mx-auto mb-8 grid size-40 place-items-center rounded-md border-2 border-fg/30 bg-fg/[0.03]"
+				class="mx-auto mb-8 grid size-40 place-items-center rounded-none border-2 border-fg/30 bg-fg/[0.03]"
 				aria-hidden="true"
 			>
 				<span
@@ -82,10 +79,7 @@
 					{asCodepoint}
 				</span>
 			</div>
-			<h1
-				class="mb-3 text-[36px] leading-tight text-fg"
-				
-			>
+			<h1 class="mb-3 text-[36px] leading-tight text-fg">
 				Not in this typeface.
 			</h1>
 			<p class="mx-auto max-w-md text-sm text-fg-muted">
@@ -99,10 +93,7 @@
 			>
 				{asCodepoint}
 			</div>
-			<h1
-				class="mb-3 text-[32px] leading-tight text-fg"
-				
-			>
+			<h1 class="mb-3 text-[32px] leading-tight text-fg">
 				Something's off.
 			</h1>
 			<p class="mx-auto max-w-md text-sm text-fg-muted">
@@ -114,7 +105,7 @@
 			     payloads (otherwise the error page itself would crash and
 			     fall back to the Vercel generic 500). -->
 			<details
-				class="mx-auto mt-6 max-w-xl rounded-md border border-border bg-surface-2/40 p-3 text-left"
+				class="mx-auto mt-6 max-w-xl rounded-none border border-border bg-surface-2/40 p-3 text-left"
 				open
 			>
 				<summary class="cursor-pointer text-[11px] font-mono text-fg-muted">
@@ -135,7 +126,7 @@
 		{#if !isShareLink}
 			<a
 				href="/"
-				class="mt-8 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3.5 py-2 text-[13px] font-medium text-fg transition-colors hover:border-accent hover:text-accent"
+				class="mt-8 inline-flex items-center gap-1.5 rounded-none border border-border bg-surface px-3.5 py-2 text-[13px] font-medium text-fg transition-colors hover:border-accent hover:text-accent"
 			>
 				Back to the foundry
 				<ArrowRight class="size-3.5" />
@@ -143,7 +134,7 @@
 		{/if}
 	</div>
 </div>
-<div class="mx-auto w-full max-w-6xl px-4 sm:px-6">
+<div class="mx-auto w-full max-w-5xl px-4 sm:px-6">
 	<SiteFooter />
 </div>
 </div>
