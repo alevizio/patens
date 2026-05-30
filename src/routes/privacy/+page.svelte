@@ -57,16 +57,13 @@
 
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="mb-8 inline-flex items-center gap-1.5 rounded-sm text-[12px] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<ArrowLeft class="size-3" />
 		Back to the foundry
 	</a>
 
-	<h1
-		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		
-	>
+	<h1 class="mb-6 text-[48px] leading-tight tracking-tight text-fg">
 		Privacy.
 	</h1>
 
@@ -79,28 +76,25 @@
 		reading this page from never sees the contents of your fonts.
 	</p>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		What stays on your machine
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>What stays on your machine
 	</h2>
 	<ul class="mb-8 grid gap-2 text-[14px] leading-relaxed text-fg-muted">
 		<li>
 			<strong class="font-medium text-fg">Every project's glyphs, kerning,
 			metadata, brief, decisions log, samples</strong> — stored in the
-			IndexedDB database named <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio</code>.
+			IndexedDB database named <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio</code>.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">Family records + family-level
 			kerning</strong> — stored in the IndexedDB database named
-			<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio-families</code>.
+			<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio-families</code>.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">Your settings</strong> (theme
 			preference, welcome dismissal, editor toggles, optional Anthropic
-			API key) — stored in <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">localStorage</code>
-			under the <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio:settings:v1</code> key.
+			API key) — stored in <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">localStorage</code>
+			under the <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">font-studio:settings:v1</code> key.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">Per-share delete tokens</strong>
@@ -109,11 +103,8 @@
 		</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		What leaves your machine — only when you choose
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>What leaves your machine — only when you choose
 	</h2>
 	<ul class="mb-8 grid gap-2 text-[14px] leading-relaxed text-fg-muted">
 		<li>
@@ -135,7 +126,7 @@
 			audit code + relevant project metadata to Anthropic's API using
 			<em class="not-italic text-fg">your own</em> API key. The key is
 			stored in your browser; Patens's server doesn't see it (the
-			<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">/api/ai/messages</code>
+			<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">/api/ai/messages</code>
 			proxy forwards verbatim and discards). If you don't add a key in
 			Settings, no AI feature is ever called.
 		</li>
@@ -147,11 +138,8 @@
 		</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Server logs
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Server logs
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		The deployment is hosted on Vercel. Vercel's edge network keeps
@@ -160,11 +148,8 @@
 		collect or process additional logs.
 	</p>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		GDPR + CCPA
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>GDPR + CCPA
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		Patens does not collect personal information. We have no user
@@ -175,11 +160,8 @@
 		project has been shared) or contact <a href="mailto:hi@patens.design" class="text-accent-strong underline underline-offset-2">hi@patens.design</a> with the share URL.
 	</p>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Self-hosters
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>05</span>Self-hosters
 	</h2>
 	<p class="mb-12 text-[14px] leading-relaxed text-fg-muted">
 		Patens is MIT-licensed. If you run your own instance, this policy

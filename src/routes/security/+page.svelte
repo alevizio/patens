@@ -57,16 +57,13 @@
 
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="mb-8 inline-flex items-center gap-1.5 rounded-sm text-[12px] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<ArrowLeft class="size-3" />
 		Back to the foundry
 	</a>
 
-	<h1
-		class="mb-6 text-[48px] leading-tight tracking-tight text-fg"
-		
-	>
+	<h1 class="mb-6 text-[48px] leading-tight tracking-tight text-fg">
 		Security.
 	</h1>
 
@@ -78,11 +75,8 @@
 		otherwise compromise the integrity of the app — please report it.
 	</p>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		How to report
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>How to report
 	</h2>
 	<p class="mb-3 text-[14px] leading-relaxed text-fg-muted">
 		Email <a href="mailto:security@patens.design" class="text-accent-strong underline underline-offset-2">security@patens.design</a>
@@ -95,11 +89,8 @@
 		<li>· Whether you'd like public credit on disclosure (CVE, GitHub release notes, X mention — your choice).</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		What I commit to
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>What I commit to
 	</h2>
 	<ul class="mb-8 grid gap-2 text-[14px] leading-relaxed text-fg-muted">
 		<li>
@@ -126,11 +117,8 @@
 		</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		In scope
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>In scope
 	</h2>
 	<ul class="mb-8 grid gap-1.5 text-[14px] leading-relaxed text-fg-muted">
 		<li>· The Patens web application at patens.design.</li>
@@ -141,11 +129,8 @@
 		<li>· The source code at github.com/alevizio/patens.</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		Out of scope
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>Out of scope
 	</h2>
 	<ul class="mb-8 grid gap-1.5 text-[14px] leading-relaxed text-fg-muted">
 		<li>· Third-party services Patens depends on (Vercel, Anthropic, Vercel Blob storage). Report those upstream.</li>
@@ -154,42 +139,39 @@
 		<li>· DoS attacks. Vercel handles network-layer abuse; please don't actively flood the deployment.</li>
 	</ul>
 
-	<h2
-		class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg"
-		
-	>
-		What Patens does to keep your data safe
+	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>05</span>What Patens does to keep your data safe
 	</h2>
 	<ul class="mb-12 grid gap-2 text-[14px] leading-relaxed text-fg-muted">
 		<li>
 			<strong class="font-medium text-fg">Constant-time token comparison</strong>
-			for share-delete tokens (<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">timingSafeEqual</code>),
+			for share-delete tokens (<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">timingSafeEqual</code>),
 			to defend against timing attacks on the token value.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">Same-origin redirect validation</strong>
-			on the auth flow (<code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">safeReturnTo</code>),
-			to prevent open-redirect from a tampered <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">return</code> query param.
+			on the auth flow (<code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">safeReturnTo</code>),
+			to prevent open-redirect from a tampered <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">return</code> query param.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">HMAC-SHA256 signed session cookies</strong>
 			(when OAuth is enabled), HttpOnly + SameSite=Lax + Secure in production.
 		</li>
 		<li>
-			<strong class="font-medium text-fg">No <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">eval()</code> or <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">new Function()</code> on user input.</strong>
+			<strong class="font-medium text-fg">No <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">eval()</code> or <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">new Function()</code> on user input.</strong>
 			Glyph names, kerning class names, brief text — all rendered with
 			Svelte's escaping; never executed.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">UUID-only share URLs.</strong>
-			Share IDs are <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">crypto.randomUUID()</code> — unguessable without
+			Share IDs are <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">crypto.randomUUID()</code> — unguessable without
 			the link. The capability model: anyone with the URL can read;
 			only the originator (who holds the delete-token in their
 			browser) can re-share or delete.
 		</li>
 		<li>
 			<strong class="font-medium text-fg">Anthropic API keys never logged.</strong>
-			The <code class="rounded bg-surface-1 px-1 py-0.5 font-mono text-[12px]">/api/ai/messages</code> proxy forwards the user's own key to
+			The <code class="rounded-none bg-surface-1 px-1 py-0.5 font-mono text-[12px]">/api/ai/messages</code> proxy forwards the user's own key to
 			Anthropic verbatim and discards it from the request lifecycle.
 			Patens's server never sees or stores the key.
 		</li>
