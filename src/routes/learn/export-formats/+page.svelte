@@ -172,7 +172,7 @@
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
 	<SiteHeader current="/learn/export-formats" />
 
 	<a

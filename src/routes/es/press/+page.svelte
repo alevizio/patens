@@ -21,7 +21,7 @@
 	<meta property="og:image" content="https://patens.design/og/press" />
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
 	<SiteHeader current="/es/press" lang="es" />
 
 	<a

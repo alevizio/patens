@@ -111,7 +111,7 @@
 	{@html `<script type="application/ld+json">${jsonLd}<\/script>`}
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-4 py-6 sm:px-6">
+<div class="mx-auto max-w-5xl px-4 py-6 sm:px-6">
 	<SiteHeader current="/audit" />
 
 	<nav aria-label="Breadcrumb" class="mt-2 font-mono text-[11px] text-fg-subtle">

@@ -314,7 +314,7 @@
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
-<div class="mx-auto max-w-6xl px-6 py-8 sm:py-10">
+<div class="mx-auto max-w-5xl px-6 py-8 sm:py-10">
 	<SiteHeader current="/learn" />
 
 	<!-- Hero -->

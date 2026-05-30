@@ -60,7 +60,7 @@
 	<meta property="og:image" content="https://patens.design/og/learn" />
 </svelte:head>
 
-<div class="mx-auto max-w-3xl px-4 py-8 sm:px-6">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
 	<SiteHeader current="/es/learn" lang="es" />
 
 	<a
