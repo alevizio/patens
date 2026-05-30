@@ -2,13 +2,29 @@
 
 Patens fits NLnet NGI Zero Commons cleanly: free software, public benefit,
 open standards, type-design pedagogy. Rolling deadline every 2 months;
-funding range €5k–50k; no equity, no IP transfer.
+funding range €5K–€50K; no equity, no IP transfer.
 
-Apply at: <https://nlnet.nl/propose/>
+**Target cycle: 2026-08-01.** (The 2026-06-01 cycle is being skipped —
+chosen post-launch credibility over a pre-launch ask. The Aug 1 cycle
+overlaps TypeCon Portland week, so this application benefits from real
+launch-day data + early-user feedback.)
 
-This document is **paste-ready**. Read once, adjust voice where it
-sounds too me-shaped or too you-shaped, then paste into NLnet's web
-form. The form fields map 1:1 to the headers below.
+Submit at <https://nlnet.nl/commonsfund/> (the page links to the
+active proposal form during the open call window). The fallback
+generic submission URL is <https://nlnet.nl/propose/>.
+
+This document is mostly **paste-ready**. The form fields map 1:1 to
+the headers below. Three sections still need your voice:
+
+- [ ] **Has anybody contributed to your project?** — pick "none yet"
+      or list contributors honestly.
+- [ ] **Why do you want to do this work?** — only you can write this.
+      Sketch starter prose is offered below; rewrite in your voice.
+- [ ] **What was the inspiration for this idea?** — same. The whiteboard
+      anecdote works if it's true; replace if not.
+
+Everything else (abstract, topic, comparison, deliverables, technical
+challenges, open standards, license) is paste-ready as written.
 
 ---
 

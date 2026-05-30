@@ -9,34 +9,39 @@ The goal is to convert the ~10-week runway into the smallest set of applications
 
 ## TL;DR — apply this week
 
-Two deadlines fall **inside the next 5 days**. Move on these first.
+**Plan as of 2026-05-30:** Submit Vercel only this week (deadline
+Wed Jun 3). NLnet is **skipped for the Jun 1 cycle** and re-targeted
+at the **Aug 1, 2026 cycle** — that one overlaps TypeCon week and lets
+the application lead with real launch data rather than a pre-launch
+ask.
 
 | # | Program | Deadline | Award | Status |
 |---|---|---|---|---|
-| 1 | [NLnet NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) | **2026-06-01** (Mon) | €5K – €50K cash grant, scalable per scope | Application template already drafted at `docs/launch/nlnet-application.md` — needs final review + submit |
-| 2 | [Vercel OSS Program](https://vercel.com/open-source-program) | **2026-06-03** (Wed) | $3,600 platform credits / 12 mo + OSS Starter Pack + priority support | Application copy already drafted at `docs/launch/vercel-oss-application.md` — needs link sweep + submit |
+| 1 | [Vercel OSS Program](https://vercel.com/open-source-program) | **2026-06-03** (Wed) | $3,600 platform credits / 12 mo + OSS Starter Pack + priority support | Application copy drafted at `docs/launch/vercel-oss-application.md` — needs link sweep + submit |
+| 2 | [NLnet NGI Zero Commons Fund](https://nlnet.nl/commonsfund/) | ~~2026-06-01~~ → **2026-08-01** (deferred) | €5K – €50K cash grant, scalable per scope | Application template at `docs/launch/nlnet-application.md` — re-target for Aug cycle with launch traction folded in |
 
-After these two, the next cluster (1–3 weeks out) is **AI credits + funding-platform setup** so the editor's AI presets and the maintainer-funding rail are live by launch.
+After Vercel, the next cluster (1–3 weeks out) is **AI credits + funding-platform setup** so the editor's AI presets and the maintainer-funding rail are live by launch.
 
 ---
 
 ## Tier 1 — Apply this week (urgent)
 
-### 1. NLnet NGI Zero Commons Fund — €5K – €50K — **DEADLINE JUNE 1**
-
-- **URL:** [nlnet.nl/commonsfund](https://nlnet.nl/commonsfund/)
-- **What it is:** EU-funded €21.6M pool through 2027 for open-source digital commons. Individual grants are scoped per project — anywhere from €5K (small focused work package) to €50K (multi-stage R&D). Patens fits the "open digital commons" definition cleanly: MIT-licensed, browser-native, no platform lock-in, accessible PWA, audit pedagogy as public good.
-- **Eligibility:** Open source, public benefit, EU-aligned (Patens qualifies; Alejandro doesn't need to be EU-resident — NLnet funds globally).
-- **Fit:** **Highest priority.** Cash grant + EU credibility + recurring cohort (the next call after this is Oct 1, 2026 — past launch). The fund is *specifically* looking for "open hardware, open culture, open educational resources, open access, open data" — the audit-as-pedagogy angle reads as open educational resource on top of an open tool.
-- **Move:** Open `docs/launch/nlnet-application.md`, sanity-check work-packages against the editor's roadmap, submit by EOD Sunday.
-
-### 2. Vercel OSS Program — $3,600 in platform credits — **DEADLINE JUNE 3**
+### 1. Vercel OSS Program — $3,600 in platform credits — **DEADLINE JUNE 3**
 
 - **URL:** [vercel.com/open-source-program](https://vercel.com/open-source-program)
 - **What it is:** Spring 2026 cohort. $3,600 Vercel credits over 12 months + OSS Starter Pack + priority community support. Covers Production + Preview deploys, Vercel Blob, Edge Functions for OG cards.
 - **Eligibility:** MIT/Apache/BSD/similar permissive license, public repo, active development, CoC + SECURITY.md — Patens checks all boxes.
 - **Fit:** **High.** The entire stack already runs on Vercel; credits absorb the ramp from private alpha to TypeCon launch week without forcing a pricing decision before the launch is over.
 - **Move:** Open `docs/launch/vercel-oss-application.md`, paste copy into the form, submit.
+
+### 2. NLnet NGI Zero Commons Fund — €5K – €50K — *deferred to Aug 1, 2026 cycle*
+
+- **URL:** [nlnet.nl/commonsfund](https://nlnet.nl/commonsfund/)
+- **Why deferred:** The Jun 1, 2026 cycle conflicts with launch prep + a pre-launch application has weaker traction signal. The Aug 1, 2026 cycle overlaps TypeCon Portland week and lets the application lead with real launch data + early-user feedback.
+- **What it is:** EU-funded €21.6M pool through 2027 for open-source digital commons. Individual grants are scoped per project — €5K (small focused work package) to €50K (multi-stage R&D). Patens fits "open digital commons" cleanly: MIT, browser-native, no lock-in, accessible PWA, audit pedagogy as public good.
+- **Eligibility:** Open source, public benefit, EU-aligned (Patens qualifies; not residency-gated — NLnet funds globally).
+- **Fit:** **High at Aug cycle.** Cash grant + EU credibility + the timing lets the application cite specific cohort metrics from launch.
+- **Move:** Re-open `docs/launch/nlnet-application.md` in mid-July, fold in launch-week data + first-cohort feedback, submit by 2026-07-31 EOD.
 
 ---
 
@@ -170,9 +175,9 @@ These are *donation rails*, not grant programs. Set them up before Show HN so pe
 
 ## Synthesis — sequenced action plan
 
-### This week (urgent, ~6 hours of work)
-1. **Sat–Sun:** Polish `docs/launch/nlnet-application.md`, submit by Monday EOD (deadline June 1).
-2. **Mon–Tue:** Polish `docs/launch/vercel-oss-application.md`, submit by Wednesday EOD (deadline June 3).
+### This week (urgent, ~3 hours of work)
+1. **Mon–Tue:** Polish `docs/launch/vercel-oss-application.md`, submit by Wednesday EOD (deadline June 3).
+2. *(NLnet deferred to Aug 1 cycle — re-open mid-July with launch data folded in.)*
 
 ### Next 2 weeks
 3. Apply to **Anthropic Startup Credits + Research Credits** (single coordinated pitch, lead with audit-as-pedagogy + Claude-powered explanations).
