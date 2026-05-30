@@ -97,7 +97,7 @@
 
 	<a
 		href="/"
-		class="mb-8 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="mb-8 inline-flex items-center gap-1.5 rounded-sm text-[12px] text-fg-muted transition-colors hover:text-fg focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
 		<ArrowLeft class="size-3" />
 		Back to the foundry
@@ -122,11 +122,8 @@
 
 	<!-- FACTSHEET — copy/pasteable table, the structured-data canonical -->
 	<section class="mb-16">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Factsheet
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>Factsheet
 		</h2>
 		<dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 text-[14px]">
 			<dt class="text-fg-subtle">Product</dt>
@@ -184,42 +181,36 @@
 
 	<!-- DESCRIPTIONS — short, long, technical -->
 	<section class="mb-16">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Descriptions
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Descriptions
 		</h2>
 
 		<h3 class="mb-2 text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
 			One-liner ({oneLiner.length} characters)
 		</h3>
-		<p class="mb-8 rounded-md border border-border bg-surface-1/40 p-4 text-[14px] leading-relaxed text-fg-muted">
+		<p class="mb-8 border-t border-border/40 pt-4 text-[14px] leading-relaxed text-fg-muted">
 			{oneLiner}
 		</p>
 
 		<h3 class="mb-2 text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
 			Elevator pitch ({elevatorPitch.length} characters)
 		</h3>
-		<p class="mb-8 rounded-md border border-border bg-surface-1/40 p-4 text-[14px] leading-relaxed text-fg-muted">
+		<p class="mb-8 border-t border-border/40 pt-4 text-[14px] leading-relaxed text-fg-muted">
 			{elevatorPitch}
 		</p>
 
 		<h3 class="mb-2 text-[11px] uppercase tracking-[0.14em] text-fg-subtle">
 			Technical summary
 		</h3>
-		<p class="mb-4 rounded-md border border-border bg-surface-1/40 p-4 text-[14px] leading-relaxed text-fg-muted">
+		<p class="mb-4 border-t border-border/40 pt-4 text-[14px] leading-relaxed text-fg-muted">
 			{technical}
 		</p>
 	</section>
 
 	<!-- LOGOS + BRAND ASSETS -->
 	<section class="mb-16">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Logos + brand assets
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Logos + brand assets
 		</h2>
 		<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
 			The Patens identity is the lowercase "Hn" mark set in StudioGeometric
@@ -228,9 +219,9 @@
 		</p>
 
 		<div class="grid gap-4 sm:grid-cols-2">
-			<div class="rounded-lg border border-border bg-surface p-6">
+			<div class="rounded-none border border-border bg-surface p-6">
 				<div
-					class="mb-3 flex h-24 items-center justify-center rounded bg-canvas text-[64px] leading-none text-fg"
+					class="mb-3 flex h-24 items-center justify-center rounded-none bg-canvas text-[64px] leading-none text-fg"
 					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Hn
@@ -246,9 +237,9 @@
 					Download as 1200×630 PNG (OG image)
 				</a>
 			</div>
-			<div class="rounded-lg border border-border bg-canvas-soft p-6">
+			<div class="rounded-none border border-border bg-canvas-soft p-6">
 				<div
-					class="mb-3 flex h-24 items-center justify-center rounded bg-fg text-[64px] leading-none text-canvas"
+					class="mb-3 flex h-24 items-center justify-center rounded-none bg-fg text-[64px] leading-none text-canvas"
 					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
 					Hn
@@ -274,11 +265,8 @@
 
 	<!-- SCREENSHOTS — placeholder cards until founder ships real assets -->
 	<section class="mb-16">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Screenshots
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>Screenshots
 		</h2>
 		<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
 			Patens is in private alpha — the editor isn't publicly accessible yet. Email
@@ -292,11 +280,8 @@
 
 	<!-- MILESTONES -->
 	<section class="mb-16">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Milestones
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>05</span>Milestones
 		</h2>
 		<ol class="grid gap-3 border-l border-border pl-5 text-[14px] leading-relaxed text-fg-muted">
 			{#each milestones as m (m.when)}
@@ -312,11 +297,8 @@
 
 	<!-- LINKS for further coverage -->
 	<section class="mb-12">
-		<h2
-			class="mb-4 text-[28px] tracking-tight text-fg"
-			
-		>
-			Further reading
+		<h2 class="mt-4 border-t border-border/30 pt-12 mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>06</span>Further reading
 		</h2>
 		<ul class="grid gap-2 text-[14px] leading-relaxed text-fg-muted">
 			<li>
