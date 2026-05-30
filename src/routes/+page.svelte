@@ -113,8 +113,17 @@
 	] as const;
 
 	// Compact comparison table (Section 6). Subset of /compare's distinctive
-	// rows + 6 tools (Patens + 5 of the most-cited alternatives).
-	const compareTools = ['Patens', 'FontLab', 'Glyphs', 'Fontra', 'Robofont', 'Glyphr Studio'] as const;
+	// rows + 6 tools (Patens + 5 of the most-cited alternatives). Each
+	// competitor links out to its official site; Patens is unlinked
+	// (you're already here).
+	const compareTools: ReadonlyArray<{ name: string; url?: string }> = [
+		{ name: 'Patens' },
+		{ name: 'FontLab', url: 'https://www.fontlab.com/' },
+		{ name: 'Glyphs', url: 'https://glyphsapp.com/' },
+		{ name: 'Fontra', url: 'https://fontra.xyz/' },
+		{ name: 'Robofont', url: 'https://robofont.com/' },
+		{ name: 'Glyphr Studio', url: 'https://www.glyphrstudio.com/' }
+	];
 	type Cell = true | false | 'partial' | string;
 	const compareRows: Array<{ label: string; values: Cell[] }> = [
 		{ label: 'Price', values: ['Free', '$499', '$300', 'Free', '$400', 'Free'] },
@@ -849,14 +858,25 @@
 							<th class="py-4 pr-4 font-mono text-[10px] uppercase tracking-wider text-fg-subtle font-normal">
 								Feature
 							</th>
-							{#each compareTools as t (t)}
+							{#each compareTools as t (t.name)}
 								<th
-									class="px-3 py-4 text-center font-mono text-[10px] uppercase tracking-wider font-normal whitespace-nowrap {t ===
+									class="px-3 py-4 text-center font-mono text-[10px] uppercase tracking-wider font-normal whitespace-nowrap {t.name ===
 									'Patens'
 										? 'text-fg'
 										: 'text-fg-subtle'}"
 								>
-									{t}
+									{#if t.url}
+										<a
+											href={t.url}
+											target="_blank"
+											rel="noopener noreferrer"
+											class="underline-offset-4 hover:text-fg hover:underline focus-visible:underline"
+										>
+											{t.name}
+										</a>
+									{:else}
+										{t.name}
+									{/if}
 								</th>
 							{/each}
 						</tr>

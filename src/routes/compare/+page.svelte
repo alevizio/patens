@@ -370,17 +370,20 @@
 	];
 
 	type CompetitorKey = Exclude<keyof Row, 'feature' | 'note'>;
-	type Competitor = { key: CompetitorKey; name: string; highlight?: boolean };
+	type Competitor = { key: CompetitorKey; name: string; highlight?: boolean; url?: string };
 	const competitors: ReadonlyArray<Competitor> = [
+		// Patens self-references (already on the site) — no url. Every other
+		// tool links out to its official homepage in a new tab; readers can
+		// dig in without losing the comparison context.
 		{ key: 'patens', name: 'Patens', highlight: true },
-		{ key: 'fontlab', name: 'FontLab 8' },
-		{ key: 'glyphs', name: 'Glyphs 3' },
-		{ key: 'robofont', name: 'RoboFont' },
-		{ key: 'fontra', name: 'Fontra' },
-		{ key: 'glyphrStudio', name: 'Glyphr Studio' },
-		{ key: 'typlr', name: 'typlr.app' },
-		{ key: 'birdfont', name: 'BirdFont' },
-		{ key: 'fontforge', name: 'FontForge' }
+		{ key: 'fontlab', name: 'FontLab 8', url: 'https://www.fontlab.com/' },
+		{ key: 'glyphs', name: 'Glyphs 3', url: 'https://glyphsapp.com/' },
+		{ key: 'robofont', name: 'RoboFont', url: 'https://robofont.com/' },
+		{ key: 'fontra', name: 'Fontra', url: 'https://fontra.xyz/' },
+		{ key: 'glyphrStudio', name: 'Glyphr Studio', url: 'https://www.glyphrstudio.com/' },
+		{ key: 'typlr', name: 'typlr.app', url: 'https://typlr.app/' },
+		{ key: 'birdfont', name: 'BirdFont', url: 'https://birdfont.org/' },
+		{ key: 'fontforge', name: 'FontForge', url: 'https://fontforge.org/' }
 	];
 
 	const renderCell = (value: Cell) => value;
@@ -487,7 +490,19 @@
 				<div
 					class="overflow-hidden rounded-lg border border-border/40 bg-surface-1/40"
 				>
-					<table class="w-full border-collapse text-[13px]">
+					<!-- table-fixed + colgroup pins every column to the same width
+					     across every group, so the Patens column sits at the
+					     same horizontal position no matter how long the row
+					     labels in this particular group happen to be. Without
+					     this each <table> auto-sized to its own content and
+					     Patens drifted left-right between groups. -->
+					<table class="w-full table-fixed border-collapse text-[13px]">
+						<colgroup>
+							<col style="width: 22%" />
+							{#each competitors as c (c.key)}
+								<col style="width: {78 / competitors.length}%" />
+							{/each}
+						</colgroup>
 						<thead>
 							<tr class="border-b border-border/40 bg-surface-2/40">
 								<th
@@ -498,12 +513,23 @@
 								</th>
 								{#each competitors as c (c.key)}
 									<th
-										class="px-3 py-3 text-left font-medium text-fg whitespace-nowrap"
+										class="px-3 py-3 text-left font-medium text-fg"
 										class:bg-accent-soft={c.highlight}
 										class:text-accent-strong={c.highlight}
 										scope="col"
 									>
-										{c.name}
+										{#if c.url}
+											<a
+												href={c.url}
+												target="_blank"
+												rel="noopener noreferrer"
+												class="underline-offset-4 hover:underline focus-visible:underline"
+											>
+												{c.name}
+											</a>
+										{:else}
+											{c.name}
+										{/if}
 									</th>
 								{/each}
 							</tr>
@@ -573,7 +599,18 @@
 					class:text-fg={!c.highlight}
 					style="font-family: 'Hoefler Text', ui-serif, Georgia, serif;"
 				>
-					{c.name}
+					{#if c.url}
+						<a
+							href={c.url}
+							target="_blank"
+							rel="noopener noreferrer"
+							class="underline-offset-4 hover:underline focus-visible:underline"
+						>
+							{c.name}
+						</a>
+					{:else}
+						{c.name}
+					{/if}
 				</h2>
 				{#each groups as group (group.title)}
 					<div class="mb-3">
