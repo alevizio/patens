@@ -571,6 +571,100 @@ class ProjectStore {
 		this.withRootScalar('description', description);
 	}
 
+	/**
+	 * Set or clear the STAT (Style Attributes Table) override. Pass `null`
+	 * to remove the override and let Patens auto-generate STAT from fvar
+	 * at export. See types.ts § Stat for the model shape.
+	 */
+	updateStat(stat: Project['stat'] | null) {
+		if (!this.project) return;
+		this.withRootScalar('stat', stat ?? undefined);
+	}
+
+	/**
+	 * Auto-generate a minimal STAT override from the project's fvar axes
+	 * and named instances. Useful as a starting point — the user can edit
+	 * the result via updateStat() afterward. Returns the generated Stat
+	 * without mutating; pass it through updateStat() to commit.
+	 */
+	generateMinimalStat(): Project['stat'] | null {
+		if (!this.project?.axes || this.project.axes.length === 0) return null;
+		const axes = this.project.axes;
+		const designAxes = axes.map((a, i) => ({
+			tag: a.tag,
+			name: a.name,
+			axisOrdering: i
+		}));
+		const axisValues: NonNullable<Project['stat']>['axisValues'] = [];
+		for (let i = 0; i < axes.length; i++) {
+			const axis = axes[i];
+			if (axis.tag === 'ital') {
+				// Italic axis gets format 3 records (linked to upright)
+				axisValues.push({
+					format: 3,
+					axisIndex: i,
+					name: 'Roman',
+					value: 0,
+					linkedValue: 1
+				});
+				if (axis.maximum >= 1) {
+					axisValues.push({
+						format: 3,
+						axisIndex: i,
+						name: 'Italic',
+						value: 1,
+						linkedValue: 0
+					});
+				}
+				continue;
+			}
+			// Default + max value get format 1 records
+			axisValues.push({
+				format: 1,
+				axisIndex: i,
+				name: this.defaultAxisValueName(axis.tag, axis.default),
+				value: axis.default
+			});
+			if (axis.maximum !== axis.default) {
+				axisValues.push({
+					format: 1,
+					axisIndex: i,
+					name: this.defaultAxisValueName(axis.tag, axis.maximum),
+					value: axis.maximum
+				});
+			}
+		}
+		return { designAxes, axisValues, elidedFallbackName: 'Regular' };
+	}
+
+	/**
+	 * Convention-based axis value name. The user can rename after
+	 * generation; this is just a sensible default.
+	 */
+	private defaultAxisValueName(tag: string, value: number): string {
+		if (tag === 'wght') {
+			if (value === 100) return 'Thin';
+			if (value === 200) return 'ExtraLight';
+			if (value === 300) return 'Light';
+			if (value === 400) return 'Regular';
+			if (value === 500) return 'Medium';
+			if (value === 600) return 'SemiBold';
+			if (value === 700) return 'Bold';
+			if (value === 800) return 'ExtraBold';
+			if (value === 900) return 'Black';
+			return `Weight ${value}`;
+		}
+		if (tag === 'wdth') {
+			if (value === 75) return 'Condensed';
+			if (value === 100) return 'Normal';
+			if (value === 125) return 'Expanded';
+			return `Width ${value}`;
+		}
+		if (tag === 'opsz') return `${value}pt`;
+		if (tag === 'slnt') return value === 0 ? 'Upright' : `Slant ${value}°`;
+		return `${tag} ${value}`;
+	}
+
 	saveProjectSnapshot(label?: string) {
 		if (!this.project) return;
 		if (this.project.locked) return;
