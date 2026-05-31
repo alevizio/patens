@@ -526,7 +526,7 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 			'master-contour-count',
 			[
 				{
-					citationId: 'opentype-spec:fvar',
+					citationId: 'opentype-spec:gvar',
 					anchor: '§ gvar — Glyph Variations Table',
 					gist: 'Variable-font masters must have matching contour counts per glyph; mismatches break interpolation between masters.',
 					score: 1.0
@@ -537,9 +537,64 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 			'master-point-count',
 			[
 				{
-					citationId: 'opentype-spec:fvar',
+					citationId: 'opentype-spec:gvar',
 					anchor: '§ gvar — Glyph Variations Table',
 					gist: 'Variable-font masters must have matching point counts per contour per glyph; mismatches cause gvar interpolation failure.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'master-axis-unknown',
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — VariationAxisRecord',
+					gist: 'Master locations must reference axes declared in the fvar table; orphan axis references are dead specifications.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'master-empty',
+			[
+				{
+					citationId: 'ufo-3-spec:designspace',
+					anchor: 'Designspace — sources',
+					gist: 'A master with no glyph overrides contributes nothing to the variation surface; an empty master is dead specification.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'master-orphan-axis',
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — designspace axes',
+					gist: 'Each axis a master references must be declared globally; orphan references cause undefined behaviour during interpolation.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'master-out-of-range',
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — min/default/max',
+					gist: 'Master locations must fall within the axis min/max range; values outside the range create undefined interpolation at runtime.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'instance-orphan-axis',
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — InstanceRecord coordinates',
+					gist: 'Instance coordinates must reference declared axes; orphan references make the instance unaddressable from CSS or font pickers.',
 					score: 1.0
 				}
 			]
