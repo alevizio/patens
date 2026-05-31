@@ -1401,7 +1401,7 @@ body {
 	<!-- Read-only banner — clarifies what the route is for. -->
 	<div
 		data-print-hide
-		class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-surface-2/60 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase text-fg-muted"
+		class="mb-6 inline-flex items-center gap-2 rounded-none border border-border bg-surface-2/60 px-3 py-1 text-[11px] font-semibold tracking-wide uppercase text-fg-muted"
 	>
 		<Eye class="size-3" />
 		<span>Shared view · read-only</span>
@@ -1437,7 +1437,7 @@ body {
 					</label>
 					<select
 						id="version-select"
-						class="rounded border border-border bg-surface px-2 py-0.5 text-[12px] text-fg outline-none focus:border-accent"
+						class="rounded-none border border-border bg-surface px-2 py-0.5 text-[12px] text-fg outline-none focus:border-accent"
 						value={pinnedVersion === null ? 'latest' : String(pinnedVersion)}
 						onchange={(ev) => {
 							const v = (ev.target as HTMLSelectElement).value;
@@ -1460,14 +1460,14 @@ body {
 					</select>
 					{#if pinnedVersion !== null}
 						<span
-							class="rounded bg-warn/15 px-1.5 py-0.5 text-[10px] font-medium text-warn-strong"
+							class="rounded-none bg-warn/15 px-1.5 py-0.5 text-[10px] font-medium text-warn-strong"
 							title="You're viewing a historical version. The latest may differ."
 						>
 							pinned
 						</span>
 						<button
 							type="button"
-							class="rounded border border-border px-1.5 py-0.5 text-[11px] text-fg-muted hover:text-fg hover:border-fg/30"
+							class="rounded-none border border-border px-1.5 py-0.5 text-[11px] text-fg-muted hover:text-fg hover:border-fg/30"
 							title="Copy a permalink to this specific version"
 							onclick={async () => {
 								try {
@@ -1497,7 +1497,7 @@ body {
 					type="button"
 					onclick={downloadOtf}
 					disabled={downloading !== null}
-					class="inline-flex items-center gap-1.5 rounded-md border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
+					class="inline-flex items-center gap-1.5 rounded-none border border-accent bg-accent px-3 py-1.5 text-[12px] font-medium text-accent-fg hover:bg-accent/90 disabled:opacity-50"
 					title="Download as OTF — install in macOS, Windows, design apps"
 				>
 					<Download class="size-3.5" />
@@ -1507,7 +1507,7 @@ body {
 					type="button"
 					onclick={downloadWoff2}
 					disabled={downloading !== null}
-					class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent disabled:opacity-50"
+					class="inline-flex items-center gap-1.5 rounded-none border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent disabled:opacity-50"
 					title="Download as WOFF2 — for @font-face web embedding"
 				>
 					<Download class="size-3.5" />
@@ -1516,7 +1516,7 @@ body {
 				<button
 					type="button"
 					onclick={triggerSpecimenPrint}
-					class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent"
+					class="inline-flex items-center gap-1.5 rounded-none border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent"
 					title="Print or save as PDF — type specimen sheet"
 				>
 					<Printer class="size-3.5" />
@@ -1527,7 +1527,7 @@ body {
 				<select
 					bind:value={selectedMasterId}
 					disabled={downloading !== null}
-					class="rounded border border-border bg-surface px-2 py-0.5 text-[11px] outline-none focus:border-accent disabled:opacity-50"
+					class="rounded-none border border-border bg-surface px-2 py-0.5 text-[11px] outline-none focus:border-accent disabled:opacity-50"
 					title="Master to build as a static font"
 				>
 					{#each availableMasters as m (m.id ?? 'default')}
@@ -1540,7 +1540,7 @@ body {
 	{#if downloadError}
 		<div
 			data-print-hide
-			class="mb-6 rounded-md bg-danger/10 px-3 py-2 text-[12px] text-danger-strong"
+			class="mb-6 rounded-none bg-danger/10 px-3 py-2 text-[12px] text-danger-strong"
 		>
 			Download failed: {downloadError}
 		</div>
@@ -1560,7 +1560,7 @@ body {
 				<button
 					type="button"
 					onclick={copyTesterLink}
-					class="inline-flex items-center gap-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
+					class="inline-flex items-center gap-1 rounded-none border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
 					title="Copy a link to this exact tester view — text, size, master, features, palette"
 				>
 					{#if testerLinkCopied}
@@ -1575,7 +1575,7 @@ body {
 					<button
 						type="button"
 						onclick={resetTester}
-						class="inline-flex items-center gap-1 rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
+						class="inline-flex items-center gap-1 rounded-none border border-border bg-surface px-1.5 py-0.5 text-[10px] font-normal normal-case text-fg-muted hover:border-accent hover:text-fg"
 						title="Reset text, size, tracking, master, features, palette to defaults"
 					>
 						<span>Reset</span>
@@ -1590,7 +1590,7 @@ body {
 			type="text"
 			bind:value={typeText}
 			placeholder="Type something…"
-			class="w-full rounded-md border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
+			class="w-full rounded-none border border-border bg-surface px-3 py-2 text-[14px] text-fg outline-none focus:border-accent"
 		/>
 		<!-- Sample-text presets. Quick pills for the passages designers
 		     reach for first: a pangram for coverage, AaBbCc for shape
@@ -1606,7 +1606,7 @@ body {
 				<button
 					type="button"
 					onclick={() => (typeText = preset.text)}
-					class="rounded-md border px-2 py-0.5 transition-colors {active
+					class="rounded-none border px-2 py-0.5 transition-colors {active
 						? 'border-accent bg-accent-soft/40 text-fg'
 						: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
 					title={preset.text}
@@ -1623,7 +1623,7 @@ body {
 						<button
 							type="button"
 							onclick={() => (tryMasterId = m.id)}
-							class="rounded-md border px-2 py-0.5 transition-colors {tryMasterId === m.id
+							class="rounded-none border px-2 py-0.5 transition-colors {tryMasterId === m.id
 								? 'border-accent bg-accent-soft/40 text-fg'
 								: 'border-border bg-surface hover:border-accent/60'}"
 						>
@@ -1682,7 +1682,7 @@ body {
 							<button
 								type="button"
 								onclick={() => toggleFeature(f.feature)}
-								class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono transition-colors {on
+								class="inline-flex items-center gap-1.5 rounded-none border px-2 py-0.5 font-mono transition-colors {on
 									? 'border-accent bg-accent-soft/40 text-fg'
 									: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
 								title="{featureLabel(f.feature)} — {f.subs.length} substitution{f.subs.length === 1 ? '' : 's'}"
@@ -1712,7 +1712,7 @@ body {
 					<button
 						type="button"
 						onclick={() => (selectedPaletteIndex = pi)}
-						class="inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 transition-colors {on
+						class="inline-flex items-center gap-1.5 rounded-none border px-2 py-0.5 transition-colors {on
 							? 'border-accent bg-accent-soft/40 text-fg'
 							: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
 						title={p.name ?? `Palette ${pi + 1}`}
@@ -1740,7 +1740,7 @@ body {
 		     scrollable content. -->
 		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 		<div
-			class="mt-3 overflow-x-auto rounded-md border border-border bg-canvas px-4 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
+			class="mt-3 overflow-x-auto rounded-none border border-border bg-canvas px-4 py-6 focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
 			style="--font-baseline: {ascender}px;"
 			tabindex="0"
 			role="region"
@@ -1850,7 +1850,7 @@ body {
 			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 				Brief
 			</h2>
-			<div class="space-y-3 rounded-md border border-border bg-surface-2/30 p-4 text-[13px] leading-relaxed text-fg-muted">
+			<div class="space-y-3 rounded-none border border-border bg-surface-2/30 p-4 text-[13px] leading-relaxed text-fg-muted">
 				{#if project.brief.intent}
 					<p>
 						<span class="text-[11px] font-semibold uppercase tracking-wider text-fg-subtle">
@@ -1888,7 +1888,7 @@ body {
 			>
 				Waterfall
 			</h2>
-			<div class="space-y-3 rounded-md border border-border bg-canvas px-4 py-5">
+			<div class="space-y-3 rounded-none border border-border bg-canvas px-4 py-5">
 				{#each WATERFALL_SIZES as size (size)}
 					<div class="flex items-baseline gap-4">
 						<span class="w-10 shrink-0 text-right font-mono text-[10px] text-fg-subtle" data-numeric>
@@ -1934,7 +1934,7 @@ body {
 				Display · Body · Caption
 			</span>
 		</h2>
-		<div class="space-y-6 rounded-md border border-border bg-canvas px-5 py-6">
+		<div class="space-y-6 rounded-none border border-border bg-canvas px-5 py-6">
 			{#each readingLayouts as sample (sample.id)}
 				{#if sample.layout.lines.length > 0}
 					<div>
@@ -1995,16 +1995,16 @@ body {
 			     so it picks up the page's accent token rather than a
 			     project-specific palette (mockup should feel "neutral
 			     designer's site," not "this specific font's brand"). -->
-			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+			<div class="rounded-none border border-border bg-canvas px-5 py-6">
 				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Buttons</div>
 				<div class="flex flex-wrap items-center gap-2">
 					<span
-						class="inline-flex items-center rounded-md bg-accent px-4 py-2 text-accent-fg"
+						class="inline-flex items-center rounded-none bg-accent px-4 py-2 text-accent-fg"
 					>
 						{@render typeRow('Get started', 16)}
 					</span>
 					<span
-						class="inline-flex items-center rounded-md border border-border bg-surface px-4 py-2 text-fg"
+						class="inline-flex items-center rounded-none border border-border bg-surface px-4 py-2 text-fg"
 					>
 						{@render typeRow('Learn more', 16)}
 					</span>
@@ -2013,7 +2013,7 @@ body {
 			<!-- Stat card — big number + label. Tests tabular figures and
 			     decimal alignment. Number style intentionally currency-
 			     adjacent because that's where tabular shines. -->
-			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+			<div class="rounded-none border border-border bg-canvas px-5 py-6">
 				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Stat</div>
 				<div class="text-fg">
 					{@render typeRow('€12,847', 56)}
@@ -2027,7 +2027,7 @@ body {
 		     when present (first sentence, capped at 60 chars) so the
 		     mockup reads as the designer's own pitch rather than a
 		     generic placeholder. Lede falls back to a generic line. -->
-		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-7">
+		<div class="mt-4 rounded-none border border-border bg-canvas px-6 py-7">
 			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Headline</div>
 			<div class="text-fg">
 				{@render typeRow(headlineMock.title, 40)}
@@ -2040,7 +2040,7 @@ body {
 		     This is where rhythm and color (typographic, not chromatic)
 		     show up. Uses layoutParagraph for proper line breaks at a
 		     fixed UPM measure. -->
-		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-7">
+		<div class="mt-4 rounded-none border border-border bg-canvas px-6 py-7">
 			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">Body</div>
 			{@render typeParagraph(bodyMock, 1800, 16)}
 		</div>
@@ -2051,7 +2051,7 @@ body {
 		     the body sans set against a tinted background to read as
 		     "monospace context" without needing a real mono variant. -->
 		<div class="mt-4 grid gap-4 sm:grid-cols-2">
-			<div class="rounded-lg border border-border bg-canvas px-5 py-6">
+			<div class="rounded-none border border-border bg-canvas px-5 py-6">
 				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
 					Pricing card
 				</div>
@@ -2068,7 +2068,7 @@ body {
 					<li>{@render typeRow('Priority support', 13)}</li>
 				</ul>
 			</div>
-			<div class="rounded-lg border border-border bg-surface-2/40 px-5 py-6">
+			<div class="rounded-none border border-border bg-surface-2/40 px-5 py-6">
 				<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
 					Code block
 				</div>
@@ -2083,7 +2083,7 @@ body {
 		<!-- Form mockup — label + input + helper text. Common UI shape
 		     and tests how the type behaves in dense, narrow widths
 		     (input labels, validation copy). -->
-		<div class="mt-4 rounded-lg border border-border bg-canvas px-6 py-6">
+		<div class="mt-4 rounded-none border border-border bg-canvas px-6 py-6">
 			<div class="mb-3 text-[10px] uppercase tracking-wider text-fg-subtle">
 				Form field
 			</div>
@@ -2092,7 +2092,7 @@ body {
 					{@render typeRow('Email address', 13)}
 				</div>
 				<div
-					class="rounded-md border border-border bg-surface-2/40 px-3 py-2 text-fg-muted"
+					class="rounded-none border border-border bg-surface-2/40 px-3 py-2 text-fg-muted"
 				>
 					{@render typeRow('you@studio.example', 14)}
 				</div>
@@ -2115,7 +2115,7 @@ body {
 			<h2 class="mb-3 text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
 				Masters
 			</h2>
-			<div class="space-y-4 rounded-md border border-border bg-canvas px-4 py-5">
+			<div class="space-y-4 rounded-none border border-border bg-canvas px-4 py-5">
 				{#each masterRows as m (m.name)}
 					<div class="flex items-baseline gap-4">
 						<span class="w-16 shrink-0 text-right font-mono text-[10px] text-fg-subtle">
@@ -2156,7 +2156,7 @@ body {
 		>
 			Specs
 		</h2>
-		<dl class="grid grid-cols-2 gap-x-6 gap-y-3 rounded-md border border-border bg-surface-2/30 p-4 sm:grid-cols-4">
+		<dl class="grid grid-cols-2 gap-x-6 gap-y-3 rounded-none border border-border bg-surface-2/30 p-4 sm:grid-cols-4">
 			<div>
 				<dt class="text-[10px] uppercase tracking-wider text-fg-subtle">Drawn</dt>
 				<dd class="text-[14px] font-medium text-fg" data-numeric>
@@ -2213,7 +2213,7 @@ body {
 			<div class="flex flex-wrap gap-1.5">
 				{#each tagInventory as t (t.tag)}
 					<span
-						class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
+						class="inline-flex items-center gap-1.5 rounded-none border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
 						title={t.members.join(' · ')}
 					>
 						<span class="font-medium text-fg">{t.tag}</span>
@@ -2245,7 +2245,7 @@ body {
 						</span>
 						{#each group.items as f (f.tag)}
 							<span
-								class="inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
+								class="inline-flex items-center gap-1.5 rounded-none border border-border bg-surface-2/40 px-2.5 py-1 text-[11px]"
 								title={f.count !== undefined ? `${f.count} substitution${f.count === 1 ? '' : 's'}` : undefined}
 							>
 								<span class="font-mono text-fg">{f.tag}</span>
@@ -2265,7 +2265,7 @@ body {
 			     the @font-face rule + a feature-settings example with every
 			     non-default-on feature so designers see what's available.
 			     One-click copy lands the whole thing on the clipboard. -->
-			<details class="mt-3 rounded-md border border-border bg-surface-2/30">
+			<details class="mt-3 rounded-none border border-border bg-surface-2/30">
 				<summary class="cursor-pointer px-3 py-2 text-[11px] font-medium text-fg-muted hover:text-fg">
 					CSS embed snippet
 				</summary>
@@ -2273,7 +2273,7 @@ body {
 					<button
 						type="button"
 						onclick={copySnippet}
-						class="absolute right-2 top-2 inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[10px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
+						class="absolute right-2 top-2 inline-flex items-center gap-1 rounded-none border border-border bg-surface px-2 py-1 text-[10px] font-medium text-fg-muted transition-colors hover:border-accent hover:text-fg"
 						title="Copy snippet to clipboard"
 					>
 						{#if snippetCopied}
@@ -2309,7 +2309,7 @@ body {
 				{coverageOverall.drawn}/{coverageOverall.total} · {coverageOverall.percent}%
 			</span>
 		</h2>
-		<div class="space-y-3 rounded-md border border-border bg-canvas px-5 py-5">
+		<div class="space-y-3 rounded-none border border-border bg-canvas px-5 py-5">
 			{#each coverageRows as row (row.id)}
 				<div>
 					<div class="mb-1.5 flex items-baseline justify-between text-[11px]">
@@ -2375,7 +2375,7 @@ body {
 				type="search"
 				bind:value={glyphFilter}
 				placeholder="Search name, U+, char, tag…"
-				class="w-48 rounded-md border border-border bg-surface px-2 py-1 text-[11px] text-fg outline-none focus:border-accent"
+				class="w-48 rounded-none border border-border bg-surface px-2 py-1 text-[11px] text-fg outline-none focus:border-accent"
 				aria-label="Filter glyphs"
 			/>
 			{#each glyphCategories as cat (cat.id)}
@@ -2383,7 +2383,7 @@ body {
 				<button
 					type="button"
 					onclick={() => (glyphCategory = on ? null : cat.id)}
-					class="rounded-md border px-2 py-0.5 transition-colors {on
+					class="rounded-none border px-2 py-0.5 transition-colors {on
 						? 'border-accent bg-accent-soft/40 text-fg'
 						: 'border-border bg-surface text-fg-muted hover:border-accent/60'}"
 				>
@@ -2404,11 +2404,11 @@ body {
 			{/if}
 		</div>
 		{#if drawnGlyphs.length === 0}
-			<p class="rounded border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
+			<p class="rounded-none border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
 				No glyphs drawn yet.
 			</p>
 		{:else if visibleGlyphs.length === 0}
-			<p class="rounded border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
+			<p class="rounded-none border border-border bg-surface-2/40 p-6 text-center text-[13px] text-fg-muted">
 				No glyphs match the current filter.
 			</p>
 		{:else}
@@ -2494,7 +2494,7 @@ body {
 		role="dialog"
 		aria-modal="true"
 		aria-label="Glyph {inspectedGlyph.name} inspector"
-		class="fixed left-1/2 top-1/2 z-50 w-[min(820px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-border bg-surface shadow-2xl"
+		class="fixed left-1/2 top-1/2 z-50 w-[min(820px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-none border border-border bg-surface shadow-2xl"
 	>
 		<header class="flex items-center justify-between gap-3 border-b border-border px-5 py-3">
 			<div class="min-w-0">
@@ -2512,7 +2512,7 @@ body {
 					<button
 						type="button"
 						onclick={() => (inspectorOverlayMasters = !inspectorOverlayMasters)}
-						class="rounded border px-2 py-1 text-[11px] transition-colors {inspectorOverlayMasters
+						class="rounded-none border px-2 py-1 text-[11px] transition-colors {inspectorOverlayMasters
 							? 'border-accent bg-accent-soft/40 text-fg'
 							: 'border-border bg-surface text-fg-muted hover:border-accent/60 hover:text-fg'}"
 						title="Overlay other masters as stroke outlines (M)"
@@ -2523,7 +2523,7 @@ body {
 				<button
 					type="button"
 					onclick={copyInspectorLink}
-					class="inline-flex items-center gap-1 rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					class="inline-flex items-center gap-1 rounded-none border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
 					title="Copy a direct link to this glyph"
 				>
 					{#if linkCopied}
@@ -2537,7 +2537,7 @@ body {
 				<button
 					type="button"
 					onclick={() => stepInspector(-1)}
-					class="rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					class="rounded-none border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
 					title="Previous glyph (←)"
 				>
 					←
@@ -2545,7 +2545,7 @@ body {
 				<button
 					type="button"
 					onclick={() => stepInspector(1)}
-					class="rounded border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
+					class="rounded-none border border-border bg-surface px-2 py-1 text-[11px] text-fg-muted hover:border-accent hover:text-fg"
 					title="Next glyph (→)"
 				>
 					→
@@ -2553,7 +2553,7 @@ body {
 				<button
 					type="button"
 					onclick={closeInspector}
-					class="rounded border border-border bg-surface p-1.5 text-fg-muted hover:border-accent hover:text-fg"
+					class="rounded-none border border-border bg-surface p-1.5 text-fg-muted hover:border-accent hover:text-fg"
 					title="Close (Esc)"
 					aria-label="Close inspector"
 				>
@@ -2564,7 +2564,7 @@ body {
 		<div class="grid gap-5 px-5 py-5 sm:grid-cols-[2fr_1fr]">
 			<!-- Big render with metric guides. Sidebearings tinted to make
 			     them legible against the contour fill. -->
-			<div class="rounded-md border border-border bg-canvas px-4 py-4">
+			<div class="rounded-none border border-border bg-canvas px-4 py-4">
 				<svg
 					viewBox="{-inspectorPad} {descender - 80} {advance + inspectorPad * 2} {fontSpan + 160}"
 					preserveAspectRatio="xMidYMid meet"
@@ -2739,7 +2739,7 @@ body {
 					<dd class="col-span-2 -mt-1 flex flex-wrap gap-1">
 						{#each inspectorAnchorMarks as p (p.id)}
 							<span
-								class="inline-flex items-center gap-1 rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
+								class="inline-flex items-center gap-1 rounded-none bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
 							>
 								<span class="text-accent">{p.baseAnchor}</span>
 								<span class="text-fg-subtle">→</span>
@@ -2761,7 +2761,7 @@ body {
 					<dd class="col-span-2 -mt-1 flex flex-wrap gap-1">
 						{#each inspectedGlyph.tags as t (t)}
 							<span
-								class="inline-block rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
+								class="inline-block rounded-none bg-surface-2 px-1.5 py-0.5 font-mono text-[10px] text-fg"
 							>
 								#{t}
 							</span>
