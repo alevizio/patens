@@ -226,6 +226,20 @@
 		>/learn/audit-codes</a>.
 	</p>
 
+	<p class="mt-3 text-[13px] text-fg-muted">
+		Each rule page now ships <strong class="font-medium text-fg">canonical references</strong>
+		— the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec,
+		UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth's Metafont papers)
+		that establishes each rule. Try <a
+			href="/audit/metrics-cap-above-ascender"
+			class="font-medium text-accent-strong underline underline-offset-2 hover:text-accent"
+		>metrics-cap-above-ascender</a> or
+		<a
+			href="/audit/glyph-name-not-canonical"
+			class="font-medium text-accent-strong underline underline-offset-2 hover:text-accent"
+		>glyph-name-not-canonical</a> to see them in context. 49 of 94 codes covered in the open MVP corpus.
+	</p>
+
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
 		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Six examples, verbatim.
 	</h2>

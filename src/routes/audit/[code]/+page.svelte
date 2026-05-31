@@ -203,23 +203,38 @@
 				class="mt-3 overflow-x-auto rounded-none border border-border bg-surface-2/40 px-4 py-3 font-mono text-[12px] text-fg"><code>npx patens audit your-project.font.json</code></pre>
 		</section>
 
-		{#if citations.length > 0}
-			<section class="mt-10">
-				<h2
-					class="text-[11px] font-semibold tracking-[0.18em] text-fg-subtle uppercase"
-				>
-					Canonical references
-				</h2>
-				<p class="mt-2 text-[12px] leading-relaxed text-fg-muted">
-					Primary literature where this rule is established or explained.
-					Drawn from the open-licensed corpus —
+		<section class="mt-10">
+			<h2
+				class="text-[11px] font-semibold tracking-[0.18em] text-fg-subtle uppercase"
+			>
+				Canonical references
+			</h2>
+			<p class="mt-2 text-[12px] leading-relaxed text-fg-muted">
+				Primary literature where this rule is established or explained.
+				Drawn from the open-licensed corpus —
+				<a
+					href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
+					class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+					target="_blank"
+					rel="noopener noreferrer">canonical-library.md</a
+				>.
+			</p>
+			{#if citations.length === 0}
+				<p class="mt-4 border-l-2 border-border pl-3 text-[13px] leading-relaxed text-fg-muted">
+					The canonical authority for this rule sits in the in-copyright
+					craft canon (Tracy, Smeijers, Noordzij, Cheng) which requires
+					licensing before body-text ingestion. We cite these by
+					bibliographic reference only — see the
 					<a
 						href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
 						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
 						target="_blank"
-						rel="noopener noreferrer">canonical-library.md</a
-					>.
+						rel="noopener noreferrer">canonical library</a
+					>
+					Section 2 for the family-specific citation matrix. Q3 2026 work
+					expands the corpus once publisher relations land.
 				</p>
+			{:else}
 				<ul class="mt-4 grid gap-5">
 					{#each citations as cite (cite.citation.id)}
 						<li class="border-l-2 border-border pl-3">
@@ -247,8 +262,8 @@
 						</li>
 					{/each}
 				</ul>
-			</section>
-		{/if}
+			{/if}
+		</section>
 
 		{#if peers.length > 0}
 			<section class="mt-10">
