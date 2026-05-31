@@ -74,7 +74,17 @@ export const parseDesignspaceXml = (xml: string): ParsedDesignspace => {
 		);
 	}
 
-	const doc = new DOMParser().parseFromString(xml, 'application/xml');
+	// happy-dom (and some other lightweight XML parsers) reject XML
+	// declarations that use single quotes — but Python's ElementTree
+	// (which fontTools / designspaceLib use to emit .designspace files)
+	// produces `<?xml version='1.0' encoding='utf-8'?>` by default.
+	// Normalize the declaration's quotes so production designspace files
+	// from the wild parse cleanly. Body content is untouched.
+	const normalizedXml = xml.replace(
+		/^(\s*<\?xml\s)([^?]*?)(\?>)/,
+		(_match, head, attrs, tail) => head + attrs.replace(/'/g, '"') + tail
+	);
+	const doc = new DOMParser().parseFromString(normalizedXml, 'application/xml');
 	const error = doc.querySelector('parsererror');
 	if (error) {
 		throw new Error('Designspace XML parse error: ' + error.textContent?.slice(0, 200));
@@ -106,13 +116,25 @@ export const parseDesignspaceXml = (xml: string): ParsedDesignspace => {
 		throw new Error('Designspace has no <axes> declared — not a variable font');
 	}
 
+	// Dimension `name` attributes can reference EITHER the axis tag
+	// (designspace v5 idiom: `name="wdth"`) OR the axis human-readable name
+	// (designspace v3 idiom and most production v3-v5 files: `name="Width"`).
+	// Remap to axis tag so downstream code (designspaceToProject's
+	// isAtDefault check, project.masters[].location lookups) works
+	// uniformly regardless of which idiom the source file uses.
+	const axisLookup = new Map<string, string>();
+	for (const a of axes) {
+		axisLookup.set(a.tag, a.tag);
+		axisLookup.set(a.name, a.tag);
+	}
 	const parseLocation = (el: Element): Record<string, number> => {
 		const out: Record<string, number> = {};
 		for (const dim of Array.from(el.querySelectorAll(':scope > location > dimension'))) {
 			const name = dim.getAttribute('name');
 			const value = dim.getAttribute('xvalue');
 			if (name && value !== null) {
-				out[name] = parseFloat(value);
+				const tag = axisLookup.get(name) ?? name;
+				out[tag] = parseFloat(value);
 			}
 		}
 		return out;

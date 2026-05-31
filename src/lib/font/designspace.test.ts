@@ -342,3 +342,146 @@ describe('designspaceFromProject', () => {
 		expect(() => parseDesignspaceXml(xml)).not.toThrow();
 	});
 });
+
+// Real-world fixture: Fit.designspace (David Jonathan Ross's wdth-only
+// extreme-range variable font). Fetched from djrrb/fit-vf-test 2026-05-31.
+// This is a designspace format=3 file that uses the v3 idiom
+// `<dimension name="Width"/>` (human axis name, not tag) — the test verifies
+// Patens transparently remaps to the axis tag so downstream code (master
+// location lookups, isAtDefault) works regardless of which idiom the
+// source file uses.
+const FIT_DESIGNSPACE_XML = `<?xml version='1.0' encoding='utf-8'?>
+<designspace format="3">
+    <axes>
+        <axis default="100" maximum="1000" minimum="10" name="Width" tag="wdth">
+            <labelname xml:lang="en">Width</labelname>
+        </axis>
+    </axes>
+    <sources>
+        <source familyname="Fit" filename="3-VF/Fit-Skyline.ufo" name="master.Fit.Skyline.0" stylename="Hairline">
+            <location><dimension name="Width" xvalue="10" /></location>
+        </source>
+        <source familyname="Fit" filename="3-VF/Fit-Regular.ufo" name="master.Fit.Regular.1" stylename="Regular">
+            <location><dimension name="Width" xvalue="100" /></location>
+        </source>
+        <source familyname="Fit" filename="3-VF/Fit-UltraExtended.ufo" name="master.Fit.UltraExtended.2" stylename="Ultra Extended">
+            <location><dimension name="Width" xvalue="1000" /></location>
+        </source>
+    </sources>
+    <instances>
+        <instance familyname="Fit" name="instance_Compressed" stylename="Compressed">
+            <location><dimension name="Width" xvalue="10" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Extra_Condensed" stylename="Extra Condensed">
+            <location><dimension name="Width" xvalue="27" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Condensed" stylename="Condensed">
+            <location><dimension name="Width" xvalue="56" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Regular" stylename="Regular">
+            <location><dimension name="Width" xvalue="100" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Wide" stylename="Wide">
+            <location><dimension name="Width" xvalue="191" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Extra_Wide" stylename="Extra Wide">
+            <location><dimension name="Width" xvalue="335" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Extended" stylename="Extended">
+            <location><dimension name="Width" xvalue="580" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Extra_Extended" stylename="Extra Extended">
+            <location><dimension name="Width" xvalue="825" /></location>
+        </instance>
+        <instance familyname="Fit" name="instance_Ultra_Extended" stylename="Ultra Extended">
+            <location><dimension name="Width" xvalue="1000" /></location>
+        </instance>
+    </instances>
+</designspace>`;
+
+describe('Fit.designspace — real-world DJR variable font import', () => {
+	it('parses Fit (designspace v3, single wdth axis, extreme range)', () => {
+		const ds = parseDesignspaceXml(FIT_DESIGNSPACE_XML);
+		expect(ds.axes).toHaveLength(1);
+		expect(ds.axes[0].tag).toBe('wdth');
+		expect(ds.axes[0].name).toBe('Width');
+		expect(ds.axes[0].minimum).toBe(10);
+		expect(ds.axes[0].default).toBe(100);
+		expect(ds.axes[0].maximum).toBe(1000);
+		expect(ds.sources).toHaveLength(3);
+		expect(ds.instances).toHaveLength(9);
+	});
+
+	it('remaps Fit\'s v3-idiom dimension names ("Width") to axis tags ("wdth")', () => {
+		// This is the load-bearing assertion. Without the axisLookup remap
+		// in parseLocation, isAtDefault in designspaceToProject would never
+		// match and no default master would be detected.
+		const ds = parseDesignspaceXml(FIT_DESIGNSPACE_XML);
+		const regular = ds.sources.find((s) => s.name === 'master.Fit.Regular.1');
+		expect(regular).toBeDefined();
+		expect(regular!.location).toEqual({ wdth: 100 });
+		// And NOT { Width: 100 } — the v3-idiom raw name shouldn't leak.
+		expect(regular!.location.Width).toBeUndefined();
+	});
+
+	it('identifies Fit-Regular as the default master (default=100)', () => {
+		const ds = parseDesignspaceXml(FIT_DESIGNSPACE_XML);
+		const partial = designspaceToProject(ds);
+		// Fit-Regular is at wdth=100 (the axis default), so it's NOT a master —
+		// it becomes the project's default glyph set. The 2 masters are
+		// Skyline (wdth=10) and UltraExtended (wdth=1000).
+		expect(partial.masters).toHaveLength(2);
+		const masterTags = partial.masters!.map((m) => m.name);
+		expect(masterTags).toContain('master.Fit.Skyline.0');
+		expect(masterTags).toContain('master.Fit.UltraExtended.2');
+		expect(masterTags).not.toContain('master.Fit.Regular.1');
+	});
+
+	it('imports all 9 Fit named instances', () => {
+		const ds = parseDesignspaceXml(FIT_DESIGNSPACE_XML);
+		const partial = designspaceToProject(ds);
+		expect(partial.instances).toHaveLength(9);
+		const styleNames = partial.instances!.map((i) => i.styleName);
+		expect(styleNames).toContain('Compressed');
+		expect(styleNames).toContain('Regular');
+		expect(styleNames).toContain('Ultra Extended');
+	});
+
+	it('Fit\'s extreme wdth range (10-1000) survives a round-trip back to XML', () => {
+		const ds1 = parseDesignspaceXml(FIT_DESIGNSPACE_XML);
+		const partial = designspaceToProject(ds1);
+		const project = {
+			id: 'fit',
+			name: 'Fit',
+			metadata: {
+				familyName: 'Fit',
+				styleName: 'Regular',
+				version: '1.000',
+				designer: 'David Jonathan Ross',
+				copyright: '',
+				license: ''
+			},
+			metrics: DEFAULT_METRICS,
+			glyphs: {},
+			kerning: [],
+			classes: [],
+			features: { source: '' },
+			brief: {},
+			samples: {},
+			changelog: [],
+			decisions: [],
+			updatedAt: '2026-05-31T00:00:00Z',
+			createdAt: '2026-05-31T00:00:00Z',
+			...partial
+		} as Project;
+
+		const xml = designspaceFromProject(project);
+		const ds2 = parseDesignspaceXml(xml);
+		expect(ds2.axes[0].tag).toBe('wdth');
+		expect(ds2.axes[0].minimum).toBe(10);
+		expect(ds2.axes[0].maximum).toBe(1000);
+		// 1 default (Regular) + 2 masters (Skyline, UltraExtended) = 3 sources
+		expect(ds2.sources).toHaveLength(3);
+		expect(ds2.instances).toHaveLength(9);
+	});
+});
