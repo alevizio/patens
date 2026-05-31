@@ -1287,6 +1287,60 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 				});
 			}
 		}
+
+		// STAT format checks — only fire when the project has an explicit
+		// STAT override. The italic axis should use format 3 (linkedValue)
+		// so Windows displays "Bold Italic" not "Regular Bold Italic".
+		if (project.stat && project.axes && project.axes.length > 0) {
+			const italAxisIndex = project.stat.designAxes.findIndex((a) => a.tag === 'ital');
+			if (italAxisIndex >= 0) {
+				const italValues = project.stat.axisValues.filter(
+					(v) => v.format !== 4 && v.axisIndex === italAxisIndex
+				);
+				const wrongFormatValues = italValues.filter((v) => v.format !== 3);
+				for (const v of wrongFormatValues) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'stat-format-mismatch',
+						message: `STAT italic axis-value "${v.name}" uses format ${v.format} — should be format 3 (linkedValue) for proper Windows style-name display`
+					});
+				}
+			}
+		}
+
+		// STAT instance name coherence — STAT-composed names should match
+		// the corresponding fvar named-instance style names. Mismatches mean
+		// different OS apps display different names for the same instance.
+		if (project.stat && project.instances && project.instances.length > 0) {
+			for (const inst of project.instances) {
+				// Walk the STAT axis values matching this instance's location
+				// and check that the constructed name matches inst.styleName.
+				const parts: string[] = [];
+				for (let i = 0; i < project.stat.designAxes.length; i++) {
+					const axis = project.stat.designAxes[i];
+					const value = inst.location[axis.tag];
+					if (value === undefined) continue;
+					const match = project.stat.axisValues.find((v) => {
+						if (v.format === 4) return false;
+						if (v.axisIndex !== i) return false;
+						if (v.format === 1 || v.format === 3) return v.value === value;
+						if (v.format === 2) return v.nominalValue === value;
+						return false;
+					});
+					if (match) parts.push(match.name);
+				}
+				const composed = parts.join(' ').trim();
+				if (composed && composed !== inst.styleName) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'stat-instance-name-mismatch',
+						message: `Instance "${inst.styleName}" has STAT-composed name "${composed}" — keep them identical so OS apps display the same name everywhere`
+					});
+				}
+			}
+		}
 	}
 
 	// Kerning class sanity
@@ -1655,6 +1709,10 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'Two masters sit within 5% of each other in designspace. Either one master is redundant, or you have a deliberately tight intermediate-master pair worth confirming. Tight master pairs increase the gvar table size and rarely change rendered output between them.',
 		'stat-missing':
 			'Variable font has axes but no familyAxes set — Patens needs the family-position to generate the STAT (Style Attributes) table at export time. Without STAT, OS font menus may display style names incorrectly (Windows in particular). Set the family-position on the Family tab.',
+		'stat-format-mismatch':
+			'A STAT axis-value uses the wrong format. The italic axis (ital) specifically requires format 3 (linkedValue) — format 3 records "Italic is the italic version of Regular" so Windows displays "Bold Italic" instead of "Regular Bold Italic". Other formats (1, 2, 4) for italic axis-values produce broken style-name composition.',
+		'stat-instance-name-mismatch':
+			'A STAT axis-value combination produces a style name that doesn\'t match the corresponding fvar named-instance style name. Result: the OS may display the STAT-derived name in some apps and the fvar-derived name in others. Convention: keep them identical. Patens can rename one to match the other.',
 
 		// Kerning classes + class-aware pair audits
 		'class-empty':

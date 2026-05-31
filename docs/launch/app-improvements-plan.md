@@ -39,7 +39,7 @@ Don't redo any of this:
 - Sitemap covers every public route
 - `/compare` page vs FontLab / Glyphs / Fontra / Glyphr Studio / typlr.app / BirdFont / FontForge / RoboFont
 - 3 new long-form `/learn/*` posts: kerning, variable-fonts, opentype-features (`a98e912`)
-- `/learn/audit-codes` reference for all 97 codes
+- `/learn/audit-codes` reference for all 99 codes
 - `/learn/first-font` 10-step HowTo
 - `/about` deepened lead + pronunciation guide
 - BreadcrumbList on every page, FAQPage on /help, HowTo on /learn tutorials
@@ -85,7 +85,7 @@ Companion arc to the second OSS-readiness pass logged in
   expandKerningClasses. 500-glyph export budgets at 126ms; the
   large kerning-class scenario expands ~360k pairs in 19ms.
 - `94ec8f6` CLI distribution path — `npx patens audit` runs the
-  full 97-code audit + preflight against any `.font.json` from
+  full 99-code audit + preflight against any `.font.json` from
   any terminal, with text / json / github-workflow output modes.
   Closes the "audit module is locked inside the editor" critique.
 

@@ -15,7 +15,7 @@ submitting if the upstream has been edited since then.
 ```diff
 @@ Tools with GUI / Free @@
  - [Glyphr Studio](https://twitter.com/glyphrstudio) - Free, web-based font editor, focusing on font design hobbyists.
-+- [Patens](https://patens.design) - Open-source MIT, browser-native type design tool with a 97-rule audit module that explains every issue in plain English. Sketch glyphs, trace to Bézier, audit, kern, ship OpenType. [(Source)](https://github.com/alevizio/patens).
++- [Patens](https://patens.design) - Open-source MIT, browser-native type design tool with a 99-rule audit module that explains every issue in plain English. Sketch glyphs, trace to Bézier, audit, kern, ship OpenType. [(Source)](https://github.com/alevizio/patens).
  - [DTL OTMaster Light](https://www.fontmaster.nl/#light) - In the Light editions of dtl OTMaster only the saving of files is disabled.
 ```
 
@@ -26,7 +26,7 @@ submitting if the upstream has been edited since then.
 ```
 Adds Patens to the Tools with GUI → Free subsection. Patens is an
 open-source MIT, browser-native type design tool maintained solo. The
-differentiator vs. the other entries in this subsection is its 97-rule
+differentiator vs. the other entries in this subsection is its 99-rule
 audit module — every rule explained in plain English, with one-click
 auto-fixes for ~30 of them. The audit also distributes as a CLI (`npx
 patens audit`) for CI integration.

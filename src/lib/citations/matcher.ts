@@ -1081,6 +1081,28 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					score: 0.7
 				}
 			]
+		],
+		[
+			'stat-format-mismatch',
+			[
+				{
+					citationId: 'opentype-spec:stat',
+					anchor: '§ STAT — AxisValueTables',
+					gist: 'STAT format 3 (linkedValue) records italic-axis values as "Italic, linked to upright Regular" — this is what enables proper "Bold Italic" composition. Format 1 for the italic axis breaks Windows style-name display.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'stat-instance-name-mismatch',
+			[
+				{
+					citationId: 'opentype-spec:stat',
+					anchor: '§ STAT — coordination with fvar instances',
+					gist: 'OpenType 1.8.2 spec notes that STAT axis-value names should compose to the same instance name that fvar declares — divergence causes inconsistent display across apps.',
+					score: 1.0
+				}
+			]
 		]
 	]);
 

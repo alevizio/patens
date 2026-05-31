@@ -510,6 +510,101 @@ export type FamilyAxes = {
 	slnt?: number;
 };
 
+/**
+ * STAT (Style Attributes Table) — explicit override of Patens's auto-generated
+ * STAT from familyAxes + named instances.
+ *
+ * Most projects can leave this undefined and let Patens generate a minimal
+ * STAT at export time from the axes + instances. Set this explicitly when:
+ *   - You need format-3 italic linkage (otherwise Windows shows "Regular
+ *     Bold Italic" instead of "Bold Italic")
+ *   - You need format-2 ranged axis values
+ *   - You need format-4 multi-axis composite instance names
+ *   - You want axes ordered differently than fvar order in font-pickers
+ *
+ * See OpenType STAT chapter:
+ * https://learn.microsoft.com/en-us/typography/opentype/spec/stat
+ */
+export type Stat = {
+	/** Design axis records — usually one per fvar axis. */
+	designAxes: StatDesignAxisRecord[];
+	/** Axis value records — explicit named values along each axis. */
+	axisValues: StatAxisValue[];
+	/** nameID for the "elided fallback" — the style name used when all
+	 *  axis values are elided (typically "Regular"). */
+	elidedFallbackName?: string;
+};
+
+/** A STAT design axis record. */
+export type StatDesignAxisRecord = {
+	/** Axis tag — matches the corresponding fvar axis tag. */
+	tag: string;
+	/** Axis name shown in font-pickers (override of fvar axis name). */
+	name: string;
+	/** Display order in font-pickers. Lower = earlier. */
+	axisOrdering: number;
+};
+
+/**
+ * A STAT axis value record. Format determines structure:
+ *
+ * - Format 1: Single value with a name (e.g. wght=400 → "Regular")
+ * - Format 2: Ranged value with a nominal value
+ *   (e.g. wght 350-450 with nominal 400 → "Regular")
+ * - Format 3: Linked value pair — used for italic axis linkage
+ *   (e.g. ital=1 with linkedValue=0 → "Italic" linked to upright)
+ * - Format 4: Multi-axis composite (rare; used by some 2-axis instances)
+ */
+export type StatAxisValue =
+	| StatAxisValueFormat1
+	| StatAxisValueFormat2
+	| StatAxisValueFormat3
+	| StatAxisValueFormat4;
+
+export type StatAxisValueFormat1 = {
+	format: 1;
+	/** Index into designAxes[] */
+	axisIndex: number;
+	/** Display name */
+	name: string;
+	/** Axis value */
+	value: number;
+	/** Optional flags (elided-axis-value, older-sibling-attribute) */
+	flags?: number;
+};
+
+export type StatAxisValueFormat2 = {
+	format: 2;
+	axisIndex: number;
+	name: string;
+	/** Nominal value (the canonical value within the range) */
+	nominalValue: number;
+	/** Range min */
+	rangeMinValue: number;
+	/** Range max */
+	rangeMaxValue: number;
+	flags?: number;
+};
+
+export type StatAxisValueFormat3 = {
+	format: 3;
+	axisIndex: number;
+	name: string;
+	/** The italic/upright value (typically 1) */
+	value: number;
+	/** The linked upright/italic value (typically 0) */
+	linkedValue: number;
+	flags?: number;
+};
+
+export type StatAxisValueFormat4 = {
+	format: 4;
+	name: string;
+	/** Multiple axis-value pairs that combine to form this instance name */
+	axisValues: Array<{ axisIndex: number; value: number }>;
+	flags?: number;
+};
+
 export type Project = {
 	/** Schema version of this Project record. Pinned via `CURRENT_SCHEMA_VERSION`
 	 * at create time; `migrate()` advances older records to the current version. */
@@ -568,6 +663,11 @@ export type Project = {
 	familyId?: string;
 	/** This sibling's position in the family's design space (drives STAT records). */
 	familyAxes?: FamilyAxes;
+	/** Explicit STAT table override. Most projects leave this undefined and
+	 *  let Patens generate a minimal STAT from axes + instances at export
+	 *  time. Set explicitly for italic linkage (format 3) or ranged values
+	 *  (format 2). */
+	stat?: Stat;
 	createdAt: string;
 	updatedAt: string;
 };

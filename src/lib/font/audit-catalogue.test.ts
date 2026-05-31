@@ -7,13 +7,14 @@ import {
 import { describeAuditCode } from './audit';
 
 describe('audit catalogue', () => {
-	it('exposes 97 rules — the canonical count surfaced in marketing copy', () => {
+	it('exposes 99 rules — the canonical count surfaced in marketing copy', () => {
 		// Memory: the README, llms.txt, JSON-LD WebApplication description,
-		// and home-page hero all say "97-code audit module" — keep this in
+		// and home-page hero all say "99-code audit module" — keep this in
 		// sync, or update them all in lockstep. Bumped 94→97 in v1.6 with
-		// the addition of axis-range-extreme, master-too-close, stat-missing
-		// per docs/research/variable-fonts-deep-dive.md Part 8.
-		expect(AUDIT_CATALOGUE.length).toBe(97);
+		// axis-range-extreme + master-too-close + stat-missing; 97→99 with
+		// stat-format-mismatch + stat-instance-name-mismatch alongside the
+		// new Stat type in types.ts.
+		expect(AUDIT_CATALOGUE.length).toBe(99);
 	});
 
 	it('every rule has a non-empty title, category, description, fixable bool', () => {

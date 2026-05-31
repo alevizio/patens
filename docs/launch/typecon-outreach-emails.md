@@ -26,7 +26,7 @@
 Hi Dave,
 
 I'm launching Patens at TypeCon Portland in August — a browser-native
-MIT-licensed type editor with a 97-rule continuous audit module. Built
+MIT-licensed type editor with a 99-rule continuous audit module. Built
 on opentype.js + Pyodide + ttfautohint, ships OTF/WOFF2/TTF/UFO. The
 audit is the differentiator: every code carries plain-English teaching
 prose, ~30 ship a one-click fix, and the same engine runs as
@@ -42,7 +42,7 @@ the conference, or coffee Wednesday morning before the program starts.
 
 Quick links if you want context:
 - patens.design — the marketing surface (long-scroll editorial)
-- patens.design/audit — the 97-code module
+- patens.design/audit — the 99-code module
 - patens.design/compare — vs FontLab, Glyphs, Fontra, Glyphr Studio,
   typlr, BirdFont, FontForge, Lipi, Fontish
 
@@ -69,13 +69,13 @@ Hi Glenda,
 
 I've been following Font Bakery's evolution for years — it's the
 canonical font-QA tool. I'm building something adjacent: Patens, a
-browser-native type editor with a 97-rule continuous audit that runs
+browser-native type editor with a 99-rule continuous audit that runs
 inline alongside the drawing surface (not as a release-time lint step).
 
 The technical question I want to ask you: where does inline-while-
 drawing audit cleanly complement Font Bakery, and where does it
 overlap unproductively? I've drafted answers based on classifying all
-97 codes against AI augmentation potential (75 algorithm-only, 11
+99 codes against AI augmentation potential (75 algorithm-only, 11
 vision-augmented, 1 vision-primary, 3 LLM-augmented — research at
 github.com/alevizio/patens/blob/main/docs/research/ai-audit-mapping.md)
 but the empirical work would benefit enormously from your perspective.
@@ -85,7 +85,7 @@ convenient (after Type Crit, at the Spacebar party, or coffee).
 
 Quick links:
 - patens.design
-- patens.design/audit (the 97 codes by family)
+- patens.design/audit (the 99 codes by family)
 - patens.design/compare (vs the rest of the field)
 
 Looking forward to seeing Type Crit run again in person.
@@ -110,7 +110,7 @@ Hi Lizy + Travis,
 
 Quick note before TypeCon Portland — I'm launching Patens, a browser-
 native open-source type editor (MIT, no install, no account). The
-audit-as-pedagogy framing (97 rules with plain-English explanations,
+audit-as-pedagogy framing (99 rules with plain-English explanations,
 ~30 with one-click fixes) is what makes it different from Fontra +
 Glyphr Studio + the rest of the browser-tier tools.
 
@@ -150,7 +150,7 @@ patens.design · @patenstype · hi@patens.design
 Hi Christopher,
 
 I'm launching Patens at TypeCon Portland in August — open-source MIT
-browser-native type editor with a 97-rule audit module. I missed the
+browser-native type editor with a 99-rule audit module. I missed the
 2026 CFP (apologies — first-time presenter), but I'd love to be useful
 to the program in some form.
 
@@ -191,7 +191,7 @@ patens.design · @patenstype · hi@patens.design
 Hi Neil,
 
 I'm Alejandro Vizio — launching Patens at TypeCon Portland this August.
-Patens is a browser-native MIT-licensed type editor with a 97-rule
+Patens is a browser-native MIT-licensed type editor with a 99-rule
 continuous audit module. The audit is the differentiator: it teaches
 type-design rules in plain-English alongside catching errors, and the
 same engine runs as `npx patens audit` for CI integration.

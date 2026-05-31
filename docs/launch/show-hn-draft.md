@@ -13,7 +13,7 @@
 ### Variant A (positioning-first, recommended)
 
 ```
-Show HN: Patens – a browser type editor with a 97-rule audit that teaches
+Show HN: Patens – a browser type editor with a 99-rule audit that teaches
 ```
 
 (80 chars exact — fits HN's title limit cleanly)
@@ -34,11 +34,11 @@ Show HN: I built a type editor that explains itself while you draw
 
 ## Post body (paste into the URL+text field; ~210 words)
 
-I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) built around a 97-code audit module that teaches as you draw.
+I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) built around a 99-code audit module that teaches as you draw.
 
 The audit covers contour shape, vertical metrics, sidebearing class drift, OpenType invariants, naming, coverage, anchors, variable masters, and color/brief checks. Each code carries the kind of plain-English explanation type designers usually get from years of mentorship; about 30 ship a one-click fix. Same engine is also a CLI — `npx patens audit your-project.font.json` for CI.
 
-What's new: every rule page now ships canonical references — the primary literature (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, Knuth Metafont papers, etc.) where the rule is actually established. 89 of 97 codes covered in the open MVP corpus; the remaining 8 need licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng) — Q3 work. Try `/audit/metrics-cap-above-ascender`.
+What's new: every rule page now ships canonical references — the primary literature (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, Knuth Metafont papers, etc.) where the rule is actually established. 89 of 99 codes covered in the open MVP corpus; the remaining 8 need licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng) — Q3 work. Try `/audit/metrics-cap-above-ascender`.
 
 Toolchain: pressure-sensitive sketch → Bézier trace, kerning, variable fonts, COLR/CPAL color fonts, OTF/WOFF2/TTF/UFO export. Nothing leaves your browser unless you export. PWA, offline. Solo-maintained.
 
@@ -58,7 +58,7 @@ Happy to talk about: the audit dictionary, the citation engine's licensing postu
 
 **"What's the citation engine?"**
 
-> Each /audit/[code] page surfaces canonical references — the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers, variablefonts.io primer) where the rule is established. 89 of 97 codes covered in the open MVP corpus right now. The craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006) requires licensing — Q3 2026 publisher-relations work. The licensing matrix is documented at github.com/alevizio/patens/blob/main/docs/research/canonical-library.md.
+> Each /audit/[code] page surfaces canonical references — the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers, variablefonts.io primer) where the rule is established. 89 of 99 codes covered in the open MVP corpus right now. The craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006) requires licensing — Q3 2026 publisher-relations work. The licensing matrix is documented at github.com/alevizio/patens/blob/main/docs/research/canonical-library.md.
 
 **"Why not use fontmake / fontTools directly?"**
 
@@ -74,7 +74,7 @@ Happy to talk about: the audit dictionary, the citation engine's licensing postu
 
 **"Is the audit module pluggable? Can I add my own rule?"**
 
-> Currently the 97 codes are compiled into the bundle (TypeScript-typed). A pluggable rule API is on the roadmap (`ROADMAP.md` in the repo) but isn't shipped — I want to lock the existing dictionary first before opening the surface. If you want to propose a rule, file an issue with the code name + the plain-English explanation + an example glyph that triggers it.
+> Currently the 99 codes are compiled into the bundle (TypeScript-typed). A pluggable rule API is on the roadmap (`ROADMAP.md` in the repo) but isn't shipped — I want to lock the existing dictionary first before opening the surface. If you want to propose a rule, file an issue with the code name + the plain-English explanation + an example glyph that triggers it.
 
 **"Are the export pipelines audited / tested against existing fonts?"**
 

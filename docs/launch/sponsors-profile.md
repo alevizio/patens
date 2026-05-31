@@ -29,7 +29,7 @@ Approval typically takes 1–2 weeks. The application asks for:
 > environment. It runs entirely in your browser, never asks for an
 > account, and ships a real OpenType font at the end.
 >
-> The differentiator is teaching. Patens's 97-code audit module
+> The differentiator is teaching. Patens's 99-code audit module
 > explains every warning in plain English and offers one-click
 > fixes for ~30 of them. It's the editor I wish I'd had when I was
 > learning the craft — and it's free under the MIT License, forever.

@@ -170,6 +170,8 @@ const RULE_META: Record<string, { title?: string; category: AuditCategory }> = {
 	'axis-range-extreme': { title: 'Axis range very wide', category: 'Designspace axes' },
 	'master-too-close': { title: 'Two masters nearly identical in designspace', category: 'Designspace & masters' },
 	'stat-missing': { title: 'STAT table missing (familyAxes unset)', category: 'Variable-font compatibility' },
+	'stat-format-mismatch': { title: 'STAT italic axis uses wrong format', category: 'Variable-font compatibility' },
+	'stat-instance-name-mismatch': { title: 'STAT composed name does not match fvar instance', category: 'Variable-font compatibility' },
 
 	// Brief
 	'brief-no-intent': { title: 'Brief intent missing', category: 'Brief' },

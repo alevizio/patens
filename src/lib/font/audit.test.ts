@@ -695,4 +695,109 @@ describe('preflightProject — variable-font v1.6 checks', () => {
 			expect(issues.find((i) => i.code === 'stat-missing')).toBeUndefined();
 		});
 	});
+
+	describe('stat-format-mismatch', () => {
+		it('flags italic STAT axis-value using format 1 instead of format 3', () => {
+			const project = baseProject({
+				axes: [
+					{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 },
+					{ tag: 'ital', name: 'Italic', minimum: 0, default: 0, maximum: 1 }
+				],
+				familyAxes: { wght: 400 },
+				stat: {
+					designAxes: [
+						{ tag: 'wght', name: 'Weight', axisOrdering: 0 },
+						{ tag: 'ital', name: 'Italic', axisOrdering: 1 }
+					],
+					axisValues: [
+						// Format 1 on italic — should be format 3
+						{ format: 1, axisIndex: 1, name: 'Italic', value: 1 }
+					]
+				}
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-format-mismatch')).toBeDefined();
+		});
+
+		it('does NOT flag italic STAT axis-value using format 3', () => {
+			const project = baseProject({
+				axes: [
+					{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 },
+					{ tag: 'ital', name: 'Italic', minimum: 0, default: 0, maximum: 1 }
+				],
+				familyAxes: { wght: 400 },
+				stat: {
+					designAxes: [
+						{ tag: 'wght', name: 'Weight', axisOrdering: 0 },
+						{ tag: 'ital', name: 'Italic', axisOrdering: 1 }
+					],
+					axisValues: [
+						{ format: 3, axisIndex: 1, name: 'Italic', value: 1, linkedValue: 0 }
+					]
+				}
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-format-mismatch')).toBeUndefined();
+		});
+
+		it('does NOT fire when no STAT override is set', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 },
+				stat: undefined
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-format-mismatch')).toBeUndefined();
+		});
+	});
+
+	describe('stat-instance-name-mismatch', () => {
+		it('flags an instance whose STAT-composed name differs from styleName', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 },
+				instances: [
+					{ id: 'i1', styleName: 'Heavy', location: { wght: 700 } }
+				],
+				stat: {
+					designAxes: [{ tag: 'wght', name: 'Weight', axisOrdering: 0 }],
+					axisValues: [
+						{ format: 1, axisIndex: 0, name: 'Bold', value: 700 }
+					]
+				}
+			});
+			const issues = preflightProject(project);
+			// STAT says "Bold" at wght 700, but instance styleName is "Heavy"
+			expect(issues.find((i) => i.code === 'stat-instance-name-mismatch')).toBeDefined();
+		});
+
+		it('does NOT flag when STAT composition matches fvar styleName', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 },
+				instances: [
+					{ id: 'i1', styleName: 'Bold', location: { wght: 700 } }
+				],
+				stat: {
+					designAxes: [{ tag: 'wght', name: 'Weight', axisOrdering: 0 }],
+					axisValues: [
+						{ format: 1, axisIndex: 0, name: 'Bold', value: 700 }
+					]
+				}
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-instance-name-mismatch')).toBeUndefined();
+		});
+
+		it('does NOT fire when no STAT override is set', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 },
+				instances: [{ id: 'i1', styleName: 'Bold', location: { wght: 700 } }],
+				stat: undefined
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-instance-name-mismatch')).toBeUndefined();
+		});
+	});
 });

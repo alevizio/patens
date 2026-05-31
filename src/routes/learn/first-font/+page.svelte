@@ -49,7 +49,7 @@
 		{
 			n: 8,
 			title: 'Run the audit',
-			body: 'The audit module checks 97 codes against the project — contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, naming. Many issues have one-click "Fix" actions (sidebearings deeply negative, off-grid points, near-collinear nodes, etc.). The audit is also a teaching surface: every code links to a plain-language explanation of why it matters.',
+			body: 'The audit module checks 99 codes against the project — contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, naming. Many issues have one-click "Fix" actions (sidebearings deeply negative, off-grid points, near-collinear nodes, etc.). The audit is also a teaching surface: every code links to a plain-language explanation of why it matters.',
 			hint: 'The audit summary lives at the bottom of the edit panel and on its own page at /learn/audit-codes.'
 		},
 		{
@@ -117,11 +117,11 @@
 		content="A 10-step walkthrough from opening the demo project to exporting an OpenType file."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
 	<meta name="twitter:title" content="Make your first font in the browser" />
 	<meta name="twitter:description" content="10-step Patens tutorial from sketch to OTF." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

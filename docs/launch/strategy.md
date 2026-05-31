@@ -164,7 +164,7 @@ When you do pitch: short email (one sentence intro, one sentence summary, one se
 
 Components of the win:
 
-1. **Teaching-first** — Glyphr Studio is hobby-focused but doesn't teach; Fontra is variable-first but expert-targeted; FontLab assumes you already know. Patens's 97-code audit + 5 teaching surfaces is a unique angle.
+1. **Teaching-first** — Glyphr Studio is hobby-focused but doesn't teach; Fontra is variable-first but expert-targeted; FontLab assumes you already know. Patens's 99-code audit + 5 teaching surfaces is a unique angle.
 2. **Browser-native + offline** — none of the desktop tools work offline-after-install in a tab; service worker + IndexedDB lets Patens.
 3. **Open source + zero install** — Fontra requires a Python install for full features; Glyphr Studio is JS-only but unfunded; Patens is the rare both-funded-attention-and-truly-zero-install.
 4. **Editorial aesthetic** — every other tool uses a generic IDE aesthetic. Patens uses Hoefler Text headings, foundry-style typography. Signals craft.

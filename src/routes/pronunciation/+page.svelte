@@ -76,7 +76,7 @@
 	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta
 		property="og:image:alt"
-		content="Patens — open-source browser-native type design tool with a 97-code audit module"
+		content="Patens — open-source browser-native type design tool with a 99-code audit module"
 	/>
 	<meta name="twitter:title" content="Pronunciation · Patens" />
 	<meta
@@ -86,7 +86,7 @@
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<meta
 		name="twitter:image:alt"
-		content="Patens — open-source browser-native type design tool with a 97-code audit module"
+		content="Patens — open-source browser-native type design tool with a 99-code audit module"
 	/>
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}

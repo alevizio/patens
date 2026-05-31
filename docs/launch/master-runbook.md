@@ -54,13 +54,13 @@ This is the single source of truth for everything that needs to happen between n
 | File | Purpose | Lines |
 |---|---|---|
 | `research/canonical-library.md` | 38 type-design sources; 10-source open-licensed MVP corpus | 526 |
-| `research/ai-audit-mapping.md` | All 97 codes classified for AI augmentation | 415 |
+| `research/ai-audit-mapping.md` | All 99 codes classified for AI augmentation | 415 |
 | `research/multi-script-canon.md` | 10 scripts with native-tradition citations | 691 |
 | `research/ai-features-roadmap.md` | 5-feature product roadmap | 285 |
 
 ### Citation engine MVP — LIVE
 - `src/lib/citations/` — types + corpus + matcher + 12 tests
-- 89 of 97 `/audit/[code]` pages ship "Canonical references" section
+- 91 of 99 `/audit/[code]` pages ship "Canonical references" section
 - Bibliographic citations only (no body-text ingest)
 - 11-source open MVP corpus (OpenType spec, TrueType ref, AGL, FEA, UFO, Unicode 16, Sheep CC, OT Cookbook, Klim, Knuth 1979, variablefonts.io primer)
 - `scripts/vision-experiment.mjs` — dry-run validated; needs Anthropic SDK wiring when credits land
@@ -68,7 +68,7 @@ This is the single source of truth for everything that needs to happen between n
 ### Variable Fonts v2 — LIVE (Weeks 4-5 work done in Week 0)
 - 3 new audit codes shipped: `axis-range-extreme`, `master-too-close`, `stat-missing` with full implementation + 11 tests
 - Designspace v5 import/export module — `parseDesignspaceXml` + `designspaceFromProject` with round-trip lossless guarantee (21 tests)
-- 97 prerendered audit pages (was 94); 89 ship canonical references
+- 99 prerendered audit pages (was 94); 89 ship canonical references
 - Foundry interop: a designer in Glyphs/FontLab/RoboFont can import their existing `.designspace` into Patens and export back
 
 ---
@@ -248,7 +248,7 @@ This is the single source of truth for everything that needs to happen between n
 
 ### Tue Aug 4 (T-0) — **SHOW HN**
 - [ ] **05:30 AM PT — submit Show HN** via `docs/launch/show-hn-draft.md`
-  - Use Variant A title (recommended): "Show HN: Patens – a browser type editor with a 97-rule audit that teaches"
+  - Use Variant A title (recommended): "Show HN: Patens – a browser type editor with a 99-rule audit that teaches"
   - Paste 180-word post body verbatim
 - [ ] Save HN post URL immediately
 - [ ] Watch comment queue for first 2 hours; respond fast on questions

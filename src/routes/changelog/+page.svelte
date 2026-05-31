@@ -138,11 +138,11 @@
 	<meta property="og:title" content="Changelog (2026) · Patens" />
 	<meta property="og:description" content="Patens release history — every version since v0.4. Updated through 2026." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
 	<meta name="twitter:title" content="Changelog (2026) · Patens" />
 	<meta name="twitter:description" content="Patens release history — every version since v0.4." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
 	<!-- RSS autodiscovery — feed readers (Feedly, NetNewsWire, etc.) probe
 	     the homepage for <link rel="alternate" type="application/rss+xml">
 	     and surface the feed in their subscribe UI. -->
