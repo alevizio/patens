@@ -545,6 +545,17 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 			]
 		],
 		[
+			'non-compatible-glyph',
+			[
+				{
+					citationId: 'opentype-spec:gvar',
+					anchor: '§ gvar — Glyph Variations Table',
+					gist: 'Beyond contour and point count, gvar interpolation requires every master to share the same outline structure: identical contour winding direction (so deltas don\'t flip orientation mid-axis) and identical component reference list (composite glyphs interpolate by referencing the same base glyphs at every master).',
+					score: 1.0
+				}
+			]
+		],
+		[
 			'master-axis-unknown',
 			[
 				{

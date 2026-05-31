@@ -645,6 +645,7 @@ export const auditCompatibility = (project: Project): AuditIssue[] => {
 			continue;
 		}
 		// Per-contour command count check
+		let anyPointMismatch = false;
 		for (let ci = 0; ci < counts[0]; ci++) {
 			const pointCounts = drawn.map((d) => d.glyph!.contours[ci]?.commands.length ?? 0);
 			if (new Set(pointCounts).size > 1) {
@@ -653,6 +654,48 @@ export const auditCompatibility = (project: Project): AuditIssue[] => {
 					severity: 'error',
 					code: 'master-point-count',
 					message: `U+${cp.toString(16).toUpperCase().padStart(4, '0')} contour ${ci}: point count differs across masters (${pointCounts.join(' / ')})`
+				});
+				anyPointMismatch = true;
+			}
+		}
+
+		// Non-compatible-glyph check (extends master-contour-count /
+		// master-point-count). Same contour + point count across masters
+		// is necessary but not sufficient — interpolation also requires
+		// matching contour winding direction and matching component
+		// reference lists. A glyph that flips its winding between masters
+		// produces a self-intersecting blob mid-interpolation; a glyph
+		// whose component list differs between masters can't interpolate
+		// at all (the fvar table assumes the outline structure is fixed).
+		// Skip if point-count already failed — those issues cascade.
+		if (!anyPointMismatch && drawn.length > 1) {
+			const mismatches: string[] = [];
+
+			// Winding direction per contour. signedArea > 0 = CCW, < 0 = CW.
+			// A contour with area ~0 (degenerate) is ignored — it can't
+			// reliably be classified.
+			for (let ci = 0; ci < counts[0]; ci++) {
+				const winds = drawn.map((d) => Math.sign(signedArea(d.glyph!.contours[ci].commands)));
+				const nonZero = winds.filter((w) => w !== 0);
+				if (nonZero.length > 1 && new Set(nonZero).size > 1) {
+					mismatches.push(`contour ${ci} winding flips`);
+				}
+			}
+
+			// Component reference lists must match by baseCodepoint sequence.
+			const componentSeqs = drawn.map(
+				(d) => (d.glyph!.components ?? []).map((c) => c.baseCodepoint).join(',')
+			);
+			if (new Set(componentSeqs).size > 1) {
+				mismatches.push('component references differ');
+			}
+
+			if (mismatches.length > 0) {
+				issues.push({
+					codepoint: cp,
+					severity: 'error',
+					code: 'non-compatible-glyph',
+					message: `U+${cp.toString(16).toUpperCase().padStart(4, '0')}: ${mismatches.join('; ')} across masters — VF interpolation will break or produce self-intersecting outlines`
 				});
 			}
 		}
@@ -1622,6 +1665,8 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'The number of contours differs across masters. VF interpolation requires identical contour count and order in every master.',
 		'master-point-count':
 			'A specific contour has different point counts across masters. Same constraint as master-contour-count, one level deeper.',
+		'non-compatible-glyph':
+			'A glyph passes the contour-count and point-count checks but still cannot interpolate cleanly: either a contour\'s winding direction flips between masters (producing a self-intersecting blob mid-axis), or the glyph\'s component reference list differs across masters (the fvar table assumes the outline structure is fixed). Fix by reversing the flipped contour\'s direction in one master, or by aligning the component lists across all masters.',
 		'master-axis-unknown':
 			'A master\'s location references an axis tag the project doesn\'t declare. The unknown axis is ignored at export — fix by adding the axis to project.axes or removing it from the master\'s location.',
 		'master-axis-out-of-range':

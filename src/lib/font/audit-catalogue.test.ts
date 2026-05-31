@@ -7,16 +7,16 @@ import {
 import { describeAuditCode } from './audit';
 
 describe('audit catalogue', () => {
-	it('exposes 101 rules — the canonical count surfaced in marketing copy', () => {
+	it('exposes 102 rules — the canonical count surfaced in marketing copy', () => {
 		// Memory: the README, llms.txt, JSON-LD WebApplication description,
-		// and home-page hero all say "101-code audit module" — keep this
+		// and home-page hero all say "102-code audit module" — keep this
 		// in sync, or update them all in lockstep. Bumped 94→97 in v1.6 with
 		// axis-range-extreme + master-too-close + stat-missing; 97→99 with
 		// stat-format-mismatch + stat-instance-name-mismatch + Stat model;
 		// 99→101 with instance-at-master-position + opsz-without-cap-x-
-		// divergence (the v2 codes that turned out to be deterministic
-		// after careful Patens-architecture reinterpretation).
-		expect(AUDIT_CATALOGUE.length).toBe(101);
+		// divergence; 101→102 with non-compatible-glyph (winding flips +
+		// component-reference drift across masters).
+		expect(AUDIT_CATALOGUE.length).toBe(102);
 	});
 
 	it('every rule has a non-empty title, category, description, fixable bool', () => {

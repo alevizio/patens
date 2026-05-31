@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { auditGlyph, preflightProject } from './audit';
+import { auditGlyph, preflightProject, auditCompatibility } from './audit';
 import type { Glyph, Project, BezierContour, PathCommand, Master } from './types';
 import { DEFAULT_METRICS } from './types';
 
@@ -875,5 +875,121 @@ describe('preflightProject — variable-font v1.6 checks', () => {
 			const issues = preflightProject(project);
 			expect(issues.find((i) => i.code === 'opsz-without-cap-x-divergence')).toBeUndefined();
 		});
+	});
+});
+
+// non-compatible-glyph — extends master-contour-count / master-point-count.
+// Catches winding-direction flips and component-reference drift across
+// masters, both of which break gvar interpolation.
+describe('auditCompatibility — non-compatible-glyph', () => {
+	const ccwSquare = (size = 500): BezierContour => ({
+		closed: true,
+		winding: 'ccw',
+		commands: [
+			{ type: 'M', x: 0, y: 0 },
+			{ type: 'L', x: size, y: 0 },
+			{ type: 'L', x: size, y: size },
+			{ type: 'L', x: 0, y: size },
+			{ type: 'Z' }
+		] as PathCommand[]
+	});
+
+	const cwSquare = (size = 500): BezierContour => ({
+		closed: true,
+		winding: 'cw',
+		commands: [
+			{ type: 'M', x: 0, y: 0 },
+			{ type: 'L', x: 0, y: size },
+			{ type: 'L', x: size, y: size },
+			{ type: 'L', x: size, y: 0 },
+			{ type: 'Z' }
+		] as PathCommand[]
+	});
+
+	it('flags a glyph whose contour winding flips between masters', () => {
+		const a = baseGlyph({ codepoint: 0x0041, contours: [ccwSquare()] });
+		const aFlipped = baseGlyph({ codepoint: 0x0041, contours: [cwSquare()] });
+		const project = baseProject({
+			glyphs: { 0x0041: a },
+			masters: [
+				{ id: 'm1', name: 'Bold', location: { wght: 700 }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', glyphs: { 0x0041: aFlipped } }
+			]
+		});
+		const issues = auditCompatibility(project);
+		const found = issues.find((i) => i.code === 'non-compatible-glyph');
+		expect(found).toBeDefined();
+		expect(found?.message).toContain('winding');
+	});
+
+	it('flags a glyph whose component list differs between masters', () => {
+		const a1 = baseGlyph({
+			codepoint: 0x00c1, // Aacute
+			contours: [ccwSquare()],
+			components: [
+				{ baseCodepoint: 0x0041, offsetX: 0, offsetY: 0 },
+				{ baseCodepoint: 0x0301, offsetX: 100, offsetY: 700 }
+			]
+		});
+		const a2 = baseGlyph({
+			codepoint: 0x00c1,
+			contours: [ccwSquare()],
+			components: [{ baseCodepoint: 0x0041, offsetX: 0, offsetY: 0 }]
+		});
+		const project = baseProject({
+			glyphs: { 0x00c1: a1 },
+			masters: [
+				{ id: 'm1', name: 'Bold', location: { wght: 700 }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', glyphs: { 0x00c1: a2 } }
+			]
+		});
+		const issues = auditCompatibility(project);
+		const found = issues.find((i) => i.code === 'non-compatible-glyph');
+		expect(found).toBeDefined();
+		expect(found?.message).toContain('component');
+	});
+
+	it('does NOT flag a glyph with consistent winding + matching components', () => {
+		const a1 = baseGlyph({ codepoint: 0x0041, contours: [ccwSquare(500)] });
+		const a2 = baseGlyph({ codepoint: 0x0041, contours: [ccwSquare(700)] });
+		const project = baseProject({
+			glyphs: { 0x0041: a1 },
+			masters: [
+				{ id: 'm1', name: 'Bold', location: { wght: 700 }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', glyphs: { 0x0041: a2 } }
+			]
+		});
+		const issues = auditCompatibility(project);
+		expect(issues.find((i) => i.code === 'non-compatible-glyph')).toBeUndefined();
+	});
+
+	it('does NOT cascade when point count already failed', () => {
+		// A glyph with mismatched point counts AND mismatched windings —
+		// only the master-point-count code should fire; the
+		// non-compatible-glyph check shouldn't pile on with a redundant
+		// finding about something the designer already needs to address.
+		const a1 = baseGlyph({
+			codepoint: 0x0041,
+			contours: [{
+				closed: true,
+				winding: 'ccw',
+				commands: [
+					{ type: 'M', x: 0, y: 0 },
+					{ type: 'L', x: 500, y: 0 },
+					{ type: 'L', x: 0, y: 500 },
+					{ type: 'Z' }
+				] as PathCommand[]
+			}]
+		});
+		const a2 = baseGlyph({
+			codepoint: 0x0041,
+			contours: [cwSquare()] // 5 commands, different winding
+		});
+		const project = baseProject({
+			glyphs: { 0x0041: a1 },
+			masters: [
+				{ id: 'm1', name: 'Bold', location: { wght: 700 }, createdAt: '2026-01-01T00:00:00Z', updatedAt: '2026-01-01T00:00:00Z', glyphs: { 0x0041: a2 } }
+			]
+		});
+		const issues = auditCompatibility(project);
+		expect(issues.find((i) => i.code === 'master-point-count')).toBeDefined();
+		expect(issues.find((i) => i.code === 'non-compatible-glyph')).toBeUndefined();
 	});
 });

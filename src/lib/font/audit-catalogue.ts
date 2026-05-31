@@ -113,6 +113,7 @@ const RULE_META: Record<string, { title?: string; category: AuditCategory }> = {
 	// Variable-font compatibility
 	'master-contour-count': { title: 'Master contour count mismatch', category: 'Variable-font compatibility' },
 	'master-point-count': { title: 'Master point count mismatch', category: 'Variable-font compatibility' },
+	'non-compatible-glyph': { title: 'Non-compatible glyph (winding / components)', category: 'Variable-font compatibility' },
 	'master-axis-unknown': { title: 'Master references unknown axis', category: 'Variable-font compatibility' },
 	'master-axis-out-of-range': { title: 'Master axis value out of range', category: 'Variable-font compatibility' },
 	'master-axis-missing': { title: 'Master missing axis value', category: 'Variable-font compatibility' },
