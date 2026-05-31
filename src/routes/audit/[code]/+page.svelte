@@ -7,6 +7,7 @@
 	let { data }: Props = $props();
 	const rule = $derived(data.rule);
 	const peers = $derived(data.peers);
+	const citations = $derived(data.citations);
 
 	// JSON-LD: a single page emits both DefinedTerm (so the rule shows
 	// up in glossary-style LLM grounding) and TechArticle (so the
@@ -201,6 +202,53 @@
 			<pre
 				class="mt-3 overflow-x-auto rounded-none border border-border bg-surface-2/40 px-4 py-3 font-mono text-[12px] text-fg"><code>npx patens audit your-project.font.json</code></pre>
 		</section>
+
+		{#if citations.length > 0}
+			<section class="mt-10">
+				<h2
+					class="text-[11px] font-semibold tracking-[0.18em] text-fg-subtle uppercase"
+				>
+					Canonical references
+				</h2>
+				<p class="mt-2 text-[12px] leading-relaxed text-fg-muted">
+					Primary literature where this rule is established or explained.
+					Drawn from the open-licensed corpus —
+					<a
+						href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
+						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+						target="_blank"
+						rel="noopener noreferrer">canonical-library.md</a
+					>.
+				</p>
+				<ul class="mt-4 grid gap-5">
+					{#each citations as cite (cite.citation.id)}
+						<li class="border-l-2 border-border pl-3">
+							<a
+								href={cite.source.canonicalUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="group inline-flex items-baseline gap-2 text-[14px] text-fg hover:text-accent-strong"
+							>
+								<span class="font-medium group-hover:underline underline-offset-2">
+									{cite.source.title}
+								</span>
+								<span class="font-mono text-[10px] text-fg-subtle">↗</span>
+							</a>
+							<p class="mt-0.5 font-mono text-[11px] text-fg-subtle">
+								{cite.source.author} · {cite.source.year} · {cite.source.publisher}{#if cite.citation.anchor}
+									 · <span class="text-fg">{cite.citation.anchor}</span>
+								{/if}
+							</p>
+							{#if cite.citation.gist}
+								<p class="mt-1.5 text-[13px] leading-relaxed text-fg-muted">
+									{cite.citation.gist}
+								</p>
+							{/if}
+						</li>
+					{/each}
+				</ul>
+			</section>
+		{/if}
 
 		{#if peers.length > 0}
 			<section class="mt-10">

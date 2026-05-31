@@ -18,210 +18,582 @@ import { MAX_CITATIONS_PER_CODE } from './types';
 
 /**
  * Hand-built citation map — keyed by audit code, lists the (citationId,
- * score) pairs that establish the rule. Citations are sourced from the
- * corpus.ts manifest; this map is built from the licensing matrix in
- * docs/research/canonical-library.md Section 2.
+ * anchor, gist, score) tuples that establish the rule. Citations are
+ * sourced from the corpus.ts manifest; this map is built from the
+ * licensing matrix in docs/research/canonical-library.md Section 2.
  *
  * Empty mapping = no canonical citation in the open MVP corpus. The UI
  * should gracefully degrade ("no canonical citation in our reference
  * corpus yet — see [related family] sources").
  */
-const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<{ citationId: string; score: number }>> =
-	new Map([
+type CitationMapEntry = {
+	/** `${sourceId}:${anchor}` — must resolve to a real Source in corpus.ts */
+	citationId: string;
+	/** Where IN the source — page range / spec section / chapter ID */
+	anchor: string;
+	/** One-line description of what the cited passage establishes */
+	gist: string;
+	/** Relevance score 0-1 */
+	score: number;
+};
+
+const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
+	new Map<string, ReadonlyArray<CitationMapEntry>>([
 		// Family 1 — Contour shape
-		// Most citations require Smeijers / Cheng / Noordzij — license-required.
-		// Open corpus covers via spec-side references.
-		['self-intersecting', [{ citationId: 'opentype-spec:filling', score: 0.6 }]],
+		[
+			'self-intersecting',
+			[
+				{
+					citationId: 'opentype-spec:filling',
+					anchor: '§ filling-and-clipping',
+					gist: 'Even-odd vs non-zero fill-rule determines how self-intersecting contours rasterise — unpredictably across renderers.',
+					score: 0.6
+				}
+			]
+		],
 		[
 			'contour-winding-collision',
-			[{ citationId: 'opentype-spec:filling', score: 0.7 }]
+			[
+				{
+					citationId: 'opentype-spec:filling',
+					anchor: '§ filling-and-clipping',
+					gist: 'Contour winding direction (CW vs CCW) determines whether a contour fills as ink or as counter; mixing them creates the "filled crescent" artefact.',
+					score: 0.7
+				}
+			]
 		],
-		['near-collinear-points', []],
-		['sharp-kink', []],
-		['off-grid-points', [{ citationId: 'truetype-reference-manual:Chap5', score: 0.5 }]],
-		['duplicate-points', []],
-		['open-contour', [{ citationId: 'opentype-spec:cff2', score: 0.4 }]],
-		['tiny-contour', []],
-		['empty', []],
+		[
+			'off-grid-points',
+			[
+				{
+					citationId: 'truetype-reference-manual:Chap5',
+					anchor: 'Chap5 — Instruction Set',
+					gist: 'Grid-fitting (hinting) assumes integer-valued coordinates; sub-integer points cannot be grid-snapped without rounding artefacts.',
+					score: 0.5
+				}
+			]
+		],
+		[
+			'open-contour',
+			[
+				{
+					citationId: 'opentype-spec:cff2',
+					anchor: '§ CFF2 spec',
+					gist: 'CFF Type 2 charstring format requires closed contours; rasterisation of open paths is undefined behaviour.',
+					score: 0.4
+				}
+			]
+		],
 
 		// Family 2 — Vertical metrics + topology
 		[
 			'metrics-cap-above-ascender',
-			[{ citationId: 'opentype-spec:os2', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — Vertical Metrics',
+					gist: 'sCapHeight must not exceed sTypoAscender or capitals risk clipping on platforms using OS/2 metrics.',
+					score: 1.0
+				}
+			]
 		],
-		['metrics-x-above-cap', [{ citationId: 'opentype-spec:os2', score: 1.0 }]],
-		['metrics-asc-mismatch', [{ citationId: 'opentype-spec:os2', score: 1.0 }]],
-		['metrics-desc-mismatch', [{ citationId: 'opentype-spec:os2', score: 1.0 }]],
-		['metrics-gap-mismatch', [{ citationId: 'opentype-spec:os2', score: 1.0 }]],
-		['metrics-use-typo-off', [{ citationId: 'opentype-spec:os2', score: 1.0 }]],
-		['metrics-win-clip-top', [{ citationId: 'opentype-spec:os2', score: 0.9 }]],
-		['metrics-win-clip-bottom', [{ citationId: 'opentype-spec:os2', score: 0.9 }]],
+		[
+			'metrics-x-above-cap',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — sxHeight, sCapHeight',
+					gist: 'x-height should be less than cap-height in conventional Latin typefaces; inversion is highly unusual and likely an error.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-asc-mismatch',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ Cross-platform line-height (USE_TYPO_METRICS)',
+					gist: 'sTypoAscender (OS/2) vs hhea ascender mismatch causes platform-dependent line-height; the source of nearly every "vertical metrics drift" bug.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-desc-mismatch',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ Cross-platform line-height (USE_TYPO_METRICS)',
+					gist: 'sTypoDescender (OS/2) vs hhea descender mismatch creates cross-platform inconsistency; align both to the same conceptual baseline.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-gap-mismatch',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ sTypoLineGap, hhea LineGap',
+					gist: 'Line-gap mismatch between OS/2 and hhea causes different line-heights on macOS vs Windows; standardise both.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-use-typo-off',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ fsSelection bit 7 (USE_TYPO_METRICS)',
+					gist: 'When USE_TYPO_METRICS is off, applications fall back to legacy winAscent/winDescent rather than the cross-platform-stable sTypo values.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-win-clip-top',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ usWinAscent',
+					gist: 'usWinAscent defines the Windows clipping bounds; ascenders above it clip in Windows applications using legacy metrics.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'metrics-win-clip-bottom',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ usWinDescent',
+					gist: 'usWinDescent (unsigned!) defines the Windows clipping bounds for descenders; values below it clip in legacy rendering.',
+					score: 0.9
+				}
+			]
+		],
 
 		// Family 3 — Spacing + sidebearings
-		// Tracy 1986 is the canonical authority — fair-use only. Open
-		// MVP corpus references via Sheep (introductory) and spec
-		// for advance-width semantics.
 		[
 			'zero-advance',
-			[{ citationId: 'opentype-spec:hmtx', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:hmtx',
+					anchor: '§ Horizontal Metrics Table',
+					gist: 'A zero advance-width on a non-combining glyph leaves the cursor stationary; valid only for combining marks (anchored via GPOS).',
+					score: 1.0
+				}
+			]
 		],
-		['overflows-advance', []],
-		['sidebearing-deeply-negative-lsb', []],
-		['sidebearing-deeply-negative-rsb', []],
-		['sidebearing-class-drift-lsb', [{ citationId: 'stop-stealing-sheep:spacing', score: 0.6 }]],
-		['sidebearing-class-drift-rsb', [{ citationId: 'stop-stealing-sheep:spacing', score: 0.6 }]],
-		['kerning-extreme', [{ citationId: 'opentype-spec:kern', score: 0.7 }]],
+		[
+			'sidebearing-class-drift-lsb',
+			[
+				{
+					citationId: 'stop-stealing-sheep:spacing',
+					anchor: 'Chapter on spacing',
+					gist: 'Designers group glyphs into sidebearing classes (round letters, straight stems, narrow shapes); drift within a class breaks the optical rhythm Tracy and Hochuli describe.',
+					score: 0.6
+				}
+			]
+		],
+		[
+			'sidebearing-class-drift-rsb',
+			[
+				{
+					citationId: 'stop-stealing-sheep:spacing',
+					anchor: 'Chapter on spacing',
+					gist: 'Same principle as left-sidebearing class drift, applied to the right-sidebearing class.',
+					score: 0.6
+				}
+			]
+		],
+		[
+			'kerning-extreme',
+			[
+				{
+					citationId: 'opentype-spec:kern',
+					anchor: '§ kern subtable, GPOS PairPos',
+					gist: 'Kerning values are designed to fine-tune spacing within ~10-20% of the glyph advance; magnitudes exceeding half the advance suggest a decimal-place typo.',
+					score: 0.7
+				}
+			]
+		],
 
-		// Family 4 — OpenType invariants — spec citations are highest authority
+		// Family 4 — OpenType invariants
 		[
 			'duplicate-glyph-name',
-			[{ citationId: 'opentype-spec:post', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:post',
+					anchor: '§ post table — glyph names',
+					gist: 'Glyph names must be unique within a font; duplicate names cause undefined behaviour in features that reference by name (.fea substitutions, kerning classes).',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'feature-kern-disabled-with-pairs',
-			[{ citationId: 'adobe-fea-spec:kern-feature', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:kern-feature',
+					anchor: '§ feature kern',
+					gist: 'When kerning pairs exist but the kern feature is disabled, the kerning is silently ignored — a common cause of "my font lost its kerning" bugs.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'pair-orphan-class',
-			[{ citationId: 'adobe-fea-spec:classes', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:classes',
+					anchor: '§ Glyph classes',
+					gist: 'A pair referencing a non-existent class is a no-op at compile time; lookups fail silently.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'class-empty',
-			[{ citationId: 'adobe-fea-spec:classes', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:classes',
+					anchor: '§ Glyph classes',
+					gist: 'Empty classes compile but never match; their presence is misleading — remove or populate.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'class-missing-member',
-			[{ citationId: 'adobe-fea-spec:classes', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:classes',
+					anchor: '§ Glyph classes — referenced glyphs',
+					gist: 'Class members must reference existing glyph names; orphan references compile-error or silently truncate the class.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'class-name-format',
-			[{ citationId: 'adobe-fea-spec:classes', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:classes',
+					anchor: '§ Glyph class syntax',
+					gist: 'Class names must begin with `@`; the FEA parser rejects names that violate this.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'pair-missing-glyph',
-			[{ citationId: 'adobe-fea-spec:pairpos', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:pairpos',
+					anchor: '§ pos pair',
+					gist: 'Kerning pairs must reference existing glyphs; orphan references cause compile errors or silent truncation depending on toolchain.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'kerning-pair-self',
-			[{ citationId: 'adobe-fea-spec:pairpos', score: 0.8 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:pairpos',
+					anchor: '§ pos pair',
+					gist: 'A glyph kerning against itself (e.g., AA) is rarely intentional — most often a copy-paste error.',
+					score: 0.8
+				}
+			]
 		],
 		[
 			'kerning-class-singleton',
-			[{ citationId: 'opentype-cookbook:kerning', score: 0.7 }]
+			[
+				{
+					citationId: 'opentype-cookbook:kerning',
+					anchor: '§ kerning classes',
+					gist: 'A kerning class with a single member offers no class-level abstraction; flatten to a pair.',
+					score: 0.7
+				}
+			]
 		],
 		[
 			'composite-missing-base',
-			[{ citationId: 'ufo-3-spec:components', score: 1.0 }]
+			[
+				{
+					citationId: 'ufo-3-spec:components',
+					anchor: '§ Component element',
+					gist: 'Component-composite glyphs reference base glyphs by name; orphan base references render as missing glyphs.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'composite-cycle',
-			[{ citationId: 'ufo-3-spec:components', score: 1.0 }]
+			[
+				{
+					citationId: 'ufo-3-spec:components',
+					anchor: '§ Component recursion',
+					gist: 'A composite referencing itself (directly or transitively) causes infinite recursion at render time; cycles are not allowed.',
+					score: 1.0
+				}
+			]
 		],
 
 		// Family 5 — Naming + metadata
 		[
 			'naming-family',
-			[{ citationId: 'opentype-spec:name', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 1, 16',
+					gist: 'Family name (nameID 1) and Typographic Family (nameID 16) are required for font identification in operating systems and applications.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'naming-style',
-			[{ citationId: 'opentype-spec:name', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 2, 17',
+					gist: 'Style name (nameID 2) and Typographic Subfamily (nameID 17) carry the variant designation (Regular/Bold/Italic); both are required.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'naming-version',
-			[{ citationId: 'opentype-spec:name', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 5 (Version)',
+					gist: 'Version string (nameID 5) should follow the format "Version x.yyy"; deviations confuse downstream tooling and version comparison.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'glyph-name-not-canonical',
-			[{ citationId: 'adobe-glyph-list:agl-aglfn', score: 1.0 }]
-		],
-		[
-			'glyph-name-invalid',
-			[{ citationId: 'opentype-spec:glyph-name-restrictions', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-glyph-list:agl-aglfn',
+					anchor: 'AGLFN mapping table',
+					gist: 'The Adobe Glyph List for New Fonts (AGLFN) maps glyph names to Unicode codepoints. Non-canonical names break downstream tooling that relies on the AGL convention.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'meta-no-vendor-id',
-			[{ citationId: 'opentype-spec:os2-vendorId', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 achVendID',
+					gist: 'The 4-byte vendor ID identifies the foundry; missing or default values weaken font provenance tracking.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'meta-vendor-id-invalid',
-			[{ citationId: 'opentype-spec:os2-vendorId', score: 1.0 }]
-		],
-		[
-			'meta-version-format',
-			[{ citationId: 'opentype-spec:name-version', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 achVendID — char set',
+					gist: 'Vendor ID must be exactly 4 ASCII characters from the printable subset; deviations confuse registrar-style lookups.',
+					score: 1.0
+				}
+			]
 		],
 
 		// Family 6 — Coverage (Unicode)
 		[
 			'coverage-typo-essentials',
-			[{ citationId: 'unicode-standard-16:basic-latin', score: 0.9 }]
+			[
+				{
+					citationId: 'unicode-standard-16:basic-latin',
+					anchor: '§ Block: Basic Latin (U+0020 - U+007F)',
+					gist: 'The "typographic essentials" subset includes punctuation, spaces, and ASCII; missing any of these breaks basic text rendering.',
+					score: 0.9
+				}
+			]
 		],
 		[
 			'coverage-latin-1-supp',
-			[{ citationId: 'unicode-standard-16:latin-1-supp', score: 1.0 }]
+			[
+				{
+					citationId: 'unicode-standard-16:latin-1-supp',
+					anchor: '§ Block: Latin-1 Supplement (U+0080 - U+00FF)',
+					gist: 'Latin-1 Supplement covers Western European accented characters (é, ñ, ü, etc.); missing these breaks rendering for major world languages.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'coverage-currency',
-			[{ citationId: 'unicode-standard-16:currency', score: 1.0 }]
+			[
+				{
+					citationId: 'unicode-standard-16:currency',
+					anchor: '§ Block: Currency Symbols (U+20A0 - U+20CF)',
+					gist: 'Currency symbols (€, ¥, £, ₹, etc.) ship in a dedicated Unicode block; coverage matters for any face used in financial or commercial contexts.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'coverage-math',
-			[{ citationId: 'unicode-standard-16:math-symbols', score: 1.0 }]
+			[
+				{
+					citationId: 'unicode-standard-16:math-symbols',
+					anchor: '§ Mathematical Operators block',
+					gist: 'Mathematical operators (×, ÷, ±, ≤, ≥, ∞, etc.) appear in a dedicated block; missing them limits technical typography.',
+					score: 1.0
+				}
+			]
 		],
 
 		// Family 7 — Anchors
 		[
 			'anchor-naming-mark-no-prefix',
-			[{ citationId: 'adobe-fea-spec:mark-positioning', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:mark-positioning',
+					anchor: '§ Mark-to-base, naming conventions',
+					gist: 'Anchor names on mark glyphs require an underscore prefix (_top, _bottom) per the standard convention; without it, the GPOS lookup fails to bind.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'anchor-naming-base-with-prefix',
-			[{ citationId: 'adobe-fea-spec:mark-positioning', score: 1.0 }]
+			[
+				{
+					citationId: 'adobe-fea-spec:mark-positioning',
+					anchor: '§ Mark-to-base, naming conventions',
+					gist: 'Anchor names on base glyphs must NOT have the underscore prefix (use top, bottom — without leading _); the prefix is mark-only.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'anchor-without-partner',
-			[{ citationId: 'opentype-spec:gpos-mark', score: 0.9 }]
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ GPOS — Mark-to-Base attachment',
+					gist: 'GPOS mark-positioning requires both a base glyph with an anchor and a mark glyph with the matching prefixed anchor; an orphan on either side is dead code.',
+					score: 0.9
+				}
+			]
 		],
 
 		// Family 8 — Variable fonts
 		[
 			'master-axis-out-of-range',
-			[{ citationId: 'opentype-spec:fvar', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — VariationAxisRecord',
+					gist: 'Master locations must fall within the axis min/max range declared in fvar; values outside the range create undefined interpolation behaviour.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'master-axis-missing',
-			[{ citationId: 'opentype-spec:fvar', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — VariationAxisRecord',
+					gist: 'Each master must declare a location for every axis the font defines; missing locations break interpolation at runtime.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'master-contour-count',
-			[{ citationId: 'opentype-spec:gvar', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ gvar — Glyph Variations Table',
+					gist: 'Variable-font masters must have matching contour counts per glyph; mismatches break interpolation between masters.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'master-point-count',
-			[{ citationId: 'opentype-spec:gvar', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ gvar — Glyph Variations Table',
+					gist: 'Variable-font masters must have matching point counts per contour per glyph; mismatches cause gvar interpolation failure.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'no-instances',
-			[{ citationId: 'opentype-spec:fvar-namedInstance', score: 0.8 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — InstanceRecord',
+					gist: 'Named instances (e.g., Regular, Bold, Light) are the most user-friendly way to expose a variable font; without them users see only the axis sliders.',
+					score: 0.8
+				}
+			]
 		],
 		[
 			'axis-range-invalid',
-			[{ citationId: 'opentype-spec:fvar', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — VariationAxisRecord min/max/default',
+					gist: 'Axis range must have min ≤ default ≤ max; inversions or out-of-range defaults break the variation surface.',
+					score: 1.0
+				}
+			]
 		],
 
 		// Family 9 — Color fonts · brief · misc
 		[
 			'palette-length-mismatch',
-			[{ citationId: 'opentype-spec:cpal', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:cpal',
+					anchor: '§ CPAL — palette length',
+					gist: 'All palettes in a CPAL table must have the same length; mismatches cause out-of-bounds reads when the user switches palettes.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'color-layer-no-palette',
-			[{ citationId: 'opentype-spec:colr', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:cpal',
+					anchor: '§ COLR / CPAL',
+					gist: 'A COLR color layer requires a CPAL palette to resolve the color index; without a palette, the layer renders as solid black or undefined.',
+					score: 1.0
+				}
+			]
 		],
 		[
 			'color-layer-out-of-range',
-			[{ citationId: 'opentype-spec:cpal', score: 1.0 }]
+			[
+				{
+					citationId: 'opentype-spec:cpal',
+					anchor: '§ CPAL — paletteIndex',
+					gist: 'COLR layer palette indices must be within the CPAL palette length; out-of-range indices wrap or render as undefined color.',
+					score: 1.0
+				}
+			]
 		]
 	]);
 
@@ -245,13 +617,10 @@ export const lookupCitations = (auditCode: string): AuditCodeCitationMatch => {
 		.slice(0, MAX_CITATIONS_PER_CODE)
 		.map((entry) => ({
 			citation: {
-				// Placeholder Citation — anchor + gist will be populated
-				// by the corpus-ingestion phase. Until then, callers can
-				// resolve the sourceId via sourceById().
 				id: entry.citationId,
 				sourceId: entry.citationId.split(':')[0],
-				anchor: entry.citationId.split(':')[1] ?? '',
-				gist: '',
+				anchor: entry.anchor,
+				gist: entry.gist,
 				verifiedAt: '2026-05-30'
 			},
 			score: entry.score

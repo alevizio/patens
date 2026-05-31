@@ -4,6 +4,7 @@ import {
 	AUDIT_CATALOGUE_BY_CODE,
 	AUDIT_CATALOGUE_BY_CATEGORY
 } from '$lib/font/audit-catalogue';
+import { lookupCitations, sourceById } from '$lib/citations';
 import type { EntryGenerator, PageLoad } from './$types';
 
 /**
@@ -30,9 +31,21 @@ export const load: PageLoad = ({ params }) => {
 		(r) => r.code !== rule.code
 	);
 
+	// Pull citations from the citation engine (docs/research/canonical-library.md
+	// corpus). Resolve each citation's source for display. Empty list when
+	// the code has no canonical reference in the current open MVP corpus.
+	const citationMatch = lookupCitations(rule.code);
+	const citations = citationMatch.citations
+		.map((rc) => {
+			const source = sourceById(rc.citation.sourceId);
+			return source ? { citation: rc.citation, source, score: rc.score } : null;
+		})
+		.filter((c): c is NonNullable<typeof c> => c !== null);
+
 	return {
 		rule,
 		peers,
-		totalRules: AUDIT_CATALOGUE.length
+		totalRules: AUDIT_CATALOGUE.length,
+		citations
 	};
 };

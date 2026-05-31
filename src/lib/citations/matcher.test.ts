@@ -40,11 +40,12 @@ describe('citation matcher', () => {
 		expect(result.citations.length).toBeLessThanOrEqual(MAX_CITATIONS_PER_CODE);
 	});
 
-	it('parses citationId into sourceId + anchor', () => {
+	it('populates sourceId from citationId prefix + anchor + gist', () => {
 		const result = lookupCitations('metrics-cap-above-ascender');
 		const cite = result.citations[0];
 		expect(cite.citation.sourceId).toBe('opentype-spec');
-		expect(cite.citation.anchor).toBe('os2');
+		expect(cite.citation.anchor).toContain('OS/2');
+		expect(cite.citation.gist.length).toBeGreaterThan(0);
 	});
 
 	it('batch lookup returns one entry per code', () => {
