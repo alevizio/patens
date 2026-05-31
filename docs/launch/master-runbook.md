@@ -62,8 +62,14 @@ This is the single source of truth for everything that needs to happen between n
 - `src/lib/citations/` — types + corpus + matcher + 12 tests
 - 89 of 97 `/audit/[code]` pages ship "Canonical references" section
 - Bibliographic citations only (no body-text ingest)
-- 10-source open MVP corpus (OpenType spec, TrueType ref, AGL, FEA, UFO, Unicode 16, Sheep CC, OT Cookbook, Klim, Knuth 1979)
+- 11-source open MVP corpus (OpenType spec, TrueType ref, AGL, FEA, UFO, Unicode 16, Sheep CC, OT Cookbook, Klim, Knuth 1979, variablefonts.io primer)
 - `scripts/vision-experiment.mjs` — dry-run validated; needs Anthropic SDK wiring when credits land
+
+### Variable Fonts v2 — LIVE (Weeks 4-5 work done in Week 0)
+- 3 new audit codes shipped: `axis-range-extreme`, `master-too-close`, `stat-missing` with full implementation + 11 tests
+- Designspace v5 import/export module — `parseDesignspaceXml` + `designspaceFromProject` with round-trip lossless guarantee (21 tests)
+- 97 prerendered audit pages (was 94); 89 ship canonical references
+- Foundry interop: a designer in Glyphs/FontLab/RoboFont can import their existing `.designspace` into Patens and export back
 
 ---
 
