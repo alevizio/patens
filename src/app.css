@@ -210,3 +210,13 @@
 		scroll-behavior: auto !important;
 	}
 }
+
+/* Swiss body-prose constraint — paragraphs marked as body text (via
+   leading-relaxed) cap at 60ch. Per Swiss skill: "Body text never
+   exceeds max-w-[60ch]. Wider columns hurt legibility."
+   The :not([class*="max-w-"]) guard means an explicit Tailwind
+   max-w-* utility on the same paragraph wins — designer intent of
+   "this prose needs to span wider" is preserved. */
+p.leading-relaxed:not([class*='max-w-']) {
+	max-width: 60ch;
+}
