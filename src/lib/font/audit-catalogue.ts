@@ -172,6 +172,8 @@ const RULE_META: Record<string, { title?: string; category: AuditCategory }> = {
 	'stat-missing': { title: 'STAT table missing (familyAxes unset)', category: 'Variable-font compatibility' },
 	'stat-format-mismatch': { title: 'STAT italic axis uses wrong format', category: 'Variable-font compatibility' },
 	'stat-instance-name-mismatch': { title: 'STAT composed name does not match fvar instance', category: 'Variable-font compatibility' },
+	'instance-at-master-position': { title: 'Instance shares location with a master', category: 'Designspace axes' },
+	'opsz-without-cap-x-divergence': { title: 'opsz axis vacuous (no distinct opsz masters)', category: 'Variable-font compatibility' },
 
 	// Brief
 	'brief-no-intent': { title: 'Brief intent missing', category: 'Brief' },

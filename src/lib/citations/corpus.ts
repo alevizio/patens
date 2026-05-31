@@ -184,6 +184,18 @@ export const SOURCES: ReadonlyArray<Source> = [
 		archiveUrl: 'https://web.archive.org/web/2026*/typejournal.ru',
 		caveat:
 			'Paratype/Type Journal English-language essay on Cyrillic letterform history. The closest open-web companion to Maxim Zhukov\'s work in Reading Typography Papers.'
+	},
+	{
+		id: 'ahrens-mugikura-size-specific',
+		title: 'Size-specific Adjustments to Type Designs',
+		author: 'Tim Ahrens & Shoko Mugikura',
+		year: 2007,
+		publisher: 'Just Another Foundry',
+		kind: 'book',
+		licensing: 'fair-use',
+		canonicalUrl: 'https://justanotherfoundry.com/size-specific-adjustments-to-type-designs',
+		caveat:
+			'The only book-length English treatment of optical sizing — directly relevant to variable-font opsz axis design decisions. JAF self-published.'
 	}
 ] as const;
 

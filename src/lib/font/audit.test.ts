@@ -800,4 +800,80 @@ describe('preflightProject — variable-font v1.6 checks', () => {
 			expect(issues.find((i) => i.code === 'stat-instance-name-mismatch')).toBeUndefined();
 		});
 	});
+
+	describe('instance-at-master-position', () => {
+		it('flags an instance at the exact location of a master', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [makeMaster('m1', 'Bold', { wght: 700 })],
+				instances: [{ id: 'i1', styleName: 'Bold', location: { wght: 700 } }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'instance-at-master-position')).toBeDefined();
+		});
+
+		it('does NOT flag instances at non-master locations', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [makeMaster('m1', 'Black', { wght: 900 })],
+				instances: [{ id: 'i1', styleName: 'Medium', location: { wght: 500 } }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'instance-at-master-position')).toBeUndefined();
+		});
+
+		it('does NOT fire when no masters exist', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [],
+				instances: [{ id: 'i1', styleName: 'Bold', location: { wght: 700 } }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'instance-at-master-position')).toBeUndefined();
+		});
+	});
+
+	describe('opsz-without-cap-x-divergence', () => {
+		it('flags an opsz axis with no masters at distinct opsz values', () => {
+			const project = baseProject({
+				axes: [
+					{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 },
+					{ tag: 'opsz', name: 'Optical Size', minimum: 6, default: 14, maximum: 72 }
+				],
+				masters: [makeMaster('m1', 'Bold', { wght: 700, opsz: 14 })],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'opsz-without-cap-x-divergence')).toBeDefined();
+		});
+
+		it('does NOT flag opsz when masters exist at distinct opsz values', () => {
+			const project = baseProject({
+				axes: [
+					{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 },
+					{ tag: 'opsz', name: 'Optical Size', minimum: 6, default: 14, maximum: 72 }
+				],
+				masters: [
+					makeMaster('m1', 'Caption', { wght: 400, opsz: 6 }),
+					makeMaster('m2', 'Display', { wght: 400, opsz: 72 })
+				],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'opsz-without-cap-x-divergence')).toBeUndefined();
+		});
+
+		it('does NOT fire when no opsz axis is declared', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [makeMaster('m1', 'Bold', { wght: 700 })],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'opsz-without-cap-x-divergence')).toBeUndefined();
+		});
+	});
 });

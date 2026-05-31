@@ -1309,6 +1309,63 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 			}
 		}
 
+		// instance-at-master-position — informational. When an instance
+		// sits at the exact location of a master, it's the recommended
+		// pattern (every master exposed as a style), but worth noting for
+		// designers who intended to expose only certain masters. Pairs
+		// with master-not-at-named-instance (which Patens defers; the
+		// project glyphs are implicitly at the default location, so the
+		// "master without instance" case requires the family-level view).
+		if (project.axes && project.axes.length > 0) {
+			const masters = project.masters ?? [];
+			const instances = project.instances ?? [];
+			for (const inst of instances) {
+				for (const master of masters) {
+					const sharedAxes = Object.keys(inst.location).filter(
+						(k) => k in master.location
+					);
+					if (sharedAxes.length === 0) continue;
+					const matches = sharedAxes.every(
+						(tag) => inst.location[tag] === master.location[tag]
+					);
+					if (matches && sharedAxes.length === Object.keys(inst.location).length) {
+						issues.push({
+							codepoint: 0,
+							severity: 'info',
+							code: 'instance-at-master-position',
+							message: `Instance '${inst.styleName}' is at the same location as master '${master.name}' — confirm both are intentional`
+						});
+						break; // one info per instance is enough
+					}
+				}
+			}
+		}
+
+		// opsz-without-cap-x-divergence — flag when opsz axis is declared
+		// but masters don't actually exist at distinct opsz values. In a
+		// proper opsz design, you have a "caption" master at the small end
+		// and a "display" master at the large end with measurably different
+		// proportions. Without distinct masters, the opsz axis interpolates
+		// between identical positions and produces no visible compensation.
+		const opszAxis = (project.axes ?? []).find((a) => a.tag === 'opsz');
+		if (opszAxis && (project.masters?.length ?? 0) > 0) {
+			const opszValues = new Set<number>();
+			// Project glyphs implicitly at axis default
+			opszValues.add(opszAxis.default);
+			for (const m of project.masters ?? []) {
+				const v = m.location.opsz;
+				if (typeof v === 'number') opszValues.add(v);
+			}
+			if (opszValues.size < 2) {
+				issues.push({
+					codepoint: 0,
+					severity: 'warn',
+					code: 'opsz-without-cap-x-divergence',
+					message: `opsz axis is declared but no masters exist at distinct opsz values — the axis is vacuous (interpolation between identical positions produces no visible compensation). Add at least one master at a different opsz value, or remove the axis.`
+				});
+			}
+		}
+
 		// STAT instance name coherence — STAT-composed names should match
 		// the corresponding fvar named-instance style names. Mismatches mean
 		// different OS apps display different names for the same instance.
@@ -1713,6 +1770,10 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'A STAT axis-value uses the wrong format. The italic axis (ital) specifically requires format 3 (linkedValue) — format 3 records "Italic is the italic version of Regular" so Windows displays "Bold Italic" instead of "Regular Bold Italic". Other formats (1, 2, 4) for italic axis-values produce broken style-name composition.',
 		'stat-instance-name-mismatch':
 			'A STAT axis-value combination produces a style name that doesn\'t match the corresponding fvar named-instance style name. Result: the OS may display the STAT-derived name in some apps and the fvar-derived name in others. Convention: keep them identical. Patens can rename one to match the other.',
+		'instance-at-master-position':
+			'A named instance sits at the same designspace location as a master. This is the recommended pattern (every master exposed as a pickable style), but worth noting if you intended to expose only certain masters. Informational only — no action required.',
+		'opsz-without-cap-x-divergence':
+			'The opsz (optical size) axis is declared but no masters exist at distinct opsz values. Optical-size axes are designed to produce visible compensation: caption masters typically have larger x-height and thicker thinnest strokes than display masters. Without distinct masters at different opsz values, the axis interpolates between identical positions and produces no visible compensation — it\'s vacuous. Add at least one master at a different opsz value (a "caption" at 6pt or a "display" at 36pt is typical), or remove the axis.',
 
 		// Kerning classes + class-aware pair audits
 		'class-empty':

@@ -42,11 +42,11 @@
 	<meta property="og:title" content="Security · Patens" />
 	<meta property="og:description" content="Responsible disclosure: security@patens.design." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
 	<meta name="twitter:title" content="Security · Patens" />
 	<meta name="twitter:description" content="Responsible disclosure: security@patens.design." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

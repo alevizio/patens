@@ -35,7 +35,7 @@ Without them, the Phase 2 outreach has nothing concrete to point at.
 
 Build social proof and the small audience that will react to the launch.
 
-- [ ] Long-form post on dev.to — "How I built a 99-rule font auditor that
+- [ ] Long-form post on dev.to — "How I built a 101-rule font auditor that
       runs in your browser" (cross-post to Hashnode subdomain for link-equity)
 - [ ] Buttondown newsletter set up; 1-field email capture on `/` and `/learn/*`
 - [ ] TypeDrawers thread in Type Design Software — humble, "feedback wanted"

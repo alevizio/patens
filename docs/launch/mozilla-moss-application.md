@@ -38,7 +38,7 @@ Patens is the first browser-native, MIT-licensed type editor that ships an entir
 
 Type design has been desktop-only since the 1980s. FontLab, Glyphs, RoboFont — all native installs, mostly macOS-locked, $300–$500 each. Patens proves the open web can host this discipline: a SvelteKit app that runs in a browser tab using Canvas, IndexedDB, WebAssembly (Pyodide + ttfautohint), Web Workers, and a service worker for offline-first PWA behaviour. Every project lives in the user's browser; nothing leaves the machine unless they choose to export.
 
-The audit module — 99 codes covering contour geometry, vertical metrics, OpenType invariants, and multi-script coverage — is the editor's spine. WCAG 2.0 + 2.1 + 2.2 A/AA is enforced via axe-core in CI across 31 routes. The marketing surface ships in English and Rioplatense Spanish. MIT-licensed, solo-maintained, public CHANGELOG, transparent governance. Public launch at **TypeCon Portland, August 6–8, 2026**.
+The audit module — 101 codes covering contour geometry, vertical metrics, OpenType invariants, and multi-script coverage — is the editor's spine. WCAG 2.0 + 2.1 + 2.2 A/AA is enforced via axe-core in CI across 31 routes. The marketing surface ships in English and Rioplatense Spanish. MIT-licensed, solo-maintained, public CHANGELOG, transparent governance. Public launch at **TypeCon Portland, August 6–8, 2026**.
 
 ### Long (300 words)
 
@@ -151,7 +151,7 @@ Contact: `hi@patens.design` · [github.com/alevizio](https://github.com/alevizio
 ## Links to send the reviewer
 
 - **Marketing surface (long-scroll editorial):** [patens.design](https://patens.design)
-- **The Method (the 99 audit codes by family):** [patens.design/audit](https://patens.design/audit)
+- **The Method (the 101 audit codes by family):** [patens.design/audit](https://patens.design/audit)
 - **Comparison vs the field:** [patens.design/compare](https://patens.design/compare) — 11 tools × 26 features
 - **About + tech stack:** [patens.design/about](https://patens.design/about)
 - **Repo:** [github.com/alevizio/patens](https://github.com/alevizio/patens)

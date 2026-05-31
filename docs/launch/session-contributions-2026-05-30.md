@@ -13,7 +13,7 @@ This document is the single source of truth for everything that shipped in this 
 | Metric | Session start | Session end | Δ |
 |---|---|---|---|
 | Audit codes | 94 | **99** | **+5** |
-| Codes with canonical citations | 0 | **91 of 99** | **+91** |
+| Codes with canonical citations | 0 | **93 of 101** | **+91** |
 | Citation corpus sources | 0 | **15** | **+15** |
 | Total tests | 722 | **772** | **+50** |
 | Prerendered `/audit/[code]` pages | 94 | **99** | **+5** |
@@ -44,7 +44,7 @@ Every public route was brought into Swiss editorial alignment:
 | File | Purpose | Lines |
 |---|---|---|
 | `docs/research/canonical-library.md` | 38 type-design sources, licensing matrix, 10-source open-licensed MVP corpus | 526 |
-| `docs/research/ai-audit-mapping.md` | All 99 codes classified for AI augmentation (75/11/1/3 split), top-10 vision second-opinion candidates, weekend methodology | 415 |
+| `docs/research/ai-audit-mapping.md` | All 101 codes classified for AI augmentation (75/11/1/3 split), top-10 vision second-opinion candidates, weekend methodology | 415 |
 | `docs/research/multi-script-canon.md` | 10 scripts with native-tradition citations; recommends Cyrillic + Greek + Arabic as 3-script MVP | 691 |
 | `docs/research/ai-features-roadmap.md` | 5-feature product roadmap synthesizing the research | 285 |
 | `docs/research/variable-fonts-deep-dive.md` | VF origin/history, 5 registered axes, the math (gvar/avar/STAT/HVAR/MVAR), 11-tool support comparison, multi-script implications, 10-feature roadmap | 571 |
@@ -81,7 +81,7 @@ Every public route was brought into Swiss editorial alignment:
 ### 5. Citation engine MVP — live in product
 
 - **`src/lib/citations/`** — types + corpus + matcher + 12 unit tests
-- **91 of 99** `/audit/[code]` prerendered pages ship a "Canonical references" section
+- **93 of 101** `/audit/[code]` prerendered pages ship a "Canonical references" section
 - **Bibliographic citations only** (no body-text ingest); craft-canon (Tracy/Smeijers/Noordzij/Cheng) flagged for Q3 2026 publisher relations
 - **15-source open MVP corpus:**
   - OpenType Specification 1.9.1 (Microsoft)
@@ -212,7 +212,7 @@ These are deferred per the variable-fonts research:
 
 ## Single-line summary
 
-**Patens entered this session at 94 audit codes / no citations / no foundry interop / no STAT. It exits at 99 audit codes (all firing) / 91 with canonical citations / Designspace v5 round-trip + UI wiring end-to-end / STAT type + editor panel — and a full 10-week launch playbook to Show HN Aug 4 + TypeCon Portland Aug 6–8.**
+**Patens entered this session at 94 audit codes / no citations / no foundry interop / no STAT. It exits at 101 audit codes (all firing) / 91 with canonical citations / Designspace v5 round-trip + UI wiring end-to-end / STAT type + editor panel — and a full 10-week launch playbook to Show HN Aug 4 + TypeCon Portland Aug 6–8.**
 
 ---
 

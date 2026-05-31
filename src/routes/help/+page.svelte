@@ -66,7 +66,7 @@
 			items: [
 				{
 					q: 'What does the audit panel mean?',
-					a: 'The audit module is the headline feature — a continuous integrity + teaching check across 99 codes spanning contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene, and anchor naming. Every code carries plain-English prose explaining what it means + why it matters, and around 30 codes have a one-click "Fix" button that applies the auto-fix. Errors block release; warnings are advice. Click "All" next to an issue to see every glyph with the same audit code. The same 99-code engine also runs from a terminal via `npx patens audit my.font.json` — drop it into your CI as a font-design lint step.'
+					a: 'The audit module is the headline feature — a continuous integrity + teaching check across 101 codes spanning contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage, kerning hygiene, and anchor naming. Every code carries plain-English prose explaining what it means + why it matters, and around 30 codes have a one-click "Fix" button that applies the auto-fix. Errors block release; warnings are advice. Click "All" next to an issue to see every glyph with the same audit code. The same 101-code engine also runs from a terminal via `npx patens audit my.font.json` — drop it into your CI as a font-design lint step.'
 				},
 				{
 					q: 'Why does my export include glyphs I never drew?',
@@ -132,11 +132,11 @@
 	<meta property="og:title" content="Help (2026) · Patens" />
 	<meta property="og:description" content="Common questions about Patens — sharing, export, the editor, performance. Updated 2026." />
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
 	<meta name="twitter:title" content="Help (2026) · Patens" />
 	<meta name="twitter:description" content="Common questions about Patens — sharing, export, the editor, performance." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 99-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
 	<!-- FAQPage + BreadcrumbList JSON-LD. FAQPage drives direct-answer
 	     extraction (Google deprecated rich snippets May 2026 but Claude
 	     / Perplexity / ChatGPT still parse it for answers). BreadcrumbList

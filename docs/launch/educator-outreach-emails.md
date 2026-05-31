@@ -30,7 +30,7 @@ I've been building Patens — a browser-native open-source type editor
 deterministic checks that surface what a type-design teacher would
 point out in person, each transcribed from the literature (Tracy 1986,
 Noordzij 1985, Smeijers 1996, Hochuli 1987, Cheng 2006, plus the
-OpenType + UFO + FEA specs you co-authored). 91 of the 99 codes carry
+OpenType + UFO + FEA specs you co-authored). 93 of the 101 codes carry
 a canonical citation on their dedicated page.
 
 I'd value your perspective on two things:
@@ -136,7 +136,7 @@ paywall ever, source available, fonts you make are yours to license
 however you want — most including OFL.
 
 The angle that's distinct from Glyphr Studio or Fontra: an audit
-module that surfaces what teachers say in person. 99 codes, plain-
+module that surfaces what teachers say in person. 101 codes, plain-
 English prose, with a citation engine that links each rule to its
 primary literature where one exists (OpenType spec, FEA spec, Sheep,
 Knuth, Frere-Jones blog, Klim — the open-licensed canon at
@@ -176,7 +176,7 @@ patens.design · @patenstype · hi@patens.design
 Hi Dave,
 
 Followup from a different angle than the earlier TypeCon note. Patens's
-audit module ships canonical references on every rule page — 91 of 99
+audit module ships canonical references on every rule page — 93 of 101
 codes link to the primary literature (OpenType spec, AGL, FEA, UFO,
 Unicode, Sheep CC, Knuth's Metafont papers, variablefonts.io,
 Frere-Jones blog, Sakkal Arabic, Leonidas Greek). The Google Fonts

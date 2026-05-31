@@ -66,7 +66,7 @@ export const SAMPLE_WORDS: Record<string, string[]> = {
 	'6': ['6.6.66 number', '60 fps', 'Six 6s in 6666'],
 	'7': ['Mach 7.7', '777 jet', 'Seven of 77'],
 	'8': ['8 of 88 days', '88.8°', '8/8 done'],
-	'9': ['9 lives, 99 cats', '999 ohms', 'Nine of 99'],
+	'9': ['9 lives, 99 cats', '999 ohms', 'Nine of 101'],
 	'.': ['e.g. or i.e. Dr. Jr.', 'A.M. or P.M.', 'Sentence. Another.'],
 	',': ['1,234,567 commas', 'apples, oranges, pears', 'However, despite that,'],
 	';': ['list; another; final', 'so; therefore', 'one; two; three'],

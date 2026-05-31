@@ -13,7 +13,7 @@
 ## Title (TypeDrawers)
 
 ```
-Patens — a browser-based type editor with a 99-rule continuous audit (MIT, open source)
+Patens — a browser-based type editor with a 101-rule continuous audit (MIT, open source)
 ```
 
 ## Title (r/typography)
@@ -30,11 +30,11 @@ Hi everyone — long-time lurker, first-time poster. I've been building a browse
 
 [patens.design](https://patens.design) — long-scroll editorial. The repo: [github.com/alevizio/patens](https://github.com/alevizio/patens) (MIT).
 
-The pitch is short: every browser-based type tool that's shipped so far either (a) gives you the drawing surface and trusts you to remember the rules — Fontra, Glyphr Studio, typlr — or (b) skips the rules entirely and asks an LLM to do the work — Lipi, Fontish. Patens is the editor that runs a 99-code audit module continuously alongside the drawing surface, with a plain-English explanation on every code, sourced from the type-design tradition (the kind of reading you do in Detail in Typography, the conversations on this forum, watching someone like Tobias Frere-Jones rep a kerning class in a workshop). Around 30 of the 94 ship a one-click fix; the rest are surfaced as designer-judgment matters with prose context — `xheight-misaligned`, `sidebearing-class-drift-lsb`, `aperture-asymmetric`, etc.
+The pitch is short: every browser-based type tool that's shipped so far either (a) gives you the drawing surface and trusts you to remember the rules — Fontra, Glyphr Studio, typlr — or (b) skips the rules entirely and asks an LLM to do the work — Lipi, Fontish. Patens is the editor that runs a 101-code audit module continuously alongside the drawing surface, with a plain-English explanation on every code, sourced from the type-design tradition (the kind of reading you do in Detail in Typography, the conversations on this forum, watching someone like Tobias Frere-Jones rep a kerning class in a workshop). Around 30 of the 94 ship a one-click fix; the rest are surfaced as designer-judgment matters with prose context — `xheight-misaligned`, `sidebearing-class-drift-lsb`, `aperture-asymmetric`, etc.
 
 The audit module isn't an afterthought — it's the spine. A single `describeAuditCode()` dictionary feeds five UI surfaces (edit panel, audit page, release pre-flight, family hub, home page) so the same prose appears wherever a finding shows up. The same engine is also a CLI — `npx patens audit your-project.font.json` — so foundries can lint-check client deliverables in CI with GitHub Actions PR annotations.
 
-Each of the 94 rule pages now also surfaces **canonical references** — the primary literature where the rule is established. 89 of 99 codes cite the open MVP corpus (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth's Metafont papers, variablefonts.io primer). The 8 remaining codes are the ones whose authority sits squarely in the in-copyright craft canon — Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006 — which need publisher relations before body-text ingestion. Try `/audit/metrics-cap-above-ascender` for a rule with a clean spec citation, or `/audit/sharp-kink` to see the honest license-required note. Full licensing matrix at [docs/research/canonical-library.md](https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md).
+Each of the 94 rule pages now also surfaces **canonical references** — the primary literature where the rule is established. 89 of 101 codes cite the open MVP corpus (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth's Metafont papers, variablefonts.io primer). The 8 remaining codes are the ones whose authority sits squarely in the in-copyright craft canon — Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006 — which need publisher relations before body-text ingestion. Try `/audit/metrics-cap-above-ascender` for a rule with a clean spec citation, or `/audit/sharp-kink` to see the honest license-required note. Full licensing matrix at [docs/research/canonical-library.md](https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md).
 
 The rest of the toolchain is what you'd expect:
 
@@ -51,7 +51,7 @@ The rest of the toolchain is what you'd expect:
 
 Where I'd value feedback specifically:
 
-1. **The 99 codes themselves** — are there checks you've internalized over the years that aren't on the list? `patens.design/audit` walks through them by family. I want this dictionary to read as the canonical inventory of "things a mentor would point out," which means the omissions matter as much as the inclusions.
+1. **The 101 codes themselves** — are there checks you've internalized over the years that aren't on the list? `patens.design/audit` walks through them by family. I want this dictionary to read as the canonical inventory of "things a mentor would point out," which means the omissions matter as much as the inclusions.
 
 2. **The trace step.** It's Schneider's algorithm from 1990 running against a polygon-clipping union of the sketch strokes. Mostly fine, but there are edge cases — extreme weight contrast, sharp serifs, pinched apertures — where the curve fit drops points that I'd have kept. Curious whether anyone here has used a different fit and has opinions on tolerance + control-point density.
 
@@ -72,7 +72,7 @@ Thanks for reading. Patens stays free, stays MIT, stays browser-native. The goal
 
 Hi r/typography — I'm Alejandro, and I've been building **Patens**, a browser-native open-source type editor (MIT). After a stretch of private alpha it's public today.
 
-The headline feature is an audit module built into the editor's spine — 99 rules covering contour shape, vertical metrics, sidebearings, OpenType invariants, naming, script coverage, anchors, variable masters, and color/brief checks. Each one carries a plain-English explanation of the underlying principle, and around 30 ship a one-click fix. The rest are surfaced as matters of designer judgment with prose context.
+The headline feature is an audit module built into the editor's spine — 101 rules covering contour shape, vertical metrics, sidebearings, OpenType invariants, naming, script coverage, anchors, variable masters, and color/brief checks. Each one carries a plain-English explanation of the underlying principle, and around 30 ship a one-click fix. The rest are surfaced as matters of designer judgment with prose context.
 
 The audit-as-teaching layer is what's novel — the existing browser editors (Fontra, Glyphr Studio, typlr) don't have it, and the new AI tools (Lipi, Fontish) sidestep the design judgment entirely. Patens sits in the middle: the editor does the drawing, the audit teaches the rules.
 
@@ -85,7 +85,7 @@ Toolchain underneath:
 - The same audit engine as a CLI: `npx patens audit your-project.font.json` for CI integration
 - Real PWA, works offline, projects live in IndexedDB — nothing leaves the browser unless you choose to export
 
-The marketing page is long-scroll editorial — annotated specimen of the demo font, an interface mock of the editing surface, the 99 codes by family, and a comparison vs every other tool in the field. The /audit page is the canonical reference for the codes.
+The marketing page is long-scroll editorial — annotated specimen of the demo font, an interface mock of the editing surface, the 101 codes by family, and a comparison vs every other tool in the field. The /audit page is the canonical reference for the codes.
 
 - Site: [patens.design](https://patens.design)
 - Repo (MIT): [github.com/alevizio/patens](https://github.com/alevizio/patens)

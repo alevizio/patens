@@ -92,7 +92,7 @@ const buildPng = async (): Promise<Buffer> => {
 		<path d="${tonePath}" fill="${FG}" />
 
 		<!-- subtitle -->
-		<text x="80" y="565" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">SvelteKit · 99-code audit · variable fonts · open source · MIT</text>
+		<text x="80" y="565" font-family="-apple-system,system-ui,Helvetica,Arial,sans-serif" font-size="22" fill="${MUTED}">SvelteKit · 101-code audit · variable fonts · open source · MIT</text>
 	</svg>`;
 
 	const resvg = new Resvg(svg, {

@@ -351,7 +351,7 @@ where the angle is genuinely on-topic.
 - **Submissions:** https://www.smashingmagazine.com/write-for-us/ — formal
   pitch process. They want a 200-300 word outline.
 - **Realistic outcome:** Not a launch pitch. But: an Alejandro-authored
-  guest article ("How I built a 99-rule font auditor in the browser")
+  guest article ("How I built a 101-rule font auditor in the browser")
   post-launch is exactly their format — they pay an honorarium and the
   article carries durable SEO. File for September 2026.
 
@@ -562,7 +562,7 @@ reads daily.
 > - **Solo-maintained, MIT, no VC.** The whole stack is in the browser
 >   (OPFS for font files, no upload step, no telemetry). Privacy is
 >   architectural, not policy.
-> - **Audit-as-pedagogy.** 99 rules, every one with a plain-English
+> - **Audit-as-pedagogy.** 101 rules, every one with a plain-English
 >   explanation. The "why" is the product.
 > - **Public launch is at TypeCon Portland (Aug 6–8).** I'll be there.
 >   Happy to do a hands-on demo.
@@ -598,7 +598,7 @@ reads daily.
 >
 > 1. Yes, the whole thing runs in the browser. No upload step, no
 >    server-side font processing.
-> 2. The 99-rule audit and 75/11/1/3 AI classification are documented
+> 2. The 101-rule audit and 75/11/1/3 AI classification are documented
 >    at /learn/audit and /learn/ai-classification.
 > 3. I'm at TypeCon Portland Aug 6–8 if an in-person demo is useful.
 >

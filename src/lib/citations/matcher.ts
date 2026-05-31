@@ -1103,6 +1103,34 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					score: 1.0
 				}
 			]
+		],
+		[
+			'instance-at-master-position',
+			[
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — InstanceRecord coordinates',
+					gist: 'The fvar spec allows instances at any location in designspace; the convention of "every master exposed as an instance" is community practice, not normative requirement.',
+					score: 0.7
+				}
+			]
+		],
+		[
+			'opsz-without-cap-x-divergence',
+			[
+				{
+					citationId: 'ahrens-mugikura-size-specific',
+					anchor: 'Size-specific Adjustments to Type Designs',
+					gist: 'Ahrens & Mugikura\'s book-length English treatment of optical sizing: opsz axes that don\'t actually produce visible compensation are vacuous. Distinct masters at distinct opsz values are required.',
+					score: 1.0
+				},
+				{
+					citationId: 'variablefonts-io-primer:designing',
+					anchor: 'Designing with variable fonts',
+					gist: 'Practitioner-side guidance on when opsz is worth declaring (only when the design actually compensates across the size range).',
+					score: 0.7
+				}
+			]
 		]
 	]);
 

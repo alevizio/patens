@@ -669,14 +669,14 @@
 	<meta name="robots" content="noindex, nofollow" />
 	<meta
 		name="description"
-		content="Patens is a type editor with 99 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method."
+		content="Patens is a type editor with 101 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method."
 	/>
 	<!-- OpenGraph / Twitter card meta for link unfurls. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="99 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -686,7 +686,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="99 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark
@@ -788,7 +788,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 99-code teaching audit module.',
+					'Open-source browser-native type design tool with a 101-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -832,7 +832,7 @@
 				releaseNotes: 'https://patens.design/changelog',
 				downloadUrl: 'https://github.com/alevizio/patens',
 				featureList: [
-					'99-code audit module with plain-English teaching prose on every code, one-click fixes on around 30 codes',
+					'101-code audit module with plain-English teaching prose on every code, one-click fixes on around 30 codes',
 					'CLI distribution: `npx patens audit` runs the same engine from the terminal for CI integration',
 					'Pressure-sensitive sketch tool with trace-to-cubic-Bézier (boolean union + Schneider curve fitting)',
 					'Direct contour editing with smooth and corner points, multi-select, affine transforms',
@@ -1126,7 +1126,7 @@
 	     the hero and the dashboard. Gives first-time visitors a credentials-
 	     at-a-glance moment without scrolling far. The 4 stats are chosen to
 	     reinforce the four pillars of the audit-led positioning: the audit
-	     module (99 codes), the demo's scope (162 glyphs / 3 scripts),
+	     module (101 codes), the demo's scope (162 glyphs / 3 scripts),
 	     engineering integrity (528 tests passing), and the open-source
 	     commitment (MIT). Mono-uppercase labels + Hoefler-serif numerals
 	     match the rest of the home's typography. -->
@@ -1255,7 +1255,7 @@
 				<span class="transition-transform group-hover:translate-x-0.5">→</span>
 			</a>
 			<span class="ml-3 text-fg-subtle">
-				· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (99 codes)</a> · Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
+				· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (101 codes)</a> · Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
 			</span>
 		</p>
 	</section>
