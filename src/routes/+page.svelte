@@ -17,6 +17,7 @@
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
+	import InteractiveHero from '$lib/ui/InteractiveHero.svelte';
 	import { homeTagline } from '$lib/delight';
 	import { hreflangLinks } from '$lib/i18n';
 
@@ -162,9 +163,18 @@
 		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
-	<!-- Preload the hero typeface so the LCP element (the "Type," line set
-	     in StudioGeometric) paints as soon as parsing finishes. Tiny file
-	     (~2.3KB); fetchpriority outranks chunk-preloads in the queue. -->
+	<!-- Preload the hero typefaces so the LCP element (the interactive
+	     "DESIGN TYPE" specimen + the lower StudioGeometric specimen) paints
+	     as soon as parsing finishes. Both tiny (~36KB and ~2.3KB).
+	     fetchpriority outranks chunk-preloads in the queue. -->
+	<link
+		rel="preload"
+		href="/fonts/BigShoulders-VF-latin.woff2"
+		as="font"
+		type="font/woff2"
+		fetchpriority="high"
+		crossorigin="anonymous"
+	/>
 	<link
 		rel="preload"
 		href="/demo-fonts/StudioGeometric-Regular.otf"
@@ -174,6 +184,13 @@
 		crossorigin="anonymous"
 	/>
 	<style>
+		@font-face {
+			font-family: 'BigShoulders';
+			src: url('/fonts/BigShoulders-VF-latin.woff2') format('woff2');
+			font-weight: 100 900;
+			font-style: normal;
+			font-display: swap;
+		}
 		@font-face {
 			font-family: 'StudioGeometric';
 			src: url('/demo-fonts/StudioGeometric-Regular.otf') format('opentype');
@@ -340,30 +357,32 @@
 
 	<main>
 		<!-- ====================================================== -->
-		<!-- 1. Hero — H1 draw + pitch + waitlist                    -->
+		<!-- 1. Hero — interactive specimen + tagline + waitlist     -->
 		<!-- ====================================================== -->
 		<section class="mb-32 pt-4">
 			<p class="mb-6 font-mono text-[11px] tracking-[0.22em] text-fg-subtle uppercase">
 				Private alpha · 2026
 			</p>
 
-			<h1 class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]">
-				<span
-					class="draw-line draw-line-1 block text-fg"
-					
-				>
-					{taglineParts[0]}
-				</span>
-				<span
-					class="draw-line draw-line-2 mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted"
-				>
-					{taglineParts[1]}
-				</span>
+			<!-- The new interactive hero — visitors can stretch/squish the
+			     display word with the sliders below. Big Shoulders (OFL) on
+			     the wght axis; CSS transform handles the width/height stretch.
+			     Replaces the previous "Type, with a mentor in the margin." H1;
+			     that line now lives below as a smaller subhead so the
+			     positioning copy still anchors the page. -->
+			<div class="mb-10">
+				<InteractiveHero />
+			</div>
+
+			<h1
+				class="draw-line draw-line-1 max-w-3xl text-balance text-[28px] leading-[1.15] tracking-tight text-fg sm:text-[36px]"
+			>
+				{taglineParts[0]} {taglineParts[1]}
 			</h1>
 
 			<p class="mt-8 max-w-xl text-[15px] leading-relaxed text-fg-muted">
 				A type editor with the <em class="font-medium text-fg not-italic">Patens Method</em>
-				built in — <span class="font-mono text-fg" data-numeric>94</span> practices for drawing
+				built in — <span class="font-mono text-fg" data-numeric>102</span> practices for drawing
 				type, every one explained in plain English. Sketch, kern, and ship a real
 				<span class="font-mono text-fg">.otf</span> — all in your browser, all stored locally.
 			</p>
