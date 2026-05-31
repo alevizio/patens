@@ -1024,6 +1024,81 @@
 					{/if}
 				</Panel>
 			{/if}
+
+			<!-- STAT editor — shown only for variable fonts. The "Generate
+			     minimal STAT" button auto-populates a sensible default with
+			     italic axes correctly using format 3 (linkedValue) so the
+			     stat-format-mismatch + stat-missing audit codes don't fire. -->
+			{#if (project?.axes?.length ?? 0) > 0}
+				<Panel>
+					<div class="mb-2 flex items-baseline justify-between gap-3">
+						<h2 class="text-[10px] font-semibold tracking-wider text-fg-subtle uppercase">
+							STAT (Style Attributes Table)
+						</h2>
+						{#if project?.stat}
+							<button
+								type="button"
+								onclick={() => projectStore.updateStat(null)}
+								class="text-[11px] text-fg-subtle underline-offset-[3px] hover:text-fg hover:underline"
+								title="Clear the STAT override. Patens will generate STAT from fvar at export."
+							>
+								Clear override
+							</button>
+						{/if}
+					</div>
+
+					{#if !project?.stat}
+						<p class="mb-3 text-[12px] leading-relaxed text-fg-muted">
+							No STAT override set. Patens will generate a minimal STAT from your axes
+							+ instances at export. For italic linkage (format 3) or ranged values
+							(format 2), set an explicit override below.
+						</p>
+						<button
+							type="button"
+							onclick={() => {
+								const generated = projectStore.generateMinimalStat();
+								if (generated) projectStore.updateStat(generated);
+							}}
+							class="rounded-none border border-border bg-surface px-3 py-1.5 text-[12px] font-medium text-fg hover:border-accent hover:text-accent"
+						>
+							Generate minimal STAT
+						</button>
+					{:else}
+						<div class="mb-3 grid gap-2">
+							{#each project.stat.designAxes as axis, ai (axis.tag)}
+								<div class="border-l-2 border-border pl-3">
+									<div class="mb-1 flex items-baseline justify-between gap-3">
+										<span class="font-mono text-[12px] font-medium text-fg">{axis.tag}</span>
+										<span class="text-[10px] text-fg-subtle">ordering {axis.axisOrdering}</span>
+									</div>
+									<ul class="grid gap-1 text-[11px]">
+										{#each project.stat.axisValues.filter((v) => v.format !== 4 && v.axisIndex === ai) as v, vi (vi)}
+											<li class="flex items-baseline gap-2 text-fg-muted">
+												<span class="font-mono text-fg-subtle">F{v.format}</span>
+												<span class="font-medium text-fg">{v.name}</span>
+												{#if v.format === 1}
+													<span class="text-fg-subtle">at {v.value}</span>
+												{:else if v.format === 2}
+													<span class="text-fg-subtle">
+														{v.rangeMinValue}–{v.rangeMaxValue} (nom {v.nominalValue})
+													</span>
+												{:else if v.format === 3}
+													<span class="text-fg-subtle">at {v.value} ↔ {v.linkedValue}</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
+								</div>
+							{/each}
+						</div>
+						<p class="text-[11px] leading-relaxed text-fg-subtle">
+							Editing individual STAT records inline is coming in a future release. For
+							now, use "Clear override" + "Generate minimal STAT" to regenerate, or edit
+							project.stat directly via the JSON export round-trip.
+						</p>
+					{/if}
+				</Panel>
+			{/if}
 		</div>
 	</div>
 {/if}
