@@ -45,10 +45,10 @@ Patens
 > Patens is a browser-native, open-source type design environment under
 > the MIT License. Designers draw glyphs with a pressure-sensitive
 > pencil, trace strokes to Bézier contours, kern them, audit them
-> against a built-in 94-code rule set, and ship OpenType fonts —
+> against a built-in 97-code rule set, and ship OpenType fonts —
 > entirely in a browser tab, with no installs and no account.
 >
-> The differentiator is teaching: a 94-code audit module explains every
+> The differentiator is teaching: a 97-code audit module explains every
 > warning in plain language across five surfaces (edit panel, audit
 > page, family hub, release pre-flight, home), and one-click "Fix"
 > actions resolve ~30 of the codes mechanically. The vocabulary of
@@ -83,7 +83,7 @@ you commit to)
 > Latin-built shapes that fight their language, with no guidance on
 > the bespoke shapes that need their own design pass.
 >
-> Patens is teaching-first: the 94-code audit module is the spine.
+> Patens is teaching-first: the 97-code audit module is the spine.
 > Every warning links to a plain-English explanation, the editor
 > describes why the rule exists ("uneven x-height alignment gives
 > text a wobbly rhythm"), and one-click fixes resolve ~30 of the
@@ -201,7 +201,7 @@ you commit to)
 > > and only after a designer uses it in real work do the structural
 > > problems surface. Catching those issues at design time, with a
 > > plain-English explanation rather than a four-letter error code,
-> > is the leverage point. The audit module's 94 codes are 94
+> > is the leverage point. The audit module's 97 codes are 94
 > > opportunities to teach.
 > >
 > > Beyond pedagogy, the open-source MIT licensing is a values

@@ -99,13 +99,13 @@ const draw = async (
 	if (variant === 'audit') {
 		eyebrow = 'The audit module · Patens';
 		headline = 'Teaches as you draw.';
-		metaLeftTop = '94 codes · 30 one-click fixes';
+		metaLeftTop = '97 codes · 30 one-click fixes';
 		metaLeftBottom = 'OPEN SOURCE · MIT · TYPE DESIGN';
 		domain = 'patens.design/audit';
 	} else if (variant === 'learn') {
 		eyebrow = 'Learn · Patens';
 		headline = 'Type design tutorials.';
-		metaLeftTop = 'Seven tutorials · 94-code reference';
+		metaLeftTop = 'Seven tutorials · 97-code reference';
 		metaLeftBottom = 'BEGINNER TO SHIPPING · OPEN SOURCE';
 		domain = 'patens.design/learn';
 	} else if (variant === 'compare') {
@@ -138,7 +138,7 @@ const draw = async (
 	} else {
 		eyebrow = 'A type editor with a method';
 		headline = 'Patens';
-		metaLeftTop = 'Browser-native · 94 rules, plain English';
+		metaLeftTop = 'Browser-native · 97 rules, plain English';
 		metaLeftBottom = 'OPEN SOURCE · MIT · PRIVATE ALPHA · 2026';
 		domain = 'patens.design';
 	}

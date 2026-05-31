@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { auditGlyph } from './audit';
-import type { Glyph, Project, BezierContour, PathCommand } from './types';
+import { auditGlyph, preflightProject } from './audit';
+import type { Glyph, Project, BezierContour, PathCommand, Master } from './types';
 import { DEFAULT_METRICS } from './types';
 
 // Fixtures -------------------------------------------------------------------
@@ -567,5 +567,132 @@ describe('auditGlyph', () => {
 		const bIssues = auditGlyph(base, baseProject());
 		expect(mIssues.find((i) => i.code?.startsWith('anchor-naming'))).toBeUndefined();
 		expect(bIssues.find((i) => i.code?.startsWith('anchor-naming'))).toBeUndefined();
+	});
+});
+
+// Variable-font v1.6 checks (axis-range-extreme, master-too-close, stat-missing)
+// Per docs/research/variable-fonts-deep-dive.md Part 8.
+describe('preflightProject — variable-font v1.6 checks', () => {
+	const makeMaster = (id: string, name: string, location: Record<string, number>): Master => ({
+		id,
+		name,
+		location,
+		glyphs: {},
+		createdAt: new Date('2026-01-01').toISOString(),
+		updatedAt: new Date('2026-01-01').toISOString()
+	});
+
+	describe('axis-range-extreme', () => {
+		it('flags a wght axis spanning more than 800 units', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 1000 }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'axis-range-extreme')).toBeDefined();
+		});
+
+		it('does NOT flag a wght axis spanning 700 units', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 200, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'axis-range-extreme')).toBeUndefined();
+		});
+
+		it('flags wdth axis spanning more than 100 units', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wdth', name: 'Width', minimum: 50, default: 100, maximum: 200 }],
+				familyAxes: { wdth: 100 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'axis-range-extreme')).toBeDefined();
+		});
+
+		it('does NOT flag custom (non-registered) axes', () => {
+			const project = baseProject({
+				axes: [{ tag: 'GRAD', name: 'Grade', minimum: -200, default: 0, maximum: 200 }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'axis-range-extreme')).toBeUndefined();
+		});
+	});
+
+	describe('master-too-close', () => {
+		it('flags two masters within 5% of each other in designspace', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [
+					makeMaster('m1', 'Light', { wght: 200 }),
+					makeMaster('m2', 'Light2', { wght: 220 })
+				],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'master-too-close')).toBeDefined();
+		});
+
+		it('does NOT flag masters that are sufficiently far apart', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [
+					makeMaster('m1', 'Light', { wght: 200 }),
+					makeMaster('m2', 'Bold', { wght: 700 })
+				],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'master-too-close')).toBeUndefined();
+		});
+
+		it('does NOT fire when only one master is present', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				masters: [makeMaster('m1', 'Light', { wght: 200 })],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'master-too-close')).toBeUndefined();
+		});
+	});
+
+	describe('stat-missing', () => {
+		it('flags a variable font with axes but no familyAxes', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: undefined
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-missing')).toBeDefined();
+		});
+
+		it('flags a variable font with empty familyAxes object', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: {}
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-missing')).toBeDefined();
+		});
+
+		it('does NOT flag when familyAxes has at least one value set', () => {
+			const project = baseProject({
+				axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+				familyAxes: { wght: 400 }
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-missing')).toBeUndefined();
+		});
+
+		it('does NOT fire on a static (non-variable) font', () => {
+			const project = baseProject({
+				axes: [],
+				familyAxes: undefined
+			});
+			const issues = preflightProject(project);
+			expect(issues.find((i) => i.code === 'stat-missing')).toBeUndefined();
+		});
 	});
 });

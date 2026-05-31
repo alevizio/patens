@@ -1027,6 +1027,60 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					score: 1.0
 				}
 			]
+		],
+
+		// 3 new variable-font audit codes (v1.6) — per
+		// docs/research/variable-fonts-deep-dive.md Part 8
+		[
+			'axis-range-extreme',
+			[
+				{
+					citationId: 'variablefonts-io-primer:designing',
+					anchor: 'Designing with variable fonts',
+					gist: 'Practitioner-side guidance on axis-range trade-offs and when extreme masters need intermediates to anchor interpolation.',
+					score: 0.8
+				},
+				{
+					citationId: 'opentype-spec:fvar',
+					anchor: '§ fvar — VariationAxisRecord min/max',
+					gist: 'The fvar table allows arbitrary axis ranges; designers are responsible for ensuring interpolation quality across the declared range.',
+					score: 0.7
+				}
+			]
+		],
+		[
+			'master-too-close',
+			[
+				{
+					citationId: 'ufo-3-spec:designspace',
+					anchor: 'Designspace — master placement',
+					gist: 'Designspace v5 supports arbitrary master locations; the responsibility for non-redundant master placement is on the designer.',
+					score: 0.8
+				},
+				{
+					citationId: 'variablefonts-io-primer:implementing',
+					anchor: 'Implementing variable fonts',
+					gist: 'Master count and placement affect both file size (gvar deltas) and runtime interpolation cost.',
+					score: 0.6
+				}
+			]
+		],
+		[
+			'stat-missing',
+			[
+				{
+					citationId: 'opentype-spec:stat',
+					anchor: '§ STAT — Style Attributes Table',
+					gist: 'STAT records the canonical axis-value names, default values, and italic-linkage needed for proper variable-font display in OS font-pickers. Without STAT, Windows in particular can display style names incorrectly (e.g. "Regular Bold Italic" instead of "Bold Italic").',
+					score: 1.0
+				},
+				{
+					citationId: 'variablefonts-io-primer:implementing',
+					anchor: 'Implementing variable fonts',
+					gist: 'STAT is a per-axis label registry that the OS uses to compose instance names; the practitioner guidance covers why it matters and what to put in it.',
+					score: 0.7
+				}
+			]
 		]
 	]);
 

@@ -19,7 +19,7 @@ Time zone: All times in **America/Los_Angeles (PT)** unless otherwise noted. Adj
 
 ### Monday 8:00 PM PT — Mental prep
 - [ ] Read `docs/launch/show-hn-draft.md` once cold. Confirm:
-  - Title variant chosen (default: A — "Show HN: Patens – a browser type editor with a 94-rule audit that teaches")
+  - Title variant chosen (default: A — "Show HN: Patens – a browser type editor with a 97-rule audit that teaches")
   - Body text (~180 words) confirmed final
 - [ ] Read the 7 anticipated comments + draft responses in the same file
 - [ ] Bookmark these tabs: HN form, HN moderation guidelines, Bluesky, X, Instagram, `hi@patens.design` inbox
@@ -165,7 +165,7 @@ By now you know if you're climbing or sinking.
 
 ### 09:00 AM PT — TypeDrawers cross-post
 - [ ] Per `docs/launch/typedrawers-intro.md` Section "TypeDrawers"
-- [ ] Title: "Patens — a browser-based type editor with a 94-rule continuous audit (MIT, open source)"
+- [ ] Title: "Patens — a browser-based type editor with a 97-rule continuous audit (MIT, open source)"
 - [ ] Post body: paste verbatim (with HN URL filled in)
 - [ ] Save the TypeDrawers thread URL
 

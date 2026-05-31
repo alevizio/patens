@@ -11,10 +11,10 @@ space. Full source reports in `/tmp/research-positioning-{A,B,C,D}-*.md`
 
 1. **The position becomes one sentence:**
    *Patens teaches type design through a continuous audit.*
-2. **The 94 rules get a name:** **the Patens Method** — practices, not features.
+2. **The 97 rules get a name:** **the Patens Method** — practices, not features.
 3. **The voice shifts from "competent + earnest" → "editorial + deadpan + mentor-toned"** — the register of Klim, Dinamo, Sharp Type, not the register of Linear/Cursor/Notion.
 4. **The audit becomes the product.** The editor is the *delivery* of the audit; it stops being marketed as a parallel feature.
-5. **No manifesto.** Type culture distrusts SV-style worldview-shouting. Ship one strong opinion and let the 94 rules be the de facto manifesto.
+5. **No manifesto.** Type culture distrusts SV-style worldview-shouting. Ship one strong opinion and let the 97 rules be the de facto manifesto.
 
 If this lands with you, I draft copy variants below for each surface and you pick one per surface.
 
@@ -45,7 +45,7 @@ The combination — audit-as-pedagogy, browser, MIT, solo-built, bilingual surfa
 
 **Three rules (steal these from Klim/Dinamo/Sharp Type):**
 1. **Write captions, not headlines.** A long, plain caption under a screenshot beats a clever H1.
-2. **Name the trade-off.** Frame the 94-rule audit as *a second pair of eyes*, not a verdict.
+2. **Name the trade-off.** Frame the 97-rule audit as *a second pair of eyes*, not a verdict.
 3. **Use first-person singular sparingly.** "I built this" works once, on a colophon. Everywhere else, talk about the *work*, not the maker.
 
 **Three hard don'ts:**
@@ -60,7 +60,7 @@ The combination — audit-as-pedagogy, browser, MIT, solo-built, bilingual surfa
 
 ## The naming move — "the Patens Method"
 
-The 94 rules currently read as a *feature*. They are actually a *philosophy of what type-design checking should look like*. Rename them:
+The 97 rules currently read as a *feature*. They are actually a *philosophy of what type-design checking should look like*. Rename them:
 
 > **the Patens Method**
 > 94 practices for drawing a typeface — every one explained, every one shipped as code.
@@ -102,14 +102,14 @@ My pick: **A** if we commit to renaming the audit to "the Patens Method"; **C** 
 
 **Current** (in `src/routes/about/+page.svelte`, lines ~107):
 
-> Patens is a type design tool that teaches as you draw. The differentiator from FontLab, Glyphs, RoboFont, Fontra, and the rest of the type-editor landscape is a built-in 94-code audit module that runs continuously alongside the editor — every contour, every metric, every kern pair gets checked against the rules type designers internalize through years of mentorship…
+> Patens is a type design tool that teaches as you draw. The differentiator from FontLab, Glyphs, RoboFont, Fontra, and the rest of the type-editor landscape is a built-in 97-code audit module that runs continuously alongside the editor — every contour, every metric, every kern pair gets checked against the rules type designers internalize through years of mentorship…
 
 This is the worst-offending lame surface. It reads like a competitor matrix dressed as prose. The new lead should be a single short paragraph that signals editorial register immediately.
 
 **Variants:**
 
 - **A. The Klim register:**
-  > Patens is a type editor. The thing that makes it different from FontLab or Glyphs or Fontra isn't the canvas — it's the 94 rules running underneath, and the prose attached to each one. We call it the Patens Method.
+  > Patens is a type editor. The thing that makes it different from FontLab or Glyphs or Fontra isn't the canvas — it's the 97 rules running underneath, and the prose attached to each one. We call it the Patens Method.
 
 - **B. The Bold-Decisions register (first-person plural, ownership):**
   > Patens is a type editor with a method. Ninety-four rules check your work as you draw it, and each one ships with a paragraph explaining what's wrong and how the foundries solve it. The audit is the product. The editor is how it's delivered.
@@ -126,7 +126,7 @@ My pick: **B** — closest to the actual product truth ("the audit is the produc
 
 **Variants:**
 
-- **A.** Welcome. Patens is a type editor with 94 rules built in. They'll read back to you as you draw.
+- **A.** Welcome. Patens is a type editor with 97 rules built in. They'll read back to you as you draw.
 - **B.** Welcome. Draw a glyph; the audit will tell you what's wrong with it — in plain English.
 - **C.** Welcome. Open the demo, draw something rough, let the audit explain itself.
 
@@ -140,8 +140,8 @@ My pick: **B** — it's a promise + an invitation, and it sells the audit-as-tea
 **Variants:**
 
 - **A.** A type editor that ships its audit as 94 prose explanations. Open source, MIT, in the browser.
-- **B.** The Patens Method: 94 rules for drawing a typeface, every one explained, all shipped as code. Open source, MIT.
-- **C.** A type editor with a method. 94 rules, plain English, free forever.
+- **B.** The Patens Method: 97 rules for drawing a typeface, every one explained, all shipped as code. Open source, MIT.
+- **C.** A type editor with a method. 97 rules, plain English, free forever.
 
 My pick: **C** — shortest, most-quotable for press editors who pull a one-line description.
 
@@ -151,7 +151,7 @@ My pick: **C** — shortest, most-quotable for press editors who pull a one-line
 > A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.
 
 **Variant (one strong rewrite, not three):**
-> Patens is a type editor with 94 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method.
+> Patens is a type editor with 97 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method.
 
 ### 6. Footer micro-copy
 
@@ -163,7 +163,7 @@ My pick: **C** — shortest, most-quotable for press editors who pull a one-line
 
 - **A.** Patens · A type editor with a method. Made in [city], one rule at a time. — Alejandro
 - **B.** Patens · The Patens Method. MIT · 2026
-- **C.** Patens · 94 rules, plain English. MIT · 2026
+- **C.** Patens · 97 rules, plain English. MIT · 2026
 
 My pick: **A** for the wordmark row (signed footer is one of the biggest "cool" levers per research A); **C** for the bottom date row.
 

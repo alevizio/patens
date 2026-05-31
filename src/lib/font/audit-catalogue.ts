@@ -167,6 +167,9 @@ const RULE_META: Record<string, { title?: string; category: AuditCategory }> = {
 	'master-out-of-range': { title: 'Master sits outside axis range', category: 'Designspace axes' },
 	'instance-orphan-axis': { title: 'Instance references undeclared axis', category: 'Designspace axes' },
 	'no-instances': { title: 'No named instances', category: 'Designspace axes' },
+	'axis-range-extreme': { title: 'Axis range very wide', category: 'Designspace axes' },
+	'master-too-close': { title: 'Two masters nearly identical in designspace', category: 'Designspace & masters' },
+	'stat-missing': { title: 'STAT table missing (familyAxes unset)', category: 'Variable-font compatibility' },
 
 	// Brief
 	'brief-no-intent': { title: 'Brief intent missing', category: 'Brief' },

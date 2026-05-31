@@ -44,7 +44,7 @@
 		}
 	] as const;
 
-	// 9 audit families, 94 codes total. Examples + counts come from /audit
+	// 9 audit families, 97 codes total. Examples + counts come from /audit
 	// (the canonical list); descriptions are written for the teaser's
 	// editorial register — shorter and more inviting than /audit's prose.
 	const families = [
@@ -133,7 +133,7 @@
 		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT', false, false] },
 		{ label: 'Runs in the browser', values: [true, false, false, true, false, true, true, true] },
 		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false, false, false] },
-		{ label: '94-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
+		{ label: '97-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
 		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false, 'partial', 'partial'] },
 		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false, false, false] }
 	];
@@ -143,13 +143,13 @@
 	<title>Patens (2026) — a type editor with a method</title>
 	<meta
 		name="description"
-		content="Patens is a type editor with 94 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
+		content="Patens is a type editor with 97 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="94 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
+		content="97 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -159,7 +159,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="94 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="97 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the "Type," line set
@@ -262,7 +262,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 94-code teaching audit module.',
+					'Open-source browser-native type design tool with a 97-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -439,7 +439,7 @@
 					Every glyph gets a margin reading.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					Patens runs all 94 rules continuously. When a contour crosses itself, when an
+					Patens runs all 97 rules continuously. When a contour crosses itself, when an
 					x-height drifts, when a sidebearing wanders from its class — the audit notes it
 					in plain English, beside the glyph, while you draw. Around 30 codes also offer a
 					one-click fix; the rest are matters of judgment.
@@ -607,7 +607,7 @@
 					<span class="transition-transform group-hover:translate-x-0.5">→</span>
 				</a>
 				<span class="ml-3 text-fg-subtle">
-					· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (94 codes)</a> · Also
+					· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (97 codes)</a> · Also
 					from the terminal:
 					<code class="font-mono text-fg">npx patens audit</code>
 				</span>
@@ -769,7 +769,7 @@
 		<section class="mb-32 border-t border-border/40 pt-16">
 			<div class="mb-10 max-w-3xl">
 				<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
-					What the audit checks · 9 families, 94 rules
+					What the audit checks · 9 families, 97 rules
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg"
@@ -778,7 +778,7 @@
 					Contour to brief, everything reads.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					The 94 codes group into nine families. Each one runs continuously; each one has
+					The 97 codes group into nine families. Each one runs continuously; each one has
 					plain-English prose attached. Click to expand a family — the codes inside are the
 					actual checks running against every glyph as you draw.
 				</p>

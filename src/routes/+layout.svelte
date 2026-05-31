@@ -62,7 +62,7 @@
 	<title>Patens</title>
 	<meta
 		name="description"
-		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 94-code audit module that explains every finding. Open source, browser-native."
+		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 97-code audit module that explains every finding. Open source, browser-native."
 	/>
 	<meta name="author" content="Alejandro Vizio" />
 
@@ -76,7 +76,7 @@
 	<meta property="og:locale" content="en_US" />
 	<meta
 		property="og:description"
-		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
+		content="Browser-native type design tool with a 97-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta property="og:image" content="https://patens.design/og.png" />
 	<meta property="og:image:width" content="1200" />
@@ -90,7 +90,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="Browser-native type design tool with a 94-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
+		content="Browser-native type design tool with a 97-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og.png" />
 	<meta name="twitter:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />

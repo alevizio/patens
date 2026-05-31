@@ -1206,6 +1206,87 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 					'Variable font has no named instances — OS font menus may only show "Regular". Add at least Regular + Bold on the Designspace tab.'
 			});
 		}
+
+		// Axis range — flag when a registered axis spans more than the
+		// conventionally-comfortable range. Designers commonly draw extreme
+		// masters that don't interpolate cleanly through the middle of the
+		// range. Per docs/research/variable-fonts-deep-dive.md Part 8.
+		const AXIS_RANGE_THRESHOLDS: Record<string, number> = {
+			wght: 800,
+			wdth: 100,
+			opsz: 50,
+			slnt: 30
+		};
+		for (const axis of project.axes ?? []) {
+			const threshold = AXIS_RANGE_THRESHOLDS[axis.tag];
+			if (threshold === undefined) continue;
+			const range = axis.maximum - axis.minimum;
+			if (range > threshold) {
+				issues.push({
+					codepoint: 0,
+					severity: 'info',
+					code: 'axis-range-extreme',
+					message: `Axis '${axis.tag}' spans ${range} units (typical max ${threshold}) — consider whether intermediate masters are needed to anchor interpolation`
+				});
+			}
+		}
+
+		// Master proximity — two masters within 5% of each other in
+		// designspace are either redundant or a deliberately tight
+		// intermediate pair worth confirming.
+		const MASTER_PROXIMITY_THRESHOLD = 0.05;
+		const masters = project.masters ?? [];
+		const axisRanges = new Map<string, number>();
+		for (const a of project.axes ?? []) {
+			axisRanges.set(a.tag, a.maximum - a.minimum);
+		}
+		for (let i = 0; i < masters.length; i++) {
+			for (let j = i + 1; j < masters.length; j++) {
+				const a = masters[i];
+				const b = masters[j];
+				const sharedAxes = Object.keys(a.location).filter((k) => k in b.location);
+				if (sharedAxes.length === 0) continue;
+				// Compute normalized euclidean distance across shared axes
+				let sumSq = 0;
+				for (const tag of sharedAxes) {
+					const range = axisRanges.get(tag) ?? 1;
+					if (range === 0) continue;
+					const diff = (a.location[tag] - b.location[tag]) / range;
+					sumSq += diff * diff;
+				}
+				const normalizedDistance = Math.sqrt(sumSq / sharedAxes.length);
+				if (normalizedDistance > 0 && normalizedDistance < MASTER_PROXIMITY_THRESHOLD) {
+					issues.push({
+						codepoint: 0,
+						severity: 'warn',
+						code: 'master-too-close',
+						message: `Master '${a.name}' and '${b.name}' are within ${(normalizedDistance * 100).toFixed(1)}% of each other in designspace — confirm intent`
+					});
+				}
+			}
+		}
+
+		// STAT shape — a variable font intended for shipping should have
+		// familyAxes set (Patens uses this to generate the STAT table at
+		// export time). Without it, OS font menus may display style names
+		// incorrectly on Windows.
+		if (project.axes && project.axes.length > 0) {
+			const hasFamilyAxes =
+				project.familyAxes !== undefined &&
+				(project.familyAxes.wght !== undefined ||
+					project.familyAxes.wdth !== undefined ||
+					project.familyAxes.ital !== undefined ||
+					project.familyAxes.slnt !== undefined);
+			if (!hasFamilyAxes) {
+				issues.push({
+					codepoint: 0,
+					severity: 'warn',
+					code: 'stat-missing',
+					message:
+						'Variable font has axes but no familyAxes set — STAT generation at export time may produce incorrect style names in OS font menus. Set position in the family on the Family tab.'
+				});
+			}
+		}
 	}
 
 	// Kerning class sanity
@@ -1568,6 +1649,12 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'A named instance references an axis the project doesn\'t declare. The instance will fall back to axis defaults for the unknown axis — usually not what you want. Remove or re-tag the axis reference.',
 		'no-instances':
 			'The designspace has axes but no named instances. Most apps expect at least the default instance to be defined (e.g. "Regular") so users have something to pick from the font menu. Add one on the Designspace tab.',
+		'axis-range-extreme':
+			'A designspace axis spans a range wider than the conventional comfort zone (wght > 800, wdth > 100, opsz > 50pt, slnt > 30°). Designers commonly draw extreme masters that don\'t interpolate cleanly through the middle of the range — consider whether you have a designed intermediate master, or whether intermediate weights are extrapolation. See variablefonts.io and Ahrens/Mugikura\'s Size-specific Adjustments for the design conventions.',
+		'master-too-close':
+			'Two masters sit within 5% of each other in designspace. Either one master is redundant, or you have a deliberately tight intermediate-master pair worth confirming. Tight master pairs increase the gvar table size and rarely change rendered output between them.',
+		'stat-missing':
+			'Variable font has axes but no familyAxes set — Patens needs the family-position to generate the STAT (Style Attributes) table at export time. Without STAT, OS font menus may display style names incorrectly (Windows in particular). Set the family-position on the Family tab.',
 
 		// Kerning classes + class-aware pair audits
 		'class-empty':

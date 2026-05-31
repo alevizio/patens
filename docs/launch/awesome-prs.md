@@ -29,7 +29,7 @@ Add Patens (browser-native open-source type design editor)
 
 **Insertion** (alphabetical within the section):
 ```markdown
-- [Patens](https://patens.design) — Open-source type design tool with a built-in 94-code audit module that teaches as you draw. Sketch glyphs, trace to Bézier, kern, ship OpenType. SvelteKit 2 + Svelte 5 runes, IndexedDB, opentype.js, HarfBuzz.js. MIT licensed. ([source](https://github.com/alevizio/patens))
+- [Patens](https://patens.design) — Open-source type design tool with a built-in 97-code audit module that teaches as you draw. Sketch glyphs, trace to Bézier, kern, ship OpenType. SvelteKit 2 + Svelte 5 runes, IndexedDB, opentype.js, HarfBuzz.js. MIT licensed. ([source](https://github.com/alevizio/patens))
 ```
 
 **PR description**:
@@ -71,7 +71,7 @@ YAML form (if `sites.yml` exists):
 - title: Patens
   url: https://patens.design
   source: https://github.com/alevizio/patens
-  description: Open-source type design tool with a built-in 94-code
+  description: Open-source type design tool with a built-in 97-code
     audit module that teaches as you draw — every contour, metric,
     and kern pair gets checked with plain-English fixes. Sketch,
     trace to Bézier, ship OpenType. No installs. SvelteKit 2 + Svelte
@@ -87,7 +87,7 @@ YAML form (if `sites.yml` exists):
 Markdown form (if `README.md` is direct):
 ```markdown
 - [Patens](https://patens.design) — Open-source type design tool that
-  teaches as you draw. 94-code audit module in a Web Worker, family-
+  teaches as you draw. 97-code audit module in a Web Worker, family-
   wide kerning at export, SvelteKit 2 + Svelte 5 runes, global Cmd-K,
   MIT. ([source](https://github.com/alevizio/patens))
 ```
@@ -126,7 +126,7 @@ Add Patens to Typography section
 
 **Insertion** (alphabetical within Typography):
 ```markdown
-- [Patens](https://patens.design) - Open-source type design tool with a built-in 94-code audit module that teaches as you draw. Sketch glyphs, trace to Bézier, kern, ship OpenType. Browser-native, no installs. MIT licensed.
+- [Patens](https://patens.design) - Open-source type design tool with a built-in 97-code audit module that teaches as you draw. Sketch glyphs, trace to Bézier, kern, ship OpenType. Browser-native, no installs. MIT licensed.
 ```
 
 **PR description**:
@@ -136,7 +136,7 @@ fits the Typography section.
 
 Differentiator vs other browser-based type tools already in the list
 (Glyphr Studio, Fontra, typlr.app): Patens is the only one designed as
-a teaching tool — a built-in 94-code audit module explains what's wrong
+a teaching tool — a built-in 97-code audit module explains what's wrong
 with a font and offers one-click fixes for ~30 of those codes.
 
 Quick check vs the contribution guidelines:

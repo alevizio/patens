@@ -29,19 +29,19 @@ Drop-in copy for whatever the application form asks. Three pitch lengths plus pe
 
 ### Short (50 words — for one-line "what is this" fields)
 
-Patens is a browser-native, MIT-licensed type editor whose 94-code audit module also ships as a CLI (`npx patens audit`) that font foundries are positioning into client-deliverable CI pipelines. That makes the binary supply-chain-adjacent. The hardening sprint would land *before* TypeCon Portland public launch.
+Patens is a browser-native, MIT-licensed type editor whose 97-code audit module also ships as a CLI (`npx patens audit`) that font foundries are positioning into client-deliverable CI pipelines. That makes the binary supply-chain-adjacent. The hardening sprint would land *before* TypeCon Portland public launch.
 
 ### Medium (150 words — for project-description fields)
 
-Patens is a browser-native type design tool with a 94-code audit module at its spine. The same audit module also ships as a CLI — `npx patens audit your-project.font.json` — designed for type foundries to lint client deliverables in GitHub Actions. That positioning is the supply-chain story: a compromised `patens` binary running inside a foundry's CI pipeline could tamper with outbound `.font.json` artifacts, alter audit verdicts, or exfiltrate proprietary client work.
+Patens is a browser-native type design tool with a 97-code audit module at its spine. The same audit module also ships as a CLI — `npx patens audit your-project.font.json` — designed for type foundries to lint client deliverables in GitHub Actions. That positioning is the supply-chain story: a compromised `patens` binary running inside a foundry's CI pipeline could tamper with outbound `.font.json` artifacts, alter audit verdicts, or exfiltrate proprietary client work.
 
 Patens already runs OpenSSF Scorecard, CodeQL SAST, dependency review, CycloneDX SBOM, and signed commits + signed tags. The sponsored hardening sprint would close the specific remaining gaps — SLSA provenance for the npm release, fuzz testing beyond the existing property-test invariants, reproducible builds for the WOFF2/OTF export pipeline, and CLI-surface hardening — *before* public launch at TypeCon Portland, August 6–8, 2026.
 
 ### Long (300 words — for "tell us about your project" fields)
 
-Patens is an MIT-licensed, browser-native type design tool. The differentiator is the **94-code audit module** — a teaching layer that runs continuously alongside the editor, explaining type-design rules in plain English with one-click fixes where applicable. That same audit module is shipped as a CLI: `npx patens audit your-project.font.json` returns machine-readable JSON, severity-filtered exit codes, or GitHub Actions PR annotations.
+Patens is an MIT-licensed, browser-native type design tool. The differentiator is the **97-code audit module** — a teaching layer that runs continuously alongside the editor, explaining type-design rules in plain English with one-click fixes where applicable. That same audit module is shipped as a CLI: `npx patens audit your-project.font.json` returns machine-readable JSON, severity-filtered exit codes, or GitHub Actions PR annotations.
 
-The CLI is the supply-chain story. Type foundries running Patens in CI to lint client deliverables — auditing every PR against the same 94 codes the editor uses interactively — create a real attack surface. A compromised `patens` npm package could silently tamper with outbound `.font.json` artifacts, alter audit verdicts to mask defects, or exfiltrate proprietary glyph data from the foundry's pipeline. Type design hasn't had a supply-chain incident yet; getting ahead of one before Patens has meaningful CI install volume is exactly the kind of pre-emptive hardening this fund exists for.
+The CLI is the supply-chain story. Type foundries running Patens in CI to lint client deliverables — auditing every PR against the same 97 codes the editor uses interactively — create a real attack surface. A compromised `patens` npm package could silently tamper with outbound `.font.json` artifacts, alter audit verdicts to mask defects, or exfiltrate proprietary glyph data from the foundry's pipeline. Type design hasn't had a supply-chain incident yet; getting ahead of one before Patens has meaningful CI install volume is exactly the kind of pre-emptive hardening this fund exists for.
 
 Patens is *not* starting from zero on security. The current posture: OpenSSF Scorecard, CodeQL SAST + Dependency Review in CI, CycloneDX SBOM via cdxgen, signed commits + signed tags, 722 unit tests + 900 property-test invariants via fast-check, 66 e2e tests via Playwright + axe-core, a sandboxed AI proxy with strict request validation, constant-time token comparison, open-redirect defense, and HTTP security headers via the SvelteKit handle hook. About 85% of OpenSSF Best Practices Silver-tier criteria are already satisfied.
 
@@ -220,7 +220,7 @@ General contact: `hi@patens.design` · [github.com/alevizio](https://github.com/
 - **Architecture deep-dive:** `ARCHITECTURE.md` in the repo
 - **CLI walk-through (the supply-chain surface):** README § "CLI — `patens audit` from the terminal"
 - **Compare table (positions Patens vs the field):** [patens.design/compare](https://patens.design/compare)
-- **The Method (the 94 codes):** [patens.design/audit](https://patens.design/audit)
+- **The Method (the 97 codes):** [patens.design/audit](https://patens.design/audit)
 
 ---
 

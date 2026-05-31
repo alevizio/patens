@@ -29,19 +29,19 @@ Drop-in copy for whatever the application form asks. Three pitch lengths plus pe
 
 ### Short (50 words — for one-line "what is this" fields)
 
-Patens is a browser-native, MIT-licensed type editor with a 94-rule audit module built in. Every rule is explained in plain English; about 30 ship one-click fixes. The audit module *is* the editor's spine — it teaches type design as you draw, which is positioning no other browser editor occupies.
+Patens is a browser-native, MIT-licensed type editor with a 97-rule audit module built in. Every rule is explained in plain English; about 30 ship one-click fixes. The audit module *is* the editor's spine — it teaches type design as you draw, which is positioning no other browser editor occupies.
 
 ### Medium (150 words — for project-description fields)
 
-Patens is a browser-native type design tool with an audit module built into its spine. The 94 codes — covering contour geometry, vertical metrics, sidebearings, OpenType invariants, naming, coverage, anchors, variable fonts, and color/brief checks — run continuously alongside the editor, each with a plain-English explanation of the underlying type-design principle. Around 30 ship a one-click fix; the rest are surfaced as designer-judgment matters.
+Patens is a browser-native type design tool with an audit module built into its spine. The 97 codes — covering contour geometry, vertical metrics, sidebearings, OpenType invariants, naming, coverage, anchors, variable fonts, and color/brief checks — run continuously alongside the editor, each with a plain-English explanation of the underlying type-design principle. Around 30 ship a one-click fix; the rest are surfaced as designer-judgment matters.
 
 The audit doubles as a CLI (`npx patens audit your-project.font.json`) so the same checks run in CI against client deliverables. Every project lives in IndexedDB, nothing leaves the browser unless the user chooses to export. MIT-licensed, no installs, no accounts. Solo-maintained by [Alejandro Vizio](https://github.com/alevizio), shipping toward public launch at **TypeCon Portland, August 6–8, 2026**.
 
 ### Long (300 words — for "tell us about your project" fields)
 
-Patens is a browser-native, open-source type design tool. The differentiator isn't *that* it runs in a browser — Fontra and Glyphr Studio do that too. It's that the **audit module is a first-class citizen of the editor**, not a separate lint step. Every contour, every metric, every kern pair is checked continuously against a library of 94 codes spanning contour geometry, vertical metrics, sidebearing class drift, OpenType invariants, naming, script coverage, anchor placement, variable-font master constraints, and color/brief completeness. Each finding carries a plain-English explanation of the underlying type-design principle — the kind of knowledge type designers internalize through years of mentorship — and around 30 codes ship a one-click fix.
+Patens is a browser-native, open-source type design tool. The differentiator isn't *that* it runs in a browser — Fontra and Glyphr Studio do that too. It's that the **audit module is a first-class citizen of the editor**, not a separate lint step. Every contour, every metric, every kern pair is checked continuously against a library of 97 codes spanning contour geometry, vertical metrics, sidebearing class drift, OpenType invariants, naming, script coverage, anchor placement, variable-font master constraints, and color/brief completeness. Each finding carries a plain-English explanation of the underlying type-design principle — the kind of knowledge type designers internalize through years of mentorship — and around 30 codes ship a one-click fix.
 
-The same 94 codes are also available as a CLI: `npx patens audit your-project.font.json` runs the engine against any `.font.json` from the terminal, returning machine-readable JSON, severity-filtered exit codes (CI-friendly), or GitHub Actions PR annotations. Type foundries can lint-check client deliverables; CI can gate releases on the same checks the editor runs interactively.
+The same 97 codes are also available as a CLI: `npx patens audit your-project.font.json` runs the engine against any `.font.json` from the terminal, returning machine-readable JSON, severity-filtered exit codes (CI-friendly), or GitHub Actions PR annotations. Type foundries can lint-check client deliverables; CI can gate releases on the same checks the editor runs interactively.
 
 The full toolchain — pressure-sensitive sketch → cubic-Bézier trace, direct contour editing, variable fonts with 2D variation explorer, OpenType features with live HarfBuzz preview, COLR/CPAL color fonts, kerning + classes, OTF/WOFF2 (in-browser) and TTF + ttfautohint (Pyodide WASM) export, designer-bundled `.zip` and portable `.font.json` source — works offline as a PWA. Projects live in IndexedDB; nothing leaves the browser unless the user chooses to export.
 
@@ -53,7 +53,7 @@ Solo-maintained by Alejandro Vizio. Currently in private alpha by invitation; pu
 
 No other browser-based type editor positions itself around **audit-as-pedagogy**. The comparison table at [patens.design/compare](https://patens.design/compare) walks through 26 distinguishing features across 11 tools (FontLab, Glyphs, Fontra, RoboFont, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish). Three rows are unique to Patens:
 
-1. **94-code teaching audit module** with plain-English explanations
+1. **97-code teaching audit module** with plain-English explanations
 2. **One-click "Fix" actions** on around 30 of those codes
 3. **Plain-English explanations** for every issue surfaced
 
@@ -100,7 +100,7 @@ Contact: `hi@patens.design` · [github.com/alevizio](https://github.com/alevizio
 ## Links to send the reviewer
 
 - **Marketing surface (long-scroll editorial):** [patens.design](https://patens.design)
-- **The Method (the 94 codes by family):** [patens.design/audit](https://patens.design/audit)
+- **The Method (the 97 codes by family):** [patens.design/audit](https://patens.design/audit)
 - **Comparison vs the field:** [patens.design/compare](https://patens.design/compare)
 - **About + tech stack:** [patens.design/about](https://patens.design/about)
 - **Repo:** [github.com/alevizio/patens](https://github.com/alevizio/patens)

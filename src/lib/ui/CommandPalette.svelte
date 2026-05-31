@@ -93,7 +93,7 @@
 		{ label: 'Kerning guide', slug: '/learn/kerning', hint: 'Class-based kerning', absolute: true },
 		{ label: 'Variable fonts guide', slug: '/learn/variable-fonts', hint: 'Axes + masters + instances', absolute: true },
 		{ label: 'OpenType features guide', slug: '/learn/opentype-features', hint: 'Ligatures + smcp + ss01', absolute: true },
-		{ label: 'Audit codes', slug: '/learn/audit-codes', hint: '94-code reference', absolute: true },
+		{ label: 'Audit codes', slug: '/learn/audit-codes', hint: '97-code reference', absolute: true },
 		{ label: 'Compare', slug: '/compare', hint: 'vs FontLab, Glyphs, Fontra', absolute: true },
 		{ label: 'Help', slug: '/help', hint: 'FAQ — sharing, export, editor', absolute: true },
 		{ label: 'Changelog', slug: '/changelog', hint: 'Release history + RSS', absolute: true },
