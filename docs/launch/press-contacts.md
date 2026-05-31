@@ -414,14 +414,41 @@ they publicly prefer. No mass-email; each one is a hand-written note.
 
 ### 4. David Jonathan Ross (DJR) — Font of the Month Club ✅
 
-- **Where:** djr.com
+- **Where:** djr.com; github.com/djrrb (64 public repos, 354 followers,
+  actively maintained through 2026).
 - **Recent relevant work:** Monthly typeface releases + process notes on
   `djr.com/notes`. Active type designer with real production volume.
-- **How to reach:** djr.com contact form.
-- **Why a fit:** DJR is a peer-practitioner who could give Patens an
-  honest field test. Not press, but a public "I tried this in Patens"
-  note from him would carry serious weight. Don't pitch him as press;
-  send him a free-look heads-up and ask if he wants early access.
+  Bungee (370★ OFL chromatic COLR font, last touched 2026-02);
+  Drawbot-Type-Proofs (proofing scripts, last touched 2026-05);
+  6+ semesters of Type@Cooper Python-for-Visual-Designers course repos
+  (2020–2023); maintains the OpenType axis-tag registration discussion
+  repo. Also runs Font of the Month Club — a paid newsletter that
+  ships an exclusive typeface monthly to ~thousands of subscribers.
+- **How to reach:** djr.com contact form; GitHub @djrrb;
+  X @djrrb. Font of the Month Club has a contact link in every
+  monthly email.
+- **Why a fit:** DJR is the *platonic* Patens user: independent foundry,
+  teaches type, ships OFL, runs his own browser-distribution
+  infrastructure, has shipped fonts that exercise every variable-axis
+  + COLR/CPAL feature Patens supports. A public "I tried this in
+  Patens" note from him carries more weight in indie type circles
+  than any journalist piece on this list.
+- **Specific hooks for the outreach email:**
+  1. **Font of the Month Club angle**: Patens is "where subscribers
+     could open and inspect the FotM-Club typeface each month" —
+     browser-native, no install, no account.
+  2. **Bungee compatibility**: Patens supports COLR/CPAL; Bungee
+     would be a tier-1 import target. (See
+     `docs/research/opentype-axis-tag-watch.md` for the matching
+     compat plan.)
+  3. **Type@Cooper teaching angle**: Patens's audit module is
+     "the canonical-literature-cited explanation a student usually
+     gets from a Type@Cooper instructor at office hours" — directly
+     adjacent to DJR's own teaching practice.
+  4. **TypeCon Portland Aug 6–8**: he's a regular. In-person hand-off
+     is realistic.
+- **Don't:** pitch him as press; don't ask for a review. Send the
+  heads-up framed as peer-to-peer.
 
 ### 5. Steven Heller — The Daily Heller / Print Magazine ✅
 
