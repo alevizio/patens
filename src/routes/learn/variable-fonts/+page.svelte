@@ -59,6 +59,18 @@
 			title: 'Exporting a variable font',
 			body: 'On export, Patens compiles the masters into an OpenType variable font (.otf with gvar / HVAR tables, or .woff2). The output works in every modern browser via @font-face, in Adobe apps via the CSS-equivalent UI, and in InDesign 2020+. Instances appear in the OS font menu (macOS Big Sur+, Windows 10+). The .font.json export preserves the full designspace so a collaborator can open and continue from where you left off.',
 			hint: 'CSS hookup: font-family: "YourFont"; font-variation-settings: "wght" 525, "wdth" 87;'
+		},
+		{
+			n: 10,
+			title: 'Importing a designspace from Glyphs, FontLab, or RoboFont',
+			body: 'Patens supports designspace v5 round-trip — the XML interchange format that Glyphs, FontLab, RoboFont, and Fontmake all read and write. You can import an existing .designspace file (axes + sources + instances will populate; you import the UFOs separately) and export back to designspace XML when you want to continue elsewhere. The mapping is near-1:1 to Patens\'s Axis / Master / VariableInstance records.',
+			hint: 'parseDesignspaceXml + designspaceFromProject in src/lib/font/designspace.ts. Round-trip is structurally lossless for axes, sources, and instances — glyph data flows through the existing UFO import/export pipeline.'
+		},
+		{
+			n: 11,
+			title: 'Pre-launch audit codes for variable fonts',
+			body: 'Patens\'s 97-code audit module now includes three checks tuned specifically for variable-font hygiene. axis-range-extreme (info) flags axes whose range exceeds the conventional comfort zone (wght > 800, wdth > 100, opsz > 50pt, slnt > 30°) — extreme masters often need an intermediate to anchor the interpolation. master-too-close (warn) flags masters within 5% of each other in designspace — either redundant or a deliberately tight intermediate pair. stat-missing (warn) flags variable fonts with axes but no familyAxes set, which means STAT generation at export-time uses defaults that Windows can misinterpret. Each check fires deterministically and links to its primary literature on /audit/[code].',
+			hint: 'Full audit reference at /audit. The variable-font codes live in the Designspace axes + Designspace & masters + Variable-font compatibility categories.'
 		}
 	];
 
@@ -69,14 +81,14 @@
 				'@type': 'HowTo',
 				name: 'How to design a variable font in the browser with Patens',
 				description:
-					'A 9-step walkthrough of variable fonts in Patens — axes, masters, instances, the 2D variation explorer, export to .otf / .woff2.',
+					'An 11-step walkthrough of variable fonts in Patens — axes, masters, instances, the 2D variation explorer, export to .otf / .woff2.',
 				step: steps.map((s) => ({
 					'@type': 'HowToStep',
 					position: s.n,
 					name: s.title,
 					text: s.body
 				})),
-				totalTime: 'PT45M',
+				totalTime: 'PT55M',
 				supply: [{ '@type': 'HowToSupply', name: 'A family with at least one drawn glyph set' }],
 				tool: [{ '@type': 'HowToTool', name: 'Patens', url: 'https://patens.design' }]
 			},
@@ -110,12 +122,12 @@
 	<meta property="og:title" content="How to design a variable font in the browser — Patens guide" />
 	<meta
 		property="og:description"
-		content="9-step walkthrough — axes, masters, instances, the 2D explorer, export."
+		content="11-step walkthrough — axes, masters, instances, the 2D explorer, export."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
 	<meta name="twitter:title" content="How to design a variable font in the browser" />
-	<meta name="twitter:description" content="9-step Patens guide to variable fonts." />
+	<meta name="twitter:description" content="11-step Patens guide to variable fonts." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
 	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 97-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
@@ -135,7 +147,7 @@
 	</a>
 
 	<p class="mb-2 text-[13px] uppercase tracking-[0.18em] text-fg-subtle">
-		Guide · 9 steps · ~45 min
+		Guide · 11 steps · ~55 min
 	</p>
 
 	<h1
