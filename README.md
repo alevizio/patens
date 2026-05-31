@@ -26,6 +26,7 @@ The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, num
 - **Marketing site**: [patens.design](https://patens.design) — long-scroll editorial with the audit's worldview, an annotated specimen of the demo OTF, an interface mock of the editing surface, the 94 codes by family, and a comparison vs every other tool in the field (FontLab, Glyphs, Robofont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish).
 - **Compare table**: [patens.design/compare](https://patens.design/compare) — 11 tools × 26 distinguishing features.
 - **The Method** (the 94 codes): [patens.design/audit](https://patens.design/audit) — what each family checks, what's plain-English-explained, what's one-click-fixable.
+- **Canonical references on every rule page**: [patens.design/audit/self-intersecting](https://patens.design/audit/self-intersecting) — each of the 94 dedicated audit-rule pages now surfaces the primary literature where the rule is established (OpenType spec, TrueType reference, FEA spec, UFO 3 spec, Unicode 16, Adobe Glyph List, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers). 49 of 94 codes covered in the open MVP corpus per [`docs/research/canonical-library.md`](./docs/research/canonical-library.md).
 
 The app itself is in **private alpha** at an unlisted URL — invitees only. Public launch is scheduled for **TypeCon Portland, August 6–8, 2026**. Sign up for an invite at [patens.design](https://patens.design); the waitlist endpoint persists to Vercel Blob.
 

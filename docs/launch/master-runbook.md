@@ -13,14 +13,14 @@ This is the single source of truth for everything that needs to happen between n
 
 | Week | Dates | Focus | Owner |
 |---|---|---|---|
-| 0 | May 30 – Jun 1 | Polish + research foundation (DONE) | Me |
+| 0 | May 30 – Jun 1 | Polish + research foundation + citation engine MVP (DONE) | Me |
 | 1 | Jun 2 – Jun 8 | Vercel OSS submission + demo GIF first cut | YOU |
 | 2 | Jun 9 – Jun 15 | Anthropic + GitHub Secure applications | YOU |
 | 3 | Jun 16 – Jun 22 | Real-device QA #1 + FUTO + Mozilla MOSS | YOU |
-| 4 | Jun 23 – Jun 29 | Citation engine MVP — corpus ingest, 3 sources | TBD |
-| 5 | Jun 30 – Jul 6 | Citation engine MVP — remaining 7 sources | TBD |
-| 6 | Jul 7 – Jul 13 | Citation engine — matcher + UI; Lighthouse run | TBD |
-| 7 | Jul 14 – Jul 20 | Vision experiment; press outreach T-21 | TBD |
+| 4 | Jun 23 – Jun 29 | Citation engine — expand to remaining 45 codes (license-required canon) | TBD |
+| 5 | Jun 30 – Jul 6 | Citation engine — UI polish + edit-panel inline integration | TBD |
+| 6 | Jul 7 – Jul 13 | Lighthouse run; vision experiment SDK wiring | TBD |
+| 7 | Jul 14 – Jul 20 | Vision experiment full run; press outreach T-21; **TypeCon Top-5 emails Tue Jul 15** | TBD/YOU |
 | 8 | Jul 21 – Jul 27 | NLnet refresh + submission; real-device QA #2 | YOU |
 | 9 | Jul 28 – Aug 3 | Demo polish; press outreach T-7; pre-flight | YOU |
 | 10 | Aug 4 – Aug 8 | **LAUNCH** | YOU |
@@ -57,6 +57,13 @@ This is the single source of truth for everything that needs to happen between n
 | `research/ai-audit-mapping.md` | All 94 codes classified for AI augmentation | 415 |
 | `research/multi-script-canon.md` | 10 scripts with native-tradition citations | 691 |
 | `research/ai-features-roadmap.md` | 5-feature product roadmap | 285 |
+
+### Citation engine MVP — LIVE
+- `src/lib/citations/` — types + corpus + matcher + 12 tests
+- 49 of 94 `/audit/[code]` pages ship "Canonical references" section
+- Bibliographic citations only (no body-text ingest)
+- 10-source open MVP corpus (OpenType spec, TrueType ref, AGL, FEA, UFO, Unicode 16, Sheep CC, OT Cookbook, Klim, Knuth 1979)
+- `scripts/vision-experiment.mjs` — dry-run validated; needs Anthropic SDK wiring when credits land
 
 ---
 
