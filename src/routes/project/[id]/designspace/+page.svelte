@@ -938,6 +938,16 @@
 						Preset axis positions baked into the variable font's <code>fvar</code> table —
 						these appear as selectable styles in OS font menus.
 					</p>
+					{#if (project.instances ?? []).length === 0}
+						<button
+							type="button"
+							onclick={() => projectStore.updateInstances(projectStore.generateConventionalInstances())}
+							class="mb-3 inline-flex items-center gap-1.5 rounded-md border border-accent bg-accent/10 px-3 py-1.5 text-[12px] font-medium text-accent hover:bg-accent/20"
+							title="Auto-populate the standard named-instance set (Thin/Light/Regular/Medium/Bold/etc.) for your axes. Closes the no-instances audit code in one click."
+						>
+							<Tag class="size-3.5" /> Generate conventional set
+						</button>
+					{/if}
 					{#if (project.instances ?? []).length > 0}
 						<ul class="mb-3 grid gap-1">
 							{#each project.instances ?? [] as inst (inst.id)}

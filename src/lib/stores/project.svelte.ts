@@ -638,6 +638,79 @@ class ProjectStore {
 	}
 
 	/**
+	 * Generate a conventional set of named instances for the project's
+	 * variable-font axes. For a wght-only font, this produces the 9
+	 * standard instances (Thin 100 ... Black 900). For multi-axis fonts,
+	 * the cross-product of the standard values per axis. Returns the
+	 * generated instances without mutating; pass through updateInstances
+	 * to commit. Used by the "Add conventional instances" button on the
+	 * designspace tab to clear the no-instances audit code.
+	 */
+	generateConventionalInstances(): import('$lib/font/types').VariableInstance[] {
+		const project = this.project;
+		if (!project?.axes || project.axes.length === 0) return [];
+
+		const standardValues: Record<string, number[]> = {
+			wght: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+			wdth: [75, 100, 125],
+			ital: [0, 1],
+			slnt: [0, -10]
+		};
+
+		// Build per-axis value list, intersected with the axis's actual range
+		const perAxis: Array<{ tag: string; values: number[] }> = [];
+		for (const axis of project.axes) {
+			const standard = standardValues[axis.tag] ?? [axis.default];
+			const valid = standard.filter((v) => v >= axis.minimum && v <= axis.maximum);
+			if (valid.length === 0) valid.push(axis.default);
+			perAxis.push({ tag: axis.tag, values: valid });
+		}
+
+		// Cartesian product across axes — for a wght-only font this is just
+		// the 9 wght values; for wght+wdth it's 9×3=27 instances. Cap at 24
+		// to avoid runaway combinatorial explosions on >2-axis projects;
+		// the user can manually add more.
+		const MAX_INSTANCES = 24;
+		const combinations: Array<Record<string, number>> = [{}];
+		for (const { tag, values } of perAxis) {
+			const next: Array<Record<string, number>> = [];
+			for (const combo of combinations) {
+				for (const v of values) {
+					next.push({ ...combo, [tag]: v });
+					if (next.length >= MAX_INSTANCES) break;
+				}
+				if (next.length >= MAX_INSTANCES) break;
+			}
+			combinations.splice(0, combinations.length, ...next);
+			if (combinations.length >= MAX_INSTANCES) break;
+		}
+
+		// Generate a style name for each combination
+		return combinations.map((location, i) => {
+			const parts: string[] = [];
+			for (const { tag, values } of perAxis) {
+				if (values.length === 1) continue;
+				parts.push(this.defaultAxisValueName(tag, location[tag]));
+			}
+			const styleName = parts.length === 0 ? 'Regular' : parts.join(' ');
+			return {
+				id: `generated-instance-${i + 1}`,
+				styleName,
+				location
+			};
+		});
+	}
+
+	/**
+	 * Set the project's named-instance list. Used by the "Add conventional
+	 * instances" UI button after generateConventionalInstances().
+	 */
+	updateInstances(instances: import('$lib/font/types').VariableInstance[]) {
+		if (!this.project) return;
+		this.withRootScalar('instances', instances);
+	}
+
+	/**
 	 * Convention-based axis value name. The user can rename after
 	 * generation; this is just a sensible default.
 	 */
