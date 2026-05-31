@@ -145,6 +145,45 @@ export const SOURCES: ReadonlyArray<Source> = [
 		archiveUrl: 'https://web.archive.org/web/2026*/frerejones.com',
 		caveat:
 			'Contemporary studio reasoning from one of the most-cited working type designers. Essays on type-history, ephemera, technical reasoning, and the craft of contemporary type design. Treats foundry-blog citations as living primary sources per canonical-library.md Section 3.5.'
+	},
+	{
+		id: 'leonidas-greek-primer',
+		title: 'A primer on Greek type design',
+		author: 'Gerry Leonidas',
+		year: 2013,
+		publisher: 'leonidas.net',
+		kind: 'manual',
+		licensing: 'open',
+		canonicalUrl: 'https://leonidas.net/2013/12/01/a-primer-on-greek-type-design/',
+		archiveUrl: 'https://web.archive.org/web/2026*/leonidas.net',
+		caveat:
+			'Open-web canonical English-language Greek type-design primer from Reading lecture notes. The standard reference for Latin → Greek inheritance considerations.'
+	},
+	{
+		id: 'sakkal-arabic',
+		title: 'Arabic Type series',
+		author: 'Mamoun Sakkal',
+		year: 2008,
+		publisher: 'sakkal.com',
+		kind: 'manual',
+		licensing: 'open',
+		canonicalUrl: 'https://www.sakkal.com/articles/Arabic_Type_Article/Arabic_Type4.html',
+		archiveUrl: 'https://web.archive.org/web/2026*/sakkal.com',
+		caveat:
+			'Open-web canonical English-language Arabic type-design tutorial. Essential reference for Arabic coverage decisions and joining-form considerations.'
+	},
+	{
+		id: 'typejournal-cyrillic',
+		title: 'On the appearance and development of Cyrillic letterforms',
+		author: 'Vladimir Yefimov',
+		year: 2014,
+		publisher: 'Type Journal (Paratype)',
+		kind: 'paper',
+		licensing: 'fair-use',
+		canonicalUrl: 'https://typejournal.ru/en/articles/Cyrillic-Letterforms-Development',
+		archiveUrl: 'https://web.archive.org/web/2026*/typejournal.ru',
+		caveat:
+			'Paratype/Type Journal English-language essay on Cyrillic letterform history. The closest open-web companion to Maxim Zhukov\'s work in Reading Typography Papers.'
 	}
 ] as const;
 
