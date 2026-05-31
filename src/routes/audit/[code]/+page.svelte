@@ -215,7 +215,7 @@
 				<a
 					href="/library"
 					class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
-					>38-source canonical library</a
+					>42-source canonical library</a
 				>
 				or read the
 				<a
@@ -234,7 +234,7 @@
 						href="/library"
 						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
 						>the library</a
-					> for the full 38-source canon, or the
+					> for the full 42-source canon, or the
 					<a
 						href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
 						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"

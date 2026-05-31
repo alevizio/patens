@@ -1,7 +1,7 @@
 /**
  * Patens canonical type-design library.
  *
- * The 38 canonical references that ground the audit module's prose +
+ * The 42 canonical references that ground the audit module's prose +
  * the citation engine's RAG corpus. Sourced from
  * docs/research/canonical-library.md Section 1 (the research artifact
  * compiled 2026-05-30).
@@ -22,7 +22,8 @@ export type LibraryCategory =
 	| 'Foundational craft & theory'
 	| 'Specifications'
 	| 'Academic + research'
-	| 'Foundry blogs';
+	| 'Foundry blogs'
+	| 'Living OFL exemplars';
 
 export type LibraryConfidence = 'confirmed' | 'likely' | 'uncertain';
 
@@ -659,6 +660,84 @@ export const LIBRARY: ReadonlyArray<LibraryEntry> = [
 		auditFamilies: ['Variable fonts', 'OpenType invariants', 'Font-format history'],
 		canonicalUrl: 'https://www.thomasphinney.com/',
 		confidence: 'confirmed'
+	},
+	// 1.5 Living OFL exemplars — contemporary open-source fonts that
+	// demonstrate the audit categories in production.
+	{
+		id: 'bungee-djr',
+		index: 39,
+		title: 'Bungee',
+		author: 'David Jonathan Ross',
+		year: 2018,
+		publisher: 'djr.com',
+		category: 'Living OFL exemplars',
+		whyCanonical:
+			'The canonical open-source chromatic signage typeface. Multi-layer COLR/CPAL implementation in production; one of the few OFL fonts that exercises the full color-font pipeline. Active maintenance through 2026.',
+		topicalCoverage:
+			'COLR/CPAL color fonts, multi-layer font architecture, vertical + horizontal setting, sign-painting tradition.',
+		licensing: 'open',
+		licensingDetail: 'OFL 1.1. Source UFOs published at github.com/djrrb/Bungee.',
+		digitization: 'github.com/djrrb/Bungee; Google Fonts.',
+		auditFamilies: ['Color font (COLR/CPAL)', 'OpenType invariants', 'Glyph naming'],
+		canonicalUrl: 'https://github.com/djrrb/Bungee',
+		confidence: 'confirmed'
+	},
+	{
+		id: 'fit-djr',
+		index: 40,
+		title: 'Fit',
+		author: 'David Jonathan Ross',
+		year: 2017,
+		publisher: 'djr.com',
+		category: 'Living OFL exemplars',
+		whyCanonical:
+			'Extreme-range single-axis variable font (wdth 10–1000). Exemplary stress test for any variable-font tool — Patens\'s axis-range-extreme audit fires on its designspace as expected, validating the check.',
+		topicalCoverage:
+			'Variable fonts (wdth axis), designspace v3, extreme interpolation, display typography.',
+		licensing: 'open',
+		licensingDetail: 'OFL 1.1 (Font of the Month Club distribution).',
+		digitization: 'github.com/djrrb/fit-vf-test (designspace + UFO sources).',
+		auditFamilies: ['Variable fonts', 'Designspace axes', 'Variable-font compatibility'],
+		canonicalUrl: 'https://djr.com/fit',
+		confidence: 'confirmed'
+	},
+	{
+		id: 'amstelvar-typenetwork',
+		index: 41,
+		title: 'Amstelvar',
+		author: 'Type Network team (lead: Nick Sherman, David Berlow)',
+		year: 2017,
+		publisher: 'Type Network',
+		category: 'Living OFL exemplars',
+		whyCanonical:
+			'The original parametric-axis variable font. Demonstrates the unregistered Type Network parametric axes (XOPQ, YOPQ, XTRA, etc.) the OpenType axis-tag registry treats as proposed. Required reading for anyone implementing parametric-axis support in a font tool.',
+		topicalCoverage:
+			'Parametric variable axes, registered + unregistered axis tags, STAT table design, fvar conventions.',
+		licensing: 'open',
+		licensingDetail: 'OFL 1.1. Roman + Italic designspaces published openly.',
+		digitization: 'github.com/TypeNetwork/Amstelvar; djrrb/AmstelvarNew (DJR fork with active designspace work).',
+		auditFamilies: ['Variable fonts', 'Designspace axes', 'STAT table', 'Variable-font compatibility'],
+		canonicalUrl: 'https://github.com/TypeNetwork/Amstelvar',
+		confidence: 'confirmed'
+	},
+	{
+		id: 'roboto-flex-google',
+		index: 42,
+		title: 'Roboto Flex',
+		author: 'Google Fonts team + Type Network',
+		year: 2022,
+		publisher: 'Google Fonts',
+		category: 'Living OFL exemplars',
+		whyCanonical:
+			'The most widely-deployed parametric variable font in production. Ships the Type Network parametric axes at scale (millions of pageloads via Google Fonts). The de-facto reference for what a "parametric-axis-aware" font tool needs to support, since these axes pass through the Google Fonts pipeline daily.',
+		topicalCoverage:
+			'Production parametric axes, Google Fonts pipeline, opsz + parametric coexistence, large-axis-count interpolation.',
+		licensing: 'open',
+		licensingDetail: 'OFL 1.1.',
+		digitization: 'github.com/googlefonts/roboto-flex; fonts.google.com.',
+		auditFamilies: ['Variable fonts', 'Designspace axes', 'STAT table', 'Variable-font compatibility'],
+		canonicalUrl: 'https://github.com/googlefonts/roboto-flex',
+		confidence: 'confirmed'
 	}
 ];
 
@@ -672,7 +751,8 @@ export const libraryByCategory = (): Record<LibraryCategory, LibraryEntry[]> => 
 		'Foundational craft & theory': [] as LibraryEntry[],
 		Specifications: [] as LibraryEntry[],
 		'Academic + research': [] as LibraryEntry[],
-		'Foundry blogs': [] as LibraryEntry[]
+		'Foundry blogs': [] as LibraryEntry[],
+		'Living OFL exemplars': [] as LibraryEntry[]
 	};
 	for (const entry of LIBRARY) {
 		out[entry.category].push(entry);

@@ -17,7 +17,8 @@
 		'Foundational craft & theory',
 		'Specifications',
 		'Academic + research',
-		'Foundry blogs'
+		'Foundry blogs',
+		'Living OFL exemplars'
 	];
 
 	// License badge styling — Swiss palette, no second hue
@@ -35,16 +36,16 @@
 </script>
 
 <svelte:head>
-	<title>The library (2026) · Patens — 38 canonical type-design references</title>
+	<title>The library (2026) · Patens — 42 canonical type-design references</title>
 	<meta
 		name="description"
-		content="The 38 canonical type-design references that ground Patens's audit module — Tracy 1986, Bringhurst 1992, Hochuli 1987, Smeijers 1996, Noordzij 1985, Cheng 2006, plus the OpenType spec, Knuth Metafont papers, foundry blogs, and the multi-script primers."
+		content="The 42 canonical type-design references that ground Patens's audit module — Tracy 1986, Bringhurst 1992, Hochuli 1987, Smeijers 1996, Noordzij 1985, Cheng 2006, plus the OpenType spec, Knuth Metafont papers, foundry blogs, the multi-script primers, and living OFL exemplars (Bungee, Fit, Amstelvar, Roboto Flex)."
 	/>
 	<link rel="canonical" href="https://patens.design/library" />
 	<meta property="og:title" content="The library · Patens" />
 	<meta
 		property="og:description"
-		content="38 canonical references that ground the 102-code audit module."
+		content="42 canonical references that ground the 102-code audit module."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
 	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
@@ -183,7 +184,7 @@
 			A note on what's missing
 		</h2>
 		<p class="mb-3 text-[14px] leading-relaxed text-fg-muted">
-			Three traditions don't appear in this 38-book core but inform the
+			Three traditions don't appear in this 42-source core but inform the
 			work: the punchcutting tradition before Moxon (oral, mostly lost),
 			the proprietary in-house manuals at Linotype + Monotype + ITC (not
 			publicly available), and contemporary multi-script literature in
