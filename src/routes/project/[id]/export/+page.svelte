@@ -1143,18 +1143,48 @@ document.querySelectorAll('.controls button').forEach((b) => {
 		}
 	};
 
+	// LICENSE_PRESETS now ship per the OFL research findings in
+	// docs/research/font-licensing-deep-dive.md:
+	// - The default OFL preset is NO RFN, matching Google Fonts current
+	//   policy (issue #9894 proposes a hard RFN ban for new submissions).
+	// - A separate "OFL with RFN" preset preserves the legacy
+	//   production pattern (Adobe / IBM / Inter) for designers who
+	//   explicitly want it.
+	// - CC0 added for designers who want maximum permissiveness.
+	// - AI-derivative disclosure surfaced in the UI per OFL-FAQ § 1.25
+	//   (Nov 2023), which classifies AI-generated output from OFL-
+	//   trained models as derivative work.
 	const LICENSE_PRESETS: Record<
 		string,
 		{ license: string; copyright?: (designer: string) => string; licenseURL?: string }
 	> = {
-		ofl: {
+		'ofl-google-fonts': {
 			license:
 				'This Font Software is licensed under the SIL Open Font License, Version 1.1. ' +
 				'This license is copied below, and is also available with a FAQ at: ' +
-				'https://openfontlicense.org. Reserved Font Names must be changed in derivative work.',
+				'https://openfontlicense.org. ' +
+				'No Reserved Font Name — derivative works may keep the family name (Google Fonts recommendation).',
+			copyright: (d) =>
+				`Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}.`,
+			licenseURL: 'https://openfontlicense.org'
+		},
+		'ofl-foundry-rfn': {
+			license:
+				'This Font Software is licensed under the SIL Open Font License, Version 1.1. ' +
+				'This license is copied below, and is also available with a FAQ at: ' +
+				'https://openfontlicense.org. ' +
+				'Reserved Font Names must be changed in derivative work (set the RFN field on this page).',
 			copyright: (d) =>
 				`Copyright (c) ${new Date().getFullYear()} ${d || 'the Designer'}, with Reserved Font Names.`,
 			licenseURL: 'https://openfontlicense.org'
+		},
+		cc0: {
+			license:
+				'This Font Software is released into the public domain via the Creative Commons CC0 1.0 Universal license. ' +
+				'No rights reserved. Anyone may use, modify, redistribute, and relicense the work without permission or attribution.',
+			copyright: () =>
+				`Released into the public domain via CC0 1.0 Universal. https://creativecommons.org/publicdomain/zero/1.0/`,
+			licenseURL: 'https://creativecommons.org/publicdomain/zero/1.0/'
 		},
 		proprietary: {
 			license:
@@ -1290,10 +1320,27 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				<span class="text-[11px] font-medium text-fg-muted">License preset:</span>
 				<button
 					type="button"
-					onclick={() => applyLicensePreset('ofl')}
+					onclick={() => applyLicensePreset('ofl-google-fonts')}
 					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+					title="SIL OFL 1.1 without Reserved Font Name. Matches Google Fonts current policy (issue #9894). The recommended default."
 				>
-					SIL OFL 1.1
+					OFL (Google Fonts)
+				</button>
+				<button
+					type="button"
+					onclick={() => applyLicensePreset('ofl-foundry-rfn')}
+					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+					title="SIL OFL 1.1 with Reserved Font Name. Legacy production pattern (Adobe / IBM / Inter). Requires setting an RFN field manually after this."
+				>
+					OFL (Foundry RFN)
+				</button>
+				<button
+					type="button"
+					onclick={() => applyLicensePreset('cc0')}
+					class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+					title="Creative Commons CC0 1.0 — public domain dedication. Maximum permissiveness."
+				>
+					CC0 (Public Domain)
 				</button>
 				<button
 					type="button"
@@ -1310,6 +1357,13 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					Personal use only
 				</button>
 			</div>
+			<!-- AI-derivative disclosure per OFL-FAQ § 1.25 (Nov 2023) -->
+			<p class="mt-2 text-[10px] leading-relaxed text-fg-subtle">
+				<span class="font-medium">Note on AI:</span> OFL-FAQ § 1.25 (Nov 2023) classifies
+				AI-generated output from OFL-trained models as derivative work. If your workflow
+				uses AI to extend or modify OFL fonts, the derivative inherits the OFL license. The
+				legal landscape is still evolving — disclose your AI usage in the design notes.
+			</p>
 
 			{@const currentFsType = project.metadata.fsType ?? 0}
 			<div class="mt-4 grid gap-2 border-t border-border pt-3">
