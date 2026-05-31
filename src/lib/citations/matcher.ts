@@ -502,6 +502,12 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					anchor: '§ fvar — VariationAxisRecord',
 					gist: 'Master locations must fall within the axis min/max range declared in fvar; values outside the range create undefined interpolation behaviour.',
 					score: 1.0
+				},
+				{
+					citationId: 'variablefonts-io-primer:implementing',
+					anchor: 'Implementing variable fonts',
+					gist: 'Practitioner-friendly explanation of the axis-range model and how downstream consumers (browsers, CSS) interpret out-of-range values.',
+					score: 0.6
 				}
 			]
 		],
@@ -546,6 +552,12 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					anchor: '§ fvar — InstanceRecord',
 					gist: 'Named instances (e.g., Regular, Bold, Light) are the most user-friendly way to expose a variable font; without them users see only the axis sliders.',
 					score: 0.8
+				},
+				{
+					citationId: 'variablefonts-io-primer:designing',
+					anchor: 'Designing with variable fonts',
+					gist: 'Practitioner-friendly guidance on how to expose a variable font to web designers via named instances — the user-facing affordance for axis exploration.',
+					score: 0.6
 				}
 			]
 		],

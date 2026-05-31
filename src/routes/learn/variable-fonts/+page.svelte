@@ -206,6 +206,16 @@
 		is the right place to start if you haven't drawn a static master yet.
 	</p>
 
+	<p class="mb-3 text-[14px] leading-relaxed text-fg-muted">
+		For deeper background, the
+		<a href="https://variablefonts.io/" target="_blank" rel="noopener noreferrer" class="text-accent-strong underline underline-offset-2">Variable Fonts Primer</a>
+		at variablefonts.io is the canonical practitioner-side reading on
+		designing + implementing variable fonts. The
+		<a href="https://learn.microsoft.com/en-us/typography/opentype/spec/fvar" target="_blank" rel="noopener noreferrer" class="text-accent-strong underline underline-offset-2">fvar chapter of the OpenType spec</a>
+		is the normative reference for the axis + instance machinery
+		Patens's audit checks against.
+	</p>
+
 	<p class="mt-12 text-[14px] text-fg-muted">
 		Patens is in private alpha.
 		<a href="/" class="text-accent-strong underline underline-offset-2">Request an invite →</a>

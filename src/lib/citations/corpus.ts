@@ -119,6 +119,19 @@ export const SOURCES: ReadonlyArray<Source> = [
 		kind: 'paper',
 		licensing: 'open',
 		canonicalUrl: 'https://www.historyofinformation.com/detail.php?id=3339'
+	},
+	{
+		id: 'variablefonts-io-primer',
+		title: 'A Variable Fonts Primer',
+		author: 'variablefonts.io contributors',
+		year: 2018,
+		publisher: 'variablefonts.io',
+		kind: 'manual',
+		licensing: 'fair-use',
+		canonicalUrl: 'https://variablefonts.io/',
+		archiveUrl: 'https://web.archive.org/web/2026*/variablefonts.io',
+		caveat:
+			'Practitioner-friendly primer covering both designing and implementing variable fonts. Complements the normative OpenType variations chapter.'
 	}
 ] as const;
 
