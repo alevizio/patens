@@ -84,6 +84,10 @@ Happy to talk about: the audit dictionary, the citation engine's licensing postu
 
 > They're in the comparison table — different category. Lipi and Fontish lead with "describe a font, AI makes it." Patens leads with "draw it, the audit teaches you why it works." Both have a place; the audit-as-teaching slot is the one nobody else occupies.
 
+**"Isn't AI going to make this obsolete?"** (the inevitable HN comment)
+
+> Patens isn't a font generator — it's the audit a generated font has to pass. Yes, Lipi, Fontish, and the VecFusion-class academic work can produce plausible glyphs. The honest research finding (`docs/research/ai-audit-mapping.md` in the repo) is that 75 of our 99 audit checks are algorithm-only — sub-pixel coordinate hygiene, OpenType table integrity, naming/metadata canonicalisation, GSUB/GPOS reference checks. AI can't see what's below its input resolution and doesn't improve geometric correctness. 11 are vision-augmented (algorithm finds the candidate, vision confirms perceptual impact). 1 is vision-primary (sharp-kink). 3 are LLM-augmented (canonical naming, brief reasoning). The discipline of type design — family coherence, optical compensation, sidebearing rhythm, the kerning that holds at body size — is irreducible to a diffusion model in 2026, and the academic literature agrees. Patens is the open-source MIT browser-native tool that makes the audit teachable, so the next generation of type designers ships fonts that pass it. AI is a useful collaborator for exploration. The audit is the moat. Full landscape map at `docs/research/ai-generative-type-landscape.md`.
+
 **"Why MIT instead of OFL?"**
 
 > The CODE is MIT. The fonts you make with Patens are yours under whatever license you pick. The demo OTF (Studio Geometric) is MIT too because it's part of the codebase, but a font you draw is independent IP.
