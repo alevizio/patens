@@ -41,7 +41,7 @@
 	import { SUBSET_PRESETS } from '$lib/font/subset';
 	import { loadFamily } from '$lib/font/family';
 	import { resolveKerning } from '$lib/font/family-kerning';
-	import type { Family } from '$lib/font/types';
+	import type { Family, Project } from '$lib/font/types';
 	import AlertCircle from '@lucide/svelte/icons/alert-circle';
 	import CheckCircle2 from '@lucide/svelte/icons/check-circle-2';
 
@@ -1098,6 +1098,51 @@ document.querySelectorAll('.controls button').forEach((b) => {
 		input.value = '';
 	};
 
+	const importDesignspaceXml = async (ev: Event) => {
+		const input = ev.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file) return;
+		try {
+			const text = await file.text();
+			const { parseDesignspaceXml, designspaceToProject } = await import(
+				'$lib/font/designspace'
+			);
+			const ds = parseDesignspaceXml(text);
+			const current = projectStore.project;
+			if (!current) return;
+			const updated = designspaceToProject(ds, current);
+			await projectStore.load({ ...current, ...updated } as Project);
+			input.value = '';
+		} catch (e) {
+			alert(
+				'Designspace import failed: ' +
+					(e instanceof Error ? e.message : String(e))
+			);
+			input.value = '';
+		}
+	};
+
+	const exportDesignspaceXml = async () => {
+		const proj = projectStore.project;
+		if (!proj) return;
+		try {
+			const { designspaceFromProject } = await import('$lib/font/designspace');
+			const xml = designspaceFromProject(proj);
+			const blob = new Blob([xml], { type: 'application/xml' });
+			const url = URL.createObjectURL(blob);
+			const a = document.createElement('a');
+			a.href = url;
+			a.download = `${proj.metadata.familyName || 'patens'}.designspace`;
+			a.click();
+			URL.revokeObjectURL(url);
+		} catch (e) {
+			alert(
+				'Designspace export failed: ' +
+					(e instanceof Error ? e.message : String(e))
+			);
+		}
+	};
+
 	const LICENSE_PRESETS: Record<
 		string,
 		{ license: string; copyright?: (designer: string) => string; licenseURL?: string }
@@ -1709,6 +1754,23 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					</span>
 				</div>
 				<div class="flex items-center gap-3">
+					<Button
+						variant="secondary"
+						onclick={exportDesignspaceXml}
+						disabled={(project.axes?.length ?? 0) === 0}
+					>
+						{#snippet icon()}<FileText class="size-4" />{/snippet}
+						Export designspace (.designspace)
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						Variable-font XML interchange — opens in Glyphs, FontLab, RoboFont,
+						or Fontmake. Round-trip lossless for axes + sources + instances.
+						{#if (project.axes?.length ?? 0) === 0}
+							(Needs at least one axis on the Designspace tab.)
+						{/if}
+					</span>
+				</div>
+				<div class="flex items-center gap-3">
 					<Button variant="secondary" onclick={exportProjectJson}>
 						{#snippet icon()}<FileJson class="size-4" />{/snippet}
 						Export project (.font.json)
@@ -1897,7 +1959,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 				Import
 			</h2>
 			<label
-				class="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 px-4 py-3 text-sm text-fg-muted hover:border-accent hover:bg-accent-soft/50"
+				class="mb-3 flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 px-4 py-3 text-sm text-fg-muted hover:border-accent hover:bg-accent-soft/50"
 			>
 				<Download class="size-4 rotate-180" />
 				<span>Replace current project with .font.json file</span>
@@ -1906,6 +1968,21 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					accept="application/json,.json"
 					class="sr-only"
 					onchange={importProjectJson}
+				/>
+			</label>
+			<label
+				class="flex cursor-pointer items-center gap-3 rounded-md border border-dashed border-border-strong/50 bg-surface-2/40 px-4 py-3 text-sm text-fg-muted hover:border-accent hover:bg-accent-soft/50"
+				title="Import a .designspace XML file from Glyphs, FontLab, RoboFont, or Fontmake. Axes, sources, and instances will populate; UFOs import separately via the existing UFO flow."
+			>
+				<Download class="size-4 rotate-180" />
+				<span
+					>Merge axes + sources + instances from a .designspace file (Glyphs / FontLab / RoboFont)</span
+				>
+				<input
+					type="file"
+					accept="application/xml,text/xml,.designspace"
+					class="sr-only"
+					onchange={importDesignspaceXml}
 				/>
 			</label>
 		</Panel>
