@@ -52,7 +52,7 @@
 	</p>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Descripciones (tres longitudes)
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>Descripciones (tres longitudes)
 	</h2>
 
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">
@@ -105,7 +105,7 @@
 	</div>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Datos
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Datos
 	</h2>
 	<dl class="mb-8 space-y-3 text-[14px] leading-relaxed text-fg-muted">
 		<div class="flex flex-wrap gap-x-3 border-b border-border/30 pb-2">
@@ -154,7 +154,7 @@
 	</dl>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Capturas y assets
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Capturas y assets
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		Hay capturas del editor, especímenes y la página de auditoría en el directorio

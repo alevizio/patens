@@ -64,7 +64,9 @@
 	</p>
 
 	<section class="mb-12">
-		<h2 class="mb-3 text-[20px] font-medium text-fg">No es un linter. Es un mentor.</h2>
+		<h2 class="mb-3 text-[20px] font-medium text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>No es un linter. Es un mentor.
+		</h2>
 		<p class="text-[15px] leading-relaxed text-fg-muted">
 			La diferencia con un linter clásico es que la auditoría de Patens
 			<em>enseña</em>. Cada código tiene una entrada con la explicación, ejemplos en otras
@@ -76,11 +78,8 @@
 	</section>
 
 	<section class="mb-12">
-		<h2
-			class="mb-6 text-[28px] tracking-tight text-fg"
-			
-		>
-			Las 13 familias de reglas
+		<h2 class="mb-6 text-[28px] tracking-tight text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Las 13 familias de reglas
 		</h2>
 		<ul class="space-y-3 text-[14px]">
 			{#each families as fam (fam.name)}
@@ -98,7 +97,9 @@
 	</section>
 
 	<section class="mb-12 border-t border-border/30 pt-12">
-		<h2 class="mb-4 text-[20px] font-medium text-fg">Páginas dedicadas por código</h2>
+		<h2 class="mb-4 text-[20px] font-medium text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Páginas dedicadas por código
+		</h2>
 		<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 			Cada uno de los 94 códigos tiene su propia página en
 			<a
@@ -112,7 +113,9 @@
 	</section>
 
 	<section class="mb-12 border-t border-border/30 pt-12">
-		<h2 class="mb-4 text-[20px] font-medium text-fg">CLI: corré la auditoría sin abrir el editor</h2>
+		<h2 class="mb-4 text-[20px] font-medium text-fg">
+			<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>CLI: corré la auditoría sin abrir el editor
+		</h2>
 		<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 			<code class="rounded bg-fg/5 px-1.5 py-0.5 text-[13px]">npx patens audit</code>
 			corre la auditoría completa contra un proyecto local. Tres formatos de output: text

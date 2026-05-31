@@ -135,7 +135,7 @@
 	</p>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Quién lo hace
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>Quién lo hace
 	</h2>
 	<p class="mb-4 text-[14px] leading-relaxed text-fg-muted">
 		Patens lo hace
@@ -169,7 +169,7 @@
 	</p>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Sobre qué está construido
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Sobre qué está construido
 	</h2>
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
 		Patens depende de proyectos de código abierto increíbles. Si Patens te resulta útil, mirá
@@ -185,7 +185,7 @@
 	</ul>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Versión actual
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Versión actual
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		Patens v{data.version}. El

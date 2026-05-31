@@ -61,7 +61,7 @@
 	</section>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Modelo de amenazas
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>Modelo de amenazas
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 		Lo que Patens protege:
@@ -99,7 +99,7 @@
 	</ul>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Headers HTTP de hardening
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Headers HTTP de hardening
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 		Cada respuesta de la app aplica estos headers vía el
@@ -127,7 +127,7 @@
 	</ul>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Reportar vulnerabilidades
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>Reportar vulnerabilidades
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 		<strong class="text-fg">Por favor reportá privadamente primero</strong> — no abras issues

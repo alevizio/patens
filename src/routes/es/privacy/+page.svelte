@@ -64,7 +64,7 @@
 	</section>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Qué guardamos del lado nuestro
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>Qué guardamos del lado nuestro
 	</h2>
 	<p class="mb-4 text-[15px] leading-relaxed text-fg-muted">
 		Sólo lo que vos elegís enviar:
@@ -91,7 +91,7 @@
 	</ul>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Qué NO usamos
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>02</span>Qué NO usamos
 	</h2>
 	<ul class="mb-8 space-y-2 text-[14px] leading-relaxed text-fg-muted">
 		<li class="border-l-2 border-fg/10 pl-4">
@@ -114,7 +114,7 @@
 	</ul>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		API key de Anthropic (opcional)
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>03</span>API key de Anthropic (opcional)
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		Si configurás una clave de la API de Anthropic en Settings, las funciones AI envían
@@ -130,7 +130,7 @@
 	</p>
 
 	<h2 class="mb-3 mt-12 border-t border-border/30 pt-12 text-[28px] tracking-tight text-fg">
-		Contacto
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>04</span>Contacto
 	</h2>
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
 		Preguntas sobre privacidad o pedidos de borrado de un share-link específico:
