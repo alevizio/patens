@@ -192,6 +192,16 @@ This is the single source of truth for everything that needs to happen between n
 ### Press outreach T-14
 - [ ] Per `press-contacts.md` Section 3, send to specific journalists list
 
+### TypeCon outreach (one-time, 3 weeks pre-conference)
+- [ ] **Tue Jul 15:** Send all 5 TypeCon back-channel emails per `typecon-outreach-emails.md`
+  - Dave Crossland (Google Fonts) — open-source program angle
+  - Glenda Bellarosa (Adobe Fonts / Font Bakery) — audit-as-pedagogy adjacency
+  - Lizy Gershenzon + Travis Kochel (Future Fonts) — foundry-as-platform pairing
+  - Christopher Slye (SOTA Ex Officio) — Spacebar party 5-min lightning slot ask
+  - Neil Summerour (SOTA Treasurer / Positype) — foundry director + 2027 CFP intro
+- [ ] Note: **2026 CFP closed Apr 6, 2026.** No main-program slot path remains. Lightning slot at Spacebar (Friday party, Monotype-sponsored) is the realistic 2026 talk surface.
+- [ ] Log responses in `handoff-2026-07-15.md`
+
 ---
 
 ## Week 9 — Jul 28 to Aug 3
@@ -241,11 +251,21 @@ This is the single source of truth for everything that needs to happen between n
 - [ ] Press follow-up: respond to journalist replies; share `/press` + `/audit` + `/compare`
 
 ### Wed–Fri Aug 5–8 — TYPECON PORTLAND
-- [ ] In-person at TypeCon Portland conference
-- [ ] If you have a presentation slot: demo the citation engine + vision experiment results
-- [ ] Hand out printed press-kit cards
-- [ ] Conversations with foundry directors (potential partnerships)
+**Important context: 2026 CFP closed Apr 6; you do NOT have a main-program slot. Plan is booth + 1:1 conversations + (if confirmed) SOTA Spacebar party 5-min lightning slot.**
+
+- [ ] In-person at TypeCon Portland conference (Jupiter Next hotel; conference at the convention center per `typecon-portland-2026.md`)
+- [ ] **If Spacebar lightning slot confirmed:** demo the citation engine + vision experiment results (5 min, ~3 slides)
+- [ ] Hand out printed press-kit cards at booth
+- [ ] **Top-5 conversations to seek out (per `typecon-outreach-emails.md`):**
+  - Dave Crossland (Google Fonts) — could be at sponsor booth
+  - Glenda Bellarosa — find at Type Crit Wednesday
+  - Lizy Gershenzon + Travis Kochel (Future Fonts) — Future Fonts booth
+  - Christopher Slye (SOTA board) — opening sessions
+  - Neil Summerour (Positype booth)
 - [ ] Post photos / live-blog moments to socials (drives Show HN return traffic)
+- [ ] Type Crit attendance Wednesday (Glenda runs Font Bakery there — closest technical adjacency)
+- [ ] Friday evening: SOTA Spacebar party (Monotype-sponsored)
+- [ ] Saturday closing dinner: foundry director conversations
 
 ### Sat–Sun Aug 9–10 — POST-LAUNCH
 - [ ] HN/TD/r/typography metric recap in handoff doc
