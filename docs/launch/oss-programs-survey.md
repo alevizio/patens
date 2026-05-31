@@ -15,6 +15,14 @@ at the **Aug 1, 2026 cycle** — that one overlaps TypeCon week and lets
 the application lead with real launch data rather than a pre-launch
 ask.
 
+**All Tier-2 applications now have paste-ready drafts:**
+- `docs/launch/anthropic-application.md` — Startup + Research Credits combined ($50K target)
+- `docs/launch/github-secure-oss-application.md` — $10K + structured hardening sprint
+- `docs/launch/futo-microgrant-application.md` — $5K cash
+- `docs/launch/mozilla-moss-application.md` — $25K–$50K cash
+
+See **§ Submission readiness checklist** at the bottom for the day-of action list.
+
 | # | Program | Deadline | Award | Status |
 |---|---|---|---|---|
 | 1 | [Vercel OSS Program](https://vercel.com/open-source-program) | **2026-06-03** (Wed) | $3,600 platform credits / 12 mo + OSS Starter Pack + priority support | Application copy drafted at `docs/launch/vercel-oss-application.md` — needs link sweep + submit |
@@ -206,6 +214,43 @@ These are *donation rails*, not grant programs. Set them up before Show HN so pe
 - + GitHub Sponsors recurring (variable)
 
 That's enough runway to take Patens from TypeCon launch through end-of-year-1 *without* needing to introduce a paywall, validate the audit-as-teaching positioning with real users, and decide a sustainable monetization model from a position of strength — exactly the foundry-of-one position the README claims.
+
+---
+
+## Submission readiness checklist
+
+All Tier-1 + Tier-2 applications are drafted. The submission-day workflow:
+
+### Tier 1 (this week — Wed Jun 3 deadline)
+- [ ] **Vercel OSS** — open `docs/launch/vercel-oss-application.md`, paste copy into [vercel.com/open-source-program](https://vercel.com/open-source-program) form, submit. **~1 hour total.**
+
+### Tier 2 (apply within 2 weeks — no hard deadline)
+- [ ] **Anthropic combined** — open `docs/launch/anthropic-application.md`. Two submissions: [Anthropic for Startups](https://www.anthropic.com/startups) + Anthropic Research Credits (apply via startup portal, mention research track in cover note). ~45 min total.
+- [ ] **GitHub Secure Open Source Fund** — open `docs/launch/github-secure-oss-application.md`. Apply at [github.com/security/secure-open-source-fund](https://github.com/security/secure-open-source-fund). ~30 min.
+- [ ] **FUTO microgrant** — open `docs/launch/futo-microgrant-application.md`. Apply at [futo.tech/grants](https://futo.tech/grants). ~20 min.
+- [ ] **Mozilla MOSS** — open `docs/launch/mozilla-moss-application.md`. Apply at [mozilla.org/moss](https://www.mozilla.org/en-US/moss/). ~40 min.
+
+### Tier 3 (deferred to Aug 1, 2026 — strategic timing)
+- [ ] **NLnet NGI Zero Commons** — `docs/launch/nlnet-application.md` ready. Re-open mid-July, fold in launch traction data, submit by 2026-07-31 EOD.
+
+### Tier 4 (no-application — set up the rails)
+- [ ] **GitHub Sponsors** — verify tiers + welcome message (already partially set up). ~30 min.
+- [ ] **Open Collective** — only if you want a PO/invoice rail for foundry sponsorships. ~1-2 hours.
+- [ ] **Polar.sh** — watch through Q3 2026; commit later.
+- [ ] **Cloudflare Pages mirror** — 30-min deploy of marketing site at `cf.patens.design` as launch-day redundancy.
+
+### Total submission time investment
+Tier 1: 1 hour
+Tier 2: 2.5 hours
+Tier 3 (mid-July): 1 hour refresh + 1 hour submit
+Tier 4: 1-3 hours optional
+
+**~5–6 hours of your time over the next 9 weeks unlocks up to ~$50K–$150K in mixed credits + cash.**
+
+### After each submission
+- Save the submission timestamp + reference ID in `docs/launch/handoff-{date}.md`
+- Note expected response window
+- Set a calendar reminder for the response window + 7 days
 
 ---
 
