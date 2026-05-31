@@ -147,6 +147,118 @@ export const parseDesignspaceXml = (xml: string): ParsedDesignspace => {
  * If `existingProject` is omitted, returns a partial Project with just
  * the designspace fields populated.
  */
+// XML attribute value escaper — handles the 5 required entities only.
+// Designspace values are typically numbers or short identifiers; full
+// XML escaping is overkill but mass-import resilience matters.
+const escapeXmlAttr = (s: string): string =>
+	s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&apos;');
+
+/**
+ * Serialize a Patens Project to a designspace v5 XML string.
+ *
+ * Round-trip companion to parseDesignspaceXml — parse → project →
+ * serialize should produce equivalent (not byte-identical) XML. Whitespace
+ * + attribute ordering may differ; structural shape is preserved.
+ *
+ * Includes:
+ * - Axes from project.axes
+ * - The implicit default-location source (Patens's project.glyphs) PLUS
+ *   each Master in project.masters[]
+ * - Each VariableInstance in project.instances[]
+ *
+ * Does NOT include the project's UFO/glyphs data — that's separate
+ * export work; designspace XML only carries the structural metadata.
+ */
+export const designspaceFromProject = (project: Project): string => {
+	const axes = project.axes ?? [];
+	const masters = project.masters ?? [];
+	const instances = project.instances ?? [];
+
+	if (axes.length === 0) {
+		throw new Error(
+			'Cannot serialize designspace: project has no axes (not a variable font)'
+		);
+	}
+
+	const defaultLocation: Record<string, number> = {};
+	for (const a of axes) defaultLocation[a.tag] = a.default;
+
+	const familyName = escapeXmlAttr(project.metadata?.familyName ?? 'Untitled');
+
+	const axesXml = axes
+		.map(
+			(a) =>
+				`    <axis tag="${escapeXmlAttr(a.tag)}" name="${escapeXmlAttr(
+					a.name
+				)}" minimum="${a.minimum}" default="${a.default}" maximum="${a.maximum}"/>`
+		)
+		.join('\n');
+
+	const locationXml = (loc: Record<string, number>): string =>
+		Object.entries(loc)
+			.map(([tag, val]) => `        <dimension name="${escapeXmlAttr(tag)}" xvalue="${val}"/>`)
+			.join('\n');
+
+	// Default source (the project's main glyphs map)
+	const defaultSourceXml = `    <source filename="default.ufo" familyname="${familyName}" name="${familyName} Default">
+      <location>
+${locationXml(defaultLocation)}
+      </location>
+    </source>`;
+
+	const masterSourcesXml = masters
+		.map(
+			(m) => `    <source filename="${escapeXmlAttr(m.id)}.ufo" familyname="${familyName}" name="${escapeXmlAttr(
+				m.name
+			)}">
+      <location>
+${locationXml(m.location)}
+      </location>
+    </source>`
+		)
+		.join('\n');
+
+	const instancesXml = instances
+		.map(
+			(inst) =>
+				`    <instance familyname="${escapeXmlAttr(
+					inst.familyName ?? familyName
+				)}" stylename="${escapeXmlAttr(inst.styleName)}"${
+					inst.postScriptName
+						? ` postscriptfontname="${escapeXmlAttr(inst.postScriptName)}"`
+						: ''
+				}>
+      <location>
+${locationXml(inst.location)}
+      </location>
+    </instance>`
+		)
+		.join('\n');
+
+	return `<?xml version="1.0" encoding="UTF-8"?>
+<designspace format="5.0">
+  <axes>
+${axesXml}
+  </axes>
+  <sources>
+${defaultSourceXml}${masters.length > 0 ? '\n' + masterSourcesXml : ''}
+  </sources>${
+		instances.length > 0
+			? `
+  <instances>
+${instancesXml}
+  </instances>`
+			: ''
+	}
+</designspace>
+`;
+};
+
 export const designspaceToProject = (
 	ds: ParsedDesignspace,
 	existingProject?: Partial<Project>

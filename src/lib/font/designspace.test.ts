@@ -6,7 +6,13 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseDesignspaceXml, designspaceToProject } from './designspace';
+import {
+	parseDesignspaceXml,
+	designspaceToProject,
+	designspaceFromProject
+} from './designspace';
+import type { Project } from './types';
+import { DEFAULT_METRICS } from './types';
 
 // happy-dom provides DOMParser in vitest's node env
 import { Window } from 'happy-dom';
@@ -182,5 +188,157 @@ describe('designspaceToProject', () => {
 		const project = designspaceToProject(ds);
 		expect(project.instances![0].id).toBe('imported-instance-1');
 		expect(project.instances![4].id).toBe('imported-instance-5');
+	});
+});
+
+describe('designspaceFromProject', () => {
+	const baseProject = (overrides: Partial<Project> = {}): Project =>
+		({
+			id: 'test-id',
+			name: 'Test',
+			metadata: {
+				familyName: 'TestFont',
+				styleName: 'Regular',
+				version: '1.000',
+				designer: '',
+				copyright: '',
+				license: ''
+			},
+			metrics: DEFAULT_METRICS,
+			glyphs: {},
+			kerning: [],
+			classes: [],
+			masters: [],
+			axes: [],
+			instances: [],
+			features: { source: '' },
+			brief: {},
+			samples: {},
+			changelog: [],
+			decisions: [],
+			updatedAt: new Date('2026-01-01').toISOString(),
+			createdAt: new Date('2026-01-01').toISOString(),
+			...overrides
+		}) as Project;
+
+	it('serializes axes to designspace XML', () => {
+		const project = baseProject({
+			axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }]
+		});
+		const xml = designspaceFromProject(project);
+		expect(xml).toContain('<axis tag="wght"');
+		expect(xml).toContain('minimum="100"');
+		expect(xml).toContain('default="400"');
+		expect(xml).toContain('maximum="900"');
+	});
+
+	it('emits a default source at the axes-default location', () => {
+		const project = baseProject({
+			axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }]
+		});
+		const xml = designspaceFromProject(project);
+		expect(xml).toContain('TestFont Default');
+		expect(xml).toContain('<dimension name="wght" xvalue="400"/>');
+	});
+
+	it('serializes master sources at their locations', () => {
+		const project = baseProject({
+			axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+			masters: [
+				{
+					id: 'thin',
+					name: 'Thin',
+					location: { wght: 100 },
+					glyphs: {},
+					createdAt: '2026-01-01T00:00:00.000Z',
+					updatedAt: '2026-01-01T00:00:00.000Z'
+				},
+				{
+					id: 'black',
+					name: 'Black',
+					location: { wght: 900 },
+					glyphs: {},
+					createdAt: '2026-01-01T00:00:00.000Z',
+					updatedAt: '2026-01-01T00:00:00.000Z'
+				}
+			]
+		});
+		const xml = designspaceFromProject(project);
+		expect(xml).toContain('name="Thin"');
+		expect(xml).toContain('name="Black"');
+		expect(xml).toContain('xvalue="100"');
+		expect(xml).toContain('xvalue="900"');
+	});
+
+	it('serializes instances with familyname + stylename + postscriptfontname', () => {
+		const project = baseProject({
+			axes: [{ tag: 'wght', name: 'Weight', minimum: 100, default: 400, maximum: 900 }],
+			instances: [
+				{
+					id: 'bold',
+					styleName: 'Bold',
+					location: { wght: 700 },
+					postScriptName: 'TestFont-Bold'
+				}
+			]
+		});
+		const xml = designspaceFromProject(project);
+		expect(xml).toContain('stylename="Bold"');
+		expect(xml).toContain('postscriptfontname="TestFont-Bold"');
+		expect(xml).toContain('xvalue="700"');
+	});
+
+	it('throws when project has no axes', () => {
+		const project = baseProject({ axes: [] });
+		expect(() => designspaceFromProject(project)).toThrow(/no axes/);
+	});
+
+	it('round-trips: parse → toProject → fromProject → parse produces equivalent structure', () => {
+		const ds1 = parseDesignspaceXml(MINIMAL_DESIGNSPACE_XML);
+		const project = designspaceToProject(ds1) as Partial<Project>;
+		// Need a metadata block for fromProject's familyName reference
+		const fullProject = {
+			...project,
+			metadata: {
+				familyName: 'Inter',
+				styleName: 'Regular',
+				version: '1.000',
+				designer: '',
+				copyright: '',
+				license: ''
+			}
+		} as unknown as Project;
+		const xml2 = designspaceFromProject(fullProject);
+		const ds2 = parseDesignspaceXml(xml2);
+		expect(ds2.axes).toHaveLength(2);
+		// Source count: original 3 sources → 1 default + 2 non-default
+		// masters. fromProject re-emits the default + the 2 masters = 3.
+		expect(ds2.sources).toHaveLength(3);
+		expect(ds2.instances).toHaveLength(5);
+		// Compare axes
+		expect(ds2.axes[0].tag).toBe(ds1.axes[0].tag);
+		expect(ds2.axes[0].minimum).toBe(ds1.axes[0].minimum);
+		expect(ds2.axes[0].maximum).toBe(ds1.axes[0].maximum);
+	});
+
+	it('escapes XML-unsafe characters in axis names + family names', () => {
+		const project = baseProject({
+			metadata: {
+				familyName: 'My "Font" & co',
+				styleName: 'Regular',
+				version: '1.000',
+				designer: '',
+				copyright: '',
+				license: ''
+			},
+			axes: [{ tag: 'wght', name: 'Weight <Custom>', minimum: 100, default: 400, maximum: 900 }]
+		});
+		const xml = designspaceFromProject(project);
+		expect(xml).toContain('&amp;');
+		expect(xml).toContain('&quot;');
+		expect(xml).toContain('&lt;');
+		expect(xml).toContain('&gt;');
+		// And the result re-parses
+		expect(() => parseDesignspaceXml(xml)).not.toThrow();
 	});
 });
