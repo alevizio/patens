@@ -661,6 +661,372 @@ const CITATION_MAP: ReadonlyMap<string, ReadonlyArray<CitationMapEntry>> =
 					score: 1.0
 				}
 			]
+		],
+
+		// Additional Family 1 — Contour shape (open-corpus citations)
+		[
+			'empty',
+			[
+				{
+					citationId: 'ufo-3-spec:glyphs',
+					anchor: '§ Glyph — outline element',
+					gist: 'A glyph with no contours and no components is empty; valid only for whitespace glyphs (space, no-break space, etc.).',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'duplicate-points',
+			[
+				{
+					citationId: 'ufo-3-spec:glyphs',
+					anchor: '§ Glyph — point definitions',
+					gist: 'Two points at identical coordinates produce undefined Bézier curvature; remove the duplicate.',
+					score: 0.7
+				}
+			]
+		],
+
+		// Additional Family 2 — Vertical metrics (open-corpus citations)
+		[
+			'capheight-misaligned',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — sCapHeight',
+					gist: 'sCapHeight should match the actual cap-height of capital letters in the font; drift causes layout-engine misalignment.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'xheight-misaligned',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — sxHeight',
+					gist: 'sxHeight should match the actual x-height of lowercase letters in the font; drift causes line-height calculation errors in layout engines.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'metrics-descender-nonnegative',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — sTypoDescender',
+					gist: 'sTypoDescender should be negative or zero (descenders sit below the baseline); positive values are nearly always errors.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'metrics-zero-height',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — sTypoAscender, sTypoDescender',
+					gist: 'A typo ascender of zero (or matching the typo descender) produces zero font height; rendering will collapse.',
+					score: 1.0
+				}
+			]
+		],
+
+		// Family 3 — Spacing & sidebearings (additional)
+		[
+			'overflows-advance',
+			[
+				{
+					citationId: 'opentype-spec:hmtx',
+					anchor: '§ Horizontal Metrics Table',
+					gist: 'Glyph extents that overflow the advance width cause collisions with the next character in tight settings.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'extends-above-ascender',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — usWinAscent',
+					gist: 'Glyphs extending above usWinAscent clip on Windows applications using legacy line-height metrics.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'extends-below-descender',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — usWinDescent',
+					gist: 'Glyphs extending below usWinDescent clip on Windows applications using legacy line-height metrics.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'sidebearing-deeply-negative-lsb',
+			[
+				{
+					citationId: 'opentype-spec:hmtx',
+					anchor: '§ leftSideBearing',
+					gist: 'Deeply negative LSB causes glyph collision with the previous character — usually a typo (extra minus sign or units mistake).',
+					score: 0.7
+				}
+			]
+		],
+		[
+			'sidebearing-deeply-negative-rsb',
+			[
+				{
+					citationId: 'opentype-spec:hmtx',
+					anchor: '§ advanceWidth + LSB',
+					gist: 'Deeply negative RSB (advance < right-edge) causes glyph collision with the next character — usually a units mistake.',
+					score: 0.7
+				}
+			]
+		],
+
+		// Family 4 — OpenType invariants (additional)
+		[
+			'kerning-no-classes',
+			[
+				{
+					citationId: 'opentype-cookbook:kerning',
+					anchor: '§ kerning classes',
+					gist: 'Hundreds of individual pair-positioning records that could be expressed as a few classes inflate the font binary and complicate maintenance.',
+					score: 0.7
+				}
+			]
+		],
+
+		// Family 5 — Naming + metadata (additional 12 codes)
+		[
+			'meta-no-copyright',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 0 (Copyright)',
+					gist: 'Copyright notice (nameID 0) is required for legal provenance and is parsed by font-managers + foundry tooling.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'meta-no-designer',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 9 (Designer)',
+					gist: 'Designer name (nameID 9) attributes the work; required for proper credit in font-pickers and foundry catalogues.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'meta-no-designer-url',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 12 (Designer URL)',
+					gist: 'Designer URL (nameID 12) lets font users follow back to the designer; missing means font-pickers cannot link out.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'meta-no-license',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 13 (License Description)',
+					gist: 'License description (nameID 13) is the legally-binding usage terms embedded in the binary; absence creates legal ambiguity.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'meta-no-license-url',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 14 (License URL)',
+					gist: 'License URL (nameID 14) points at the canonical license text; required for OFL and similar redistributable licenses.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'meta-no-manufacturer',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 8 (Manufacturer)',
+					gist: 'Manufacturer (nameID 8) identifies the foundry/organization; required for proper attribution in font-pickers.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'meta-version-format',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 5 (Version)',
+					gist: 'Version string format should be "Version x.yyy"; non-canonical formats break version comparison in downstream tooling.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'naming-copyright-missing',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 0',
+					gist: 'Copyright notice is required for legal provenance; missing copyright opens the font to claim-of-derivative confusion.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'naming-designer-missing',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 9',
+					gist: 'Designer attribution is required by most font licenses; missing it leaves the designer un-creditable in font-pickers.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'naming-license-missing',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — nameID 13',
+					gist: 'License terms in the binary are the legally-binding text; missing license leaves usage rights ambiguous.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'naming-family-chars',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — character restrictions',
+					gist: 'Family name characters are restricted for font-picker compatibility (no slashes, control characters, etc.).',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'naming-family-long',
+			[
+				{
+					citationId: 'opentype-spec:name',
+					anchor: '§ name table — length',
+					gist: 'Family names should be under 32 characters; longer names truncate in font-pickers and OS dialogs.',
+					score: 0.9
+				}
+			]
+		],
+		[
+			'glyph-name-empty',
+			[
+				{
+					citationId: 'opentype-spec:post',
+					anchor: '§ post table — glyph names',
+					gist: 'Empty glyph names are invalid; the post table requires every glyph to have a stable identifier.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'glyph-name-invalid',
+			[
+				{
+					citationId: 'opentype-spec:post',
+					anchor: '§ post table — glyph name character set',
+					gist: 'Glyph names must use only allowed characters (letters, digits, underscore, period); other characters cause parser failures.',
+					score: 1.0
+				}
+			]
+		],
+		[
+			'glyph-name-too-long',
+			[
+				{
+					citationId: 'opentype-spec:post',
+					anchor: '§ post table — length limits',
+					gist: 'Glyph names should be under 31 characters; longer names violate the PostScript identifier convention.',
+					score: 0.9
+				}
+			]
+		],
+
+		// Family 6 — Coverage (additional)
+		[
+			'control-glyphs-missing',
+			[
+				{
+					citationId: 'unicode-standard-16:basic-latin',
+					anchor: '§ C0 Controls (U+0000 - U+001F)',
+					gist: 'Control codepoints (CR, LF, tab) should have glyph entries (typically zero-advance or .notdef) for proper text handling.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'figures-non-tabular',
+			[
+				{
+					citationId: 'opentype-spec:os2',
+					anchor: '§ OS/2 — tabular figures',
+					gist: 'Tabular figures (digits with equal advance widths) enable column alignment in tables; missing tabular variant limits typography in numeric contexts.',
+					score: 0.8
+				}
+			]
+		],
+		[
+			'glyph-count-low',
+			[
+				{
+					citationId: 'opentype-spec:maxp',
+					anchor: '§ maxp — numGlyphs',
+					gist: 'A font with very few glyphs is suspicious — most production fonts cover at least Basic Latin (~95 glyphs).',
+					score: 0.7
+				}
+			]
+		],
+		[
+			'upm-unusual',
+			[
+				{
+					citationId: 'opentype-spec:head',
+					anchor: '§ head — unitsPerEm',
+					gist: 'UPM (units per em) values outside the conventional range (256, 512, 1000, 1024, 2048) cause sub-pixel rounding issues across rasterisers.',
+					score: 0.9
+				}
+			]
+		],
+
+		// Family 7 — Anchors (additional)
+		[
+			'anchors-missing',
+			[
+				{
+					citationId: 'opentype-spec:gpos',
+					anchor: '§ GPOS — mark positioning',
+					gist: 'Without GPOS anchors, marks (diacritics) cannot be precisely positioned over their base; renders fall back to advance-width spacing.',
+					score: 1.0
+				}
+			]
 		]
 	]);
 
