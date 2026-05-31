@@ -212,7 +212,7 @@ These are deferred per the variable-fonts research:
 
 ## Single-line summary
 
-**Patens entered this session at 94 audit codes / no citations / no foundry interop / no STAT. It exits at 101 audit codes (all firing) / 91 with canonical citations / Designspace v5 round-trip + UI wiring end-to-end / STAT type + editor panel — and a full 10-week launch playbook to Show HN Aug 4 + TypeCon Portland Aug 6–8.**
+**Patens entered this session at 94 audit codes / no citations / no foundry interop / no STAT. It exits at 102 audit codes (all firing) / 91 with canonical citations / Designspace v5 round-trip + UI wiring end-to-end / STAT type + editor panel — and a full 10-week launch playbook to Show HN Aug 4 + TypeCon Portland Aug 6–8.**
 
 ---
 

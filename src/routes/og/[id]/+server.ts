@@ -105,7 +105,7 @@ const draw = async (
 	} else if (variant === 'learn') {
 		eyebrow = 'Learn · Patens';
 		headline = 'Type design tutorials.';
-		metaLeftTop = 'Seven tutorials · 101-code reference';
+		metaLeftTop = 'Seven tutorials · 102-code reference';
 		metaLeftBottom = 'BEGINNER TO SHIPPING · OPEN SOURCE';
 		domain = 'patens.design/learn';
 	} else if (variant === 'compare') {
@@ -138,7 +138,7 @@ const draw = async (
 	} else {
 		eyebrow = 'A type editor with a method';
 		headline = 'Patens';
-		metaLeftTop = 'Browser-native · 101 rules, plain English';
+		metaLeftTop = 'Browser-native · 102 rules, plain English';
 		metaLeftBottom = 'OPEN SOURCE · MIT · PRIVATE ALPHA · 2026';
 		domain = 'patens.design';
 	}

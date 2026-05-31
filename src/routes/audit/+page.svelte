@@ -86,7 +86,7 @@
 		},
 		{
 			q: 'Does the audit run on every keystroke?',
-			a: 'No — it runs in a Web Worker with a debounced trigger after edits stop, so the typing path stays responsive. The worker maintains a monotonic seq guard that ignores stale responses if a newer edit lands while the previous audit pass was still running. The full 101-code pass over a 162-glyph project takes well under 100ms on modern hardware.'
+			a: 'No — it runs in a Web Worker with a debounced trigger after edits stop, so the typing path stays responsive. The worker maintains a monotonic seq guard that ignores stale responses if a newer edit lands while the previous audit pass was still running. The full 102-code pass over a 162-glyph project takes well under 100ms on modern hardware.'
 		},
 		{
 			q: 'How does Patens\'s audit differ from FontBakery or fontTools\'s checks?',
@@ -275,7 +275,7 @@
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
-		The same 101-code engine ships as a CLI. Drop it into your CI as a font-design lint step, or batch-audit a directory of project files before a foundry release.
+		The same 102-code engine ships as a CLI. Drop it into your CI as a font-design lint step, or batch-audit a directory of project files before a foundry release.
 	</p>
 
 	<pre class="mb-6 overflow-x-auto rounded-none border border-border bg-surface-2/40 p-4 font-mono text-[12px] leading-relaxed text-fg"><code><span class="text-fg-subtle"># Audit a single project</span>

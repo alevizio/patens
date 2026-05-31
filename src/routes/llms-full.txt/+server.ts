@@ -27,7 +27,7 @@ const ABOUT = `# About Patens
 
 Patens is a type design tool that teaches as you draw. The
 differentiator from FontLab, Glyphs, RoboFont, Fontra, Glyphr Studio,
-and the rest of the type-editor landscape is a built-in 101-code audit
+and the rest of the type-editor landscape is a built-in 102-code audit
 module that runs continuously alongside the editor — every contour,
 every metric, every kern pair gets checked against the rules type
 designers internalize through years of mentorship. Every code includes
@@ -66,7 +66,7 @@ Built and maintained by Alejandro Vizio. Contact: hi@patens.design,
 const POSITIONING = `# Patens vs other type editors
 
 Patens is differentiated by being the only browser-native type editor
-designed as a teaching tool. The 101-code audit module + five teaching
+designed as a teaching tool. The 102-code audit module + five teaching
 surfaces (edit panel, audit page, release pre-flight, family hub, home
 page) is its unique angle. Patens is not a FontLab or Glyphs
 replacement — those tools are deeper, faster, and built for
@@ -110,7 +110,7 @@ const CAPABILITIES = `# Capabilities
 - **Color fonts**: COLR v0/v1 + CPAL palettes; live color-plan rendering.
 - **Anchors + composites**: GPOS mark-positioning rig with top / _top
   anchor convention; component composites with offset resolution.
-- **101-code audit module**: contour shape, vertical metrics, OpenType
+- **102-code audit module**: contour shape, vertical metrics, OpenType
   invariants, brief completeness, multi-script coverage, kerning
   hygiene; one-click fixes for fixable codes; "Fix all" per-group
   action; AI explanation (Claude-powered, opt-in via your API key).

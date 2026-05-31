@@ -562,7 +562,7 @@ reads daily.
 > - **Solo-maintained, MIT, no VC.** The whole stack is in the browser
 >   (OPFS for font files, no upload step, no telemetry). Privacy is
 >   architectural, not policy.
-> - **Audit-as-pedagogy.** 101 rules, every one with a plain-English
+> - **Audit-as-pedagogy.** 102 rules, every one with a plain-English
 >   explanation. The "why" is the product.
 > - **Public launch is at TypeCon Portland (Aug 6–8).** I'll be there.
 >   Happy to do a hands-on demo.

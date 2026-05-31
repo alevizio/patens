@@ -238,11 +238,11 @@
 		content="Every audit code Patens emits, grouped by family, with a plain-language explanation."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<meta name="twitter:title" content="Patens audit codes — reference" />
 	<meta name="twitter:description" content="Every audit code with a plain-language explanation." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

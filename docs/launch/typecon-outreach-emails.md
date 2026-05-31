@@ -42,7 +42,7 @@ the conference, or coffee Wednesday morning before the program starts.
 
 Quick links if you want context:
 - patens.design — the marketing surface (long-scroll editorial)
-- patens.design/audit — the 101-code module
+- patens.design/audit — the 102-code module
 - patens.design/compare — vs FontLab, Glyphs, Fontra, Glyphr Studio,
   typlr, BirdFont, FontForge, Lipi, Fontish
 
@@ -110,7 +110,7 @@ Hi Lizy + Travis,
 
 Quick note before TypeCon Portland — I'm launching Patens, a browser-
 native open-source type editor (MIT, no install, no account). The
-audit-as-pedagogy framing (101 rules with plain-English explanations,
+audit-as-pedagogy framing (102 rules with plain-English explanations,
 ~30 with one-click fixes) is what makes it different from Fontra +
 Glyphr Studio + the rest of the browser-tier tools.
 

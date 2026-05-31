@@ -11,7 +11,7 @@ Drop-in copy for the FUTO microgrant form. Short by design — FUTO rewards smal
 
 ## Pitch (≈250 words)
 
-Patens is a browser-native, MIT-licensed type design editor. Every project lives in the browser's IndexedDB on the user's own machine; nothing leaves unless the user explicitly chooses to export an OTF. There is no telemetry. No analytics SDK. No tracking cookies. No account is required to open the app, draw a glyph, run the 101-code audit module, or ship an OpenType file.
+Patens is a browser-native, MIT-licensed type design editor. Every project lives in the browser's IndexedDB on the user's own machine; nothing leaves unless the user explicitly chooses to export an OTF. There is no telemetry. No analytics SDK. No tracking cookies. No account is required to open the app, draw a glyph, run the 102-code audit module, or ship an OpenType file.
 
 It exists because the working tools of type design are gated. FontLab is $499 with an Autodesk-style annual subscription model. Glyphs is $300, macOS-only, with paid major upgrades. RoboFont is $400, macOS-only. A design student on a Chromebook, a Linux desktop, or a hand-me-down Windows laptop has no path into the craft today. Patens runs in any modern browser and will never paywall. That commitment is written into `DESIGN_PHILOSOPHY.md` in the repo, not just on a marketing page.
 
@@ -46,7 +46,7 @@ The rounding is honest: about five thousand dollars, mostly the month of focused
 
 ## Maintainer
 
-**Alejandro Vizio** — solo maintainer, product designer who programs. Patens is the whole show: the repo, the marketing surface, the 101-code audit module, the OG card renderer, the test suite (722 unit + 66 e2e + axe-core a11y across 31 routes), the CLI, and the launch plan are all one person's work, by intention.
+**Alejandro Vizio** — solo maintainer, product designer who programs. Patens is the whole show: the repo, the marketing surface, the 102-code audit module, the OG card renderer, the test suite (722 unit + 66 e2e + axe-core a11y across 31 routes), the CLI, and the launch plan are all one person's work, by intention.
 
 Currently building Patens toward the public launch at **TypeCon Portland, August 6–8, 2026**.
 
@@ -64,7 +64,7 @@ Currently building Patens toward the public launch at **TypeCon Portland, August
 - **License:** [MIT](https://github.com/alevizio/patens/blob/main/LICENSE)
 - **Changelog:** [patens.design/changelog](https://patens.design/changelog) · [RSS](https://patens.design/changelog/rss.xml)
 - **Security policy:** [`SECURITY.md`](https://github.com/alevizio/patens/blob/main/SECURITY.md) — disclosure to `security@patens.design`
-- **The 101-code audit module:** [patens.design/audit](https://patens.design/audit)
+- **The 102-code audit module:** [patens.design/audit](https://patens.design/audit)
 - **Comparison vs the proprietary field:** [patens.design/compare](https://patens.design/compare)
 
 ---

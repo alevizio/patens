@@ -162,7 +162,7 @@
 				</a>
 			</nav>
 			<span class="font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
-				MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '101 rules, plain English'} &nbsp;·&nbsp; 2026
+				MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '102 rules, plain English'} &nbsp;·&nbsp; 2026
 			</span>
 		</div>
 	</div>

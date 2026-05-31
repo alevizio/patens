@@ -35,7 +35,7 @@ This file is paste-ready for either portal. Lead with the **research framing** (
 
 ### Short (50 words)
 
-Patens is the first browser-native MIT type editor with a 101-code audit module that uses AI to *deepen* type-design discipline rather than bypass it. We are publishing the first empirical study of vision-model agreement with deterministic type-design audit across the full code set. Launches at TypeCon Portland, August 2026.
+Patens is the first browser-native MIT type editor with a 102-code audit module that uses AI to *deepen* type-design discipline rather than bypass it. We are publishing the first empirical study of vision-model agreement with deterministic type-design audit across the full code set. Launches at TypeCon Portland, August 2026.
 
 ### Medium (150 words)
 
@@ -47,7 +47,7 @@ Anthropic credits would fund (a) the published vision-audit kappa-numbers experi
 
 ### Long (300 words) — research-led
 
-Patens is the first browser-native type editor with a 101-code audit module that uses AI to *deepen* type-design discipline rather than bypass it. Our research has classified all 101 codes against AI augmentation: **75 are algorithm-only, 11 are vision-augmented, 1 is vision-primary, 3 are LLM-augmented** (see `docs/research/ai-audit-mapping.md` §1). We are publishing the first empirical study of vision-model agreement vs deterministic geometric audit across the full code set — methodology fully specified in our research docs (`ai-audit-mapping.md` §3, "Methodology for empirical measurement").
+Patens is the first browser-native type editor with a 102-code audit module that uses AI to *deepen* type-design discipline rather than bypass it. Our research has classified all 101 codes against AI augmentation: **75 are algorithm-only, 11 are vision-augmented, 1 is vision-primary, 3 are LLM-augmented** (see `docs/research/ai-audit-mapping.md` §1). We are publishing the first empirical study of vision-model agreement vs deterministic geometric audit across the full code set — methodology fully specified in our research docs (`ai-audit-mapping.md` §3, "Methodology for empirical measurement").
 
 The wedge is **audit-as-pedagogy**. Every existing AI tool in the type-design market (Lipi, Fontish) *bypasses* the discipline by generating fonts. Patens does the inverse: the deterministic audit fires, Claude provides a second layer (historical citation, perceptual confirmation, multi-script grounding, brief coherence, adversarial review), and the designer reads both and makes the call. We stay on the designer's side of the canvas.
 
@@ -66,7 +66,7 @@ This is the load-bearing section for the **research credits** track. Audit-as-te
 
 ### Four research claims, each grounded in a real document
 
-**Claim 1 — The 101-code audit module is the first systematic dictionary of type-design rules with stable IDs and plain-English explanations.**
+**Claim 1 — The 102-code audit module is the first systematic dictionary of type-design rules with stable IDs and plain-English explanations.**
 
 The Patens audit catalogue (`src/lib/font/audit-catalogue.ts` in the repo, surfaced at [patens.design/audit](https://patens.design/audit)) gives every type-design rule a stable code, a plain-English summary, and a teaching-prose explanation of *why* the rule exists. No prior tool has done this: Font Bakery and Fontspector are deterministic linters with internal check-IDs but no pedagogical layer. The Patens dictionary is *itself* a research artifact — citable, versionable, and the input substrate for everything downstream.
 
@@ -76,7 +76,7 @@ The Patens audit catalogue (`src/lib/font/audit-catalogue.ts` in the repo, surfa
 
 **Claim 3 — The citation engine is the first RAG-based type-design pedagogy system grounded in primary sources.**
 
-`docs/research/canonical-library.md` §4 lists the 10-source open-licensed starter corpus: OpenType Specification 1.9.1, Apple TrueType Reference Manual, Adobe Glyph List + AGLFN, Adobe FEA File Specification, UFO 3 specification, Unicode Standard 16.0, Spiekermann's *Stop Stealing Sheep* (CC-licensed PDF), Tal Leming's *OpenType Cookbook*, Klim Type Foundry's "Design Information" essays (with archive.org snapshots per §3.5), and Knuth's 1979 "Mathematical Typography" + "Metafont" papers. Together they cover all 9 audit families. The retrieval target is the 101-code audit dictionary; the citation is the output. No existing tool does this — type-design literature has been transmitted orally and through apprenticeship (`canonical-library.md` Preamble); the citation engine is the first attempt to surface that tacit-craft knowledge as explicit, citeable signal at the moment of error.
+`docs/research/canonical-library.md` §4 lists the 10-source open-licensed starter corpus: OpenType Specification 1.9.1, Apple TrueType Reference Manual, Adobe Glyph List + AGLFN, Adobe FEA File Specification, UFO 3 specification, Unicode Standard 16.0, Spiekermann's *Stop Stealing Sheep* (CC-licensed PDF), Tal Leming's *OpenType Cookbook*, Klim Type Foundry's "Design Information" essays (with archive.org snapshots per §3.5), and Knuth's 1979 "Mathematical Typography" + "Metafont" papers. Together they cover all 9 audit families. The retrieval target is the 102-code audit dictionary; the citation is the output. No existing tool does this — type-design literature has been transmitted orally and through apprenticeship (`canonical-library.md` Preamble); the citation engine is the first attempt to surface that tacit-craft knowledge as explicit, citeable signal at the moment of error.
 
 **Claim 4 — The multi-script grounding work addresses documented colonialist bias in LLMs when extending Latin typefaces to non-Latin scripts.**
 
@@ -128,7 +128,7 @@ Research credits fund the empirical work that makes Patens publishable, not just
 Per `ai-audit-mapping.md` §3 methodology (§3.1 sample selection, §3.2 model selection, §3.3 prompt engineering, §3.4 gold-standard labelling, §3.5 statistical methodology, §3.6 cost estimation). Budget: ~$100 for the exploratory weekend run (maintainer-only labelling, Tier C novice fonts), **$300 for publishable rigor** with the 1-external-designer panel and the full 3-tier sample. Output: per-code kappa numbers with 80% bootstrap CIs, stratified text-face vs display-face, multiple-comparison-corrected.
 
 **Experiment 2 — Citation-engine RAG over the 10-source open corpus.**
-Per `canonical-library.md` §4 sprint plan (4–6 weeks of solo work). Budget: API costs for retrieval QA + generation evaluation across the ingestion pipeline. Estimated **$500–$1,500** depending on how many retrieval evaluation runs we do per audit code. Output: an open-source matcher (101 audit codes → 1–3 best citations each) live at [patens.design/audit](https://patens.design/audit).
+Per `canonical-library.md` §4 sprint plan (4–6 weeks of solo work). Budget: API costs for retrieval QA + generation evaluation across the ingestion pipeline. Estimated **$500–$1,500** depending on how many retrieval evaluation runs we do per audit code. Output: an open-source matcher (102 audit codes → 1–3 best citations each) live at [patens.design/audit](https://patens.design/audit).
 
 **Experiment 3 — Multi-script grounding evaluation.**
 Per `multi-script-canon.md` §1 (Cyrillic) + §2 (Greek) + §3 (Arabic). Budget: cost of comparing prompt-grounded vs unground baseline LLM suggestions across a 30-glyph extension test set per script, scored against the native-tradition design pitfalls catalogued in each section's "Common pitfalls when adapting Latin designs." Estimated **$1,000–$3,000** for a publishable cross-script comparison. Output: a measurable demonstration that prompt-grounding reduces the colonialist-default failure rate.
@@ -151,7 +151,7 @@ $25K research credits funds Experiment 1 at publishable rigor, Experiments 2 and
 - **MIT-licensed, open-source, public repo.** Everything is auditable: code, research docs, audit catalogue, marketing surface, citation index. No black-box claims.
 - **722 tests, 66 Playwright + axe-core e2e tests across 31 routes, OpenSSF Scorecard badge, CodeQL SAST in CI.** Engineering rigor matches the research rigor; the project is built to be inspected.
 - **Solo-maintained.** Credits go directly to product work and research artifacts — there is no marketing or sales layer to fund.
-- **Pedagogical positioning is core to the brand, not bolted on.** The 101-code audit is the spine of the editor — five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) all flow through a single `describeAuditCode()` dictionary. There is no "AI mode" — Claude is the second layer on top of an existing pedagogical substrate.
+- **Pedagogical positioning is core to the brand, not bolted on.** The 102-code audit is the spine of the editor — five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) all flow through a single `describeAuditCode()` dictionary. There is no "AI mode" — Claude is the second layer on top of an existing pedagogical substrate.
 - **We are publishing the research as part of the work.** `docs/research/` already contains four draft documents (canonical library, AI-audit mapping, multi-script canon, AI features roadmap). The grant funds completing the experiments and writing the papers; the foundations are already there.
 - **Anthropic gets a high-visibility example of Claude used for measurable craft pedagogy** — not a generic LLM-wrap. Type design is a 500-year-old discipline with a literate, opinionated community; landing well here means landing in a space that prizes rigor.
 

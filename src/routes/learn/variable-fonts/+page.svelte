@@ -69,7 +69,7 @@
 		{
 			n: 11,
 			title: 'Pre-launch audit codes for variable fonts',
-			body: 'Patens\'s 101-code audit module now includes three checks tuned specifically for variable-font hygiene. axis-range-extreme (info) flags axes whose range exceeds the conventional comfort zone (wght > 800, wdth > 100, opsz > 50pt, slnt > 30°) — extreme masters often need an intermediate to anchor the interpolation. master-too-close (warn) flags masters within 5% of each other in designspace — either redundant or a deliberately tight intermediate pair. stat-missing (warn) flags variable fonts with axes but no familyAxes set, which means STAT generation at export-time uses defaults that Windows can misinterpret. Each check fires deterministically and links to its primary literature on /audit/[code].',
+			body: 'Patens\'s 102-code audit module now includes three checks tuned specifically for variable-font hygiene. axis-range-extreme (info) flags axes whose range exceeds the conventional comfort zone (wght > 800, wdth > 100, opsz > 50pt, slnt > 30°) — extreme masters often need an intermediate to anchor the interpolation. master-too-close (warn) flags masters within 5% of each other in designspace — either redundant or a deliberately tight intermediate pair. stat-missing (warn) flags variable fonts with axes but no familyAxes set, which means STAT generation at export-time uses defaults that Windows can misinterpret. Each check fires deterministically and links to its primary literature on /audit/[code].',
 			hint: 'Full audit reference at /audit. The variable-font codes live in the Designspace axes + Designspace & masters + Variable-font compatibility categories.'
 		}
 	];
@@ -125,11 +125,11 @@
 		content="11-step walkthrough — axes, masters, instances, the 2D explorer, export."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<meta name="twitter:title" content="How to design a variable font in the browser" />
 	<meta name="twitter:description" content="11-step Patens guide to variable fonts." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

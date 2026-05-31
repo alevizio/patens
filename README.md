@@ -1,6 +1,6 @@
 # Patens
 
-> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 101-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
+> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 102-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
 
 [**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
 
@@ -76,7 +76,7 @@ pnpm profile      # cold-load CDP trace (any URL)
 
 Audit a `.font.json` project without opening the editor — useful for
 CI, foundries lint-checking client deliverables, or scripted batch
-work. The CLI is a thin shell around the same 101-code audit module
+work. The CLI is a thin shell around the same 102-code audit module
 the editor uses, packaged for Node 22+.
 
 ```sh

@@ -483,7 +483,7 @@
 	<meta property="og:title" content="Patens vs FontLab, Glyphs, Fontra — feature comparison" />
 	<meta
 		property="og:description"
-		content="Browser-native, open-source type editor with a 101-code audit. Compare against FontLab, Glyphs, RoboFont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge."
+		content="Browser-native, open-source type editor with a 102-code audit. Compare against FontLab, Glyphs, RoboFont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge."
 	/>
 	<meta property="og:image" content="https://patens.design/og/compare" />
 	<meta property="og:image:alt" content="Patens — Patens vs FontLab, Glyphs, Fontra, Glyphr, typlr · free MIT, browser-native" />

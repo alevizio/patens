@@ -34,7 +34,7 @@ Show HN: I built a type editor that explains itself while you draw
 
 ## Post body (paste into the URL+text field; ~210 words)
 
-I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) built around a 101-code audit module that teaches as you draw.
+I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) built around a 102-code audit module that teaches as you draw.
 
 The audit covers contour shape, vertical metrics, sidebearing class drift, OpenType invariants, naming, coverage, anchors, variable masters, and color/brief checks. Each code carries the kind of plain-English explanation type designers usually get from years of mentorship; about 30 ship a one-click fix. Same engine is also a CLI — `npx patens audit your-project.font.json` for CI.
 

@@ -85,7 +85,7 @@ Companion arc to the second OSS-readiness pass logged in
   expandKerningClasses. 500-glyph export budgets at 126ms; the
   large kerning-class scenario expands ~360k pairs in 19ms.
 - `94ec8f6` CLI distribution path — `npx patens audit` runs the
-  full 101-code audit + preflight against any `.font.json` from
+  full 102-code audit + preflight against any `.font.json` from
   any terminal, with text / json / github-workflow output modes.
   Closes the "audit module is locked inside the editor" critique.
 

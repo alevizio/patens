@@ -117,11 +117,11 @@
 		content="A 10-step walkthrough from opening the demo project to exporting an OpenType file."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<meta name="twitter:title" content="Make your first font in the browser" />
 	<meta name="twitter:description" content="10-step Patens tutorial from sketch to OTF." />
 	<meta name="twitter:image" content="https://patens.design/og/brand" />
-	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 101-code audit module" />
+	<meta name="twitter:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->

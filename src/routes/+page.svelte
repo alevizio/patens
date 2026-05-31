@@ -133,7 +133,7 @@
 		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT', false, false] },
 		{ label: 'Runs in the browser', values: [true, false, false, true, false, true, true, true] },
 		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false, false, false] },
-		{ label: '101-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
+		{ label: '102-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
 		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false, 'partial', 'partial'] },
 		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false, false, false] }
 	];
@@ -143,13 +143,13 @@
 	<title>Patens (2026) — a type editor with a method</title>
 	<meta
 		name="description"
-		content="Patens is a type editor with 101 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
+		content="Patens is a type editor with 102 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
+		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -159,7 +159,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the "Type," line set
@@ -262,7 +262,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 101-code teaching audit module.',
+					'Open-source browser-native type design tool with a 102-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -439,7 +439,7 @@
 					Every glyph gets a margin reading.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					Patens runs all 101 rules continuously. When a contour crosses itself, when an
+					Patens runs all 102 rules continuously. When a contour crosses itself, when an
 					x-height drifts, when a sidebearing wanders from its class — the audit notes it
 					in plain English, beside the glyph, while you draw. Around 30 codes also offer a
 					one-click fix; the rest are matters of judgment.
@@ -769,7 +769,7 @@
 		<section class="mb-32 border-t border-border/40 pt-16">
 			<div class="mb-10 max-w-3xl">
 				<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
-					What the audit checks · 9 families, 101 rules
+					What the audit checks · 9 families, 102 rules
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg"

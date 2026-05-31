@@ -53,7 +53,7 @@ Solo-maintained by Alejandro Vizio. Currently in private alpha by invitation; pu
 
 No other browser-based type editor positions itself around **audit-as-pedagogy**. The comparison table at [patens.design/compare](https://patens.design/compare) walks through 26 distinguishing features across 11 tools (FontLab, Glyphs, Fontra, RoboFont, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish). Three rows are unique to Patens:
 
-1. **101-code teaching audit module** with plain-English explanations
+1. **102-code teaching audit module** with plain-English explanations
 2. **One-click "Fix" actions** on around 30 of those codes
 3. **Plain-English explanations** for every issue surfaced
 

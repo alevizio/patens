@@ -30,7 +30,7 @@ the foundational stack.)
   - Lucide icons — lucide.dev
   - Vercel — vercel.com
   - The type-design teachers whose whiteboard sketches encoded into
-    the 101-code audit module.
+    the 102-code audit module.
 
 /* SITE */
 Last update: 2026-05-25

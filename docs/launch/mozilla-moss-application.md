@@ -151,7 +151,7 @@ Contact: `hi@patens.design` · [github.com/alevizio](https://github.com/alevizio
 ## Links to send the reviewer
 
 - **Marketing surface (long-scroll editorial):** [patens.design](https://patens.design)
-- **The Method (the 101 audit codes by family):** [patens.design/audit](https://patens.design/audit)
+- **The Method (the 102 audit codes by family):** [patens.design/audit](https://patens.design/audit)
 - **Comparison vs the field:** [patens.design/compare](https://patens.design/compare) — 11 tools × 26 features
 - **About + tech stack:** [patens.design/about](https://patens.design/about)
 - **Repo:** [github.com/alevizio/patens](https://github.com/alevizio/patens)
