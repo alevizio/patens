@@ -460,7 +460,7 @@
 	</a>
 
 	<header class="mb-8 flex items-start gap-3">
-		<div class="mt-1 flex size-9 items-center justify-center rounded-md bg-accent-soft text-accent-strong">
+		<div class="mt-1 flex size-9 items-center justify-center rounded-none bg-accent-soft text-accent-strong">
 			<Layers class="size-4" />
 		</div>
 		<div class="flex-1">
@@ -544,7 +544,7 @@
 				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Axes</div>
 				<div class="flex flex-wrap items-center gap-1 pt-1.5">
 					{#each designspaceSummary.axisTags as tag (tag)}
-						<span class="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg">
+						<span class="rounded-none bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg">
 							{tag}
 						</span>
 					{:else}
@@ -556,7 +556,7 @@
 				<div class="text-[10px] uppercase tracking-wider text-fg-subtle">Master names</div>
 				<div class="flex flex-wrap items-center gap-1 pt-1.5">
 					{#each designspaceSummary.masterNames as name (name)}
-						<span class="rounded bg-accent-soft/30 px-1.5 py-0.5 text-[11px] text-accent-strong">
+						<span class="rounded-none bg-accent-soft/30 px-1.5 py-0.5 text-[11px] text-accent-strong">
 							{name}
 						</span>
 					{:else}
@@ -625,7 +625,7 @@
 									<button
 										type="button"
 										onclick={() => deleteFamilyKern(idx)}
-										class="inline-flex size-6 items-center justify-center rounded text-fg-subtle hover:bg-danger-soft hover:text-danger"
+										class="inline-flex size-6 items-center justify-center rounded-none text-fg-subtle hover:bg-danger-soft hover:text-danger"
 										aria-label="Remove pair"
 										title="Remove this family pair"
 									>
@@ -638,7 +638,7 @@
 				</table>
 			</div>
 		{:else}
-			<p class="mb-3 rounded-md border border-dashed border-border bg-surface-2/30 px-3 py-4 text-center text-[12px] text-fg-subtle">
+			<p class="mb-3 rounded-none border border-dashed border-border bg-surface-2/30 px-3 py-4 text-center text-[12px] text-fg-subtle">
 				No family-wide pairs yet. Add one below — it'll apply to every sibling at export.
 			</p>
 		{/if}
@@ -763,7 +763,7 @@
 									     glance. Names are capped at three by the indexer
 									     so the chip stays readable for large families. -->
 									<span
-										class="inline-flex items-center gap-1 rounded bg-accent-soft/30 px-1.5 text-accent-strong"
+										class="inline-flex items-center gap-1 rounded-none bg-accent-soft/30 px-1.5 text-accent-strong"
 										title="Variable-font masters in this sibling — {s.masterNames?.join(', ') ?? ''}"
 									>
 										+{s.masterCount} master{s.masterCount === 1 ? '' : 's'}
@@ -792,7 +792,7 @@
 									{#if a.error === 0 && a.warn === 0}
 										<a
 											href="/project/{s.id}/audit"
-											class="inline-flex items-center gap-0.5 rounded bg-success/10 px-1.5 py-0 text-success-strong"
+											class="inline-flex items-center gap-0.5 rounded-none bg-success/10 px-1.5 py-0 text-success-strong"
 											title="All audit checks pass for this sibling"
 										>
 											✓ clean
@@ -817,7 +817,7 @@
 						<button
 							type="button"
 							onclick={() => handleUnlinkSibling(s.id)}
-							class="rounded p-1 text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong"
+							class="rounded-none p-1 text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong"
 							aria-label="Unlink from family"
 							title="Unlink from family"
 						>
@@ -854,7 +854,7 @@
 			<ul class="grid gap-1">
 				{#each issues.slice(0, 20) as i, idx (idx)}
 					<li
-						class="flex items-start gap-2 rounded-md border border-border bg-surface-2/40 px-3 py-2"
+						class="flex items-start gap-2 rounded-none border border-border bg-surface-2/40 px-3 py-2"
 					>
 						<span class="mt-0.5">
 							{#if i.severity === 'error'}
@@ -873,7 +873,7 @@
 							<button
 								type="button"
 								onclick={() => handleFixIssue(i)}
-								class="rounded border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
+								class="rounded-none border border-accent/40 bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:border-accent hover:bg-accent/15"
 								title="Sync the offending field from the Regular sibling"
 							>
 								{fixLabel(i.code)}
@@ -882,7 +882,7 @@
 						{#if i.siblingId}
 							<a
 								href="/project/{i.siblingId}/edit"
-								class="rounded border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
+								class="rounded-none border border-border bg-surface px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:border-accent hover:text-accent"
 							>
 								Open →
 							</a>
@@ -964,7 +964,7 @@
 						<button
 							type="button"
 							onclick={() => (compareText = preset)}
-							class="rounded border border-border bg-surface px-1.5 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
+							class="rounded-none border border-border bg-surface px-1.5 py-0.5 text-fg-muted hover:border-accent hover:text-accent"
 							title="Replace text with this proof string"
 						>
 							{preset.length > 24 ? preset.slice(0, 24) + '…' : preset}
@@ -975,7 +975,7 @@
 					<input
 						bind:value={compareText}
 						placeholder="Hamburgefonstiv"
-						class="w-full rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+						class="w-full rounded-none border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					/>
 					<label class="flex items-center gap-2 text-[11px] text-fg-muted">
 						<span>Size</span>
@@ -990,7 +990,7 @@
 						<span class="w-10 text-right font-mono text-[10px]" data-numeric>{compareSize}px</span>
 					</label>
 				</div>
-				<div class="grid gap-3 rounded-md border border-border bg-canvas p-4">
+				<div class="grid gap-3 rounded-none border border-border bg-canvas p-4">
 					{#each siblings as s (s.id)}
 						{@const family = siblingFonts.get(s.id)}
 						<div>
@@ -1025,11 +1025,11 @@
 			class structure, and anchors; resets all glyph contours to empty so you draw the new
 			style fresh.
 		</p>
-		<div class="mb-3 inline-flex rounded-md border border-border bg-surface p-0.5">
+		<div class="mb-3 inline-flex rounded-none border border-border bg-surface p-0.5">
 			<button
 				type="button"
 				onclick={() => (newSlantMode = 'blank')}
-				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'blank'
+				class="rounded-none px-2 py-0.5 text-[11px] {newSlantMode === 'blank'
 					? 'bg-accent-soft text-accent-strong'
 					: 'text-fg-muted hover:text-fg'}"
 				title="Start from empty glyph contours"
@@ -1039,7 +1039,7 @@
 			<button
 				type="button"
 				onclick={() => (newSlantMode = 'slant')}
-				class="rounded px-2 py-0.5 text-[11px] {newSlantMode === 'slant'
+				class="rounded-none px-2 py-0.5 text-[11px] {newSlantMode === 'slant'
 					? 'bg-accent-soft text-accent-strong'
 					: 'text-fg-muted hover:text-fg'}"
 				title="Pre-fill outlines by slanting the template — useful for italic siblings"
@@ -1048,7 +1048,7 @@
 			</button>
 		</div>
 		{#if newSlantMode === 'slant'}
-			<div class="mb-3 rounded-md border border-dashed border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px]">
+			<div class="mb-3 rounded-none border border-dashed border-accent/30 bg-accent-soft/30 px-3 py-2 text-[12px]">
 				<label class="flex items-center gap-2">
 					<span class="font-medium text-fg-muted">Slant angle</span>
 					<input
@@ -1073,28 +1073,28 @@
 			<button
 				type="button"
 				onclick={presetItalic}
-				class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				class="rounded-none border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
 			>
 				Italic
 			</button>
 			<button
 				type="button"
 				onclick={presetBold}
-				class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				class="rounded-none border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
 			>
 				Bold
 			</button>
 			<button
 				type="button"
 				onclick={presetBoldItalic}
-				class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				class="rounded-none border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
 			>
 				Bold Italic
 			</button>
 			<button
 				type="button"
 				onclick={presetLight}
-				class="rounded-md border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
+				class="rounded-none border border-border bg-surface-2 px-2.5 py-1 text-[11px] font-medium hover:border-accent hover:text-accent"
 			>
 				Light
 			</button>
@@ -1105,7 +1105,7 @@
 				<Field label="Template (clone from)">
 					<select
 						bind:value={templateId}
-						class="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+						class="w-full rounded-none border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
 					>
 						{#each siblings as s (s.id)}
 							<option value={s.id}>{s.name}</option>
@@ -1130,7 +1130,7 @@
 				<Field label="ital">
 					<select
 						bind:value={newItal}
-						class="w-full rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
+						class="w-full rounded-none border border-border bg-surface px-2 py-1.5 text-[12px] text-fg outline-none focus:border-accent"
 					>
 						<option value={0}>0 — upright</option>
 						<option value={1}>1 — italic</option>
