@@ -889,7 +889,7 @@
 					data-numeric
 					title="Glyphs edited today across all projects"
 				>
-					<span class="size-1 self-center rounded-full bg-accent"></span>
+					<span class="size-1 self-center rounded-none bg-accent"></span>
 					{todayTotals.editedToday} today
 				</span>
 			{/if}
@@ -959,7 +959,7 @@
 			<a
 				href="/es"
 				hreflang="es"
-				class="inline-flex h-7 items-center justify-center rounded px-1.5 text-[11px] font-medium tracking-wide text-fg-muted transition-colors hover:text-fg"
+				class="inline-flex h-7 items-center justify-center rounded-none px-1.5 text-[11px] font-medium tracking-wide text-fg-muted transition-colors hover:text-fg"
 				aria-label="Leer en español"
 				title="Leer en español"
 			>
@@ -1062,7 +1062,7 @@
 			<button
 				type="button"
 				onclick={() => (createDialogOpen = true)}
-				class="inline-flex items-center gap-2 rounded-md bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+				class="inline-flex items-center gap-2 rounded-none bg-fg px-4 py-2.5 text-[13px] font-medium text-canvas transition-colors hover:bg-accent-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
 			>
 				<Plus class="size-4" />
 				Start a new font
@@ -1169,7 +1169,7 @@
 					depending on fill-rule (even-odd vs non-zero).
 				</p>
 				<div class="mt-auto">
-					<span class="inline-flex items-baseline gap-1.5 rounded bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong">
+					<span class="inline-flex items-baseline gap-1.5 rounded-none bg-accent-soft px-2 py-1 text-[11px] font-medium text-accent-strong">
 						<span aria-hidden="true">✓</span>
 						One-click Fix
 					</span>
@@ -1292,12 +1292,12 @@
 						bind:this={searchEl}
 						bind:value={projectQuery}
 						placeholder="Filter by name or family… (/)"
-						class="min-w-[160px] flex-1 rounded-md border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
+						class="min-w-[160px] flex-1 rounded-none border border-border bg-surface px-3 py-1.5 text-[13px] text-fg outline-none focus:border-accent focus:ring-2 focus:ring-accent-soft"
 					/>
 					<button
 						type="button"
 						onclick={() => (onlyToday = !onlyToday)}
-						class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {onlyToday
+						class="rounded-none border px-2 py-1.5 text-[12px] font-medium transition-colors {onlyToday
 							? 'border-accent bg-accent-soft text-accent-strong'
 							: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
 					>
@@ -1307,7 +1307,7 @@
 						<button
 							type="button"
 							onclick={() => (showArchived = !showArchived)}
-							class="rounded-md border px-2 py-1.5 text-[12px] font-medium transition-colors {showArchived
+							class="rounded-none border px-2 py-1.5 text-[12px] font-medium transition-colors {showArchived
 								? 'border-accent bg-accent-soft text-accent-strong'
 								: 'border-border bg-surface text-fg-muted hover:border-border-strong'}"
 							title={showArchived ? 'Hide archived projects' : 'Show archived projects'}
@@ -1319,7 +1319,7 @@
 							<button
 								type="button"
 								onclick={handleDeleteAllArchived}
-								class="rounded-md border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger-strong hover:border-danger hover:bg-danger/15"
+								class="rounded-none border border-danger/40 bg-danger/10 px-2 py-1.5 text-[11px] font-medium text-danger-strong hover:border-danger hover:bg-danger/15"
 								title="Permanently delete every archived project"
 							>
 								Delete {archivedCount} archived…
@@ -1328,7 +1328,7 @@
 					{/if}
 					<select
 						bind:value={projectSort}
-						class="rounded-md border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted outline-none focus:border-accent"
+						class="rounded-none border border-border bg-surface px-2 py-1.5 text-[12px] text-fg-muted outline-none focus:border-accent"
 						title="Sort by"
 					>
 						<option value="updated">Recent</option>
@@ -1346,7 +1346,7 @@
 								activeTag = null;
 								projectSort = 'updated';
 							}}
-							class="rounded-md border border-border bg-surface px-2 py-1.5 text-[11px] font-medium text-fg-muted hover:border-danger hover:text-danger"
+							class="rounded-none border border-border bg-surface px-2 py-1.5 text-[11px] font-medium text-fg-muted hover:border-danger hover:text-danger"
 							title="Reset every filter and sort"
 						>
 							Reset
@@ -1362,7 +1362,7 @@
 							<button
 								type="button"
 								onclick={() => (activeTag = activeTag === t ? null : t)}
-								class="inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors {activeTag ===
+								class="inline-flex items-center gap-1 rounded-none border px-2 py-0.5 text-[11px] font-medium transition-colors {activeTag ===
 								t
 									? 'border-accent bg-accent text-accent-fg'
 									: 'border-border bg-surface text-fg-muted hover:border-accent hover:text-accent'}"
@@ -1392,20 +1392,20 @@
 				<ul class="grid gap-2" aria-busy="true" aria-label="Loading projects">
 					{#each [0, 1, 2, 3] as i (i)}
 						<li
-							class="flex items-center gap-3 rounded-lg border border-border bg-surface px-3 py-3 motion-safe:animate-[skel-shimmer_1.4s_ease-in-out_infinite]"
+							class="flex items-center gap-3 rounded-none border border-border bg-surface px-3 py-3 motion-safe:animate-[skel-shimmer_1.4s_ease-in-out_infinite]"
 							style="animation-delay: {i * 120}ms"
 						>
-							<div class="size-12 shrink-0 rounded-md bg-surface-2"></div>
+							<div class="size-12 shrink-0 rounded-none bg-surface-2"></div>
 							<div class="flex-1 space-y-1.5">
-								<div class="h-3 w-2/5 rounded bg-surface-2"></div>
-								<div class="h-2 w-3/5 rounded bg-surface-2/70"></div>
+								<div class="h-3 w-2/5 rounded-none bg-surface-2"></div>
+								<div class="h-2 w-3/5 rounded-none bg-surface-2/70"></div>
 							</div>
-							<div class="h-2 w-16 rounded bg-surface-2/60"></div>
+							<div class="h-2 w-16 rounded-none bg-surface-2/60"></div>
 						</li>
 					{/each}
 				</ul>
 			{:else if projects.length === 0}
-				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
+				<div class="rounded-none border border-dashed border-border-strong/50 bg-surface-2/50 p-10 text-center">
 					<pre
 						class="mx-auto mb-3 inline-block whitespace-pre text-left font-mono text-[10px] leading-[1.15] text-fg-subtle"
 						aria-hidden="true">{`     ╱ ╲
@@ -1428,7 +1428,7 @@
 					</p>
 				</div>
 			{:else if filteredProjects.length === 0}
-				<div class="rounded-lg border border-dashed border-border-strong/50 bg-surface-2/50 p-6 text-center text-[12px] text-fg-muted">
+				<div class="rounded-none border border-dashed border-border-strong/50 bg-surface-2/50 p-6 text-center text-[12px] text-fg-muted">
 					No projects match "{projectQuery}".
 				</div>
 			{:else}
@@ -1483,7 +1483,7 @@
 										{/if}
 										{#if (p.briefPct ?? 0) > 0}
 											<span
-												class="rounded px-1.5 py-0.5 font-mono text-[10px] font-medium {(p.briefPct ?? 0) >= 67
+												class="rounded-none px-1.5 py-0.5 font-mono text-[10px] font-medium {(p.briefPct ?? 0) >= 67
 													? 'bg-success/15 text-success-strong'
 													: (p.briefPct ?? 0) >= 33
 														? 'bg-warn/15 text-warn-strong'
@@ -1498,7 +1498,7 @@
 										{/if}
 										{#if (p.editsToday ?? 0) > 0}
 											<span
-												class="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent-strong"
+												class="rounded-none bg-accent/15 px-1.5 py-0.5 font-mono text-[10px] font-medium text-accent-strong"
 												title="Glyphs edited in last 24h{(p.editsThisWeek ?? 0) > (p.editsToday ?? 0)
 													? ` · ${p.editsThisWeek} this week`
 													: ''}"
@@ -1588,7 +1588,7 @@
 														ev.stopPropagation();
 														activeTag = activeTag === t ? null : t;
 													}}
-													class="rounded-full bg-surface-2/80 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
+													class="rounded-none bg-surface-2/80 px-1.5 py-0.5 text-[10px] font-medium text-fg-muted hover:bg-accent-soft hover:text-accent-strong"
 													title={activeTag === t ? `Clear ${t} filter` : `Show only ${t}`}
 												>
 													{t}
@@ -1605,7 +1605,7 @@
 													ev.stopPropagation();
 													goto(`/family/${p.familyId}`);
 												}}
-												class="inline-flex items-center gap-1 rounded-full bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:bg-accent hover:text-accent-fg"
+												class="inline-flex items-center gap-1 rounded-none bg-accent-soft px-1.5 py-0.5 text-[10px] font-medium text-accent-strong hover:bg-accent hover:text-accent-fg"
 												title="Open family hub"
 											>
 												<Layers class="size-2.5" />
@@ -1624,7 +1624,7 @@
 								<button
 									type="button"
 									onclick={() => handleTogglePin(p.id)}
-									class="inline-flex size-7 items-center justify-center rounded-md transition-colors hover:bg-surface-2 {p.pinned
+									class="inline-flex size-7 items-center justify-center rounded-none transition-colors hover:bg-surface-2 {p.pinned
 										? 'text-warn opacity-100'
 										: 'text-fg-subtle opacity-60 sm:opacity-0 sm:group-hover:opacity-100 hover:text-fg'}"
 									aria-label={p.pinned ? 'Unpin from top' : 'Pin to top'}
@@ -1881,7 +1881,7 @@
 		></button>
 		<div
 			role="menu"
-			class="fixed z-50 w-56 overflow-hidden rounded-lg border border-border bg-surface py-1 shadow-xl"
+			class="fixed z-50 w-56 overflow-hidden rounded-none border border-border bg-surface py-1 shadow-xl"
 			style="left: {Math.min(menuOpen.x, window.innerWidth - 240)}px; top: {Math.min(
 				menuOpen.y,
 				window.innerHeight - 280
