@@ -99,11 +99,27 @@ you commit to)
 
 ## Have other organisations expressed interest in this work? (max 1000 characters)
 
-> Mention any letters of support, university adoption, foundry
-> partnerships, or community endorsements here. If you don't have any
-> yet, be honest: "Not yet — the public launch is targeted for
-> TypeCon Portland (Aug 2026); I plan to gather letters of support
-> from attending educators after the conference."
+> Active outreach in progress to 4 type-design educators identified
+> in `docs/research/type-education-landscape.md` as the highest-
+> leverage NLnet supporters:
+>
+> 1. **Erik van Blokland** (Head of program, KABK Type and Media; UFO
+>    + WOFF spec co-author). The most-aligned educator in the world
+>    for Patens's open-tool + open-spec positioning.
+> 2. **Gerry Leonidas** (Professor of Typography, University of
+>    Reading; former ATypI President). His Greek-type-design primer
+>    is already cited in Patens's open MVP corpus.
+> 3. **Frank Adebiaye** (Velvetyne open-source foundry; prolific
+>    YouTube type-design educator). Reaches the self-taught audience.
+> 4. **Dave Crossland** (Google Fonts open-source program lead).
+>    Google Fonts Knowledge Base is a candidate for the next citation
+>    corpus expansion.
+>
+> Pre-conference outreach launched July 1, 2026 per
+> `docs/launch/educator-outreach-emails.md`. TypeCon Portland (August
+> 6-8, 2026) provides the in-person follow-up window. Letters of
+> support are gathered Jul 15-25 for incorporation into the
+> application before the August 1 cycle close.
 
 ## Compare your own project to existing or historical efforts (max 2000 characters)
 

@@ -50,6 +50,10 @@
 				// language; non-English entries are still cited in English
 				// metadata for now).
 				{ label: 'The library', href: '/library' },
+				// /education is the type-design programs map (Reading, KABK,
+				// Plantin, etc.). Stays English — program pages are mostly
+				// English-language.
+				{ label: 'The schools', href: '/education' },
 				{ label: t.learn.items.help, href: localize('/help') }
 			]
 		},
