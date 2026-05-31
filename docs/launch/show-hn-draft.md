@@ -38,7 +38,7 @@ I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) 
 
 The audit covers contour shape, vertical metrics, sidebearing class drift, OpenType invariants, naming, coverage, anchors, variable masters, and color/brief checks. Each code carries the kind of plain-English explanation type designers usually get from years of mentorship; about 30 ship a one-click fix. Same engine is also a CLI — `npx patens audit your-project.font.json` for CI.
 
-What's new: every rule page now ships canonical references — the primary literature (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, Knuth Metafont papers, etc.) where the rule is actually established. 49 of 94 codes covered in the open MVP corpus; the craft canon (Tracy, Smeijers, Noordzij, Cheng) needs licensing — Q3 work. Try `/audit/metrics-cap-above-ascender`.
+What's new: every rule page now ships canonical references — the primary literature (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, Knuth Metafont papers, etc.) where the rule is actually established. 86 of 94 codes covered in the open MVP corpus; the remaining 8 need licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng) — Q3 work. Try `/audit/metrics-cap-above-ascender`.
 
 Toolchain: pressure-sensitive sketch → Bézier trace, kerning, variable fonts, COLR/CPAL color fonts, OTF/WOFF2/TTF/UFO export. Nothing leaves your browser unless you export. PWA, offline. Solo-maintained.
 
@@ -58,7 +58,7 @@ Happy to talk about: the audit dictionary, the citation engine's licensing postu
 
 **"What's the citation engine?"**
 
-> Each /audit/[code] page surfaces canonical references — the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers) where the rule is established. 49 of 94 codes covered in the open MVP corpus right now. The craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006) requires licensing — Q3 2026 publisher-relations work. The licensing matrix is documented at github.com/alevizio/patens/blob/main/docs/research/canonical-library.md.
+> Each /audit/[code] page surfaces canonical references — the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers, variablefonts.io primer) where the rule is established. 86 of 94 codes covered in the open MVP corpus right now. The craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006) requires licensing — Q3 2026 publisher-relations work. The licensing matrix is documented at github.com/alevizio/patens/blob/main/docs/research/canonical-library.md.
 
 **"Why not use fontmake / fontTools directly?"**
 

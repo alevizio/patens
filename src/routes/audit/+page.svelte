@@ -237,7 +237,7 @@
 		<a
 			href="/audit/glyph-name-not-canonical"
 			class="font-medium text-accent-strong underline underline-offset-2 hover:text-accent"
-		>glyph-name-not-canonical</a> to see them in context. 49 of 94 codes covered in the open MVP corpus.
+		>glyph-name-not-canonical</a> to see them in context. 86 of 94 codes covered in the open MVP corpus; the remaining 8 require licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng).
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
