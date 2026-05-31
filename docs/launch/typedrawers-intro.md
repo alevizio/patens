@@ -34,6 +34,8 @@ The pitch is short: every browser-based type tool that's shipped so far either (
 
 The audit module isn't an afterthought — it's the spine. A single `describeAuditCode()` dictionary feeds five UI surfaces (edit panel, audit page, release pre-flight, family hub, home page) so the same prose appears wherever a finding shows up. The same engine is also a CLI — `npx patens audit your-project.font.json` — so foundries can lint-check client deliverables in CI with GitHub Actions PR annotations.
 
+Each of the 94 rule pages now also surfaces **canonical references** — the primary literature where the rule is established. 86 of 94 codes cite the open MVP corpus (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth's Metafont papers, variablefonts.io primer). The 8 remaining codes are the ones whose authority sits squarely in the in-copyright craft canon — Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006 — which need publisher relations before body-text ingestion. Try `/audit/metrics-cap-above-ascender` for a rule with a clean spec citation, or `/audit/sharp-kink` to see the honest license-required note. Full licensing matrix at [docs/research/canonical-library.md](https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md).
+
 The rest of the toolchain is what you'd expect:
 
 - Pressure-sensitive sketch → trace-to-cubic-Bézier (polygon-clipping union + Schneider curve fitting against the unioned polygon)
