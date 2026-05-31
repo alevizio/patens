@@ -436,6 +436,42 @@
 		await refresh();
 	};
 
+	let designspaceBusy = $state(false);
+	const createFromDesignspace = async (ev: Event) => {
+		const input = ev.currentTarget as HTMLInputElement;
+		const file = input.files?.[0];
+		if (!file || designspaceBusy) return;
+		designspaceBusy = true;
+		try {
+			const text = await file.text();
+			const { parseDesignspaceXml, designspaceToProject } = await import(
+				'$lib/font/designspace'
+			);
+			const ds = parseDesignspaceXml(text);
+			// Use the source file's basename as the family name fallback
+			const familyName = file.name.replace(/\.designspace$/i, '').trim() || 'Imported';
+			const base = createProject({
+				name: familyName,
+				familyName,
+				kind: 'text'
+			});
+			const merged = designspaceToProject(ds, base);
+			const project = { ...base, ...merged };
+			await saveProject(project);
+			toast.success(
+				`Imported designspace: ${ds.axes.length} axis${ds.axes.length === 1 ? '' : 'es'}, ${ds.sources.length} source${ds.sources.length === 1 ? '' : 's'}, ${ds.instances.length} instance${ds.instances.length === 1 ? '' : 's'}. Glyphs import separately via the UFO flow.`
+			);
+			await goto(`/project/${project.id}/edit`);
+		} catch (e) {
+			toast.error(
+				`Designspace import failed: ${e instanceof Error ? e.message : String(e)}`
+			);
+			input.value = '';
+		} finally {
+			designspaceBusy = false;
+		}
+	};
+
 	// Share a project from the home page — load it, upload to cloud
 	// (Vercel Blob via /api/share), copy the share URL. Same shape as
 	// the editor-layout shareProject handler; duplicated here because
@@ -1067,16 +1103,22 @@
 				<Plus class="size-4" />
 				Start a new font
 			</button>
-			<button
-				type="button"
-				onclick={() => (createDialogOpen = true)}
-				class="group inline-flex items-baseline gap-1.5 text-[13px] font-medium text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+			<label
+				class="group inline-flex cursor-pointer items-baseline gap-1.5 text-[13px] font-medium text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline"
+				title="Import a .designspace file from Glyphs, FontLab, RoboFont, or Fontmake. Axes + sources + instances populate; glyph data flows through the UFO pipeline separately."
 			>
-				Or import an existing one
+				{designspaceBusy ? 'Parsing designspace…' : 'Import from .designspace'}
 				<span class="text-fg-subtle transition-transform group-hover:translate-x-0.5">
 					→
 				</span>
-			</button>
+				<input
+					type="file"
+					accept="application/xml,text/xml,.designspace"
+					class="sr-only"
+					disabled={designspaceBusy}
+					onchange={createFromDesignspace}
+				/>
+			</label>
 		</div>
 	</section>
 
