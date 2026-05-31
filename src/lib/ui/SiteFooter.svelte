@@ -45,6 +45,11 @@
 				// not yet translated. Footer links to the English versions.
 				{ label: t.learn.items.firstFont, href: '/learn/first-font' },
 				{ label: t.learn.items.auditCodes, href: '/learn/audit-codes' },
+				// /library is the public 38-canonical-reference page. Stays
+				// English (the references themselves are mostly English-
+				// language; non-English entries are still cited in English
+				// metadata for now).
+				{ label: 'The library', href: '/library' },
 				{ label: t.learn.items.help, href: localize('/help') }
 			]
 		},

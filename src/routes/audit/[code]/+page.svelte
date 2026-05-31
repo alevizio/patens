@@ -211,12 +211,18 @@
 			</h2>
 			<p class="mt-2 text-[12px] leading-relaxed text-fg-muted">
 				Primary literature where this rule is established or explained.
-				Drawn from the open-licensed corpus —
+				Drawn from the open-licensed corpus — browse the full
+				<a
+					href="/library"
+					class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+					>38-source canonical library</a
+				>
+				or read the
 				<a
 					href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
 					class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
 					target="_blank"
-					rel="noopener noreferrer">canonical-library.md</a
+					rel="noopener noreferrer">research artifact</a
 				>.
 			</p>
 			{#if citations.length === 0}
@@ -224,12 +230,16 @@
 					The canonical authority for this rule sits in the in-copyright
 					craft canon (Tracy, Smeijers, Noordzij, Cheng) which requires
 					licensing before body-text ingestion. We cite these by
-					bibliographic reference only — see the
+					bibliographic reference only — see <a
+						href="/library"
+						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
+						>the library</a
+					> for the full 38-source canon, or the
 					<a
 						href="https://github.com/alevizio/patens/blob/main/docs/research/canonical-library.md"
 						class="underline decoration-fg-subtle/40 underline-offset-2 hover:text-fg hover:decoration-fg"
 						target="_blank"
-						rel="noopener noreferrer">canonical library</a
+						rel="noopener noreferrer">research artifact</a
 					>
 					Section 2 for the family-specific citation matrix. Q3 2026 work
 					expands the corpus once publisher relations land.
