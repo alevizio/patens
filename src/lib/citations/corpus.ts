@@ -132,6 +132,19 @@ export const SOURCES: ReadonlyArray<Source> = [
 		archiveUrl: 'https://web.archive.org/web/2026*/variablefonts.io',
 		caveat:
 			'Practitioner-friendly primer covering both designing and implementing variable fonts. Complements the normative OpenType variations chapter.'
+	},
+	{
+		id: 'frere-jones-blog',
+		title: 'Frere-Jones Type — Blog',
+		author: 'Tobias Frere-Jones',
+		year: 2015,
+		publisher: 'Frere-Jones Type',
+		kind: 'blog',
+		licensing: 'fair-use',
+		canonicalUrl: 'https://frerejones.com/blog',
+		archiveUrl: 'https://web.archive.org/web/2026*/frerejones.com',
+		caveat:
+			'Contemporary studio reasoning from one of the most-cited working type designers. Essays on type-history, ephemera, technical reasoning, and the craft of contemporary type design. Treats foundry-blog citations as living primary sources per canonical-library.md Section 3.5.'
 	}
 ] as const;
 
