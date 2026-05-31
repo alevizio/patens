@@ -32,19 +32,21 @@ Show HN: I built a type editor that explains itself while you draw
 
 ---
 
-## Post body (paste into the URL+text field; ~180 words)
+## Post body (paste into the URL+text field; ~210 words)
 
-I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) that does the usual things (pressure-sensitive sketch, trace-to-Bézier, kerning, variable fonts, OpenType features, color fonts, OTF + WOFF2 + TTF + UFO export) but is built around an audit module that runs continuously alongside the editor.
+I'm Alejandro. I've been building Patens — a browser-native type editor (MIT) built around a 94-code audit module that teaches as you draw.
 
-The audit has 94 codes: contour shape, vertical metrics, sidebearing class drift, OpenType invariants, naming, coverage, anchors, variable masters, and color/brief checks. Each one carries the kind of plain-English explanation type designers usually get from years of mentorship, and about 30 ship a one-click fix. Same engine is also a CLI — `npx patens audit your-project.font.json` for CI.
+The audit covers contour shape, vertical metrics, sidebearing class drift, OpenType invariants, naming, coverage, anchors, variable masters, and color/brief checks. Each code carries the kind of plain-English explanation type designers usually get from years of mentorship; about 30 ship a one-click fix. Same engine is also a CLI — `npx patens audit your-project.font.json` for CI.
 
-Nothing leaves the browser unless you choose to export. Works offline (PWA). Solo-maintained.
+What's new: every rule page now ships canonical references — the primary literature (OpenType spec, TrueType reference, AGL, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, Knuth Metafont papers, etc.) where the rule is actually established. 49 of 94 codes covered in the open MVP corpus; the craft canon (Tracy, Smeijers, Noordzij, Cheng) needs licensing — Q3 work. Try `/audit/metrics-cap-above-ascender`.
 
-Site (long-scroll, with the editor mock + the 94 codes by family + comparison vs every other tool in the field): https://patens.design
+Toolchain: pressure-sensitive sketch → Bézier trace, kerning, variable fonts, COLR/CPAL color fonts, OTF/WOFF2/TTF/UFO export. Nothing leaves your browser unless you export. PWA, offline. Solo-maintained.
 
-Comparison: https://patens.design/compare
+Site: https://patens.design
 
-Happy to talk about: how the audit dictionary is structured, why Schneider curve fitting for the trace step, why opentype.js + Pyodide instead of native fontmake, what's hard about kerning classes.
+Comparison vs every other tool: https://patens.design/compare
+
+Happy to talk about: the audit dictionary, the citation engine's licensing posture, Schneider curve fitting for the trace step, kerning classes.
 
 ---
 
@@ -52,7 +54,11 @@ Happy to talk about: how the audit dictionary is structured, why Schneider curve
 
 **"How is this different from Glyphr Studio / Fontra?"**
 
-> Glyphr Studio and Fontra are the two other browser-native editors and both are good — Glyphr Studio is the closest peer (also MIT, also in-browser, also offline). The difference is the audit layer: neither ships a continuous rules-based check with explanations. Glyphr Studio gives you the tools; Patens gives you the tools plus the mentor in the margin. Comparison row-by-row at /compare.
+> Glyphr Studio and Fontra are the two other browser-native editors and both are good — Glyphr Studio is the closest peer (also MIT, also in-browser, also offline). The difference is the audit layer + the citation engine: neither ships a continuous rules-based check with plain-English explanations, and neither links each rule to the primary literature where it's established. Glyphr Studio gives you the tools; Patens gives you the tools plus the mentor in the margin plus the bibliography. Comparison row-by-row at /compare.
+
+**"What's the citation engine?"**
+
+> Each /audit/[code] page surfaces canonical references — the primary literature (OpenType spec, TrueType reference, Adobe Glyph List, FEA spec, UFO 3, Unicode 16, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers) where the rule is established. 49 of 94 codes covered in the open MVP corpus right now. The craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Hochuli 1987, Cheng 2006) requires licensing — Q3 2026 publisher-relations work. The licensing matrix is documented at github.com/alevizio/patens/blob/main/docs/research/canonical-library.md.
 
 **"Why not use fontmake / fontTools directly?"**
 
