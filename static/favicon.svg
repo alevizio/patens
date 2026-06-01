@@ -1,14 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Font Studio">
-	<title>Font Studio</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 92 114" role="img" aria-label="Patens">
+	<title>Patens</title>
 	<style>
-		path { fill: #111111; }
+		.main { stroke: #111111; fill: none; }
+		.notch { stroke: #fafaf9; fill: none; }
 		@media (prefers-color-scheme: dark) {
-			path { fill: #f5f5f5; }
+			.main { stroke: #fafaf9; }
+			.notch { stroke: #0c0a09; }
 		}
 	</style>
-	<!-- A bold geometric H — same proportions as the demo project's
-	     letter H (the studio's flagship glyph): two solid stems with a
-	     crossbar at optical centre. The cap-height takes the full
-	     visible square so the favicon reads at 16×16. -->
-	<path d="M6 5 H12 V14 H20 V5 H26 V27 H20 V18 H12 V27 H6 Z"/>
+	<!-- The new Patens identity: a stylised P with two notch-cuts in the
+	     right arc. Stroke-based so it scales cleanly to any favicon size;
+	     theme-aware via the prefers-color-scheme rule above. -->
+	<path
+		class="main"
+		stroke-width="10"
+		d="M46.8988 5H9.27137C6.91229 5 4.99988 6.91241 4.99988 9.27149V103.97C4.99988 106.731 7.23845 108.97 9.99988 108.97H50.0764C52.8378 108.97 55.0764 106.731 55.0764 103.97V48.8798C55.0764 46.5657 53.2005 44.6898 50.8864 44.6898H49.351C38.6286 44.6898 29.9365 53.3819 29.9365 64.1043C29.9365 74.8266 38.6286 83.5187 49.351 83.5187H50.0157C69.9766 83.5187 86.1582 67.3372 86.1582 47.3762L86.1582 44.2594C86.1582 22.577 68.5812 5 46.8988 5Z"
+	/>
+	<path
+		class="notch"
+		stroke-width="5"
+		d="M47.3267 75.8993C54.3194 76.2788 60.1304 76.0318 65.3245 71.2905"
+	/>
+	<path
+		class="notch"
+		stroke-width="5"
+		d="M46.668 90.8962C56.7635 90.8962 57.1013 90.9909 66.1815 87.9419"
+	/>
 </svg>

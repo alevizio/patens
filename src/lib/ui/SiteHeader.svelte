@@ -13,7 +13,7 @@
 	//   - Editor (/project/[id]/edit) — full-app chrome
 	//   - Share specimen (/share/[id]) — read-only specimen surface
 	//   - Family hub / Families index — app surface
-	import Type from '@lucide/svelte/icons/type';
+	import PatensLogo from '$lib/ui/PatensLogo.svelte';
 	import Globe from '@lucide/svelte/icons/globe';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
@@ -71,12 +71,10 @@
 		href={lang === 'es' ? '/es' : '/'}
 		class="group inline-flex items-center gap-2.5 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 	>
-		<span
-			class="inline-flex size-7 items-center justify-center bg-fg text-canvas transition-transform duration-150 ease-out motion-safe:group-hover:scale-105 motion-safe:group-active:scale-95"
-			aria-hidden="true"
-		>
-			<Type class="size-3.5" />
-		</span>
+		<PatensLogo
+			size={28}
+			class="transition-transform duration-150 ease-out motion-safe:group-hover:scale-105 motion-safe:group-active:scale-95"
+		/>
 		<span class="text-[14px] font-normal tracking-tight text-fg">Patens</span>
 	</a>
 

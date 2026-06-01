@@ -17,7 +17,6 @@
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
-	import InteractiveHero from '$lib/ui/InteractiveHero.svelte';
 	import { homeTagline } from '$lib/delight';
 	import { hreflangLinks } from '$lib/i18n';
 
@@ -134,7 +133,7 @@
 		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT', false, false] },
 		{ label: 'Runs in the browser', values: [true, false, false, true, false, true, true, true] },
 		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false, false, false] },
-		{ label: '102-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
+		{ label: '101-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
 		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false, 'partial', 'partial'] },
 		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false, false, false] }
 	];
@@ -144,13 +143,13 @@
 	<title>Patens (2026) — a type editor with a method</title>
 	<meta
 		name="description"
-		content="Patens is a type editor with 102 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
+		content="Patens is a type editor with 101 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
+		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -160,21 +159,12 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
-	<!-- Preload the hero typefaces so the LCP element (the interactive
-	     "DESIGN TYPE" specimen + the lower StudioGeometric specimen) paints
-	     as soon as parsing finishes. Both tiny (~36KB and ~2.3KB).
-	     fetchpriority outranks chunk-preloads in the queue. -->
-	<link
-		rel="preload"
-		href="/fonts/BigShoulders-VF-latin.woff2"
-		as="font"
-		type="font/woff2"
-		fetchpriority="high"
-		crossorigin="anonymous"
-	/>
+	<!-- Preload the hero typeface so the LCP element (the "Type," line set
+	     in StudioGeometric) paints as soon as parsing finishes. Tiny file
+	     (~2.3KB); fetchpriority outranks chunk-preloads in the queue. -->
 	<link
 		rel="preload"
 		href="/demo-fonts/StudioGeometric-Regular.otf"
@@ -184,13 +174,6 @@
 		crossorigin="anonymous"
 	/>
 	<style>
-		@font-face {
-			font-family: 'BigShoulders';
-			src: url('/fonts/BigShoulders-VF-latin.woff2') format('woff2');
-			font-weight: 100 900;
-			font-style: normal;
-			font-display: swap;
-		}
 		@font-face {
 			font-family: 'StudioGeometric';
 			src: url('/demo-fonts/StudioGeometric-Regular.otf') format('opentype');
@@ -279,7 +262,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 102-code teaching audit module.',
+					'Open-source browser-native type design tool with a 101-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -357,32 +340,30 @@
 
 	<main>
 		<!-- ====================================================== -->
-		<!-- 1. Hero — interactive specimen + tagline + waitlist     -->
+		<!-- 1. Hero — H1 draw + pitch + waitlist                    -->
 		<!-- ====================================================== -->
 		<section class="mb-32 pt-4">
 			<p class="mb-6 font-mono text-[11px] tracking-[0.22em] text-fg-subtle uppercase">
 				Private alpha · 2026
 			</p>
 
-			<!-- The new interactive hero — visitors can stretch/squish the
-			     display word with the sliders below. Big Shoulders (OFL) on
-			     the wght axis; CSS transform handles the width/height stretch.
-			     Replaces the previous "Type, with a mentor in the margin." H1;
-			     that line now lives below as a smaller subhead so the
-			     positioning copy still anchors the page. -->
-			<div class="mb-10">
-				<InteractiveHero />
-			</div>
-
-			<h1
-				class="draw-line draw-line-1 max-w-3xl text-balance text-[28px] leading-[1.15] tracking-tight text-fg sm:text-[36px]"
-			>
-				{taglineParts[0]} {taglineParts[1]}
+			<h1 class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]">
+				<span
+					class="draw-line draw-line-1 block text-fg"
+					
+				>
+					{taglineParts[0]}
+				</span>
+				<span
+					class="draw-line draw-line-2 mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted"
+				>
+					{taglineParts[1]}
+				</span>
 			</h1>
 
 			<p class="mt-8 max-w-xl text-[15px] leading-relaxed text-fg-muted">
 				A type editor with the <em class="font-medium text-fg not-italic">Patens Method</em>
-				built in — <span class="font-mono text-fg" data-numeric>102</span> practices for drawing
+				built in — <span class="font-mono text-fg" data-numeric>94</span> practices for drawing
 				type, every one explained in plain English. Sketch, kern, and ship a real
 				<span class="font-mono text-fg">.otf</span> — all in your browser, all stored locally.
 			</p>
@@ -458,7 +439,7 @@
 					Every glyph gets a margin reading.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					Patens runs all 102 rules continuously. When a contour crosses itself, when an
+					Patens runs all 101 rules continuously. When a contour crosses itself, when an
 					x-height drifts, when a sidebearing wanders from its class — the audit notes it
 					in plain English, beside the glyph, while you draw. Around 30 codes also offer a
 					one-click fix; the rest are matters of judgment.
@@ -788,7 +769,7 @@
 		<section class="mb-32 border-t border-border/40 pt-16">
 			<div class="mb-10 max-w-3xl">
 				<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
-					What the audit checks · 9 families, 102 rules
+					What the audit checks · 9 families, 101 rules
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg"

@@ -2,7 +2,7 @@
 	import type { FamilyIndexEntry } from '$lib/font/family';
 	import { formatRelative } from '$lib/util/format';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import Type from '@lucide/svelte/icons/type';
+	import PatensLogo from '$lib/ui/PatensLogo.svelte';
 	import Sun from '@lucide/svelte/icons/sun';
 	import Moon from '@lucide/svelte/icons/moon';
 	import { settings } from '$lib/stores/settings.svelte';
@@ -21,11 +21,7 @@
 		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
 	>
 		<a href="/studio-c104c94c" class="group inline-flex items-center gap-2.5">
-			<span
-				class="inline-flex size-7 items-center justify-center rounded-sm bg-fg text-canvas transition-transform group-hover:scale-105"
-			>
-				<Type class="size-3.5" />
-			</span>
+			<PatensLogo size={28} class="transition-transform group-hover:scale-105" />
 			<span class="text-[13px] font-medium tracking-tight text-fg">
 				Patens
 			</span>
