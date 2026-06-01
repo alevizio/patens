@@ -43,5 +43,11 @@ vite.config.ts.timestamp-*
 # regenerable from JSDoc + types, so not committed)
 /docs/api
 
+# Licensed third-party fonts that may not be redistributed in this
+# open-source repo. Used locally for prototyping only. If you have
+# a webfont license for one of these and want to ship publicly,
+# remove the relevant line and update CHANGELOG + LICENSE notes.
+static/fonts/Fit.woff2
+
 # Claude Code runtime
 .claude/scheduled_tasks.lock

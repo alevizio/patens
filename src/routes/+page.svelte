@@ -17,6 +17,7 @@
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
+	import InteractiveHero from '$lib/ui/InteractiveHero.svelte';
 	import { homeTagline } from '$lib/delight';
 	import { hreflangLinks } from '$lib/i18n';
 
@@ -162,9 +163,17 @@
 		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
-	<!-- Preload the hero typeface so the LCP element (the "Type," line set
-	     in StudioGeometric) paints as soon as parsing finishes. Tiny file
-	     (~2.3KB); fetchpriority outranks chunk-preloads in the queue. -->
+	<!-- Preload hero typefaces: Fit (the interactive specimen) + StudioGeometric
+	     (the lower "Patens" specimen). Fit.woff2 is gitignored — licensed for
+	     FotM Club subscribers, used locally for prototyping. -->
+	<link
+		rel="preload"
+		href="/fonts/Fit.woff2"
+		as="font"
+		type="font/woff2"
+		fetchpriority="high"
+		crossorigin="anonymous"
+	/>
 	<link
 		rel="preload"
 		href="/demo-fonts/StudioGeometric-Regular.otf"
@@ -175,11 +184,65 @@
 	/>
 	<style>
 		@font-face {
+			font-family: 'Fit Local';
+			src:
+				url('/fonts/Fit.woff2') format('woff2'),
+				local('Fit Variable'),
+				local('Fit Variable Normal'),
+				local('FitVariable'),
+				local('FitVariableNormal-Normal'),
+				local('Fit'),
+				local('Fit Normal');
+			font-display: block;
+			font-stretch: 100% 3600%;
+			font-weight: 400;
+		}
+		@font-face {
 			font-family: 'StudioGeometric';
 			src: url('/demo-fonts/StudioGeometric-Regular.otf') format('opentype');
 			font-weight: 400;
 			font-style: normal;
 			font-display: swap;
+		}
+
+		/* Home-only nav overrides. Four things:
+		   1. mb-12 → 0 so the hero starts right below the nav.
+		   2. position: sticky → position: fixed (sticky breaks because
+		      the containing block .home-nav-wrapper is only as tall as
+		      the nav itself — fixed keeps the nav glued to viewport top
+		      across all scroll positions).
+		   3. margin: 0 + width: 100% + top/left/right: 0 — overrides the
+		      SiteHeader's -mx-4 sm:-mx-6 negative margins.
+		   4. background hsl(canvas/0.6) + backdrop-filter blur — the
+		      "frosted-glass" effect that blurs whatever content (the
+		      giant type) sits behind the nav. Saturation lifted to 160%
+		      so the colours behind don't get washed-out grey through
+		      the blur. */
+		.home-nav-wrapper > header {
+			position: fixed !important;
+			top: 0;
+			left: 0;
+			right: 0;
+			width: 100% !important;
+			margin: 0 !important;
+			background: hsl(var(--canvas) / 0.78) !important;
+			-webkit-backdrop-filter: blur(14px) saturate(160%) !important;
+			backdrop-filter: blur(14px) saturate(160%) !important;
+			border-bottom-color: hsl(var(--border) / 0.4) !important;
+		}
+
+		/* Hero starts BELOW the fixed nav on first load — no overlap.
+		   margin-top: 4rem pushes it down by the nav height; height:
+		   calc(100svh − 4rem) fills the remaining viewport. On scroll
+		   the hero moves up, and the top of the type passes behind the
+		   fixed (still glass-blurred) nav, producing the progressive
+		   "type going under glass" effect as you scroll. */
+		.hero-viewport {
+			position: relative;
+			display: grid;
+			height: calc(100svh - 4rem);
+			min-height: 28rem;
+			margin-top: 4rem;
 		}
 
 		/* Hero H1 reveal — clip-path left-to-right wipe staggered across the
@@ -335,8 +398,17 @@
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
 </svelte:head>
 
-<div class="mx-auto max-w-5xl px-4 sm:px-6">
+<!-- SiteHeader at the top in its own padded wrapper, full-bleed line. -->
+<div class="home-nav-wrapper px-4 sm:px-6 lg:px-8">
 	<SiteHeader current="/" lang="en" />
+</div>
+
+<!-- Fullwidth hero — type spans viewport edges, sits directly below nav. -->
+<section class="hero-viewport">
+	<InteractiveHero />
+</section>
+
+<div class="mx-auto max-w-5xl px-4 sm:px-6">
 
 	<main>
 		<!-- ====================================================== -->

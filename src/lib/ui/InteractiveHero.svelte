@@ -1,64 +1,78 @@
 <script lang="ts">
 	/**
-	 * Interactive hero specimen for the home page.
+	 * Interactive Fit specimen for the home page.
 	 *
-	 * Displays a large display word ("DESIGN TYPE" by default) set in
-	 * Big Shoulders (OFL 1.1, Google Fonts) and exposes 4 controls
-	 * below the type so visitors can play:
+	 * Renders a display word ("design type") set in DJR's Fit — an extreme-
+	 * wdth variable font. The 4 controls (Text, Width, Height, Spacing)
+	 * live in a tiny floating menu at the bottom-right of the viewport:
+	 * a small icon button by default, click to open a popover with the
+	 * sliders/input.
 	 *
-	 *   - Text input    — change the rendered word (max 18 chars).
-	 *   - Weight slider — 100..900 (Big Shoulders' native VF axis).
-	 *   - Width slider  — CSS transform: scaleX(...). 50..300%.
-	 *   - Height slider — CSS transform: scaleY(...). 50..300%.
-	 *   - Spacing       — letter-spacing in px. -2..32.
-	 *
-	 * This is the "Fit specimen" the launch prototype was reaching for
-	 * (see /Users/alevizio/Downloads/patens-fat-css-with-fit.zip) —
-	 * substituted to Big Shoulders because DJR's Fit is licensed for
-	 * Font of the Month Club subscribers' personal use only, not
-	 * for public redistribution on patens.design.
-	 *
-	 * @font-face declaration lives in +page.svelte's <svelte:head>
-	 * so the preload + face declaration coexist cleanly.
+	 * @font-face for "Fit Local" lives in +page.svelte's <svelte:head>.
+	 * The woff2 itself is gitignored — Fit is licensed for FotM Club
+	 * subscribers' personal use, not for public redistribution.
 	 */
+	import SlidersHorizontal from '@lucide/svelte/icons/sliders-horizontal';
+	import X from '@lucide/svelte/icons/x';
 
 	let text = $state('design type');
-	let weight = $state(800);
-	let widthPct = $state(100);
-	let heightPct = $state(100);
-	let spacing = $state(2);
+	let widthAxis = $state(380);
+	let heightPct = $state(142);
+	let spacing = $state(-12);
+
+	let controlsOpen = $state(false);
 
 	const MAX_LENGTH = 18;
+	const AXIS_REFERENCE = 482;
 
-	const display = $derived(text.slice(0, MAX_LENGTH).toUpperCase());
+	const display = $derived(text.slice(0, MAX_LENGTH));
 	const charsUsed = $derived(text.length);
 </script>
 
-<!-- The interactive hero. Two halves:
-     1. The specimen — a big display word that scales with the controls.
-     2. The controls — a horizontal row of 4 inputs under the type. -->
-<div class="interactive-hero">
-	<div
-		class="specimen"
-		style="
-			--y-stretch: {heightPct / 100};
-			--letter-spacing: {spacing}px;
-		"
-	>
-		<span
-			class="display-word"
-			style="
-				font-weight: {weight};
-				transform: scaleX({widthPct / 100}) scaleY({heightPct / 100});
-				letter-spacing: {spacing}px;
-			"
-		>
+<div
+	class="hero-shell"
+	style="
+		--fit-width: {widthAxis}%;
+		--fit-axis: {widthAxis};
+		--y-stretch: {heightPct / 100};
+		--letter-spacing: {spacing}px;
+		--text-length: {Math.max(1, display.length)};
+		--axis-ratio: {widthAxis / AXIS_REFERENCE};
+	"
+>
+	<div class="specimen">
+		<span class="display-word">
 			{display}
 		</span>
 	</div>
+</div>
 
-	<form class="controls" aria-label="Type specimen controls" onsubmit={(e) => e.preventDefault()}>
-		<label class="text-control">
+<!-- Tiny floating menu. Bottom-right corner, fixed to the viewport so
+     it survives any scroll position. Icon swaps between sliders and X
+     depending on open state. -->
+<button
+	type="button"
+	class="controls-fab"
+	onclick={() => (controlsOpen = !controlsOpen)}
+	aria-label={controlsOpen ? 'Close type controls' : 'Open type controls'}
+	aria-expanded={controlsOpen}
+	aria-controls="type-controls"
+>
+	{#if controlsOpen}
+		<X class="size-4" />
+	{:else}
+		<SlidersHorizontal class="size-4" />
+	{/if}
+</button>
+
+{#if controlsOpen}
+	<form
+		id="type-controls"
+		class="controls-popover"
+		aria-label="Type specimen controls"
+		onsubmit={(e) => e.preventDefault()}
+	>
+		<label class="control">
 			<span class="control-label">
 				Text
 				<output>{charsUsed}/{MAX_LENGTH}</output>
@@ -73,103 +87,142 @@
 			/>
 		</label>
 
-		<label class="slider-control">
-			<span class="control-label">
-				Weight
-				<output>{weight}</output>
-			</span>
-			<input type="range" min="100" max="900" step="10" bind:value={weight} aria-label="Font weight" />
-		</label>
-
-		<label class="slider-control">
+		<label class="control">
 			<span class="control-label">
 				Width
-				<output>{widthPct}%</output>
+				<output>{widthAxis}</output>
 			</span>
-			<input type="range" min="50" max="300" step="1" bind:value={widthPct} aria-label="Horizontal scale" />
+			<input
+				type="range"
+				min="100"
+				max="3600"
+				step="1"
+				bind:value={widthAxis}
+				aria-label="Fit wdth axis"
+			/>
 		</label>
 
-		<label class="slider-control">
+		<label class="control">
 			<span class="control-label">
 				Height
 				<output>{heightPct}%</output>
 			</span>
-			<input type="range" min="50" max="300" step="1" bind:value={heightPct} aria-label="Vertical scale" />
+			<input
+				type="range"
+				min="35"
+				max="320"
+				step="1"
+				bind:value={heightPct}
+				aria-label="Vertical scale"
+			/>
 		</label>
 
-		<label class="slider-control">
+		<label class="control">
 			<span class="control-label">
 				Spacing
 				<output>{spacing}px</output>
 			</span>
-			<input type="range" min="-2" max="32" step="1" bind:value={spacing} aria-label="Letter spacing" />
+			<input
+				type="range"
+				min="-16"
+				max="64"
+				step="1"
+				bind:value={spacing}
+				aria-label="Letter spacing"
+			/>
 		</label>
 	</form>
-</div>
+{/if}
 
 <style>
-	.interactive-hero {
+	.hero-shell {
 		display: grid;
-		gap: 2.5rem;
 		width: 100%;
+		height: 100%;
+		min-height: 0;
+		color: var(--fg);
 	}
 
 	.specimen {
-		display: grid;
-		place-items: center;
+		position: relative;
 		width: 100%;
-		min-height: clamp(180px, 28vh, 380px);
+		height: 100%;
+		min-height: 0;
 		overflow: hidden;
-		padding-inline: clamp(0.5rem, 2vw, 2rem);
-		color: var(--fg);
 	}
 
 	.display-word {
-		display: inline-block;
-		max-width: 100%;
-		font-family: 'BigShoulders', ui-sans-serif, system-ui, sans-serif;
-		font-size: clamp(
-			3.2rem,
-			min(calc((100vw - 4rem) / var(--text-length-hint, 8) * 1.8), 14vh),
-			14rem
-		);
-		font-weight: 800;
-		line-height: 0.85;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		color: var(--fg);
+		font-family: 'Fit Local', ui-sans-serif, system-ui, sans-serif;
+		/* Hero is calc(100svh − 4rem) tall (sits below the nav, not
+		   behind it). Subtract a bit more so the type fits cleanly with
+		   small breathing room at top and bottom of the hero. */
+		font-size: calc(100svh - 8rem);
+		font-stretch: var(--fit-width);
+		font-variation-settings: 'wdth' var(--fit-axis);
+		font-weight: 400;
+		letter-spacing: var(--letter-spacing);
+		line-height: 1;
 		text-align: center;
 		text-transform: uppercase;
-		text-wrap: nowrap;
-		transform-origin: center;
-		transition:
-			font-weight 80ms ease-out,
-			transform 80ms ease-out;
+		transform: translate(calc(-50% + var(--letter-spacing) / 2), -50%)
+			scaleY(var(--y-stretch));
+		transform-origin: center center;
 		white-space: nowrap;
 	}
 
-	.controls {
-		display: flex;
-		flex-wrap: wrap;
-		gap: clamp(0.85rem, 2.2vw, 1.8rem);
-		align-items: end;
+	/* Tiny floating icon button — square, ~36px. Bottom-right of the
+	   HERO region (absolute, not fixed). Scrolls away with the hero. */
+	.controls-fab {
+		position: absolute;
+		bottom: 1rem;
+		right: 1rem;
+		z-index: 4;
+		display: inline-flex;
+		width: 2.25rem;
+		height: 2.25rem;
+		align-items: center;
 		justify-content: center;
-		width: 100%;
-		max-width: 56rem;
-		margin: 0 auto;
-		padding: 0;
-		border: 0;
+		border: 1px solid hsl(var(--border));
+		background: hsl(var(--canvas));
+		color: var(--fg);
+		cursor: pointer;
+		transition: transform 100ms ease-out;
+	}
+
+	.controls-fab:hover {
+		transform: translateY(-1px);
+	}
+
+	.controls-fab:focus-visible {
+		outline: 2px solid var(--fg);
+		outline-offset: 3px;
+	}
+
+	/* Popover floats above the button. Same containing block as the
+	   fab (hero-viewport) — both absolute, both scroll with the hero. */
+	.controls-popover {
+		position: absolute;
+		bottom: 3.75rem;
+		right: 1rem;
+		z-index: 3;
+		display: grid;
+		width: min(17rem, calc(100vw - 2rem));
+		gap: 0.75rem;
+		padding: 0.95rem 1rem;
+		border: 1px solid hsl(var(--border));
+		background: hsl(var(--canvas));
 		font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 	}
 
-	.text-control,
-	.slider-control {
+	.control {
 		display: grid;
-		gap: 0.42rem;
-		width: clamp(7rem, 12vw, 10rem);
+		gap: 0.3rem;
 		color: var(--fg);
 		user-select: none;
-	}
-
-	.text-control {
-		width: clamp(10rem, 22vw, 14rem);
 	}
 
 	.control-label {
@@ -177,10 +230,9 @@
 		align-items: baseline;
 		justify-content: space-between;
 		gap: 0.5rem;
-		font-size: 0.72rem;
-		font-weight: 600;
+		font-size: 0.7rem;
+		font-weight: 500;
 		line-height: 1;
-		letter-spacing: 0;
 		color: var(--fg-subtle);
 	}
 
@@ -191,18 +243,18 @@
 		color: var(--fg);
 	}
 
-	.text-control input[type='text'] {
+	.control input[type='text'] {
 		width: 100%;
-		min-height: 2.2rem;
-		padding: 0;
+		min-height: 1.9rem;
+		padding: 0.25rem 0;
 		border: 0;
-		border-bottom: 1px solid var(--border);
+		border-bottom: 1px solid hsl(var(--border));
 		border-radius: 0;
 		appearance: none;
 		background: transparent;
 		color: var(--fg);
 		font:
-			600 0.92rem/1 ui-sans-serif,
+			500 0.88rem/1 ui-sans-serif,
 			system-ui,
 			-apple-system,
 			BlinkMacSystemFont,
@@ -211,12 +263,11 @@
 		outline: none;
 	}
 
-	.text-control input[type='text']:focus-visible {
+	.control input[type='text']:focus-visible {
 		border-bottom-color: var(--fg);
-		outline: 1px solid transparent;
 	}
 
-	.slider-control input[type='range'] {
+	.control input[type='range'] {
 		width: 100%;
 		height: 1.05rem;
 		margin: 0;
@@ -227,73 +278,38 @@
 		cursor: ew-resize;
 	}
 
-	.slider-control input[type='range']:focus-visible {
+	.control input[type='range']:focus-visible {
 		outline: 2px solid var(--fg);
-		outline-offset: 5px;
+		outline-offset: 4px;
 	}
 
-	.slider-control input[type='range']::-webkit-slider-runnable-track {
-		height: 0.24rem;
-		border-radius: 999px;
+	.control input[type='range']::-webkit-slider-runnable-track {
+		height: 0.18rem;
+		border-radius: 0;
 		background: color-mix(in srgb, currentColor 24%, transparent);
 	}
 
-	.slider-control input[type='range']::-webkit-slider-thumb {
-		width: 1rem;
-		height: 1rem;
-		margin-top: -0.38rem;
+	.control input[type='range']::-webkit-slider-thumb {
+		width: 0.9rem;
+		height: 0.9rem;
+		margin-top: -0.4rem;
 		border: 0;
-		border-radius: 999px;
+		border-radius: 0;
 		appearance: none;
 		background: currentColor;
 	}
 
-	.slider-control input[type='range']::-moz-range-track {
-		height: 0.24rem;
-		border-radius: 999px;
+	.control input[type='range']::-moz-range-track {
+		height: 0.18rem;
+		border-radius: 0;
 		background: color-mix(in srgb, currentColor 24%, transparent);
 	}
 
-	.slider-control input[type='range']::-moz-range-thumb {
-		width: 1rem;
-		height: 1rem;
+	.control input[type='range']::-moz-range-thumb {
+		width: 0.9rem;
+		height: 0.9rem;
 		border: 0;
-		border-radius: 999px;
+		border-radius: 0;
 		background: currentColor;
-	}
-
-	@media (max-width: 640px) {
-		.controls {
-			gap: 0.6rem;
-		}
-
-		.text-control,
-		.slider-control {
-			width: 5rem;
-		}
-
-		.text-control {
-			width: 6rem;
-		}
-
-		.control-label {
-			gap: 0.25rem;
-			font-size: 0.62rem;
-		}
-
-		output {
-			min-width: 1.65rem;
-		}
-
-		.text-control input[type='text'] {
-			min-height: 1.6rem;
-			font-size: 0.82rem;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.display-word {
-			transition: none;
-		}
 	}
 </style>
