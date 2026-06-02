@@ -58,14 +58,14 @@
 		href === current || (href !== '/' && current.startsWith(href + '/')) || href === current;
 </script>
 
-<!-- Sticky on scroll for long-form pages (/audit, /privacy, /security,
-     /learn/*, /changelog). Solid bg-canvas (no glassmorphism — Swiss
-     aesthetic forbids the blur shortcut); the bottom border keeps the
-     editorial-rule weight. The negative top margin on the parent
-     wrapper would normally bleed content through, but pages set their
-     own `py-8` / `pt-8` which absorbs the sticky-overlap correctly. -->
+<!-- Sticky on scroll. Glass background (semi-transparent canvas +
+     backdrop-blur) so content scrolling beneath reads through faintly —
+     same treatment across every page that uses SiteHeader. The negative
+     top margin lets the nav span edge-to-edge from inside a padded
+     parent wrapper; pages set their own `py-8` / `pt-8` so the sticky-
+     overlap on initial render absorbs cleanly. -->
 <header
-	class="sticky top-0 z-20 -mx-4 mb-12 flex items-center justify-between gap-4 border-b border-border/50 bg-canvas px-4 py-4 sm:-mx-6 sm:px-6"
+	class="site-header sticky top-0 z-20 -mx-4 mb-12 flex items-center justify-between gap-4 border-b border-border/40 px-4 py-4 sm:-mx-6 sm:px-6"
 >
 	<a
 		href={lang === 'es' ? '/es' : '/'}
@@ -124,3 +124,15 @@
 		</button>
 	</div>
 </header>
+
+<style>
+	/* Glass treatment for the sticky nav — semi-transparent canvas +
+	   backdrop-blur, so content scrolling beneath reads through faintly.
+	   Applied via :global because Svelte scopes top-level component
+	   classes, and we want the rule to reach the rendered <header>. */
+	:global(.site-header) {
+		background: hsl(var(--canvas) / 0.78);
+		-webkit-backdrop-filter: blur(14px) saturate(160%);
+		backdrop-filter: blur(14px) saturate(160%);
+	}
+</style>

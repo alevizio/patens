@@ -28,6 +28,7 @@
 	import Field from '$lib/ui/Field.svelte';
 	import Input from '$lib/ui/Input.svelte';
 	import Button from '$lib/ui/Button.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
 	import Layers from '@lucide/svelte/icons/layers';
 	import Plus from '@lucide/svelte/icons/plus';
@@ -450,10 +451,12 @@
 	};
 </script>
 
-<div class="mx-auto max-w-5xl px-6 py-12">
+<div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
+	<SiteHeader current="/family" />
+
 	<a
 		href="/studio-c104c94c"
-		class="mb-6 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
+		class="-mt-6 mb-6 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
 	>
 		<ArrowLeft class="size-3.5" />
 		Back to projects

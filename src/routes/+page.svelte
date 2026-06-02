@@ -20,8 +20,40 @@
 	import InteractiveHero from '$lib/ui/InteractiveHero.svelte';
 	import { homeTagline } from '$lib/delight';
 	import { hreflangLinks } from '$lib/i18n';
+	import { fade } from 'svelte/transition';
+	import { cubicOut, cubicIn } from 'svelte/easing';
+	import { onMount } from 'svelte';
+
+	// Once the hero viewport has scrolled out, the bottom-left .hero-cta
+	// promotes itself to a fixed top-left position via the .is-stuck class
+	// so the signup follows the user down the page. IntersectionObserver
+	// watches the hero — when less than 30% is visible, the cta sticks.
+	let ctaStuck = $state(false);
+
+	onMount(() => {
+		const hero = document.querySelector('.hero-viewport');
+		if (!hero) return;
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				ctaStuck = entry.intersectionRatio < 0.3;
+			},
+			{ threshold: [0, 0.3, 0.6, 1] }
+		);
+		observer.observe(hero);
+		return () => observer.disconnect();
+	});
 
 	const taglineParts = $derived(homeTagline().split('\n'));
+
+	// Story toggle for the TL;DR section — three depths of the same pitch,
+	// each click swaps the body. Order: short / longer / longest. The
+	// labels live in font-mono caps to match the existing eyebrow rhythm.
+	const stories = [
+		{ key: 'tldr', label: 'TL;DR' },
+		{ key: 'longer', label: 'The longer version' },
+		{ key: 'long', label: 'The long version' }
+	] as const;
+	let activeStory = $state<(typeof stories)[number]['key']>('tldr');
 
 	// Annotated-glyph callouts (Section 3). Each one corresponds to a real
 	// audit code; the prose mirrors describeAuditCode()'s register so the
@@ -205,44 +237,215 @@
 			font-display: swap;
 		}
 
-		/* Home-only nav overrides. Four things:
-		   1. mb-12 → 0 so the hero starts right below the nav.
-		   2. position: sticky → position: fixed (sticky breaks because
-		      the containing block .home-nav-wrapper is only as tall as
-		      the nav itself — fixed keeps the nav glued to viewport top
-		      across all scroll positions).
-		   3. margin: 0 + width: 100% + top/left/right: 0 — overrides the
-		      SiteHeader's -mx-4 sm:-mx-6 negative margins.
-		   4. background hsl(canvas/0.6) + backdrop-filter blur — the
-		      "frosted-glass" effect that blurs whatever content (the
-		      giant type) sits behind the nav. Saturation lifted to 160%
-		      so the colours behind don't get washed-out grey through
-		      the blur. */
+		/* Home-only nav tweaks. SiteHeader now ships the glass background
+		   across the whole site, so this block only adjusts what's unique
+		   to the home page:
+		     1. mb-12 → 0 so the hero starts right below the nav.
+		     2. The negative -mx-4/-mx-6 from SiteHeader is what lets the
+		        nav span edge-to-edge from inside a padded wrapper; we
+		        keep that and just zero the margin-bottom. */
 		.home-nav-wrapper > header {
-			position: fixed !important;
-			top: 0;
-			left: 0;
-			right: 0;
-			width: 100% !important;
-			margin: 0 !important;
-			background: hsl(var(--canvas) / 0.78) !important;
-			-webkit-backdrop-filter: blur(14px) saturate(160%) !important;
-			backdrop-filter: blur(14px) saturate(160%) !important;
-			border-bottom-color: hsl(var(--border) / 0.4) !important;
+			margin-bottom: 0 !important;
 		}
 
-		/* Hero starts BELOW the fixed nav on first load — no overlap.
-		   margin-top: 4rem pushes it down by the nav height; height:
-		   calc(100svh − 4rem) fills the remaining viewport. On scroll
-		   the hero moves up, and the top of the type passes behind the
-		   fixed (still glass-blurred) nav, producing the progressive
-		   "type going under glass" effect as you scroll. */
+		/* When the hero viewport has scrolled mostly out (Intersection-
+		   Observer flips ctaStuck in onMount), the .hero-cta promotes
+		   itself from absolute-bottom-of-hero to fixed-top-of-viewport.
+		   Same form, same component instance — just a position swap with
+		   an opacity transition for visual smoothness. */
+		.hero-cta.is-stuck {
+			position: fixed !important;
+			top: calc(4rem + 0.75rem) !important;
+			left: 1rem !important;
+			right: auto !important;
+			bottom: auto !important;
+			z-index: 15;
+		}
+
+		@media (min-width: 640px) {
+			.hero-cta.is-stuck {
+				top: calc(4rem + 0.75rem) !important;
+				left: 1.5rem !important;
+			}
+		}
+
+		.hero-cta {
+			transition: opacity 200ms cubic-bezier(0.22, 1, 0.36, 1);
+		}
+
+		/* Hero-chrome reveal. The type animation in InteractiveHero runs
+		   for ~2.2s on load (width 0–1400ms + height 1100–2200ms). The
+		   nav, the signup CTA, and the controls fab all fade in just
+		   AFTER the type settles, so the scene reads as the type
+		   composing first and the chrome arriving as a follow-up.
+
+		   prefers-reduced-motion gates the animation off so the elements
+		   are visible at default opacity:1 for visitors who don't want
+		   motion. */
+		@keyframes hero-chrome-reveal {
+			from {
+				opacity: 0;
+			}
+			to {
+				opacity: 1;
+			}
+		}
+
+		@media (prefers-reduced-motion: no-preference) {
+			.home-nav-wrapper > header,
+			.hero-cta,
+			.controls-fab {
+				animation: hero-chrome-reveal 1400ms cubic-bezier(0.22, 1, 0.36, 1) 6450ms both;
+			}
+		}
+
+		/* Total animation timeline (matches InteractiveHero's onMount):
+		     0 – 650ms      INTRO_HOLD (chars visible at random intro sizes)
+		     650 – 3300ms   width cascade (random per-char start, intro → 380)
+		     3300 – 3700ms  PHASE_GAP
+		     3700 – 6350ms  height cascade (separately random, intro → 142)
+		     6450ms+        chrome reveals (nav, signup, controls fab) */
+
+		/* The nav is now sticky (in flow, takes 4rem of vertical space)
+		   instead of fixed (overlay). The hero no longer needs a
+		   margin-top to avoid being hidden behind a fixed nav — sticky
+		   sits above the hero naturally. As the user scrolls, the nav
+		   sticks to top:0 and the type passes behind its glass background,
+		   preserving the "type going under glass" effect. */
 		.hero-viewport {
 			position: relative;
 			display: grid;
 			height: calc(100svh - 4rem);
 			min-height: 28rem;
-			margin-top: 4rem;
+		}
+
+		/* Above-the-fold CTA. Anchored at bottom-left of hero — opposite
+		   the controls fab at bottom-right. Just the input + button, no
+		   panel chrome around it (no background, no border, no padding,
+		   no rounded corners on the form fields). */
+		.hero-cta {
+			position: absolute;
+			bottom: 1rem;
+			left: 1rem;
+			z-index: 4;
+			width: min(22rem, calc(100vw - 5rem));
+		}
+
+		/* Square the WaitlistForm's rounded-md (input + submit). Plain
+		   CSS in <svelte:head><style> is global, so descendant selectors
+		   reach into the component. */
+		.hero-cta input,
+		.hero-cta button {
+			border-radius: 0 !important;
+		}
+
+		/* Form layout. column-reverse + gap: 0 so the error message <p>
+		   (rendered AFTER the input/button div in DOM order) appears
+		   ABOVE the input visually, flush against its top edge. */
+		.hero-cta form {
+			flex-direction: column-reverse !important;
+			gap: 0 !important;
+		}
+
+		/* Button-inside-input layout. The form's inner wrapper becomes a
+		   positioned context; the email input takes the full width with
+		   extra right padding to clear the button's footprint; the submit
+		   button absolute-positions flush inside the input's right edge. */
+		.hero-cta form > div {
+			display: block !important;
+			position: relative;
+			width: 100%;
+		}
+
+		.hero-cta input[type='email'] {
+			width: 100%;
+			padding-right: 9rem !important;
+			min-height: 2.75rem;
+			/* Force a solid background. bg-surface alone can read as
+			   transparent over the glass-blurred hero behind it. */
+			background: hsl(var(--canvas)) !important;
+		}
+
+		/* Chrome autofill suppression. When the browser autofills a saved
+		   email, it applies a yellow box-shadow inset that overrides the
+		   visible bg. Re-applying the canvas color as an inset shadow
+		   neutralises it; the giant transition delay prevents Chrome from
+		   re-asserting its style after focus. */
+		.hero-cta input[type='email']:-webkit-autofill,
+		.hero-cta input[type='email']:-webkit-autofill:hover,
+		.hero-cta input[type='email']:-webkit-autofill:focus,
+		.hero-cta input[type='email']:-webkit-autofill:active {
+			-webkit-box-shadow: 0 0 0 30px hsl(var(--canvas)) inset !important;
+			-webkit-text-fill-color: var(--fg) !important;
+			transition: background-color 5000s ease-in-out 0s;
+			caret-color: var(--fg);
+		}
+
+		.hero-cta button[type='submit'] {
+			position: absolute;
+			top: 1px;
+			right: 1px;
+			bottom: 1px;
+		}
+
+		/* Error state. aria-invalid="true" is set on the input when the
+		   submission fails. Only the button colour and the alert strip
+		   above change — the input's border stays the same neutral stroke
+		   as default, so the outline reads as a consistent frame in
+		   every state. */
+		.hero-cta:has(input[type='email'][aria-invalid='true']) button[type='submit'] {
+			background: hsl(var(--danger-strong, 0 65% 45%)) !important;
+			color: #fff !important;
+		}
+
+		/* Keep the input's border neutral even on focus — the focus ring
+		   from Tailwind's focus:ring-2 still signals focus, but the
+		   stroke colour stays consistent. */
+		.hero-cta input[type='email']:focus,
+		.hero-cta input[type='email']:focus-visible {
+			border-color: hsl(var(--border)) !important;
+		}
+
+		/* Error message — appears ABOVE the input as a flush-top red strip
+		   thanks to the column-reverse on the form. Border uses the same
+		   neutral stroke as the input (NOT red), so the outline reads as
+		   one continuous frame around both the strip and the input. */
+		.hero-cta p[role='alert'] {
+			margin: 0 !important;
+			margin-bottom: -1px !important;
+			padding: 0.45rem 0.85rem !important;
+			background: hsl(var(--danger-strong, 0 65% 45%)) !important;
+			border: 1px solid hsl(var(--border)) !important;
+			color: #fff !important;
+			font-size: 0.78rem !important;
+			font-weight: 500 !important;
+			line-height: 1.3 !important;
+		}
+
+		/* Success state. WaitlistForm replaces the <form> with a <p> at
+		   status==='done'. Same neutral stroke as the default input —
+		   only the inside colour signals success. */
+		.hero-cta p[role='status'] {
+			display: flex !important;
+			align-items: center;
+			min-height: 2.75rem;
+			margin: 0 !important;
+			padding: 0.5rem 0.95rem !important;
+			border: 1px solid hsl(var(--border)) !important;
+			background: hsl(var(--canvas)) !important;
+			color: hsl(var(--accent-strong, 142 60% 38%)) !important;
+			font-size: 0.92rem !important;
+			line-height: 1.3 !important;
+		}
+
+		/* Mobile: full-width and slightly above the controls fab. */
+		@media (max-width: 640px) {
+			.hero-cta {
+				bottom: 4rem;
+				left: 0.75rem;
+				right: 0.75rem;
+				width: auto;
+			}
 		}
 
 		/* Hero H1 reveal — clip-path left-to-right wipe staggered across the
@@ -403,48 +606,106 @@
 	<SiteHeader current="/" lang="en" />
 </div>
 
-<!-- Fullwidth hero — type spans viewport edges, sits directly below nav. -->
+<!-- Fullwidth hero — type spans viewport edges, sits directly below nav.
+     Above-the-fold CTA pinned at bottom-left so visitors can join the
+     waitlist without scrolling. Once the user scrolls past the hero the
+     same .hero-cta promotes itself to a fixed top-left position via the
+     `is-stuck` class (toggled by an IntersectionObserver in onMount),
+     so the form is always reachable without ever showing two copies. -->
 <section class="hero-viewport">
 	<InteractiveHero />
+
+	<aside
+		class="hero-cta"
+		class:is-stuck={ctaStuck}
+		aria-label="Join the waitlist"
+	>
+		<WaitlistForm lang="en" />
+	</aside>
 </section>
 
 <div class="mx-auto max-w-5xl px-4 sm:px-6">
 
 	<main>
 		<!-- ====================================================== -->
-		<!-- 1. Hero — H1 draw + pitch + waitlist                    -->
+		<!-- 0. TL;DR — plain-English explainer, sits directly below  -->
+		<!--    the hero so the first thing a reader does after the  -->
+		<!--    type intro is read what the app actually IS.         -->
 		<!-- ====================================================== -->
-		<section class="mb-32 pt-4">
-			<p class="mb-6 font-mono text-[11px] tracking-[0.22em] text-fg-subtle uppercase">
-				Private alpha · 2026
-			</p>
+		<section class="mb-24 pt-16">
+			<!-- Story-depth toggle. Each button rewrites the same pitch at a
+			     different depth — short / longer / longest. The active one
+			     is full-fg; the inactive ones are subtle, hover to muted. -->
+			<div
+				class="mb-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] tracking-[0.22em] uppercase"
+				role="tablist"
+				aria-label="Pick a depth"
+			>
+				{#each stories as story (story.key)}
+					<button
+						type="button"
+						role="tab"
+						aria-selected={activeStory === story.key}
+						onclick={() => (activeStory = story.key)}
+						class="cursor-pointer rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
+						class:text-fg={activeStory === story.key}
+						class:text-fg-subtle={activeStory !== story.key}
+						class:hover:text-fg-muted={activeStory !== story.key}
+					>
+						{story.label}
+					</button>
+				{/each}
+			</div>
 
-			<h1 class="max-w-4xl text-balance text-[44px] leading-[1.02] tracking-tight sm:text-[80px]">
-				<span
-					class="draw-line draw-line-1 block text-fg"
-					
-				>
-					{taglineParts[0]}
-				</span>
-				<span
-					class="draw-line draw-line-2 mt-2 block font-sans text-[0.6em] font-semibold leading-tight text-fg-muted"
-				>
-					{taglineParts[1]}
-				</span>
-			</h1>
-
-			<p class="mt-8 max-w-xl text-[15px] leading-relaxed text-fg-muted">
-				A type editor with the <em class="font-medium text-fg not-italic">Patens Method</em>
-				built in — <span class="font-mono text-fg" data-numeric>94</span> practices for drawing
-				type, every one explained in plain English. Sketch, kern, and ship a real
-				<span class="font-mono text-fg">.otf</span> — all in your browser, all stored locally.
-			</p>
-
-			<div class="mt-10 max-w-md">
-				<p class="mb-3 text-[13px] font-medium text-fg">
-					It's in private alpha. Get an invite.
-				</p>
-				<WaitlistForm lang="en" />
+			<!-- Story body wrapper. Positioned relative + given a min-height
+			     so the swapped paragraphs can sit absolute and cross-fade
+			     in place without shifting the sections below. min-h tuned
+			     to the longest version at each breakpoint. -->
+			<div class="relative min-h-[320px] sm:min-h-[260px]">
+				{#key activeStory}
+					<div
+						class="absolute inset-x-0 top-0"
+						in:fade={{ duration: 280, delay: 80, easing: cubicOut }}
+						out:fade={{ duration: 200, easing: cubicIn }}
+					>
+						{#if activeStory === 'tldr'}
+							<p
+								class="max-w-3xl text-balance text-[22px] leading-[1.4] text-fg sm:text-[30px] sm:leading-[1.3]"
+							>
+								Patens is a design tool for designing beautiful typefaces
+								— with some assistance.
+							</p>
+						{:else if activeStory === 'longer'}
+							<p
+								class="max-w-3xl text-balance text-[22px] leading-[1.4] text-fg sm:text-[30px] sm:leading-[1.3]"
+							>
+								Patens is a type editor with the
+								<span class="font-medium text-fg">Patens Method</span>
+								built in —
+								<span class="font-mono text-fg" data-numeric>94</span>
+								practices in plain English, a third with one-click fixes —
+								so you can draw, kern, and ship a real
+								<span class="font-mono text-fg-muted" data-numeric>.otf</span>
+								without an account or an upload.
+							</p>
+						{:else}
+							<p
+								class="max-w-3xl text-balance text-[22px] leading-[1.4] text-fg sm:text-[30px] sm:leading-[1.3]"
+							>
+								A type editor that runs in your browser, with the
+								<span class="font-medium text-fg">Patens Method</span>
+								built in:
+								<span class="font-mono text-fg" data-numeric>94</span>
+								typographic practices type designers usually learn the hard
+								way, each explained in plain English, about a third with
+								one-click fixes. Draw your glyphs, kern your pairs, ship a
+								real
+								<span class="font-mono text-fg-muted" data-numeric>.otf</span>.
+								No account, no upload — every project lives on your machine.
+							</p>
+						{/if}
+					</div>
+				{/key}
 			</div>
 		</section>
 
@@ -1003,27 +1264,12 @@
 		</section>
 
 		<!-- ====================================================== -->
-		<!-- 7. Closing — repeat waitlist + signed line              -->
+		<!-- 7. Closing — signed-off line only. The repeat waitlist  -->
+		<!--    CTA that used to live here is gone; the sticky       -->
+		<!--    hero-cta (top-left after scroll) carries the signup. -->
 		<!-- ====================================================== -->
 		<section class="mb-24 border-t border-border/40 pt-16">
-			<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
-				Join
-			</p>
-			<h2
-				class="mt-3 max-w-2xl text-balance text-[32px] leading-tight tracking-tight text-fg sm:text-[40px]"
-				
-			>
-				When it's ready, you're first.
-			</h2>
-			<p class="mt-5 max-w-xl text-[15px] leading-relaxed text-fg-muted">
-				Drop your email; I'll send the link as soon as your spot opens. Open source under
-				MIT, made in a tab, made one rule at a time.
-			</p>
-			<div class="mt-8 max-w-md">
-				<WaitlistForm lang="en" />
-			</div>
-
-			<p class="mt-12 max-w-xl text-[13px] leading-relaxed text-fg-muted">
+			<p class="max-w-xl text-[13px] leading-relaxed text-fg-muted">
 				— Alejandro, maker · with audit notes
 				<span class="text-fg-subtle"> · </span>
 				<a href="/about" class="underline-offset-4 hover:text-fg hover:underline">

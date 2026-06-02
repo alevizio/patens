@@ -2,10 +2,7 @@
 	import type { FamilyIndexEntry } from '$lib/font/family';
 	import { formatRelative } from '$lib/util/format';
 	import ArrowLeft from '@lucide/svelte/icons/arrow-left';
-	import PatensLogo from '$lib/ui/PatensLogo.svelte';
-	import Sun from '@lucide/svelte/icons/sun';
-	import Moon from '@lucide/svelte/icons/moon';
-	import { settings } from '$lib/stores/settings.svelte';
+	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 
 	let { data }: { data: { families: FamilyIndexEntry[] } } = $props();
 </script>
@@ -16,39 +13,18 @@
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-10">
-	<!-- Slim top bar — matches the home page chrome -->
-	<header
-		class="mb-10 flex items-center justify-between gap-3 border-b border-border/50 pb-4"
+	<SiteHeader current="/families" />
+
+	<!-- Back-to-projects affordance kept as a small inline link below the
+	     shared site nav, so app-surface navigation isn't lost when the
+	     marketing nav takes the top of the page. -->
+	<a
+		href="/studio-c104c94c"
+		class="-mt-6 mb-6 inline-flex items-center gap-1.5 text-[12px] text-fg-muted hover:text-fg"
 	>
-		<a href="/studio-c104c94c" class="group inline-flex items-center gap-2.5">
-			<PatensLogo size={28} class="transition-transform group-hover:scale-105" />
-			<span class="text-[13px] font-medium tracking-tight text-fg">
-				Patens
-			</span>
-		</a>
-		<div class="flex items-center gap-1">
-			<button
-				type="button"
-				onclick={() => settings.setTheme(settings.theme === 'dark' ? 'light' : 'dark')}
-				class="inline-flex size-7 items-center justify-center text-fg-muted transition-colors hover:text-fg"
-				aria-label={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-				title={settings.theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-			>
-				{#if settings.theme === 'dark'}
-					<Sun class="size-3.5" />
-				{:else}
-					<Moon class="size-3.5" />
-				{/if}
-			</button>
-			<a
-				href="/studio-c104c94c"
-				class="inline-flex items-center gap-1.5 rounded-none px-3 py-1.5 text-[12px] font-medium text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
-			>
-				<ArrowLeft class="size-3.5" />
-				Back to projects
-			</a>
-		</div>
-	</header>
+		<ArrowLeft class="size-3.5" />
+		Back to projects
+	</a>
 
 	<!-- Hero: editorial heading + intro. Same h1 treatment as home -->
 	<section class="mb-16 max-w-3xl">
