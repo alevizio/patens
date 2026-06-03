@@ -31,6 +31,7 @@
 	},
 	"scripts": {
 		"dev": "vite dev",
+		"prebuild": "node scripts/fetch-fit.mjs",
 		"build": "vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
