@@ -94,7 +94,7 @@
 		"fflate": "^0.8.3",
 		"fit-curve": "^0.2.0",
 		"harfbuzzjs": "^1.2.0",
-		"idb-keyval": "^6.2.4",
+		"idb-keyval": "^6.2.5",
 		"opentype.js": "^2.0.0",
 		"partysocket": "^1.1.19",
 		"perfect-freehand": "^1.2.3",
