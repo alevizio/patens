@@ -1417,7 +1417,6 @@ const buildCopyright = (): BezierContour[] => {
 	const cy = CAP_HEIGHT / 2;
 	const outerR = CAP_HEIGHT * 0.5;
 	const innerR = outerR - STEM + 10;
-	const sides = 24;
 	// Inner C — three small rectangles forming a C inside the ring
 	const cR = outerR - STEM - 40;
 	const cBar = BAR - 20;
@@ -1457,7 +1456,6 @@ const buildRegistered = (): BezierContour[] => {
 	const cy = CAP_HEIGHT / 2;
 	const outerR = CAP_HEIGHT * 0.5;
 	const innerR = outerR - STEM + 10;
-	const sides = 24;
 	const rR = outerR - STEM - 40;
 	const rStem = STEM - 30;
 	const rBar = BAR - 20;
@@ -1851,7 +1849,6 @@ const buildYen = (): BezierContour[] => {
 const buildAmp = (): BezierContour[] => {
 	const W = CAP_W + 80;
 	const h = CAP_HEIGHT;
-	const sides = 20;
 	const innerT = STEM - 10;
 	// Top bowl — small, upper-left of the glyph
 	const topCx = W * 0.4;
@@ -1903,7 +1900,6 @@ const buildAtSign = (): BezierContour[] => {
 	const cy = h * 0.5;
 	const outerR = h * 0.5;
 	const innerR = outerR - STEM;
-	const sides = 24;
 	// Inner `a` core — small bowl centered slightly right of center.
 	const coreCx = cx + 40;
 	const coreCy = cy;
