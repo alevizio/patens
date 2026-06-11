@@ -71,7 +71,7 @@ jobs:
         # not a release gate (eslint + svelte-check + vitest itself are
         # the release gates).
         if: always()
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage-final.json
