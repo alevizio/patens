@@ -45,7 +45,7 @@
 						...g,
 						metricsLocked: !g.metricsLocked
 					}))}
-				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.metricsLocked
+				class="flex min-h-6 min-w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-surface-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 {glyph.metricsLocked
 					? 'text-warn'
 					: 'hover:text-fg'}"
 				aria-label={glyph.metricsLocked ? 'Unlock metrics' : 'Lock metrics'}

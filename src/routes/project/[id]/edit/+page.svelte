@@ -1045,10 +1045,14 @@
 	<LoadingPanel label="Loading glyph" />
 {:else}
 	<div class="grid h-full grid-cols-[1fr_280px]">
-		<div class="flex min-h-0 flex-col">
+		<!-- min-w-0 is load-bearing: grid items default to min-width:auto, so
+		     without it the toolbar's nowrap min-content locks this 1fr track
+		     wide and pushes the 280px properties sidebar fully offscreen at
+		     laptop/iPad widths (1024-1440). -->
+		<div class="flex min-h-0 min-w-0 flex-col">
 			<!-- Top toolbar -->
 			<div
-				class="flex items-center gap-2 border-b border-border bg-surface px-4 py-2"
+				class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border bg-surface px-4 py-2"
 			>
 				<EditorGlyphHeader {glyph} />
 

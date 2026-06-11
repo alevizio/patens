@@ -791,12 +791,20 @@
 	});
 
 	const applyKerning = (value: number) => {
+		// NaN (cleared/garbled number input) must not silently zero the
+		// pair; clamp the rest to ±UPM — anything beyond is input error.
+		if (!Number.isFinite(value)) {
+			pendingValue = currentValue;
+			return;
+		}
+		const upm = project?.metrics.unitsPerEm ?? 1000;
+		const clamped = Math.max(-upm, Math.min(upm, Math.round(value)));
 		projectStore.upsertKerningPair({
 			left: parseSide(leftChar),
 			right: parseSide(rightChar),
-			value: Math.round(value)
+			value: clamped
 		});
-		pendingValue = value;
+		pendingValue = clamped;
 	};
 
 	const removeKerning = (left: KerningSide, right: KerningSide) => {
@@ -2196,17 +2204,24 @@
 			Kerning pair editor
 		</h2>
 		<div class="grid grid-cols-[1fr_1fr_1fr] gap-3">
+			<!-- maxlength 24, not 2: @class refs ("@A_left") must be typeable;
+			     parseSide() still reads bare input as its first codepoint. -->
 			<Field label="Left glyph">
-				<Input maxlength={2} bind:value={leftChar} class="text-center text-lg" />
+				<Input maxlength={24} bind:value={leftChar} class="text-center text-lg" />
 			</Field>
 			<Field label="Right glyph">
-				<Input maxlength={2} bind:value={rightChar} class="text-center text-lg" />
+				<Input maxlength={24} bind:value={rightChar} class="text-center text-lg" />
 			</Field>
 			<Field label="Adjustment (units)">
 				<Input
 					type="number"
 					value={pendingValue}
-					onchange={(e) => applyKerning(Number(e.currentTarget.value))}
+					onchange={(e) => {
+						// An emptied field reads as NaN — applyKerning restores the
+						// current value instead of silently zeroing the pair.
+						applyKerning(e.currentTarget.value.trim() === '' ? NaN : Number(e.currentTarget.value));
+						e.currentTarget.value = String(pendingValue);
+					}}
 				/>
 			</Field>
 		</div>
@@ -2261,7 +2276,8 @@
 				<Button
 					density="sm"
 					variant="secondary"
-					onclick={() => applyKerning(currentValue + delta)}
+					title={delta === 0 ? 'Reset pair to 0' : undefined}
+					onclick={() => applyKerning(delta === 0 ? 0 : currentValue + delta)}
 				>
 					{delta > 0 ? '+' : ''}{delta}
 				</Button>

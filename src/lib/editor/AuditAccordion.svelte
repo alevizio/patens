@@ -62,7 +62,10 @@
 		</div>
 	{:else}
 		<ul class="grid gap-1">
-			{#each issues as issue (issue.code)}
+			<!-- Key must include the index: the audit legitimately emits the same
+			     code more than once per glyph (e.g. one master-point-count issue
+			     per mismatching contour), and duplicate keys crash Svelte. -->
+			{#each issues as issue, i (issue.code + ':' + i)}
 				<li
 					class="flex items-start gap-2 rounded-md px-2.5 py-1.5 text-[11px] {issue.severity ===
 					'error'

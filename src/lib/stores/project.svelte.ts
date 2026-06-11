@@ -896,17 +896,35 @@ class ProjectStore {
 	 * dropdown). No-op if the family is already loaded or if we're not in
 	 * a browser context.
 	 */
+	/** Families probed and found missing on Google Fonts this session —
+	 *  proprietary references (Futura, Söhne…) would otherwise re-trigger
+	 *  a failed request + console error on every route. */
+	private static gfMisses = new Set<string>();
+
 	private loadGoogleFontIfNeeded(family: string) {
 		if (typeof document === 'undefined') return;
 		const name = family.trim();
-		if (!name) return;
+		if (!name || ProjectStore.gfMisses.has(name)) return;
 		const id = 'gf-' + name.replace(/[^A-Za-z0-9]+/g, '-');
 		if (document.getElementById(id)) return;
-		const link = document.createElement('link');
-		link.id = id;
-		link.rel = 'stylesheet';
-		link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}&display=swap`;
-		document.head.appendChild(link);
+		const href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(name).replace(/%20/g, '+')}&display=swap`;
+		// Probe before injecting a <link>: a blind link for a family that
+		// isn't on Google Fonts (proprietary references) fails with a
+		// console error on every editor route. A handled fetch is silent.
+		fetch(href)
+			.then((res) => {
+				if (!res.ok) {
+					ProjectStore.gfMisses.add(name);
+					return;
+				}
+				if (document.getElementById(id)) return;
+				const link = document.createElement('link');
+				link.id = id;
+				link.rel = 'stylesheet';
+				link.href = href;
+				document.head.appendChild(link);
+			})
+			.catch(() => ProjectStore.gfMisses.add(name));
 	}
 
 	addBriefReference(ref: Omit<import('$lib/font/types').BriefReference, 'id'>) {
@@ -1186,7 +1204,15 @@ class ProjectStore {
 			return;
 		}
 		this.doc.transact(() => {
-			const arr = this.doc!.getMap('project').get(field) as Y.Array<T>;
+			const root = this.doc!.getMap('project');
+			// Get-or-create: docs hydrated from older snapshots may not have
+			// this array yet (e.g. kerningClasses) — get() alone returns
+			// undefined and the mutator crashes on the first use.
+			let arr = root.get(field) as Y.Array<T> | undefined;
+			if (!arr) {
+				arr = new Y.Array<T>();
+				root.set(field, arr);
+			}
 			viaDoc(arr);
 		});
 		this.touch();

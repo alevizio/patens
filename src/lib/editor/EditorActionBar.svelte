@@ -44,7 +44,10 @@
 	const isEmpty = $derived(glyph.contours.length === 0);
 </script>
 
-<div class="flex items-center gap-2 border-t border-border bg-surface px-4 py-2.5">
+<!-- flex-wrap: at laptop/iPad widths the full button set exceeds the
+     canvas column; without wrapping the right-side cluster clips
+     offscreen with no scroll recovery. -->
+<div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 border-t border-border bg-surface px-4 py-2.5">
 	<Button variant="primary" density="sm" onclick={onTrace} disabled={!hasSketch}>
 		{#snippet icon()}<Wand class="size-3.5" />{/snippet}
 		Trace to vector (T)

@@ -20,6 +20,14 @@ export const load: LayoutLoad = async ({ params, url }) => {
 	// to start from a pristine state without clearing IndexedDB.
 	if (params.id === 'demo') {
 		const wantsFresh = url.searchParams.get('fresh') === '1';
+		if (wantsFresh) {
+			// Rebuilding the legacy snapshot is not enough: projectStore
+			// binds y-indexeddb after this load, and a surviving Y.Doc
+			// wins over the rebuilt snapshot — silently no-op'ing the
+			// documented recovery path. Drop the persisted doc too.
+			const { clearPersistedDoc } = await import('$lib/sync/yjs-persistence');
+			await clearPersistedDoc('demo').catch(() => {});
+		}
 		const existing = wantsFresh ? null : await loadProject('demo').catch(() => null);
 		if (existing) return { project: existing };
 		// createDemoProject() lazy-imported only on the demo path. The
