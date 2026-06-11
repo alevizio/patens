@@ -89,6 +89,28 @@ const ellipsePath = (cx, cy, rx, ry, direction = 'ccw') => {
 	return p;
 };
 
+
+// Cubic arc segments along an axis-aligned ellipse from angle a0 to a1
+// (radians; CCW when a1 > a0). Caller must already be at the a0 point.
+const ellipseArcInto = (p, cx, cy, rx, ry, a0, a1) => {
+	const n = Math.max(1, Math.ceil(Math.abs(a1 - a0) / (Math.PI / 2)));
+	for (let i = 0; i < n; i++) {
+		const t0 = a0 + ((a1 - a0) * i) / n;
+		const t1 = a0 + ((a1 - a0) * (i + 1)) / n;
+		const a = (4 / 3) * Math.tan((t1 - t0) / 4);
+		const x1 = cx + rx * Math.cos(t1);
+		const y1 = cy + ry * Math.sin(t1);
+		p.curveTo(
+			cx + rx * Math.cos(t0) - a * rx * Math.sin(t0),
+			cy + ry * Math.sin(t0) + a * ry * Math.cos(t0),
+			x1 + a * rx * Math.sin(t1),
+			y1 - a * ry * Math.cos(t1),
+			x1,
+			y1
+		);
+	}
+};
+
 const STEM = 90; // vertical stem width
 const BAR = 80; // horizontal bar width
 const CAP_W = 560; // average uppercase width
@@ -380,10 +402,25 @@ const rect = (x, y, w, h) =>
 // derivable from one number; this prevents the "ring overshoots the
 // stem" bug that the first cut had with cx = stemLeft + STEM/2.
 const bowlRing = (stemLeftX, cy, rx, ry, t) => {
+	// C-form opening LEFT: the ring with its left wall cut away at the
+	// stem's right edge (x = stemLeftX + STEM), so the separately-drawn
+	// stem ABUTS instead of overlapping — overlap renders inconsistently
+	// across fill pipelines (2026-06 demo-font QA).
 	const cx = stemLeftX + rx;
-	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
-	const inner = ellipsePath(cx, cy, rx - t, ry - t, 'cw');
-	return mergePaths(outer, inner);
+	const joinX = stemLeftX + STEM;
+	const aEdge = Math.acos(Math.max(-1, Math.min(1, (joinX - cx) / rx)));
+	const aInner = Math.acos(Math.max(-1, Math.min(1, (joinX - cx) / (rx - t))));
+	const p = new opentype.Path();
+	// Outer arc from the upper join, the long way around the right.
+	p.moveTo(joinX, cy + ry * Math.sin(aEdge));
+	ellipseArcInto(p, cx, cy, rx, ry, aEdge, -aEdge);
+	// Lower terminal: straight in to the inner ellipse edge.
+	p.lineTo(joinX, cy - (ry - t) * Math.sin(aInner));
+	// Inner arc back, the short way (reverse direction).
+	ellipseArcInto(p, cx, cy, rx - t, ry - t, -aInner, aInner);
+	p.lineTo(joinX, cy + ry * Math.sin(aEdge));
+	p.close();
+	return p;
 };
 
 const buildA = () => {
@@ -494,42 +531,43 @@ const buildU = () => {
 };
 
 const buildS = () => {
-	// S: three horizontal bars (top, middle, bottom) joined by two
-	// stem connectors at opposite corners — geometric/brutalist S.
-	// Previous "two ring" attempt produced a "+" artifact because the
-	// middle bar filled both rings' inner counters. Rectangular S
-	// reads cleanly even if it's not curved, and matches the H/E/T
-	// rectangular aesthetic the rest of the alphabet uses.
-	const top = polyPath([
-		[60, CAP_HEIGHT - BAR],
-		[CAP_W - 60, CAP_HEIGHT - BAR],
-		[CAP_W - 60, CAP_HEIGHT],
-		[60, CAP_HEIGHT]
-	]);
-	const bottom = polyPath([
-		[60, 0],
-		[CAP_W - 60, 0],
-		[CAP_W - 60, BAR],
-		[60, BAR]
-	]);
-	const middle = polyPath([
-		[60, CAP_HEIGHT / 2 - BAR / 2],
-		[CAP_W - 60, CAP_HEIGHT / 2 - BAR / 2],
-		[CAP_W - 60, CAP_HEIGHT / 2 + BAR / 2],
-		[60, CAP_HEIGHT / 2 + BAR / 2]
-	]);
-	const upperLeft = rect(60, CAP_HEIGHT / 2 - BAR / 2, STEM, CAP_HEIGHT / 2 - BAR / 2);
-	const lowerRight = rect(
-		CAP_W - 60 - STEM,
-		BAR,
-		STEM,
-		CAP_HEIGHT / 2 - BAR / 2
-	);
-	return {
-		path: mergePaths(top, bottom, middle, upperLeft, lowerRight),
-		advance: CAP_W,
-		lsb: 60
+	// Cap S: same rounded-hook construction as the lowercase s, scaled
+	// to cap-height proportions.
+	const k = KAPPA;
+	const h = CAP_HEIGHT;
+	const w = CAP_W;
+	const p = new opentype.Path();
+	// Top hook coordinates in cap space: terminals at w-70, top stroke
+	// y in [h-84, h], left curl center (250, h-204), curl radii 204/120
+	// outer-ish; mirrored for the bottom.
+	const hook = (flip) => {
+		const T = (x, y) => (flip ? [w - x, h - y] : [x, y]);
+		const cmds = [];
+		cmds.push(['M', ...T(490, h - 84)]);
+		cmds.push(['L', ...T(490, h)]);
+		cmds.push(['L', ...T(250, h)]);
+		cmds.push(['C', ...T(250 - 180 * k, h), ...T(70, h - 180 + 180 * k), ...T(70, h - 180)]);
+		cmds.push(['L', ...T(70, h / 2 + 10)]);
+		cmds.push(['L', ...T(160, h / 2 + 10)]);
+		cmds.push(['L', ...T(160, h - 180)]);
+		cmds.push(['C', ...T(160, h - 180 + 90 * k), ...T(250 - 90 * k, h - 84), ...T(250, h - 84)]);
+		cmds.push(['L', ...T(490, h - 84)]);
+		for (const c of cmds) {
+			if (c[0] === 'M') p.moveTo(c[1], c[2]);
+			else if (c[0] === 'L') p.lineTo(c[1], c[2]);
+			else p.curveTo(c[1], c[2], c[3], c[4], c[5], c[6]);
+		}
+		p.close();
 	};
+	hook(false);
+	hook(true);
+	const bar = polyPath([
+		[160, h / 2 - 42],
+		[w - 160, h / 2 - 42],
+		[w - 160, h / 2 + 42],
+		[160, h / 2 + 42]
+	]);
+	return { path: mergePaths(p, bar), advance: CAP_W, lsb: 60 };
 };
 
 // CW-wound rectangle — when merged into a path with non-zero winding,
@@ -631,95 +669,96 @@ const buildM = () => {
 // ---- Lowercase additions ----
 
 const buildA_lc = () => {
-	// a: ring bowl + right stem. Ring's outer-RIGHT edge aligns with
-	// the right stem's right edge (mirror of P's bowl construction):
-	// stem covers the ring's RIGHT wall, only the left bowl shows.
-	// rx derived from the FULL visible ring width (lsb → stemRightEdge),
-	// not the previous over-narrow formula.
+	// Fused bowl+stem single outline (overlap-free): stem on the right,
+	// ring arc traveling the long way around the left. Port of the
+	// editor demo's bowlWithStem('right', ...).
 	const lsb = 80;
-	const t = STEM - 10;
-	const ry = X_HEIGHT / 2;
-	const stemRightEdge = LC_W - lsb;
-	const stemLeftEdge = stemRightEdge - t;
-	const ringLeftEdge = lsb;
-	const ringRightEdge = stemRightEdge;
-	const rx = (ringRightEdge - ringLeftEdge) / 2;
-	const cx = (ringRightEdge + ringLeftEdge) / 2;
-	const outer = ellipsePath(cx, ry, rx, ry, 'ccw');
-	const inner = ellipsePath(cx, ry, rx - t, ry - t, 'cw');
-	const stem = rect(stemLeftEdge, 0, t, X_HEIGHT);
-	return { path: mergePaths(outer, inner, stem), advance: LC_W, lsb };
+	const cx = LC_W / 2;
+	const cy = X_HEIGHT / 2;
+	const rx = LC_W / 2 - lsb;
+	const ry = X_HEIGHT / 2 + 12;
+	const stemX0 = LC_W - lsb - STEM;
+	const stemX1 = LC_W - lsb;
+	const aEdge = Math.acos((stemX0 - cx) / rx);
+	const yAtEdge = ry * Math.sin(aEdge);
+	const p = new opentype.Path();
+	p.moveTo(stemX0, 0);
+	p.lineTo(stemX1, 0);
+	p.lineTo(stemX1, X_HEIGHT);
+	p.lineTo(stemX0, X_HEIGHT);
+	p.lineTo(stemX0, cy + yAtEdge);
+	ellipseArcInto(p, cx, cy, rx, ry, aEdge, 2 * Math.PI - aEdge);
+	p.lineTo(stemX0, 0);
+	p.close();
+	const inner = ellipsePath(cx, cy, rx - 94, ry - 84, 'cw');
+	return { path: mergePaths(p, inner), advance: LC_W, lsb };
 };
 
 const buildE_lc = () => {
-	// e: full ring + horizontal crossbar at mid-height + mouth opening
-	// the lower-right wall. Mouth is restricted to wall thickness so it
-	// doesn't re-fill the interior. Crossbar overlaps the wall on both
-	// sides so it joins cleanly.
+	// Ring + two D-shaped counters whose flat edges ARE the crossbar
+	// (no overlapping bar rect), + a wall-only mouth. Port of the
+	// editor demo's redrawn e.
 	const cx = LC_W / 2;
 	const cy = X_HEIGHT / 2;
 	const rx = LC_W / 2 - 80;
-	const ry = X_HEIGHT / 2;
-	const t = STEM - 10;
-	const innerRx = rx - t;
-	const innerRy = ry - t;
+	const ry = X_HEIGHT / 2 + 12;
+	const rxi = rx - 94;
+	const ryi = ry - 84;
+	const barHalf = 40;
+	const aTop = Math.asin(barHalf / ryi);
 	const outer = ellipsePath(cx, cy, rx, ry, 'ccw');
-	const inner = ellipsePath(cx, cy, innerRx, innerRy, 'cw');
-	// Lower-right mouth — opens just the lower portion of the right
-	// wall. Y range and right edge are both clipped to keep the mouth
-	// INSIDE the outer ellipse so no crescent artifact appears past
-	// outer's curve.
-	const mouthBottomY = cy - innerRy * 0.9;
-	const mouthTopY = cy + STEM * 0.1;
-	const mouthRightX = cx + ellipseHalfWidthAt(rx, ry, cy - mouthBottomY);
-	const mouth = cwRect(
-		cx + innerRx,
-		mouthBottomY,
-		mouthRightX - (cx + innerRx),
-		mouthTopY - mouthBottomY
-	);
-	// Crossbar — horizontal, full inner width minus a bit of bleed.
-	const bar = rect(cx - rx + t / 2, cy - t / 3, rx * 2 - t, (t * 2) / 3);
-	return { path: mergePaths(outer, inner, mouth, bar), advance: LC_W, lsb: 80 };
+	const dTop = new opentype.Path();
+	dTop.moveTo(cx - rxi * Math.cos(aTop), cy + barHalf);
+	ellipseArcInto(dTop, cx, cy, rxi, ryi, Math.PI - aTop, aTop);
+	dTop.lineTo(cx - rxi * Math.cos(aTop), cy + barHalf);
+	dTop.close();
+	const dBottom = new opentype.Path();
+	dBottom.moveTo(cx + rxi * Math.cos(aTop), cy - barHalf);
+	ellipseArcInto(dBottom, cx, cy, rxi, ryi, 2 * Math.PI - aTop, Math.PI + aTop);
+	dBottom.lineTo(cx + rxi * Math.cos(aTop), cy - barHalf);
+	dBottom.close();
+	const mouthBottom = cy - ryi * 0.92;
+	const mouthRight = cx + rx * Math.sqrt(Math.max(0, 1 - ((cy - mouthBottom) / ry) ** 2)) - 2;
+	const mouth = cwRect(cx + rxi + 1, mouthBottom, mouthRight - (cx + rxi + 1), barHalf * 0.9);
+	return { path: mergePaths(outer, dTop, dBottom, mouth), advance: LC_W, lsb: 80 };
 };
 
 const buildS_lc = () => {
-	// s: scaled-down S using the same construction
-	const top = polyPath([
-		[60, X_HEIGHT - BAR],
-		[LC_W - 60, X_HEIGHT - BAR],
-		[LC_W - 60, X_HEIGHT],
-		[60, X_HEIGHT]
-	]);
-	const bottom = polyPath([
-		[60, 0],
-		[LC_W - 60, 0],
-		[LC_W - 60, BAR],
-		[60, BAR]
-	]);
-	const middle = polyPath([
-		[80, X_HEIGHT / 2 - BAR / 2],
-		[LC_W - 80, X_HEIGHT / 2 - BAR / 2],
-		[LC_W - 80, X_HEIGHT / 2 + BAR / 2],
-		[80, X_HEIGHT / 2 + BAR / 2]
-	]);
-	const upperLeft = polyPath([
-		[60, X_HEIGHT / 2 + BAR / 2],
-		[60 + STEM, X_HEIGHT / 2 + BAR / 2],
-		[60 + STEM, X_HEIGHT - BAR],
-		[60, X_HEIGHT - BAR]
-	]);
-	const lowerRight = polyPath([
-		[LC_W - 60 - STEM, BAR],
-		[LC_W - 60, BAR],
-		[LC_W - 60, X_HEIGHT / 2 - BAR / 2],
-		[LC_W - 60 - STEM, X_HEIGHT / 2 - BAR / 2]
-	]);
-	return {
-		path: mergePaths(top, bottom, middle, upperLeft, lowerRight),
-		advance: LC_W,
-		lsb: 60
+	// DIN-style s: top hook (flat stroke + left curl to mid-height),
+	// 180-degree-rotated bottom hook, middle bar abutting both curls.
+	const k = KAPPA;
+	const h = X_HEIGHT;
+	const w = LC_W;
+	const p = new opentype.Path();
+	const hook = (flip) => {
+		// flip=false: top hook. flip=true: rotate 180 inside w x h box.
+		const T = (x, y) => (flip ? [w - x, h - y] : [x, y]);
+		const cmds = [];
+		cmds.push(['M', ...T(410, 416)]);
+		cmds.push(['L', ...T(410, 500)]);
+		cmds.push(['L', ...T(220, 500)]);
+		cmds.push(['C', ...T(220 - 150 * k, 500), ...T(70, 350 + 150 * k), ...T(70, 350)]);
+		cmds.push(['L', ...T(70, 250)]);
+		cmds.push(['L', ...T(154, 250)]);
+		cmds.push(['L', ...T(154, 350)]);
+		cmds.push(['C', ...T(154, 350 + 66 * k), ...T(220 - 66 * k, 416), ...T(220, 416)]);
+		cmds.push(['L', ...T(410, 416)]);
+		for (const c of cmds) {
+			if (c[0] === 'M') p.moveTo(c[1], c[2]);
+			else if (c[0] === 'L') p.lineTo(c[1], c[2]);
+			else p.curveTo(c[1], c[2], c[3], c[4], c[5], c[6]);
+		}
+		p.close();
 	};
+	hook(false);
+	hook(true);
+	const bar = polyPath([
+		[154, h / 2 - 42],
+		[w - 154, h / 2 - 42],
+		[w - 154, h / 2 + 42],
+		[154, h / 2 + 42]
+	]);
+	return { path: mergePaths(p, bar), advance: LC_W, lsb: 70 };
 };
 
 const buildT_lc = () => {
