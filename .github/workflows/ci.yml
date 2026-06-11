@@ -90,7 +90,9 @@ jobs:
         run: |
           set -e
           BUDGET_KB=5120
-          ACTUAL_KB=$(du -sk .svelte-kit/output/client | cut -f1)
+          # _app only: output/client also receives copies of static/ (demo
+          # video ~2MB, fonts), which are CDN assets, not shipped JS/CSS.
+          ACTUAL_KB=$(du -sk .svelte-kit/output/client/_app | cut -f1)
           echo "Client bundle: ${ACTUAL_KB} KB (budget: ${BUDGET_KB} KB)"
           if [ "$ACTUAL_KB" -gt "$BUDGET_KB" ]; then
             echo "::error::Bundle size ${ACTUAL_KB}KB exceeds budget of ${BUDGET_KB}KB"

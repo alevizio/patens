@@ -1,7 +1,7 @@
 {
 	"name": "patens",
 	"version": "1.5.2",
-	"description": "Browser-native, open-source type design \u2014 draw glyphs with pressure-sensitive strokes, trace to B\u00e9zier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
+	"description": "Browser-native, open-source type design — draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
 	"author": {
 		"name": "Alejandro Vizio",
 		"email": "hi@patens.design",
@@ -54,7 +54,7 @@
 		"lint:fix": "eslint . --fix",
 		"analyze": "ANALYZE=1 vite build",
 		"profile": "node scripts/profile-cold-load.mjs",
-		"clean": "rm -rf .svelte-kit node_modules/.vite && echo 'cleaned \u2014 run pnpm dev to rebuild'"
+		"clean": "rm -rf .svelte-kit node_modules/.vite && echo 'cleaned — run pnpm dev to rebuild'"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.3",
@@ -116,6 +116,11 @@
 			"cpu": [
 				"current",
 				"x64"
+			],
+			"libc": [
+				"current",
+				"glibc",
+				"musl"
 			]
 		}
 	}
