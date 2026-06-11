@@ -228,6 +228,20 @@
 	// the effect below.
 	if (browser) refresh();
 
+	// Visible survivability signal: when the service worker is active the
+	// whole studio works with the network unplugged — say so where the
+	// projects live, instead of leaving "what if the site dies" to the FAQ.
+	let offlineReady = $state(false);
+	$effect(() => {
+		if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+		navigator.serviceWorker
+			.getRegistration()
+			.then((reg) => {
+				offlineReady = !!reg?.active;
+			})
+			.catch(() => {});
+	});
+
 	let storage = $state<{ used: number; quota: number } | null>(null);
 	$effect(() => {
 		if (typeof navigator === 'undefined' || !navigator.storage?.estimate) return;
@@ -669,14 +683,14 @@
 	<meta name="robots" content="noindex, nofollow" />
 	<meta
 		name="description"
-		content="Patens is a type editor with 102 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method."
+		content="Patens is a type editor with 105 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method."
 	/>
 	<!-- OpenGraph / Twitter card meta for link unfurls. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="105 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -686,7 +700,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="102 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="105 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload the hero typeface so the LCP element (the big "Hn" mark
@@ -775,7 +789,7 @@
 				url: 'https://patens.design/',
 				name: 'Patens',
 				description:
-					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 102 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
 				// Marketing surface is bilingual EN+ES; editor + 94 audit code
 				// descriptions are EN-only for now (translation roadmap v1.7+).
 				inLanguage: ['en', 'es'],
@@ -788,7 +802,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 102-code teaching audit module.',
+					'Open-source browser-native type design tool with a 105-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -817,7 +831,7 @@
 				name: 'Patens',
 				alternateName: 'Patens — type design that teaches as you draw',
 				description:
-					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. The audit module is the spine of the editor — every contour, metric, and kern pair gets checked against rules type designers internalize through years of mentorship, with around 30 codes offering a one-click fix. Open source MIT, browser-native, no installs.',
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 102 type-design rules with plain-English fixes, ship real OpenType. The audit module is the spine of the editor — every contour, metric, and kern pair gets checked against rules type designers internalize through years of mentorship, with around 30 codes offering a one-click fix. Open source MIT, browser-native, no installs.',
 				applicationCategory: 'DesignApplication',
 				applicationSubCategory: 'Font Editor',
 				operatingSystem: 'Any (browser-based)',
@@ -832,7 +846,7 @@
 				releaseNotes: 'https://patens.design/changelog',
 				downloadUrl: 'https://github.com/alevizio/patens',
 				featureList: [
-					'102-code audit module with plain-English teaching prose on every code, one-click fixes on around 30 codes',
+					'105-code audit module with plain-English teaching prose on every code, one-click fixes on around 30 codes',
 					'CLI distribution: `npx patens audit` runs the same engine from the terminal for CI integration',
 					'Pressure-sensitive sketch tool with trace-to-cubic-Bézier (boolean union + Schneider curve fitting)',
 					'Direct contour editing with smooth and corner points, multi-select, affine transforms',
@@ -1014,6 +1028,15 @@
 					<Moon class="size-3.5" />
 				{/if}
 			</button>
+			{#if offlineReady}
+				<span
+					class="hidden items-center gap-1 font-mono text-[9px] tracking-[0.14em] text-fg-subtle uppercase sm:inline-flex"
+					title="The service worker has cached the app — the studio keeps working with no network, and your projects live in this browser's IndexedDB."
+				>
+					<span class="size-1.5 rounded-full bg-success" aria-hidden="true"></span>
+					offline-ready
+				</span>
+			{/if}
 			{#if storage && storage.quota > 0}
 				{@const pct = Math.min(100, (storage.used / storage.quota) * 100)}
 				<button
@@ -1126,7 +1149,7 @@
 	     the hero and the dashboard. Gives first-time visitors a credentials-
 	     at-a-glance moment without scrolling far. The 4 stats are chosen to
 	     reinforce the four pillars of the audit-led positioning: the audit
-	     module (101 codes), the demo's scope (162 glyphs / 3 scripts),
+	     module (105 codes), the demo's scope (162 glyphs / 3 scripts),
 	     engineering integrity (528 tests passing), and the open-source
 	     commitment (MIT). Mono-uppercase labels + Hoefler-serif numerals
 	     match the rest of the home's typography. -->
@@ -1255,7 +1278,7 @@
 				<span class="transition-transform group-hover:translate-x-0.5">→</span>
 			</a>
 			<span class="ml-3 text-fg-subtle">
-				· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (101 codes)</a> · Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
+				· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (105 codes)</a> · Also from the terminal: <code class="font-mono text-fg">npx patens audit</code>
 			</span>
 		</p>
 	</section>
@@ -1795,7 +1818,7 @@
 			>
 				<div
 					class="flex select-none items-baseline gap-1 border-b border-border pb-3 text-[120px] leading-[0.9] tracking-tight text-fg transition-colors group-hover:text-accent-strong sm:text-[156px]"
-					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+					style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 					aria-hidden="true"
 				>
 					Hn

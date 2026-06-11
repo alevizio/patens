@@ -511,6 +511,7 @@ export const applyVerticalMetrics = (
 	const tables = font.tables as Record<string, unknown> | undefined;
 	const os2 = tables?.os2 as
 		| {
+				version?: number;
 				sTypoAscender?: number;
 				sTypoDescender?: number;
 				sTypoLineGap?: number;
@@ -528,6 +529,12 @@ export const applyVerticalMetrics = (
 		// fsSelection bit 7 = USE_TYPO_METRICS (per OpenType OS/2 spec)
 		const sel = os2.fsSelection ?? 0;
 		os2.fsSelection = vm.useTypoMetrics ? sel | 0x80 : sel & ~0x80;
+		// Bits 7-9 are only defined from OS/2 version 4 — setting them on
+		// a v3 table makes fontTools (and strict validators) warn on every
+		// export. v4 is structurally identical to v3, so bump in place.
+		if ((os2.fsSelection & 0x380) !== 0 && (os2.version ?? 0) < 4) {
+			os2.version = 4;
+		}
 	}
 	// opentype.js exposes hhea differently across versions — write both
 	// `ascender/descender` and `ascent/descent` so the binary writer picks
