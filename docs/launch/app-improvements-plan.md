@@ -282,7 +282,13 @@ Each 3+ days. Not launch-blocking; v1.6+ candidates.
   slant axis. Marked as deferred in the demo's decision log.
 - **Full Greek lowercase set** (2d) — 14+ glyphs to draw + audit.
 - **AI explain-audit-code** (1.5d) — Claude API + cost guard + UX.
-- **AI kerning-suggest** (3d) — model + API or local distilled model.
+- ~~**AI kerning-suggest** (3d)~~ — DEPRIORITIZED 2026-06-10 per launch
+  research: best published ML kerning still averages ~5.3px error, the
+  community's standing objection is that a small wrong-pair rate is
+  unusable unsupervised, and deterministic tools (Letterspacer, KernOn)
+  already own the space. Patens' deterministic auto-kern is the feature
+  to MARKET (the anti-AI angle); see /ai stance page. Revisit only if
+  the vision-experiment evals change the picture.
 - **i18n** (5d) — defer to v2.0.
 
 ---
