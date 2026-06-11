@@ -33,7 +33,7 @@
 						toast.warn(`Reset "${name}" — ⌘Z to undo`, 4000);
 					}
 				}}
-				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warn/40"
+				class="flex min-h-6 min-w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-warn/10 hover:text-warn-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-warn/40"
 				aria-label="Reset glyph to empty"
 				title="Reset glyph (keep its slot but wipe data)"
 			>
@@ -52,7 +52,7 @@
 						toast.warn(`Removed "${name}" — ⌘Z to undo`, 4000);
 					}
 				}}
-				class="rounded p-0.5 text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
+				class="flex min-h-6 min-w-6 items-center justify-center rounded text-fg-subtle transition-colors hover:bg-danger/10 hover:text-danger-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger/40"
 				aria-label="Delete glyph"
 				title="Remove this glyph from the font"
 			>

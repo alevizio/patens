@@ -140,6 +140,9 @@ const RULE_META: Record<string, { title?: string; category: AuditCategory }> = {
 	'metrics-use-typo-off': { title: 'USE_TYPO_METRICS flag off', category: 'Vertical metrics' },
 	'metrics-win-clip-top': { title: 'winAscent below typoAscender (top clip risk)', category: 'Vertical metrics' },
 	'metrics-win-clip-bottom': { title: 'winDescent below typoDescender (bottom clip risk)', category: 'Vertical metrics' },
+	'metrics-win-below-extrema-top': { title: 'Outline tops winAscent (Windows clips it)', category: 'Vertical metrics' },
+	'metrics-win-below-extrema-bottom': { title: 'Outline below winDescent (Windows clips it)', category: 'Vertical metrics' },
+	'kerning-suggests-spacing': { title: 'Heavy same-direction kerning — fix the sidebearing instead', category: 'Spacing & advance' },
 
 	// Kerning
 	'kerning-extreme': { title: 'Extreme kerning value', category: 'Kerning' },

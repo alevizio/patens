@@ -76,9 +76,13 @@ const jumpAttention = (
 
 export const createEditorKeyHandler = (b: EditorKeybindings) => {
 	return (ev: KeyboardEvent) => {
-		// Form inputs eat their own keys — never preempt typing.
+		// Form inputs eat their own keys — never preempt typing. Selects
+		// too: letter keys jump between options (e.g. the Master dropdown),
+		// and single-letter shortcuts firing mid-selection switch tools or
+		// mutate glyph state.
 		if (ev.target instanceof HTMLInputElement) return;
 		if (ev.target instanceof HTMLTextAreaElement) return;
+		if (ev.target instanceof HTMLSelectElement) return;
 
 		const project = projectStore.project;
 		const allGlyphs = project?.glyphs ?? {};

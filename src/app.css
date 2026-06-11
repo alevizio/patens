@@ -55,7 +55,12 @@
 		--border-strong: 24 6% 83%; /* stone-300 #d6d3d1 */
 		--fg: 24 10% 10%; /* stone-900 #1c1917 */
 		--fg-muted: 33 5% 32%; /* ~stone-600  ≈ stone-900 @ 70% over canvas */
-		--fg-subtle: 24 5% 64%; /* ~stone-400  ≈ stone-900 @ 40% over canvas */
+		/* 42% (was 64% ~stone-400): clears WCAG AA 4.5:1 with headroom on
+		   every panel tint the app uses — canvas 5.09, surface 4.88, and
+		   the in-app blended panels (#f4f4f3 → 4.83, #f2f2f1 → 4.75). At
+		   64% the 11px mono micro-labels sat at 2.4:1 and failed axe
+		   site-wide; 44% still dipped to 4.48 on tinted panels. */
+		--fg-subtle: 24 5% 42%;
 
 		/* Swiss Red — the only accent. Used sparingly. */
 		--accent: 351 86% 42%; /* #C8102E */
@@ -95,7 +100,10 @@
 		--border-strong: 30 6% 25%; /* stone-700 #44403c */
 		--fg: 60 9% 98%; /* stone-50 */
 		--fg-muted: 24 5% 64%; /* ~stone-400  ≈ stone-50 @ 70% over canvas */
-		--fg-subtle: 33 5% 32%; /* ~stone-600  ≈ stone-50 @ 40% over canvas */
+		/* 54% (was 32% ~stone-600): dark theme failed AA too (2.55:1).
+		   54% clears 5.80:1 on canvas / 5.13:1 on surface, with the same
+		   tinted-panel headroom rationale as the light value. */
+		--fg-subtle: 33 5% 54%;
 
 		--accent: 351 86% 55%; /* brighter on dark */
 		--accent-fg: 20 14% 4%; /* stone-950 on bright red */

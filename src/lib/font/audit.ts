@@ -785,6 +785,92 @@ export const preflightProject = (project: Project): AuditIssue[] => {
 	if (vm.winDescent < Math.abs(vm.typoDescender))
 		issues.push({ codepoint: 0, severity: 'warn', code: 'metrics-win-clip-bottom', message: `winDescent (${vm.winDescent}) is below |typoDescender| — descenders may clip on Windows` });
 
+	// win metrics vs ACTUAL drawn extrema. The static typo-vs-win checks
+	// above miss the failure mode resellers reject for: a tall diacritic
+	// (Á, Ấ) whose outline tops winAscent. Windows clips at winAscent /
+	// winDescent regardless of what the typo fields promise.
+	{
+		let maxTop = -Infinity;
+		let minBottom = Infinity;
+		let topCp = 0;
+		let bottomCp = 0;
+		for (const g of Object.values(project.glyphs)) {
+			if (!g.contours.length) continue;
+			const b = glyphBounds(g.contours);
+			if (b.maxY > maxTop) {
+				maxTop = b.maxY;
+				topCp = g.codepoint;
+			}
+			if (b.minY < minBottom) {
+				minBottom = b.minY;
+				bottomCp = g.codepoint;
+			}
+		}
+		if (maxTop > vm.winAscent) {
+			issues.push({
+				codepoint: topCp,
+				severity: 'warn',
+				code: 'metrics-win-below-extrema-top',
+				message: `'${String.fromCodePoint(topCp)}' reaches ${Math.round(maxTop)}, above winAscent (${vm.winAscent}) — Windows clips it, and resellers reject fonts for exactly this`
+			});
+		}
+		if (minBottom < -vm.winDescent) {
+			issues.push({
+				codepoint: bottomCp,
+				severity: 'warn',
+				code: 'metrics-win-below-extrema-bottom',
+				message: `'${String.fromCodePoint(bottomCp)}' reaches ${Math.round(minBottom)}, below -winDescent (${-vm.winDescent}) — Windows clips it, and resellers reject fonts for exactly this`
+			});
+		}
+	}
+
+	// Spacing-vs-kerning triage (the Kent Lew heuristic): a glyph kerned
+	// against many partners on the same side, mostly in the same direction
+	// and by sizeable amounts, almost certainly has a wrong sidebearing —
+	// fix the spacing once instead of kerning it N times. Class-based
+	// pairs are skipped: classes are already the "fix it once" form.
+	{
+		type SideTally = { partners: Set<number>; values: number[] };
+		const bySide = new Map<string, SideTally>(); // `${cp}:R` / `${cp}:L`
+		const tally = (cp: number, side: 'L' | 'R', partner: number, value: number) => {
+			const key = `${cp}:${side}`;
+			let t = bySide.get(key);
+			if (!t) {
+				t = { partners: new Set(), values: [] };
+				bySide.set(key, t);
+			}
+			t.partners.add(partner);
+			t.values.push(value);
+		};
+		for (const pair of project.kerning) {
+			if (pair.value === 0) continue;
+			if (typeof pair.left !== 'number' || typeof pair.right !== 'number') continue;
+			tally(pair.left, 'R', pair.right, pair.value);
+			tally(pair.right, 'L', pair.left, pair.value);
+		}
+		const minPartners = 8;
+		const minMedian = Math.max(20, Math.round(project.metrics.unitsPerEm * 0.03));
+		for (const [key, t] of bySide) {
+			if (t.partners.size < minPartners) continue;
+			const neg = t.values.filter((v) => v < 0).length;
+			const dominant = Math.max(neg, t.values.length - neg) / t.values.length;
+			if (dominant < 0.75) continue;
+			const sorted = [...t.values].map(Math.abs).sort((a, b) => a - b);
+			const median = sorted[Math.floor(sorted.length / 2)];
+			if (median < minMedian) continue;
+			const [cpStr, side] = key.split(':');
+			const cp = Number(cpStr);
+			const sideName = side === 'R' ? 'right' : 'left';
+			const sign = neg > t.values.length - neg ? '-' : '+';
+			issues.push({
+				codepoint: cp,
+				severity: 'info',
+				code: 'kerning-suggests-spacing',
+				message: `'${String.fromCodePoint(cp)}' is kerned against ${t.partners.size} glyphs on its ${sideName} (median ${sign}${median}) — its ${sideName} sidebearing is probably off by ~${Math.round(median / 2)}; fix the spacing once instead`
+			});
+		}
+	}
+
 	// UPM sanity
 	if (project.metrics.unitsPerEm < 1000 || project.metrics.unitsPerEm > 16384)
 		issues.push({ codepoint: 0, severity: 'warn', code: 'upm-unusual', message: `UPM ${project.metrics.unitsPerEm} is outside the typical 1000–2048 range` });
@@ -1793,6 +1879,12 @@ export const describeAuditCode = (code: string): string | undefined => {
 			'OS/2 winAscent is below typoAscender — top edges of glyphs may clip on Windows. winAscent is Windows\' clipping boundary; if it sits below the typoAscender, ascenders that reach typoAscender will be cropped. Bump winAscent up.',
 		'metrics-win-clip-bottom':
 			'OS/2 winDescent is below |typoDescender| — descenders may clip on Windows. winDescent is the clipping boundary for descenders; if it\'s smaller than the typoDescender\'s magnitude, descenders get cropped. Bump winDescent up.',
+		'metrics-win-below-extrema-top':
+			'A drawn outline reaches above winAscent. Windows clips rendering at winAscent regardless of the typo metrics, so the tallest glyph — usually an accented capital like Á — loses its top. This is one of the most common reasons resellers (MyFonts, foundry platforms) reject otherwise-finished fonts. Raise winAscent to at least the tallest outline\'s top.',
+		'metrics-win-below-extrema-bottom':
+			'A drawn outline reaches below -winDescent. Windows clips at winDescent (a positive magnitude), so the deepest descender or stacked-below mark gets cropped. Same reseller-rejection story as the top edge: raise winDescent to cover the lowest outline.',
+		'kerning-suggests-spacing':
+			'This glyph is kerned against many partners on the same side, mostly in the same direction, by sizeable amounts — the classic signature of a spacing problem wearing a kerning costume. If V needs -40 against a, e, o, c, d, g and friends, V\'s sidebearing is wrong; tighten it once by about half the median kern and most of those pairs disappear. Spacing first, kerning for the exceptions — in that order.',
 
 		// Designspace / variable-font axes + masters + instances
 		'axis-range-invalid':

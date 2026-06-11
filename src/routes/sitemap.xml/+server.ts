@@ -35,7 +35,12 @@ const ROUTES: Array<{
 	{ path: '/learn/multi-script', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
 	{ path: '/learn/export-formats', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
 	{ path: '/learn/audit-codes', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
-	{ path: '/families', changefreq: 'monthly', priority: 0.5, lastmod: '2026-05-30' },
+	// /families is deliberately NOT listed: it's a client-only (ssr=false)
+	// per-user IndexedDB page — crawlers receive an empty shell.
+	{ path: '/check', changefreq: 'monthly', priority: 0.8, lastmod: '2026-06-10' },
+	{ path: '/ai', changefreq: 'yearly', priority: 0.5, lastmod: '2026-06-10' },
+	{ path: '/education', changefreq: 'monthly', priority: 0.6, lastmod: '2026-06-10' },
+	{ path: '/library', changefreq: 'monthly', priority: 0.6, lastmod: '2026-06-10' },
 	{ path: '/help', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
 	{ path: '/compare', changefreq: 'monthly', priority: 0.7, lastmod: '2026-05-30' },
 	{ path: '/changelog', changefreq: 'weekly', priority: 0.6, lastmod: '2026-05-30' },

@@ -446,6 +446,11 @@
 					matches = (g.tags ?? []).some((t) =>
 						tagQuery ? t === tagQuery : true
 					);
+				} else if (lowerQuery.startsWith('u+')) {
+					// "U+0041" — the exact notation every tile's title displays.
+					// Strip the prefix + leading zeros and match the hex exactly.
+					const hexQuery = lowerQuery.slice(2).replace(/^0+(?=.)/, '');
+					matches = hex === hexQuery;
 				} else {
 					matches =
 						g.name.toLowerCase().includes(lowerQuery) ||

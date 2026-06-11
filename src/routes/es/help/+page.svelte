@@ -12,7 +12,7 @@
 			items: [
 				{
 					q: '¿Qué es Patens?',
-					a: 'Una herramienta de diseño tipográfico que corre en el navegador. Bocetá glifos, trazá a curvas Bézier, ajustá métricas y kerning, exportá OpenType. Todo local, sin instalación, sin cuenta. Código abierto MIT. La diferencia: un módulo de auditoría de 94 reglas que explica cada hallazgo en lenguaje claro.'
+					a: 'Una herramienta de diseño tipográfico que corre en el navegador. Bocetá glifos, trazá a curvas Bézier, ajustá métricas y kerning, exportá OpenType. Todo local, sin instalación, sin cuenta. Código abierto MIT. La diferencia: un módulo de auditoría de 105 reglas que explica cada hallazgo en lenguaje claro.'
 				},
 				{
 					q: '¿Necesito una cuenta?',
@@ -54,7 +54,7 @@
 				},
 				{
 					q: '¿El OTF que exporto es producción-ready?',
-					a: 'Sí — pasa por opentype.js para escritura + hinting opcional con ttfautohint. Antes de exportar, corré la auditoría: 94 reglas chequean métricas, contornos, kerning, naming, color font tables, designspace. Si la auditoría está limpia, el OTF está listo.'
+					a: 'Sí — pasa por opentype.js para escritura + hinting opcional con ttfautohint. Antes de exportar, corré la auditoría: 105 reglas chequean métricas, contornos, kerning, naming, color font tables, designspace. Si la auditoría está limpia, el OTF está listo.'
 				},
 				{
 					q: '¿Por qué TTF tarda más que OTF?',

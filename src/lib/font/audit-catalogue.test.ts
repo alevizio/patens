@@ -4,6 +4,7 @@ import {
 	AUDIT_CATALOGUE_BY_CODE,
 	AUDIT_CATALOGUE_BY_CATEGORY
 } from './audit-catalogue';
+import { AUDIT_CODE_COUNT } from './audit-count';
 import { describeAuditCode } from './audit';
 
 describe('audit catalogue', () => {
@@ -16,7 +17,9 @@ describe('audit catalogue', () => {
 		// 99→101 with instance-at-master-position + opsz-without-cap-x-
 		// divergence; 101→102 with non-compatible-glyph (winding flips +
 		// component-reference drift across masters).
-		expect(AUDIT_CATALOGUE.length).toBe(102);
+		// Tripwire: AUDIT_CODE_COUNT is the standalone constant marketing
+		// surfaces import — it must always equal the real catalogue size.
+		expect(AUDIT_CATALOGUE.length).toBe(AUDIT_CODE_COUNT);
 	});
 
 	it('every rule has a non-empty title, category, description, fixable bool', () => {

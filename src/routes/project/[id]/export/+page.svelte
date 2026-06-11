@@ -546,9 +546,12 @@ body {
 					postScriptName: i.postScriptName
 				}))
 			});
+			// varLib merges the per-master CFF builds, so the container is
+			// OTTO — name it .otf to match (a .ttf name misleads installers
+			// and font validators about the outline format inside).
 			downloadBlob(
-				new Blob([vfBuffer], { type: 'font/ttf' }),
-				`${safeFilename(project.metadata.familyName) || 'Untitled'}-VF.ttf`
+				new Blob([vfBuffer], { type: 'font/otf' }),
+				`${safeFilename(project.metadata.familyName) || 'Untitled'}-VF.otf`
 			);
 		} catch (err) {
 			toast.error('Variable font build failed: ' + (err instanceof Error ? err.message : String(err)));
@@ -634,6 +637,46 @@ body {
 			toast.error('UFO export failed: ' + (err instanceof Error ? err.message : String(err)));
 		} finally {
 			ufoBusy = false;
+		}
+	};
+
+	// Survivability backup — the in-product answer to "what happens to my
+	// fonts if the site dies": one click, pure JS (no Pyodide), and the
+	// archive opens in OTHER tools too. .font.json restores into Patens;
+	// the UFO + designspace + .fea open in Fontra / Glyphs / RoboFont /
+	// fontmake; the OTF is the installable artifact.
+	let backupBusy = $state(false);
+	const exportBackup = async () => {
+		if (!project || backupBusy) return;
+		backupBusy = true;
+		try {
+			const familyId = safeFilename(project.metadata.familyName) || 'Untitled';
+			const files: Record<string, Uint8Array> = {
+				[`${familyId}.font.json`]: strToU8(JSON.stringify(project, null, 2)),
+				[`${familyId}.ufo.zip`]: new Uint8Array(
+					projectToUfoZipNative(project, project.metadata.familyName)
+				),
+				[`${familyId}.features.fea`]: strToU8(
+					project.features.feaSource?.trim() || autoFeaSource(project)
+				),
+				[`${familyId}.otf`]: new Uint8Array(await buildOtfBuffer())
+			};
+			if ((project.axes ?? []).length > 0) {
+				const { designspaceFromProject } = await import('$lib/font/designspace');
+				files[`${familyId}.designspace`] = strToU8(designspaceFromProject(project));
+			}
+			const zipped = zipSync(files, { level: 6 });
+			downloadBlob(
+				new Blob([zipped], { type: 'application/zip' }),
+				`${familyId}-backup-${new Date().toISOString().slice(0, 10)}.zip`
+			);
+			toast.success(
+				`Backup: ${Object.keys(files).length} files in ${(zipped.byteLength / 1024).toFixed(1)} KB — restores into Patens, opens in any UFO tool`
+			);
+		} catch (err) {
+			toast.error('Backup failed: ' + (err instanceof Error ? err.message : String(err)));
+		} finally {
+			backupBusy = false;
 		}
 	};
 
@@ -1692,6 +1735,16 @@ document.querySelectorAll('.controls button').forEach((b) => {
 					</span>
 				</div>
 				<div class="flex flex-wrap items-center gap-3">
+					<Button onclick={exportBackup} disabled={!validation.ok || backupBusy} loading={backupBusy}>
+						{#snippet icon()}<Download class="size-4" />{/snippet}
+						{backupBusy ? 'Building backup…' : 'Back up everything (.zip)'}
+					</Button>
+					<span class="text-[12px] text-fg-subtle">
+						.font.json + UFO 3 + designspace + features + OTF — restores into
+						Patens, opens in any UFO tool. Your work survives this site.
+					</span>
+				</div>
+				<div class="flex flex-wrap items-center gap-3">
 					<Button onclick={exportTtf} disabled={!validation.ok || ttfBusy} loading={ttfBusy}>
 						{#snippet icon()}<Download class="size-4" />{/snippet}
 						{ttfBusy ? 'Compiling TTF…' : 'Export TTF'}
@@ -1751,7 +1804,7 @@ document.querySelectorAll('.controls button').forEach((b) => {
 							loading={vfBusy}
 						>
 							{#snippet icon()}<Download class="size-4" />{/snippet}
-							{vfBusy ? 'Compiling VF…' : 'Export variable font (.ttf)'}
+							{vfBusy ? 'Compiling VF…' : 'Export variable font (.otf)'}
 						</Button>
 						<span class="text-[12px] text-fg-subtle">
 							{(project.masters?.length ?? 0) + 1} masters · {project.axes?.map((a) => a.tag).join(' + ')}

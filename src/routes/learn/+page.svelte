@@ -252,19 +252,19 @@
 
 <svelte:head>
 	<title>Learn type design — Patens (2026)</title>
-	<meta name="description" content="A beginner-to-shipping path for type design with Patens. Seven tutorials covering your first font, kerning, OpenType features, variable fonts, multi-script (Latin · Cyrillic · Greek), export formats, and the 102-code audit module." />
+	<meta name="description" content="A beginner-to-shipping path for type design with Patens. Seven tutorials covering your first font, kerning, OpenType features, variable fonts, multi-script (Latin · Cyrillic · Greek), export formats, and the 105-code audit module." />
 	<link rel="canonical" href="https://patens.design/learn" />
 	<link rel="alternate" hreflang="en" href="https://patens.design/learn" />
 	<link rel="alternate" hreflang="es" href="https://patens.design/es/learn" />
 	<link rel="alternate" hreflang="x-default" href="https://patens.design/learn" />
 	<meta property="og:title" content="Learn type design · Patens" />
-	<meta property="og:description" content="Seven tutorials from first font to shipping. Plus the 102-code audit reference." />
+	<meta property="og:description" content="Seven tutorials from first font to shipping. Plus the 105-code audit reference." />
 	<meta property="og:image" content="https://patens.design/og/learn" />
-	<meta property="og:image:alt" content="Patens — Learn type design · seven tutorials · 102-code audit reference · open source" />
+	<meta property="og:image:alt" content="Patens — Learn type design · seven tutorials · 105-code audit reference · open source" />
 	<meta name="twitter:title" content="Learn type design · Patens" />
-	<meta name="twitter:description" content="Seven tutorials from first font to shipping. Plus the 102-code audit reference." />
+	<meta name="twitter:description" content="Seven tutorials from first font to shipping. Plus the 105-code audit reference." />
 	<meta name="twitter:image" content="https://patens.design/og/learn" />
-	<meta name="twitter:image:alt" content="Patens — Learn type design · seven tutorials · 102-code audit reference · open source" />
+	<meta name="twitter:image:alt" content="Patens — Learn type design · seven tutorials · 105-code audit reference · open source" />
 	<!-- CollectionPage + BreadcrumbList + ItemList JSON-LD. CollectionPage
 	     tells crawlers this is an index page. ItemList enumerates the 7
 	     tutorials with descriptions so AI engines can extract + cite them
@@ -278,7 +278,7 @@
 				'@type': 'CollectionPage',
 				name: 'Learn type design — Patens',
 				description:
-					'Seven tutorials covering the beginner-to-shipping path for type design with Patens, plus the 102-code audit reference.',
+					'Seven tutorials covering the beginner-to-shipping path for type design with Patens, plus the 105-code audit reference.',
 				url: 'https://patens.design/learn',
 				inLanguage: 'en',
 				isPartOf: { '@type': 'WebSite', name: 'Patens', url: 'https://patens.design/' }

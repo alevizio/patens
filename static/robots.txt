@@ -6,7 +6,9 @@
 # transient surfaces that aren't useful as search results.
 #
 # /api/*   — server endpoints; no useful content for indexing
-# /og/*    — OG images are referenced via meta tags; no standalone value
+# /og/* is deliberately NOT disallowed: Twitterbot / LinkedInBot /
+# Slackbot respect robots.txt and must be able to fetch the OG card
+# images or link unfurls render without a preview image.
 # /health  — monitoring probe, not for humans
 # /_app/*  — SvelteKit's immutable hashed JS chunks (auto-skipped by
 #            most crawlers but stated for clarity)
@@ -14,7 +16,6 @@
 User-agent: *
 Allow: /
 Disallow: /api/
-Disallow: /og/
 Disallow: /health
 Disallow: /_app/
 
@@ -24,7 +25,6 @@ Disallow: /_app/
 User-agent: GPTBot
 Allow: /
 Disallow: /api/
-Disallow: /og/
 Disallow: /health
 Disallow: /_app/
 
@@ -34,7 +34,6 @@ Allow: /
 User-agent: ClaudeBot
 Allow: /
 Disallow: /api/
-Disallow: /og/
 Disallow: /health
 Disallow: /_app/
 
@@ -44,14 +43,12 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 Disallow: /api/
-Disallow: /og/
 Disallow: /health
 Disallow: /_app/
 
 User-agent: Google-Extended
 Allow: /
 Disallow: /api/
-Disallow: /og/
 Disallow: /health
 Disallow: /_app/
 

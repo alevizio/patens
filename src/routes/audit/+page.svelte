@@ -86,7 +86,7 @@
 		},
 		{
 			q: 'Does the audit run on every keystroke?',
-			a: 'No — it runs in a Web Worker with a debounced trigger after edits stop, so the typing path stays responsive. The worker maintains a monotonic seq guard that ignores stale responses if a newer edit lands while the previous audit pass was still running. The full 102-code pass over a 162-glyph project takes well under 100ms on modern hardware.'
+			a: 'No — it runs in a Web Worker with a debounced trigger after edits stop, so the typing path stays responsive. The worker maintains a monotonic seq guard that ignores stale responses if a newer edit lands while the previous audit pass was still running. The full 105-code pass over a 162-glyph project takes well under 100ms on modern hardware.'
 		},
 		{
 			q: 'How does Patens\'s audit differ from FontBakery or fontTools\'s checks?',
@@ -105,7 +105,7 @@
 				'@type': 'WebPage',
 				name: 'The audit module — Patens',
 				description:
-					'An audit module that teaches as you draw. 101 codes covering contour shape, metrics, OpenType invariants, naming, coverage, anchors, variable fonts, color fonts, and brief completeness. Every code carries plain-English teaching prose; around 30 codes have a one-click fix.',
+					'An audit module that teaches as you draw. 105 codes covering contour shape, metrics, OpenType invariants, naming, coverage, anchors, variable fonts, color fonts, and brief completeness. Every code carries plain-English teaching prose; around 30 codes have a one-click fix.',
 				url: 'https://patens.design/audit',
 				inLanguage: 'en',
 				isPartOf: { '@type': 'WebSite', name: 'Patens', url: 'https://patens.design' }
@@ -137,7 +137,7 @@
 	<title>The audit module (2026) — Patens teaches as you draw</title>
 	<meta
 		name="description"
-		content="Patens's audit module: 101 codes across contour shape, metrics, OpenType invariants, naming, coverage, anchors, variable fonts, color fonts, and brief completeness. Plain-English teaching prose on every code; around 30 codes have a one-click fix. Also runs as a CLI."
+		content="Patens's audit module: 105 codes across contour shape, metrics, OpenType invariants, naming, coverage, anchors, variable fonts, color fonts, and brief completeness. Plain-English teaching prose on every code; around 30 codes have a one-click fix. Also runs as a CLI."
 	/>
 	<link rel="canonical" href="https://patens.design/audit" />
 	<link rel="alternate" hreflang="en" href="https://patens.design/audit" />
@@ -146,17 +146,17 @@
 	<meta property="og:title" content="The audit module · Patens" />
 	<meta
 		property="og:description"
-		content="101 codes that teach as you draw. Every code carries plain-English prose, around 30 have one-click fixes. Also runs from the terminal."
+		content="105 codes that teach as you draw. Every code carries plain-English prose, around 30 have one-click fixes. Also runs from the terminal."
 	/>
 	<meta property="og:image" content="https://patens.design/og/audit" />
-	<meta property="og:image:alt" content="Patens — The audit module · 101 codes that teach as you draw · 30 one-click fixes · open source MIT" />
+	<meta property="og:image:alt" content="Patens — The audit module · 105 codes that teach as you draw · 30 one-click fixes · open source MIT" />
 	<meta name="twitter:title" content="The audit module · Patens" />
 	<meta
 		name="twitter:description"
-		content="101 codes that teach as you draw. Plain-English prose, ~30 one-click fixes, CLI integration."
+		content="105 codes that teach as you draw. Plain-English prose, ~30 one-click fixes, CLI integration."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/audit" />
-	<meta name="twitter:image:alt" content="Patens — The audit module · 101 codes that teach as you draw · 30 one-click fixes · open source MIT" />
+	<meta name="twitter:image:alt" content="Patens — The audit module · 105 codes that teach as you draw · 30 one-click fixes · open source MIT" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->
 	{@html jsonLd}
 	<!-- eslint-enable svelte/no-at-html-tags, no-useless-escape -->
@@ -186,7 +186,7 @@
 
 	<p class="mb-6 text-[15px] leading-relaxed text-fg-muted">
 		<strong class="font-semibold text-fg">Every other browser-based type editor checks a font for errors.</strong>
-		Patens checks it against <em class="not-italic font-medium text-fg">94 type-design rules</em> — every contour, metric, kern pair, anchor, master, palette, and brief field — and for each finding, hands you plain-English prose that names the rule, explains why it matters, and (for around 30 codes) offers a one-click fix. The audit module is the spine of the editor, not a lint step bolted on at the end.
+		Patens checks it against <em class="not-italic font-medium text-fg">102 type-design rules</em> — every contour, metric, kern pair, anchor, master, palette, and brief field — and for each finding, hands you plain-English prose that names the rule, explains why it matters, and (for around 30 codes) offers a one-click fix. The audit module is the spine of the editor, not a lint step bolted on at the end.
 	</p>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -194,11 +194,11 @@
 	</p>
 
 	<p class="mb-8 text-[14px] leading-relaxed text-fg-muted">
-		The 101 codes are stable forever — once shipped, a code's ID never gets reused. If a rule turns out to be wrong, it's deprecated (marked <code class="font-mono text-fg">severity: 'info'</code> + <code class="font-mono text-fg">deprecated: true</code>) rather than recycled. That's the same contract OpenSSF Scorecard, CodeQL, and ESLint use for their check IDs — it makes the codes referenceable from commits, bug reports, tutorials, and downstream tooling without ambiguity.
+		The 105 codes are stable forever — once shipped, a code's ID never gets reused. If a rule turns out to be wrong, it's deprecated (marked <code class="font-mono text-fg">severity: 'info'</code> + <code class="font-mono text-fg">deprecated: true</code>) rather than recycled. That's the same contract OpenSSF Scorecard, CodeQL, and ESLint use for their check IDs — it makes the codes referenceable from commits, bug reports, tutorials, and downstream tooling without ambiguity.
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
-		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>101 codes across 9 families.
+		<span class="mr-3 align-middle font-mono text-[10px] tracking-wider text-fg-subtle tabular-nums" data-numeric>01</span>105 codes across 9 families.
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
@@ -237,7 +237,7 @@
 		<a
 			href="/audit/glyph-name-not-canonical"
 			class="font-medium text-accent-strong underline underline-offset-2 hover:text-accent"
-		>glyph-name-not-canonical</a> to see them in context. 89 of 101 codes covered in the open MVP corpus; the remaining 8 require licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng).
+		>glyph-name-not-canonical</a> to see them in context. 89 of 105 codes covered in the open MVP corpus; the remaining 8 require licensing the craft canon (Tracy, Smeijers, Noordzij, Cheng).
 	</p>
 
 	<h2 class="mt-16 border-t border-border/30 pt-12 mb-4 text-[28px] tracking-tight text-fg">
@@ -275,7 +275,7 @@
 	</h2>
 
 	<p class="mb-6 text-[14px] leading-relaxed text-fg-muted">
-		The same 102-code engine ships as a CLI. Drop it into your CI as a font-design lint step, or batch-audit a directory of project files before a foundry release.
+		The same 105-code engine ships as a CLI. Drop it into your CI as a font-design lint step, or batch-audit a directory of project files before a foundry release.
 	</p>
 
 	<pre class="mb-6 overflow-x-auto rounded-none border border-border bg-surface-2/40 p-4 font-mono text-[12px] leading-relaxed text-fg"><code><span class="text-fg-subtle"># Audit a single project</span>
@@ -348,7 +348,7 @@ npx patens audit fonts/*.font.json --github</code></pre>
 			class="group inline-flex items-center gap-1.5 rounded-sm text-[13px] font-medium text-fg-muted underline-offset-[5px] transition-colors hover:text-fg hover:underline focus-visible:outline-none focus-visible:text-fg focus-visible:underline focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 		>
 			<Terminal class="size-3.5" />
-			Full reference (all 101 codes) →
+			Full reference (all 105 codes) →
 		</a>
 	</div>
 	<SiteFooter />

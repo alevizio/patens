@@ -30,6 +30,7 @@ export default [
 			'public/**',
 			'coverage/**',
 			'cli/dist/**',
+			'scripts/dist/**',
 			'docs/api/**',
 			'**/*.d.ts'
 		]

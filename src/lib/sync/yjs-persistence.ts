@@ -53,3 +53,26 @@ export const bindIndexedDb = (doc: Y.Doc, projectId: string): ProjectPersistence
 
 /** The room name we hand to network providers (y-partykit / y-websocket). Stable across clients. */
 export const projectRoomName = (projectId: string): string => `${ROOM_PREFIX}${projectId}`;
+
+/**
+ * Delete a project's persisted Y.Doc database entirely. Used by the
+ * `?fresh=1` recovery path: rebuilding the legacy snapshot alone is not
+ * enough, because projectStore.load() binds y-indexeddb afterwards and
+ * the surviving Y.Doc state wins over the rebuilt snapshot.
+ *
+ * Best-effort: resolves on `blocked` too (another tab holding the DB
+ * open) rather than hanging the load — on the documented recovery path
+ * (edit URL + full reload) no connection exists yet and the delete
+ * completes before the store binds.
+ */
+export const clearPersistedDoc = (projectId: string): Promise<void> => {
+	if (typeof window === 'undefined' || typeof window.indexedDB === 'undefined') {
+		return Promise.resolve();
+	}
+	return new Promise((resolve) => {
+		const req = window.indexedDB.deleteDatabase(`${ROOM_PREFIX}${projectId}`);
+		req.onsuccess = () => resolve();
+		req.onerror = () => resolve();
+		req.onblocked = () => resolve();
+	});
+};

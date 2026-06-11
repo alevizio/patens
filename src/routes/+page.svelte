@@ -11,15 +11,15 @@
 	//   3. The audit   — large 'a' with audit annotations in the margin
 	//                    (literalizes "mentor in the margin") + 3 code cards
 	//   4. The editor  — stylized 3-column mock of the editing surface
-	//   5. The 94      — 9 audit families with <details> expansion
+	//   5. The 105     — 9 audit families with <details> expansion
 	//   6. Compared    — compact table vs FontLab / Glyphs / Fontra / etc.
 	//   7. Closing     — repeat waitlist + signed-by-Alejandro line
 	import SiteHeader from '$lib/ui/SiteHeader.svelte';
 	import SiteFooter from '$lib/ui/SiteFooter.svelte';
 	import WaitlistForm from '$lib/ui/WaitlistForm.svelte';
 	import InteractiveHero from '$lib/ui/InteractiveHero.svelte';
-	import { homeTagline } from '$lib/delight';
 	import { hreflangLinks } from '$lib/i18n';
+	import { AUDIT_CODE_COUNT } from '$lib/font/audit-count';
 	import { fade } from 'svelte/transition';
 	import { cubicOut, cubicIn } from 'svelte/easing';
 	import { onMount } from 'svelte';
@@ -43,7 +43,46 @@
 		return () => observer.disconnect();
 	});
 
-	const taglineParts = $derived(homeTagline().split('\n'));
+	// 30-second demo video: autoplay is a courtesy, not a requirement.
+	// Reduced-motion visitors get a paused poster with native controls;
+	// everyone else gets play/pause tied to viewport visibility so the
+	// loop never burns cycles off-screen.
+	let demoVideoEl: HTMLVideoElement | undefined;
+	let demoReducedMotion = $state(false);
+	// WCAG 2.2.2: an autoplaying >5s loop needs a user pause control. A
+	// user pause is sticky — the viewport observer must not resume it.
+	let demoUserPaused = $state(false);
+
+	const toggleDemoPlayback = () => {
+		if (!demoVideoEl) return;
+		if (demoVideoEl.paused) {
+			demoUserPaused = false;
+			demoVideoEl.play().catch(() => {});
+		} else {
+			demoUserPaused = true;
+			demoVideoEl.pause();
+		}
+	};
+
+	onMount(() => {
+		if (!demoVideoEl) return;
+		demoReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (demoReducedMotion) {
+			demoVideoEl.removeAttribute('autoplay');
+			demoVideoEl.pause();
+			return;
+		}
+		const observer = new IntersectionObserver(
+			([entry]) => {
+				if (!demoVideoEl) return;
+				if (entry.isIntersecting && !demoUserPaused) demoVideoEl.play().catch(() => {});
+				else demoVideoEl.pause();
+			},
+			{ threshold: 0.25 }
+		);
+		observer.observe(demoVideoEl);
+		return () => observer.disconnect();
+	});
 
 	// Story toggle for the TL;DR section — three depths of the same pitch,
 	// each click swaps the body. Order: short / longer / longest. The
@@ -77,7 +116,7 @@
 		}
 	] as const;
 
-	// 9 audit families, 101 codes total. Examples + counts come from /audit
+	// 9 audit families, 105 codes total. Examples + counts come from /audit
 	// (the canonical list); descriptions are written for the teaser's
 	// editorial register — shorter and more inviting than /audit's prose.
 	const families = [
@@ -90,14 +129,14 @@
 		},
 		{
 			name: 'Vertical metrics + topology',
-			count: 10,
+			count: 12,
 			examples: 'cap-above-ascender · xheight-misaligned · win-clip-top · use-typo-off',
 			description:
 				'Ascender, descender, cap-height, x-height, baseline. The framework every letter hangs on; drift here breaks reading rhythm before any single letter looks wrong.'
 		},
 		{
 			name: 'Spacing + sidebearings',
-			count: 8,
+			count: 9,
 			examples: 'overflows-advance · deeply-negative-lsb · sidebearing-class-drift',
 			description:
 				'Left + right sidebearings, advance widths, class drift. The optical balance type designers calibrate by eye in strings like nnnonnon — now checked continuously.'
@@ -166,7 +205,7 @@
 		{ label: 'Open source', values: ['MIT', false, false, 'BSD', false, 'MIT', false, false] },
 		{ label: 'Runs in the browser', values: [true, false, false, true, false, true, true, true] },
 		{ label: 'Pressure-sensitive sketch', values: [true, false, false, false, false, false, false, false] },
-		{ label: '101-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
+		{ label: '105-code teaching audit', values: [true, 'partial', 'partial', false, 'partial', false, false, false] },
 		{ label: 'One-click "Fix" actions', values: [true, false, false, false, false, false, 'partial', 'partial'] },
 		{ label: 'Plain-English explanations', values: [true, false, false, false, false, false, false, false] }
 	];
@@ -176,13 +215,13 @@
 	<title>Patens (2026) — a type editor with a method</title>
 	<meta
 		name="description"
-		content="Patens is a type editor with 101 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
+		content="Patens is a type editor with 105 rules running underneath. Each rule explains itself in plain English, and ~30 of them fix the glyph for you. Open source, MIT, in the browser, no install. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:type" content="website" />
 	<meta property="og:title" content="Patens — a type editor with a method" />
 	<meta
 		property="og:description"
-		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
+		content="105 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method. Now in private alpha."
 	/>
 	<meta property="og:site_name" content="Patens" />
 	<meta property="og:image" content="https://patens.design/og/home" />
@@ -192,7 +231,7 @@
 	<meta name="twitter:title" content="Patens" />
 	<meta
 		name="twitter:description"
-		content="101 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
+		content="105 rules for drawing a typeface, every one explained in plain English. Open source, MIT, in the browser. The Patens Method."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og/home" />
 	<!-- Preload hero typefaces: Fit (the interactive specimen) + StudioGeometric
@@ -282,12 +321,18 @@
 		   prefers-reduced-motion gates the animation off so the elements
 		   are visible at default opacity:1 for visitors who don't want
 		   motion. */
+		/* visibility rides along so the nav + waitlist form are NOT
+		   keyboard-focusable while invisible (WCAG 2.4.7 — focus must be
+		   visible). visibility animates discretely: hidden until the
+		   keyframe starts, visible from the first opacity frame on. */
 		@keyframes hero-chrome-reveal {
 			from {
 				opacity: 0;
+				visibility: hidden;
 			}
 			to {
 				opacity: 1;
+				visibility: visible;
 			}
 		}
 
@@ -517,7 +562,7 @@
 				url: 'https://patens.design/',
 				name: 'Patens',
 				description:
-					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 102 type-design rules with plain-English fixes, ship real OpenType. Open source MIT, browser-native.',
 				inLanguage: ['en', 'es'],
 				publisher: { '@id': 'https://patens.design/#organization' }
 			},
@@ -528,7 +573,7 @@
 				url: 'https://patens.design/',
 				logo: 'https://patens.design/og/brand',
 				description:
-					'Open-source browser-native type design tool with a 101-code teaching audit module.',
+					'Open-source browser-native type design tool with a 105-code teaching audit module.',
 				founder: { '@id': 'https://patens.design/#maintainer' },
 				sameAs: [
 					'https://github.com/alevizio/patens',
@@ -557,7 +602,7 @@
 				name: 'Patens',
 				alternateName: 'Patens — type design that teaches as you draw',
 				description:
-					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 94 type-design rules with plain-English fixes, ship real OpenType. The audit module is the spine of the editor — every contour, metric, and kern pair gets checked against rules type designers internalize through years of mentorship, with around 30 codes offering a one-click fix. Open source MIT, browser-native, no installs.',
+					'A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, audit your work against 102 type-design rules with plain-English fixes, ship real OpenType. The audit module is the spine of the editor — every contour, metric, and kern pair gets checked against rules type designers internalize through years of mentorship, with around 30 codes offering a one-click fix. Open source MIT, browser-native, no installs.',
 				applicationCategory: 'DesignApplication',
 				applicationSubCategory: 'Font Editor',
 				operatingSystem: 'Any (browser-based)',
@@ -613,6 +658,9 @@
      `is-stuck` class (toggled by an IntersectionObserver in onMount),
      so the form is always reachable without ever showing two copies. -->
 <section class="hero-viewport">
+	<!-- The visible wordmark is drawn by InteractiveHero as SVG animation;
+	     screen readers + the document outline need a real h1. -->
+	<h1 class="sr-only">Patens — browser-native type design tool with a teaching audit</h1>
 	<InteractiveHero />
 
 	<aside
@@ -636,16 +684,19 @@
 			<!-- Story-depth toggle. Each button rewrites the same pitch at a
 			     different depth — short / longer / longest. The active one
 			     is full-fg; the inactive ones are subtle, hover to muted. -->
+			<!-- Plain buttons with aria-pressed, NOT role=tablist/tab: the full
+			     tabs pattern requires roving tabindex + arrow keys + linked
+			     tabpanels, and a half-implemented tablist reads worse to
+			     assistive tech than honest toggle buttons. -->
 			<div
 				class="mb-6 flex flex-wrap gap-x-5 gap-y-2 font-mono text-[11px] tracking-[0.22em] uppercase"
-				role="tablist"
+				role="group"
 				aria-label="Pick a depth"
 			>
 				{#each stories as story (story.key)}
 					<button
 						type="button"
-						role="tab"
-						aria-selected={activeStory === story.key}
+						aria-pressed={activeStory === story.key}
 						onclick={() => (activeStory = story.key)}
 						class="cursor-pointer rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fg/40 focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 						class:text-fg={activeStory === story.key}
@@ -682,7 +733,7 @@
 								Patens is a type editor with the
 								<span class="font-medium text-fg">Patens Method</span>
 								built in —
-								<span class="font-mono text-fg" data-numeric>94</span>
+								<span class="font-mono text-fg" data-numeric>{AUDIT_CODE_COUNT}</span>
 								practices in plain English, a third with one-click fixes —
 								so you can draw, kern, and ship a real
 								<span class="font-mono text-fg-muted" data-numeric>.otf</span>
@@ -695,7 +746,7 @@
 								A type editor that runs in your browser, with the
 								<span class="font-medium text-fg">Patens Method</span>
 								built in:
-								<span class="font-mono text-fg" data-numeric>94</span>
+								<span class="font-mono text-fg" data-numeric>{AUDIT_CODE_COUNT}</span>
 								typographic practices type designers usually learn the hard
 								way, each explained in plain English, about a third with
 								one-click fixes. Draw your glyphs, kern your pairs, ship a
@@ -706,6 +757,82 @@
 						{/if}
 					</div>
 				{/key}
+			</div>
+		</section>
+
+		<!-- ====================================================== -->
+		<!-- 1. Thirty seconds — the whole pitch, in motion. One     -->
+		<!--    unbroken take in the real editor (recorded by        -->
+		<!--    scripts/record-demo.mjs per the launch storyboard).  -->
+		<!-- ====================================================== -->
+		<section class="mb-32 border-t border-border/40 pt-16">
+			<div class="mb-12 grid gap-4 sm:grid-cols-[1fr_2fr] sm:items-baseline sm:gap-12">
+				<div>
+					<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
+						Proof · 30 seconds
+					</p>
+					<h2 class="mt-3 text-[28px] tracking-tight text-fg">Watch a glyph happen.</h2>
+				</div>
+				<p class="text-[15px] leading-relaxed text-fg-muted">
+					One unbroken take in the editor: draw a lowercase <span class="font-mono">a</span>,
+					trace it to Béziers, let the audit read the result, apply a one-click fix, kern the
+					new letter against <span class="font-mono">V</span>, and export an OTF you could
+					install right now. No cuts, no speed-ups.
+				</p>
+			</div>
+
+			<!-- Full-bleed breakout: the prose stays in the max-w-5xl column,
+			     the take escapes it. Width is min(almost-viewport-width,
+			     the width where an 16:9 frame still fits in ~85% of the
+			     viewport HEIGHT) — so it nearly fills the screen on any
+			     display without ever cropping. svh, not vh, per mobile
+			     browser chrome. -->
+			<div class="mx-[calc(50%-50vw)]">
+				<figure class="mx-auto w-[min(96vw,calc(85svh*16/9))]">
+				<div class="relative overflow-hidden rounded-lg border border-border bg-surface">
+					<video
+						bind:this={demoVideoEl}
+						autoplay
+						muted
+						loop
+						playsinline
+						controls={demoReducedMotion}
+						preload="metadata"
+						poster="/demo/patens-30s-poster.jpg"
+						aria-label="Thirty-second screen capture of the Patens editor: drawing, tracing, auditing, kerning, and exporting a glyph"
+						class="block aspect-video w-full"
+					>
+						<source src="/demo/patens-30s.webm" type="video/webm" />
+						<source src="/demo/patens-30s.mp4" type="video/mp4" />
+						<track kind="captions" src="/demo/patens-30s.en.vtt" srclang="en" label="English" />
+					</video>
+					{#if !demoReducedMotion}
+						<button
+							type="button"
+							onclick={toggleDemoPlayback}
+							class="absolute right-3 bottom-3 rounded-md border border-border bg-canvas/90 px-2.5 py-1.5 font-mono text-[10px] tracking-[0.18em] text-fg-muted uppercase backdrop-blur-sm transition-colors hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+							aria-pressed={demoUserPaused}
+						>
+							{demoUserPaused ? 'Play' : 'Pause'}
+						</button>
+					{/if}
+				</div>
+				<figcaption
+					class="mt-5 flex flex-wrap items-baseline gap-x-6 gap-y-2 border-t border-border/40 pt-5 font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase"
+				>
+					<span>One take · 30s · silent</span>
+					<span>·</span>
+					<span>Draw → trace → audit → fix → kern → export</span>
+					<span>·</span>
+					<a
+						href="/demo/patens-30s.mp4"
+						download
+						class="text-fg-muted underline decoration-border underline-offset-4 transition-colors hover:text-fg"
+					>
+						Download MP4
+					</a>
+				</figcaption>
+				</figure>
 			</div>
 		</section>
 
@@ -740,7 +867,7 @@
 				     readability doesn't depend on what the OTF ships. -->
 				<div
 					class="text-[120px] leading-[0.85] tracking-tight sm:text-[180px] md:text-[220px]"
-					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+					style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 				>
 					Patens
 				</div>
@@ -772,7 +899,7 @@
 					Every glyph gets a margin reading.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					Patens runs all 101 rules continuously. When a contour crosses itself, when an
+					Patens runs all 105 rules continuously. When a contour crosses itself, when an
 					x-height drifts, when a sidebearing wanders from its class — the audit notes it
 					in plain English, beside the glyph, while you draw. Around 30 codes also offer a
 					one-click fix; the rest are matters of judgment.
@@ -846,7 +973,7 @@
 					<div class="grid place-items-center sm:row-span-2">
 						<span
 							class="text-[260px] leading-[0.85] text-fg sm:text-[320px]"
-							style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+							style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 							aria-label="The letter a, the example glyph being audited"
 						>
 							a
@@ -940,7 +1067,7 @@
 					<span class="transition-transform group-hover:translate-x-0.5">→</span>
 				</a>
 				<span class="ml-3 text-fg-subtle">
-					· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (101 codes)</a> · Also
+					· <a href="/learn/audit-codes" class="hover:text-fg">Full reference (105 codes)</a> · Also
 					from the terminal:
 					<code class="font-mono text-fg">npx patens audit</code>
 				</span>
@@ -1038,7 +1165,7 @@
 						></div>
 						<span
 							class="relative z-10 text-[140px] leading-[0.85] text-fg sm:text-[200px]"
-							style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+							style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 						>
 							a
 						</span>
@@ -1097,12 +1224,12 @@
 		</section>
 
 		<!-- ====================================================== -->
-		<!-- 5. The 94 — 9 families with <details> expansion         -->
+		<!-- 5. The 105 — 9 families with <details> expansion         -->
 		<!-- ====================================================== -->
 		<section class="mb-32 border-t border-border/40 pt-16">
 			<div class="mb-10 max-w-3xl">
 				<p class="font-mono text-[10px] tracking-[0.22em] text-fg-subtle uppercase">
-					What the audit checks · 9 families, 101 rules
+					What the audit checks · 9 families, 105 rules
 				</p>
 				<h2
 					class="mt-3 text-[28px] tracking-tight text-fg"
@@ -1111,7 +1238,7 @@
 					Contour to brief, everything reads.
 				</h2>
 				<p class="mt-5 text-[15px] leading-relaxed text-fg-muted">
-					The 101 codes group into nine families. Each one runs continuously; each one has
+					The 105 codes group into nine families. Each one runs continuously; each one has
 					plain-English prose attached. Click to expand a family — the codes inside are the
 					actual checks running against every glyph as you draw.
 				</p>
