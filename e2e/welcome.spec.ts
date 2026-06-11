@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { STUDIO_HOME } from './routes';
 
 // First-time visitor smoke test for the welcome strip.
 //
@@ -13,7 +14,7 @@ const setUnseen = async (page: Page) => {
 	// The welcome strip opens when settings.welcomeDismissed is falsy. The
 	// settings store persists to localStorage; clearing the relevant key gives
 	// us the first-visit experience every test run.
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await page.evaluate(() => {
 		try {
 			const raw = localStorage.getItem('font-studio:settings:v1');
@@ -41,7 +42,7 @@ test('Welcome strip appears on a fresh visit', async ({ page }) => {
 	// Strip should NOT be a modal — the home-page content underneath stays
 	// reachable. Verify the example-project CTA inside the strip is visible.
 	await expect(
-		page.getByRole('link', { name: /Open the example project/i })
+		page.getByRole('button', { name: /Open the example project/i })
 	).toBeVisible();
 });
 

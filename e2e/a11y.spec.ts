@@ -1,5 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
+import { STUDIO_HOME } from './routes';
 
 // Accessibility smoke tests via axe-core. We check WCAG 2.1 AA on the public
 // surfaces (home, learn, families) + the in-app surfaces (edit, audit). These
@@ -232,7 +233,7 @@ test('/family/[id] has no serious/critical a11y violations', async ({ page }) =>
 test('/edit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
@@ -242,7 +243,7 @@ test('/edit (demo project) has no serious/critical a11y violations', async ({
 test('/audit (demo project) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
@@ -270,7 +271,7 @@ for (const tab of PROJECT_TABS) {
 	test(`/${tab.name} (demo project) has no serious/critical a11y violations`, async ({
 		page
 	}) => {
-		await page.goto('/');
+		await page.goto(STUDIO_HOME);
 		await dismissWelcomeIfPresent(page);
 		await page.getByRole('button', { name: /Open the example project/i }).first().click();
 		await page.waitForURL(/\/project\/[^/]+\/edit$/);
@@ -288,7 +289,7 @@ for (const tab of PROJECT_TABS) {
 test('Shortcuts dialog (open) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	await page.keyboard.press('?');
 	await page.getByRole('dialog', { name: /Keyboard shortcuts/i }).waitFor({
@@ -300,7 +301,7 @@ test('Shortcuts dialog (open) has no serious/critical a11y violations', async ({
 test('Create-font dialog (open) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	await page.getByRole('button', { name: /Start a new font/i }).first().click();
 	await page.getByRole('dialog').first().waitFor({ state: 'visible' });
@@ -310,7 +311,7 @@ test('Create-font dialog (open) has no serious/critical a11y violations', async 
 test('Storage dialog (open) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	const trigger = page.getByRole('button', { name: 'Browser storage' });
 	// The storage button is conditional on navigator.storage.estimate() —
@@ -329,7 +330,7 @@ test('Storage dialog (open) has no serious/critical a11y violations', async ({
 test('Settings dialog (open, in editor) has no serious/critical a11y violations', async ({
 	page
 }) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	await dismissWelcomeIfPresent(page);
 	await page.getByRole('button', { name: /Open the example project/i }).first().click();
 	await page.waitForURL(/\/project\/[^/]+\/edit$/);
@@ -360,7 +361,7 @@ test.describe('Welcome strip while visible', () => {
 	test('Welcome strip (open) has no serious/critical a11y violations', async ({
 		page
 	}) => {
-		await page.goto('/');
+		await page.goto(STUDIO_HOME);
 		await page
 			.getByRole('region', { name: /Welcome to Patens/i })
 			.waitFor({ state: 'visible' });

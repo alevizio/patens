@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { STUDIO_HOME } from './routes';
 
 // Pre-dismiss the welcome strip via localStorage. With SSR on, the strip
 // is in the HTML before hydration attaches its click handler — clicking it
@@ -15,7 +16,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 const seed = async (page: Page) => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
 	await strip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
 		/* strip never appeared (init script worked) — fine */

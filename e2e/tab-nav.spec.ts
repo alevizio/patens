@@ -1,4 +1,5 @@
 import { test, expect, type Page } from '@playwright/test';
+import { STUDIO_HOME } from './routes';
 
 // Regression guard for the silent mount-failure family of bugs that has bitten
 // the project-tab nav twice: (1) invisible click-catcher overlays, (2) TDZ on
@@ -38,7 +39,7 @@ test.beforeEach(async ({ context }) => {
 });
 
 const openDemoProject = async (page: Page): Promise<string> => {
-	await page.goto('/');
+	await page.goto(STUDIO_HOME);
 	const strip = page.getByRole('region', { name: /Welcome to Patens/i });
 	await strip.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
 		/* strip never appeared — init script worked */
