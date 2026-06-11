@@ -29,6 +29,8 @@
 			title: t.product.title,
 			items: [
 				{ label: t.product.items.auditModule, href: localize('/audit') },
+				// English-only for now, same convention as /library + /education.
+				{ label: 'Check your font', href: '/check' },
 				{ label: t.product.items.compare, href: localize('/compare') },
 				// /changelog stays English (versioned content, lower SEO value).
 				// Footer link from /es/* points at the English /changelog so
@@ -69,7 +71,9 @@
 			title: t.legal.title,
 			items: [
 				{ label: t.legal.items.privacy, href: localize('/privacy') },
-				{ label: t.legal.items.security, href: localize('/security') }
+				{ label: t.legal.items.security, href: localize('/security') },
+				// English-only for now, same convention as /library + /education.
+				{ label: 'AI stance', href: '/ai' }
 			]
 		}
 	]);
@@ -162,7 +166,7 @@
 				</a>
 			</nav>
 			<span class="font-mono text-[10px] tracking-[0.18em] text-fg-subtle uppercase">
-				MIT &nbsp;·&nbsp; {lang === 'es' ? '94 reglas, en lenguaje claro' : '102 rules, plain English'} &nbsp;·&nbsp; 2026
+				MIT &nbsp;·&nbsp; {lang === 'es' ? '105 reglas, en lenguaje claro' : '105 rules, plain English'} &nbsp;·&nbsp; 2026
 			</span>
 		</div>
 	</div>
