@@ -9,7 +9,7 @@
 	// the JSON-LD + the visible factsheet table can't drift apart.
 	const facts = {
 		product: 'Patens',
-		tagline: 'A type editor with a method. 102 rules, plain English, free forever.',
+		tagline: 'A type editor with a method. 105 rules, plain English, free forever.',
 		url: 'https://patens.design',
 		version: '1.5.2',
 		license: 'MIT',
@@ -25,13 +25,13 @@
 	};
 
 	const oneLiner =
-		'Patens is a type design tool that teaches as you draw. A built-in 102-code audit module runs continuously alongside the editor — every contour, metric, and kern pair gets checked against the rules type designers internalize through years of mentorship, with plain-English fixes for around 30 of the codes. Sketch with a pressure-sensitive pencil, trace to Bézier, kern, ship OpenType. Browser-native, open-source MIT, no installs, no account.';
+		'Patens is a type design tool that teaches as you draw. A built-in 105-code audit module runs continuously alongside the editor — every contour, metric, and kern pair gets checked against the rules type designers internalize through years of mentorship, with plain-English fixes for around 30 of the codes. Sketch with a pressure-sensitive pencil, trace to Bézier, kern, ship OpenType. Browser-native, open-source MIT, no installs, no account.';
 
 	const elevatorPitch =
-		'There are five reasonable type editors on the web in 2026 — Glyphr Studio, Fontra, typlr.app, FontStruct, and now Patens. FontLab and Glyphs cover the high end (±$300–500, desktop-only, professional). The browser tier was hobbyist-focused until Fontra brought variable-font seriousness and Patens brought audit-first teaching. The differentiator: Patens is the only one where the audit module is a first-class teaching surface — every warning explains what it means, why it matters, and (for ~30 of the 101 codes) offers a one-click fix. Designed for the in-between: the logo-to-font moment, the learning curve, the share-without-installing handoff.';
+		'There are five reasonable type editors on the web in 2026 — Glyphr Studio, Fontra, typlr.app, FontStruct, and now Patens. FontLab and Glyphs cover the high end (±$300–500, desktop-only, professional). The browser tier was hobbyist-focused until Fontra brought variable-font seriousness and Patens brought audit-first teaching. The differentiator: Patens is the only one where the audit module is a first-class teaching surface — every warning explains what it means, why it matters, and (for ~30 of the 105 codes) offers a one-click fix. Designed for the in-between: the logo-to-font moment, the learning curve, the share-without-installing handoff.';
 
 	const technical =
-		'SvelteKit 2 + Svelte 5 runes, Tailwind CSS v4, TypeScript strict mode. opentype.js for OTF + WOFF2 export, Pyodide + fontTools + ttfautohint for TTF, HarfBuzz.js (WebAssembly) for live OpenType shaping, polygon-clipping for boolean contour ops, perfect-freehand for the pressure-sensitive sketch path, satori + resvg-js for per-project OG image rendering, Vercel Blob for cloud share. The 102-code audit module runs in a Web Worker with a monotonic-seq stale-response guard.';
+		'SvelteKit 2 + Svelte 5 runes, Tailwind CSS v4, TypeScript strict mode. opentype.js for OTF + WOFF2 export, Pyodide + fontTools + ttfautohint for TTF, HarfBuzz.js (WebAssembly) for live OpenType shaping, polygon-clipping for boolean contour ops, perfect-freehand for the pressure-sensitive sketch path, satori + resvg-js for per-project OG image rendering, Vercel Blob for cloud share. The 105-code audit module runs in a Web Worker with a monotonic-seq stale-response guard.';
 
 	const milestones: Array<{ when: string; what: string }> = [
 		{ when: 'May 2026', what: 'v1.5.2 — Production-grade, all P0 launch-blocking work complete. SEO/AIO foundation, comprehensive a11y, audit module workerized, family-wide kerning, global Cmd-K, bulk select v2.' },
@@ -222,7 +222,7 @@
 			<div class="rounded-none border border-border bg-surface p-6">
 				<div
 					class="mb-3 flex h-24 items-center justify-center rounded-none bg-canvas text-[64px] leading-none text-fg"
-					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+					style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 				>
 					Hn
 				</div>
@@ -240,7 +240,7 @@
 			<div class="rounded-none border border-border bg-canvas-soft p-6">
 				<div
 					class="mb-3 flex h-24 items-center justify-center rounded-none bg-fg text-[64px] leading-none text-canvas"
-					style="font-family: 'StudioGeometric', 'Hoefler Text', ui-serif, Georgia, serif;"
+					style="font-family: 'StudioGeometric', ui-serif, Georgia, serif;"
 				>
 					Hn
 				</div>

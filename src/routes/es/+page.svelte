@@ -18,7 +18,7 @@
 				name: 'Patens — diseño de tipografías en el navegador',
 				inLanguage: 'es',
 				description:
-					'Patens es un editor de tipografías para el navegador con un módulo de auditoría de 94 reglas que explica cada hallazgo en lenguaje claro. Código abierto, MIT.',
+					'Patens es un editor de tipografías para el navegador con un módulo de auditoría de 105 reglas que explica cada hallazgo en lenguaje claro. Código abierto, MIT.',
 				isPartOf: { '@id': 'https://patens.design/#website' }
 			},
 			{
@@ -37,7 +37,7 @@
 	<title>Patens (2026) — un editor tipográfico con un método</title>
 	<meta
 		name="description"
-		content="Patens es un editor tipográfico con 94 reglas corriendo por debajo. Cada regla se explica en lenguaje claro, y unas 30 arreglan el glifo por vos. Código abierto, MIT, en el navegador, sin instalación. El Método Patens."
+		content="Patens es un editor tipográfico con 105 reglas corriendo por debajo. Cada regla se explica en lenguaje claro, y unas 30 arreglan el glifo por vos. Código abierto, MIT, en el navegador, sin instalación. El Método Patens."
 	/>
 	<link rel="canonical" href="https://patens.design/es" />
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -47,14 +47,14 @@
 	<meta property="og:title" content="Patens — diseño de tipografías en el navegador" />
 	<meta
 		property="og:description"
-		content="Editor de tipografías en el navegador con auditoría de 94 reglas que enseña al dibujar. Código abierto, MIT."
+		content="Editor de tipografías en el navegador con auditoría de 105 reglas que enseña al dibujar. Código abierto, MIT."
 	/>
 	<meta property="og:image" content="https://patens.design/og.png" />
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:title" content="Patens — diseño de tipografías en el navegador" />
 	<meta
 		name="twitter:description"
-		content="Editor de tipografías en el navegador con auditoría de 94 reglas que enseña al dibujar. Código abierto, MIT."
+		content="Editor de tipografías en el navegador con auditoría de 105 reglas que enseña al dibujar. Código abierto, MIT."
 	/>
 	<meta name="twitter:image" content="https://patens.design/og.png" />
 	<!-- eslint-disable svelte/no-at-html-tags, no-useless-escape -->

@@ -59,7 +59,7 @@
 		Una línea (para tweets, sub-headers de reseñas)
 	</h3>
 	<p class="mb-6 border-t border-border/40 pt-4 text-[15px] leading-relaxed text-fg">
-		Un editor tipográfico con un método. 94 reglas, en lenguaje claro, gratis para siempre.
+		Un editor tipográfico con un método. 105 reglas, en lenguaje claro, gratis para siempre.
 	</p>
 
 	<h3 class="mb-2 mt-6 font-mono text-[10px] uppercase tracking-[0.18em] text-fg-subtle">

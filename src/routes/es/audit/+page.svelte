@@ -24,10 +24,10 @@
 </script>
 
 <svelte:head>
-	<title>La auditoría · Patens — 94 reglas que enseñan tipografía mientras dibujás</title>
+	<title>La auditoría · Patens — 105 reglas que enseñan tipografía mientras dibujás</title>
 	<meta
 		name="description"
-		content="El módulo de auditoría de Patens es el diferenciador: 94 reglas que chequean contornos, métricas, kerning, color fonts, variable fonts — con explicación pedagógica en lenguaje claro."
+		content="El módulo de auditoría de Patens es el diferenciador: 105 reglas que chequean contornos, métricas, kerning, color fonts, variable fonts — con explicación pedagógica en lenguaje claro."
 	/>
 	<link rel="canonical" href="https://patens.design/es/audit" />
 	<!-- eslint-disable-next-line svelte/no-at-html-tags -->
@@ -35,7 +35,7 @@
 	<meta property="og:locale" content="es_ES" />
 	<meta property="og:locale:alternate" content="en_US" />
 	<meta property="og:title" content="La auditoría · Patens" />
-	<meta property="og:description" content="94 reglas, explicación en lenguaje claro, ~30 con fix de un clic." />
+	<meta property="og:description" content="105 reglas, explicación en lenguaje claro, ~30 con fix de un clic." />
 	<meta property="og:image" content="https://patens.design/og/audit" />
 </svelte:head>
 
@@ -57,7 +57,7 @@
 		El módulo de auditoría
 	</h1>
 	<p class="mb-10 text-[17px] leading-relaxed text-fg-muted">
-		94 reglas que corren al lado del editor en todo momento. Cada hallazgo trae una explicación
+		105 reglas que corren al lado del editor en todo momento. Cada hallazgo trae una explicación
 		en lenguaje claro de por qué eso importa, qué efecto tiene en el render, y cómo otras
 		tipografías lo resuelven. Para unos 30 códigos, además hay un botón "Fix" que aplica la
 		corrección canónica con un clic.

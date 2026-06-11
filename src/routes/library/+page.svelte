@@ -45,10 +45,10 @@
 	<meta property="og:title" content="The library · Patens" />
 	<meta
 		property="og:description"
-		content="42 canonical references that ground the 102-code audit module."
+		content="42 canonical references that ground the 105-code audit module."
 	/>
 	<meta property="og:image" content="https://patens.design/og/brand" />
-	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 102-code audit module" />
+	<meta property="og:image:alt" content="Patens — open-source browser-native type design tool with a 105-code audit module" />
 </svelte:head>
 
 <div class="mx-auto max-w-5xl px-4 py-8 sm:px-6">

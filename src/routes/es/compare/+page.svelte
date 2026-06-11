@@ -24,7 +24,7 @@
 			platform: 'Browser',
 			price: 'Gratis',
 			strength: 'Editor browser-native con respaldo profesional (Black Foundry). Cadencia de releases muy activa: shaping debugger, conditional substitutions, woff2 export en el último semestre.',
-			patensDifference: 'Patens lidera con la pedagogía: la auditoría de 94 códigos con explicación en lenguaje claro es el ángulo único; Fontra es deeper en designspace y shaping debug.'
+			patensDifference: 'Patens lidera con la pedagogía: la auditoría de 105 códigos con explicación en lenguaje claro es el ángulo único; Fontra es deeper en designspace y shaping debug.'
 		},
 		{
 			name: 'FontLab 8',

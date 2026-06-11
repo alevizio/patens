@@ -60,40 +60,22 @@
 
 <svelte:head>
 	<title>Patens</title>
-	<meta
-		name="description"
-		content="A type design tool that teaches as you draw. Sketch glyphs, trace to Bézier, ship OpenType — with a 102-code audit module that explains every finding. Open source, browser-native."
-	/>
 	<meta name="author" content="Alejandro Vizio" />
 
-	<!-- Open Graph + Twitter Card. Per-route +page.svelte can override title /
-	     description / og:title / og:description via their own svelte:head; the
-	     image at /og.png is dynamically rendered from the demo OTF + Satori
-	     (see src/routes/og.png/+server.ts). -->
+	<!-- Identity-level tags ONLY. Svelte does NOT dedupe meta tags — a
+	     layout-level description/og:title/og:image renders BEFORE any
+	     page-level one and crawlers take the first, which silently
+	     defeated every per-page description and all 7 custom OG card
+	     variants (2026-06 QA). Each +page.svelte declares its own
+	     title/description/og:*/twitter:* set (34 routes verified);
+	     the layout keeps only what is page-invariant and never
+	     overridden. <title> alone is special-cased by Svelte and safe
+	     as a fallback. -->
 	<meta property="og:type" content="website" />
 	<meta property="og:site_name" content="Patens" />
-	<meta property="og:title" content="Patens" />
-	<meta property="og:locale" content="en_US" />
-	<meta
-		property="og:description"
-		content="Browser-native type design tool with a 102-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
-	/>
-	<meta property="og:image" content="https://patens.design/og.png" />
-	<meta property="og:image:width" content="1200" />
-	<meta property="og:image:height" content="630" />
-	<meta property="og:image:type" content="image/png" />
-	<meta property="og:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
-
 	<meta name="twitter:card" content="summary_large_image" />
 	<meta name="twitter:site" content="@patenstype" />
 	<meta name="twitter:creator" content="@patenstype" />
-	<meta name="twitter:title" content="Patens" />
-	<meta
-		name="twitter:description"
-		content="Browser-native type design tool with a 102-code audit module that teaches as you draw. Sketch, trace, ship OpenType. Open source MIT."
-	/>
-	<meta name="twitter:image" content="https://patens.design/og.png" />
-	<meta name="twitter:image:alt" content="Patens — Hn wordmark with HONE and TONE rendered in the app's demo typeface" />
 </svelte:head>
 
 <!-- Skip-to-content link — invisible until focused with the keyboard.
