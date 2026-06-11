@@ -1,6 +1,6 @@
 # Patens
 
-> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 102-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
+> A type design tool that teaches as you draw. Sketch glyphs with a pencil, trace to Bézier, ship OpenType — and learn from a 105-code audit module with plain-English fixes for everything from spacing to OpenType invariants.
 
 [**patens.design**](https://patens.design) · *Latin: lying open* — root of *patent*, before lawyers got there.
 
@@ -12,10 +12,14 @@
 [![Bluesky](https://img.shields.io/badge/Bluesky-%40patens.design-0085ff.svg)](https://bsky.app/profile/patens.design)
 [![Sponsor](https://img.shields.io/github/sponsors/alevizio?label=Sponsor)](https://github.com/sponsors/alevizio)
 
-<!-- Hero demo GIF goes here — see docs/launch/demo-gif-storyboard.md
-     for the 30-second pre-record blueprint. Once recorded, drop it
-     at static/demo/patens-30s.mp4 and replace this with:
-     ![Patens — draw, trace, audit, fix, kern, export in 30s](./static/demo/patens-30s.mp4) -->
+[![Patens in 30 seconds — draw a glyph, trace to Bézier, fix audit findings, kern a pair, export OpenType](./static/demo/patens-30s-poster.jpg)](https://patens.design/demo/patens-30s.mp4)
+
+*▶ 30 seconds: draw → trace → audit → fix → kern → export a real OTF.*
+
+<!-- For GitHub's native inline player (instead of the poster link above):
+     drag static/demo/patens-30s.mp4 into any issue comment box, copy the
+     generated user-attachments URL, and paste it here on its own line.
+     Repo-relative .mp4 paths do NOT render a player on GitHub. -->
 
 Patens is a browser-native, open-source SvelteKit app for designing type. Every project lives in the browser's IndexedDB; nothing leaves your machine unless you choose to export. The differentiator isn't *that* it's browser-native — it's that the **audit module is a citizen of the editor**, not an afterthought. Every glyph, every metric, every kern pair has a teaching surface: "your sidebearings drift across the stem class" or "this contour winds the wrong way for OpenType" — with the rule, the why, and a one-click fix where one exists. ([Why audit-as-teaching →](https://patens.design/audit))
 
@@ -23,10 +27,10 @@ The demo project ships 162 drawn glyphs across Latin (uppercase + lowercase, num
 
 ## Try it
 
-- **Marketing site**: [patens.design](https://patens.design) — long-scroll editorial with the audit's worldview, an annotated specimen of the demo OTF, an interface mock of the editing surface, the 101 codes by family, and a comparison vs every other tool in the field (FontLab, Glyphs, Robofont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish).
+- **Marketing site**: [patens.design](https://patens.design) — long-scroll editorial with the audit's worldview, an annotated specimen of the demo OTF, an interface mock of the editing surface, the 105 codes by family, and a comparison vs every other tool in the field (FontLab, Glyphs, Robofont, Fontra, Glyphr Studio, typlr, BirdFont, FontForge, Lipi, Fontish).
 - **Compare table**: [patens.design/compare](https://patens.design/compare) — 11 tools × 26 distinguishing features.
-- **The Method** (the 101 codes): [patens.design/audit](https://patens.design/audit) — what each family checks, what's plain-English-explained, what's one-click-fixable.
-- **Canonical references on every rule page**: [patens.design/audit/self-intersecting](https://patens.design/audit/self-intersecting) — each of the 101 dedicated audit-rule pages now surfaces the primary literature where the rule is established (OpenType spec, TrueType reference, FEA spec, UFO 3 spec, Unicode 16, Adobe Glyph List, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers, variablefonts.io primer). 89 of 101 codes covered in the open MVP corpus per [`docs/research/canonical-library.md`](./docs/research/canonical-library.md); the remaining 8 require licensing the craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Cheng 2006).
+- **The Method** (the 105 codes): [patens.design/audit](https://patens.design/audit) — what each family checks, what's plain-English-explained, what's one-click-fixable.
+- **Canonical references on every rule page**: [patens.design/audit/self-intersecting](https://patens.design/audit/self-intersecting) — each of the 105 dedicated audit-rule pages now surfaces the primary literature where the rule is established (OpenType spec, TrueType reference, FEA spec, UFO 3 spec, Unicode 16, Adobe Glyph List, Stop Stealing Sheep, OpenType Cookbook, Knuth Metafont papers, variablefonts.io primer). 89 of 105 codes covered in the open MVP corpus per [`docs/research/canonical-library.md`](./docs/research/canonical-library.md); the remaining 8 require licensing the craft canon (Tracy 1986, Smeijers 1996, Noordzij 1985, Cheng 2006).
 
 The app itself is in **private alpha** at an unlisted URL — invitees only. Public launch is scheduled for **TypeCon Portland, August 6–8, 2026**. Sign up for an invite at [patens.design](https://patens.design); the waitlist endpoint persists to Vercel Blob.
 
@@ -34,7 +38,7 @@ The app itself is in **private alpha** at an unlisted URL — invitees only. Pub
 
 | Capability | Notes |
 |---|---|
-| **Audit** | 101 codes covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage; teaching prose on every code + one-click fixes for the fixable ones. The headline feature — runs continuously alongside the editor, not as a separate lint step. |
+| **Audit** | 105 codes covering contour shape, vertical metrics, OpenType invariants, brief completeness, multi-script coverage; teaching prose on every code + one-click fixes for the fixable ones. The headline feature — runs continuously alongside the editor, not as a separate lint step. |
 | Pressure-sensitive sketch | Drawn input with stroke weight + pressure; trace to cubic-Bézier contours via boolean union + Schneider curve fitting |
 | Direct contour editing | Smooth ↔ corner points, nudge, multi-select, transform |
 | Variable fonts | Multiple masters at distinct axis locations + named instances + a 2D variation explorer for ≥2-axis projects |
@@ -76,7 +80,7 @@ pnpm profile      # cold-load CDP trace (any URL)
 
 Audit a `.font.json` project without opening the editor — useful for
 CI, foundries lint-checking client deliverables, or scripted batch
-work. The CLI is a thin shell around the same 102-code audit module
+work. The CLI is a thin shell around the same 105-code audit module
 the editor uses, packaged for Node 22+.
 
 ```sh
@@ -97,9 +101,42 @@ Exit code is `0` when no error-severity issues, `1` when there are,
 - run: pnpm patens audit fonts/*.font.json --github --severity=warn
 ```
 
+## MCP server
+
+The same audit is exposed to coding agents (Claude Code, Cursor, any
+MCP client) as a stdio Model Context Protocol server — zero runtime
+dependencies, same bundling approach as the CLI. Three tools:
+`audit_font` (structured findings for a `.font.json`, optional
+severity filter), `explain_audit_code` (the curated plain-English
+description of one code), `list_audit_codes` (the full catalogue with
+family + severity).
+
+```sh
+pnpm run cli:build:mcp       # bundles cli/dist/mcp-server.mjs
+pnpm run cli:test:mcp        # stdio smoke test (handshake + all 3 tools)
+```
+
+Claude Code — `.mcp.json` in your font project (or `claude mcp add
+patens -- node <repo>/cli/dist/mcp-server.mjs`):
+
+```json
+{
+	"mcpServers": {
+		"patens": {
+			"command": "node",
+			"args": ["/absolute/path/to/patens/cli/dist/mcp-server.mjs"]
+		}
+	}
+}
+```
+
+Cursor — same shape in `.cursor/mcp.json`. From the published package
+the command is `npx` with args `["-y", "-p", "patens", "patens-mcp"]`
+instead.
+
 ## Architecture (one paragraph)
 
-Every project is a single JSON blob (typed as `Project` in `src/lib/font/types.ts`) stored under a UUID key in IndexedDB via `idb-keyval`. The editor reads through a `projectStore` reactive store; mutations re-emit + auto-save. The share page is `ssr=false` and loads from the local IndexedDB — its only network dependency is the static SvelteKit build itself. Export is dual-path: OTF/WOFF2 via `opentype.js` in the browser, TTF + ttfautohint via Pyodide running as WASM. The audit module is the spine: **101 codes** feeding five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary. Cloud share uses Vercel Blob with token-based auth (`constantTimeEqual` for token comparison); sign-in uses HMAC-signed session cookies (`safeReturnTo` against open-redirect). Full setup details in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
+Every project is a single JSON blob (typed as `Project` in `src/lib/font/types.ts`) stored under a UUID key in IndexedDB via `idb-keyval`. The editor reads through a `projectStore` reactive store; mutations re-emit + auto-save. The share page is `ssr=false` and loads from the local IndexedDB — its only network dependency is the static SvelteKit build itself. Export is dual-path: OTF/WOFF2 via `opentype.js` in the browser, TTF + ttfautohint via Pyodide running as WASM. The audit module is the spine: **105 codes** feeding five teaching surfaces (edit panel, audit page, release pre-flight, family hub, home page) through a single `describeAuditCode()` dictionary. Cloud share uses Vercel Blob with token-based auth (`constantTimeEqual` for token comparison); sign-in uses HMAC-signed session cookies (`safeReturnTo` against open-redirect). Full setup details in [`ARCHITECTURE.md`](./ARCHITECTURE.md).
 
 ## Contributing
 

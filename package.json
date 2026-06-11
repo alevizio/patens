@@ -1,7 +1,7 @@
 {
 	"name": "patens",
 	"version": "1.5.2",
-	"description": "Browser-native, open-source type design — draw glyphs with pressure-sensitive strokes, trace to Bézier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
+	"description": "Browser-native, open-source type design \u2014 draw glyphs with pressure-sensitive strokes, trace to B\u00e9zier contours, ship OpenType fonts. SvelteKit + IndexedDB, no server required. Latin for 'lying open'.",
 	"author": {
 		"name": "Alejandro Vizio",
 		"email": "hi@patens.design",
@@ -27,7 +27,8 @@
 	"private": true,
 	"type": "module",
 	"bin": {
-		"patens": "./cli/dist/index.mjs"
+		"patens": "./cli/dist/index.mjs",
+		"patens-mcp": "./cli/dist/mcp-server.mjs"
 	},
 	"scripts": {
 		"dev": "vite dev",
@@ -37,11 +38,13 @@
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
-		"build:demo-fonts": "node scripts/build-demo-fonts.mjs",
+		"build:demo-fonts": "node scripts/build-demo-fonts.mjs && node scripts/build-demo-otf.mjs",
 		"build:github-social": "node scripts/build-github-social.mjs",
 		"validate:json-ld": "node scripts/validate-json-ld.mjs",
 		"waitlist:export": "node scripts/waitlist-export.mjs",
 		"cli:build": "node cli/build.mjs",
+		"cli:build:mcp": "node cli/build-mcp.mjs",
+		"cli:test:mcp": "node cli/mcp-server.test.mjs",
 		"docs:api": "typedoc",
 		"test": "vitest run",
 		"test:watch": "vitest",
@@ -51,7 +54,7 @@
 		"lint:fix": "eslint . --fix",
 		"analyze": "ANALYZE=1 vite build",
 		"profile": "node scripts/profile-cold-load.mjs",
-		"clean": "rm -rf .svelte-kit node_modules/.vite && echo 'cleaned — run pnpm dev to rebuild'"
+		"clean": "rm -rf .svelte-kit node_modules/.vite && echo 'cleaned \u2014 run pnpm dev to rebuild'"
 	},
 	"devDependencies": {
 		"@axe-core/playwright": "^4.11.3",
