@@ -91,7 +91,7 @@
 		"vitest": "^4.1.6"
 	},
 	"dependencies": {
-		"@lucide/svelte": "^1.16.0",
+		"@lucide/svelte": "^1.17.0",
 		"@vercel/blob": "^2.4.0",
 		"canvas-confetti": "^1.9.4",
 		"fflate": "^0.8.3",
