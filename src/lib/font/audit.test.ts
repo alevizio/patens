@@ -993,3 +993,116 @@ describe('auditCompatibility — non-compatible-glyph', () => {
 		expect(issues.find((i) => i.code === 'non-compatible-glyph')).toBeUndefined();
 	});
 });
+
+describe('preflightProject — win metrics vs drawn extrema', () => {
+	const tallContour = (top: number): BezierContour => ({
+		closed: true,
+		winding: 'ccw',
+		commands: [
+			{ type: 'M', x: 0, y: 0 },
+			{ type: 'L', x: 500, y: 0 },
+			{ type: 'L', x: 500, y: top },
+			{ type: 'L', x: 0, y: top },
+			{ type: 'Z' }
+		] as PathCommand[]
+	});
+	const deepContour = (bottom: number): BezierContour => ({
+		closed: true,
+		winding: 'ccw',
+		commands: [
+			{ type: 'M', x: 0, y: bottom },
+			{ type: 'L', x: 500, y: bottom },
+			{ type: 'L', x: 500, y: 0 },
+			{ type: 'L', x: 0, y: 0 },
+			{ type: 'Z' }
+		] as PathCommand[]
+	});
+
+	it('flags an outline reaching above winAscent, on the offending glyph', () => {
+		const glyph = baseGlyph({ codepoint: 0xc1, name: 'Aacute', contours: [tallContour(900)] });
+		const project = baseProject({ glyphs: { [0xc1]: glyph } });
+		const issue = preflightProject(project).find(
+			(i) => i.code === 'metrics-win-below-extrema-top'
+		);
+		expect(issue).toBeDefined();
+		expect(issue?.codepoint).toBe(0xc1);
+		expect(issue?.severity).toBe('warn');
+	});
+
+	it('does NOT flag outlines inside winAscent', () => {
+		const glyph = baseGlyph({ contours: [tallContour(700)] });
+		const project = baseProject({ glyphs: { [0x41]: glyph } });
+		expect(
+			preflightProject(project).find((i) => i.code === 'metrics-win-below-extrema-top')
+		).toBeUndefined();
+	});
+
+	it('flags an outline reaching below -winDescent', () => {
+		const glyph = baseGlyph({ codepoint: 0x67, name: 'g', contours: [deepContour(-300)] });
+		const project = baseProject({ glyphs: { [0x67]: glyph } });
+		const issue = preflightProject(project).find(
+			(i) => i.code === 'metrics-win-below-extrema-bottom'
+		);
+		expect(issue).toBeDefined();
+		expect(issue?.codepoint).toBe(0x67);
+	});
+
+	it('does NOT flag descenders inside winDescent', () => {
+		const glyph = baseGlyph({ contours: [deepContour(-150)] });
+		const project = baseProject({ glyphs: { [0x67]: glyph } });
+		expect(
+			preflightProject(project).find((i) => i.code === 'metrics-win-below-extrema-bottom')
+		).toBeUndefined();
+	});
+});
+
+describe('preflightProject — kerning-suggests-spacing triage', () => {
+	const vKernedAgainst = (count: number, value: number | ((i: number) => number)) =>
+		Array.from({ length: count }, (_, i) => ({
+			left: 0x56, // V
+			right: 0x61 + i, // a, b, c, …
+			value: typeof value === 'function' ? value(i) : value
+		}));
+
+	it('flags a glyph kerned against 8+ partners in the same direction', () => {
+		const project = baseProject({ kerning: vKernedAgainst(9, -40) });
+		const issue = preflightProject(project).find((i) => i.code === 'kerning-suggests-spacing');
+		expect(issue).toBeDefined();
+		expect(issue?.codepoint).toBe(0x56);
+		expect(issue?.severity).toBe('info');
+		expect(issue?.message).toContain('right');
+	});
+
+	it('does NOT flag below the partner threshold', () => {
+		const project = baseProject({ kerning: vKernedAgainst(7, -40) });
+		expect(
+			preflightProject(project).find((i) => i.code === 'kerning-suggests-spacing')
+		).toBeUndefined();
+	});
+
+	it('does NOT flag mixed-direction kerning', () => {
+		const project = baseProject({ kerning: vKernedAgainst(10, (i) => (i % 2 ? 40 : -40)) });
+		expect(
+			preflightProject(project).find((i) => i.code === 'kerning-suggests-spacing')
+		).toBeUndefined();
+	});
+
+	it('does NOT flag when the median kern is small', () => {
+		const project = baseProject({ kerning: vKernedAgainst(10, -10) });
+		expect(
+			preflightProject(project).find((i) => i.code === 'kerning-suggests-spacing')
+		).toBeUndefined();
+	});
+
+	it('skips class-based pairs (classes are already the fix-once form)', () => {
+		const pairs = Array.from({ length: 10 }, (_, i) => ({
+			left: '@V_left',
+			right: 0x61 + i,
+			value: -40
+		}));
+		const project = baseProject({ kerning: pairs as Project['kerning'] });
+		expect(
+			preflightProject(project).find((i) => i.code === 'kerning-suggests-spacing')
+		).toBeUndefined();
+	});
+});
